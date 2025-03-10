@@ -29,6 +29,7 @@
 
 # Include configuration files
 !.env
+!.prettierrc
 !eslint*
 !package*.json
 !tsconfig.json

@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Transaction } from 'sequelize';
-import { Case, Course, Team, CaseEvent, Document, User } from '../../models';
+import { Case, Course, Team, CaseEvent, User } from '../../models';
 import { CreateCaseDto } from './dto/create-case.dto';
 import { UpdateCaseDto } from './dto/update-case.dto';
 
@@ -11,7 +10,7 @@ export class CasesService {
     @InjectModel(Case)
     private caseModel: typeof Case,
     @InjectModel(Course)
-    private courseModel: typeof Course
+    private courseModel: typeof Course,
   ) {}
 
   async findAll(): Promise<Case[]> {
@@ -85,7 +84,7 @@ export class CasesService {
   async create(createCaseDto: CreateCaseDto): Promise<Case> {
     const newCase = this.caseModel.build({
       ...createCaseDto,
-    } as any);
+    } as Partial<Case>);
     await newCase.save();
     return this.findOne(newCase.id);
   }
@@ -94,7 +93,7 @@ export class CasesService {
     const legalCase = await this.findOne(id);
     await legalCase.update({
       ...updateCaseDto,
-    } as any);
+    } as Partial<Case>);
     return this.findOne(id);
   }
 

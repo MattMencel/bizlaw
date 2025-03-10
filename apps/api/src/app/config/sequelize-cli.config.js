@@ -1,9 +1,11 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const dotenv = require('dotenv');
 
 // Try to load .env file if exists
 try {
   dotenv.config();
-} catch (e) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+} catch (_) {
   console.log('No .env file found or error loading it');
 }
 
@@ -15,7 +17,7 @@ module.exports = {
     username: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'postgres',
     database: process.env.DB_NAME || 'business_law',
-    migrationStorageTableName: 'SequelizeMeta'
+    migrationStorageTableName: 'SequelizeMeta',
   },
   production: {
     dialect: 'postgres',
@@ -25,6 +27,6 @@ module.exports = {
     password: process.env.DB_PASSWORD || 'postgres',
     database: process.env.DB_NAME || 'business_law',
     migrationStorageTableName: 'SequelizeMeta',
-    logging: false
-  }
+    logging: false,
+  },
 };

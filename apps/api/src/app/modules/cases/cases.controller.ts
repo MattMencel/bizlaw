@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   UseGuards,
-  Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -22,6 +21,8 @@ export class CasesController {
   constructor(private readonly casesService: CasesService) {}
 
   @Get()
+  @UseGuards(RolesGuard)
+  @Roles('professor', 'admin')
   findAll() {
     return this.casesService.findAll();
   }

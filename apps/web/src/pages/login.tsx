@@ -1,21 +1,34 @@
-import { signIn, signOut, useSession } from 'next-auth/react';
+import React from 'react';
+import Head from 'next/head';
+import Link from 'next/link';
+import dynamic from 'next/dynamic';
+
+// Dynamic import with no SSR for authentication components
+const AuthComponents = dynamic(
+  () => import('../components/Auth/AuthComponents'),
+  { ssr: false },
+);
 
 export default function LoginPage() {
-  const { data: session } = useSession();
-
-  if (session) {
-    return (
-      <div>
-        <p>Welcome, {session.user?.name}</p>
-        <button onClick={() => signOut()}>Sign out</button>
-      </div>
-    );
-  }
-
   return (
-    <div>
+    <div className="container">
+      <Head>
+        <title>Login - Business Law Application</title>
+      </Head>
+
       <h1>Login</h1>
-      <button onClick={() => signIn('google')}>Sign in with Google</button>
+
+      {/* Authentication components loaded only on client-side */}
+      <AuthComponents />
+
+      <p>
+        <Link
+          href="/"
+          style={{ color: '#0070f3', textDecoration: 'underline' }}
+        >
+          Return to Home
+        </Link>
+      </p>
     </div>
   );
 }

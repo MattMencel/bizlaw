@@ -1,3 +1,7 @@
 import baseConfig from '../../eslint.config.mjs';
 
-export default [...baseConfig];
+// Assign to a variable first
+const config = [...baseConfig];
+
+// Then export the variable
+export default config;

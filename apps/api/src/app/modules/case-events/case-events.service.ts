@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { CaseEvent, Case } from '../../models';
 import { CreateCaseEventDto } from './dto/create-case-event.dto';
 import { UpdateCaseEventDto } from './dto/update-case-event.dto';
+import { WhereOptions } from 'sequelize';
 
 @Injectable()
 export class CaseEventsService {
@@ -10,7 +11,7 @@ export class CaseEventsService {
     @InjectModel(CaseEvent)
     private caseEventModel: typeof CaseEvent,
     @InjectModel(Case)
-    private caseModel: typeof Case
+    private caseModel: typeof Case,
   ) {}
 
   async findAll(): Promise<CaseEvent[]> {
@@ -21,9 +22,10 @@ export class CaseEventsService {
 
   async findByCaseId(
     caseId: number,
-    includeInvisible = false
+    includeInvisible = false,
   ): Promise<CaseEvent[]> {
-    const where: any = { caseId };
+    // Using a proper type for where conditions
+    const where: WhereOptions<CaseEvent> = { caseId };
 
     if (!includeInvisible) {
       where.isVisible = true;
@@ -52,26 +54,25 @@ export class CaseEventsService {
     const caseExists = await this.caseModel.findByPk(createCaseEventDto.caseId);
     if (!caseExists) {
       throw new NotFoundException(
-        `Case with ID ${createCaseEventDto.caseId} not found`
+        `Case with ID ${createCaseEventDto.caseId} not found`,
       );
     }
 
     // Create event using build() and save() instead of create()
-    const caseEvent = this.caseEventModel.build({
-      ...createCaseEventDto,
-    } as any);
+    // Using proper type casting instead of 'any'
+    const caseEvent = this.caseEventModel.build(
+      createCaseEventDto as Partial<CaseEvent>,
+    );
     await caseEvent.save();
     return this.findOne(caseEvent.id);
   }
 
   async update(
     id: number,
-    updateCaseEventDto: UpdateCaseEventDto
+    updateCaseEventDto: UpdateCaseEventDto,
   ): Promise<CaseEvent> {
     const caseEvent = await this.findOne(id);
-    await caseEvent.update({
-      ...updateCaseEventDto,
-    } as any);
+    await caseEvent.update(updateCaseEventDto as Partial<CaseEvent>);
     return this.findOne(id);
   }
 
@@ -82,7 +83,9 @@ export class CaseEventsService {
 
   async toggleVisibility(id: number): Promise<CaseEvent> {
     const caseEvent = await this.findOne(id);
-    await caseEvent.update({ isVisible: !caseEvent.isVisible } as any);
+    await caseEvent.update({
+      isVisible: !caseEvent.isVisible,
+    } as Partial<CaseEvent>);
     return this.findOne(id);
   }
 }
