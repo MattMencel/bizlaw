@@ -13,6 +13,8 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UsersService } from './users.service';
 import { User } from '../../models';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -36,7 +38,7 @@ export class UsersController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles('admin')
-  create(@Body() createUserDto: any): Promise<User> {
+  create(@Body() createUserDto: CreateUserDto): Promise<User> {
     return this.usersService.create(createUserDto);
   }
 
@@ -45,7 +47,7 @@ export class UsersController {
   @Roles('admin')
   update(
     @Param('id') id: string,
-    @Body() updateUserDto: any
+    @Body() updateUserDto: UpdateUserDto,
   ): Promise<[number, User[]]> {
     return this.usersService.update(+id, updateUserDto);
   }

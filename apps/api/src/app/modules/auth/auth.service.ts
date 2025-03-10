@@ -1,18 +1,37 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/sequelize';
 import * as bcrypt from 'bcryptjs';
-import { User } from '../../models';
+import { User, Invitation } from '../../models';
+
+// Define proper interfaces for type safety
+interface UserData {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+}
+
+interface LoginResponse {
+  accessToken: string;
+  user: UserData;
+}
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User)
     private userModel: typeof User,
+    @InjectModel(Invitation)
+    private invitationModel: typeof Invitation,
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<any> {
+  async validateUser(
+    email: string,
+    password: string,
+  ): Promise<UserData | null> {
     const user = await this.userModel.findOne({
       where: { email },
       attributes: ['id', 'email', 'password', 'firstName', 'lastName', 'role'],
@@ -27,31 +46,12 @@ export class AuthService {
       return null;
     }
 
-    const { password: _, ...result } = user.toJSON();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: passwordValue, ...result } = user.toJSON();
     return result;
   }
 
-  async validateOAuthLogin(
-    email: string,
-    firstName: string,
-    lastName: string,
-  ): Promise<any> {
-    let user = await this.userModel.findOne({ where: { email } });
-
-    if (!user) {
-      user = await this.userModel.create({
-        email,
-        firstName,
-        lastName,
-        role: 'instructor',
-      });
-    }
-
-    const { password: _, ...result } = user.toJSON();
-    return result;
-  }
-
-  async login(user: any) {
+  async login(user: UserData): Promise<LoginResponse> {
     const payload = { email: user.email, sub: user.id, role: user.role };
     return {
       accessToken: this.jwtService.sign(payload),
@@ -63,5 +63,72 @@ export class AuthService {
         role: user.role,
       },
     };
+  }
+
+  // In your NestJS auth service or controller
+  async checkUser(
+    email: string,
+    name?: string,
+    image?: string,
+    checkFirstUser = false,
+  ) {
+    try {
+      // Check if user exists
+      let user = await this.userModel.findOne({
+        where: { email },
+        attributes: ['id', 'email', 'firstName', 'lastName', 'role'],
+      });
+
+      // If user exists, return their role
+      if (user) {
+        return {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+        };
+      }
+
+      // If this is a new user, check if any users exist in the system
+      let role = 'student'; // Default role
+
+      if (checkFirstUser) {
+        const userCount = await this.userModel.count();
+        if (userCount === 0) {
+          role = 'admin'; // First user gets admin role
+        }
+      }
+
+      // Parse the name
+      const nameParts = name ? name.split(' ') : ['User', ''];
+      const firstName = nameParts[0];
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+      // Create a random password for OAuth users
+      const randomPassword = Math.random().toString(36).slice(-8);
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+      // Create the user - THIS IS THE CRITICAL PART THAT MIGHT BE FAILING
+      console.log(`Creating new user with email: ${email}, role: ${role}`);
+
+      user = await this.userModel.create({
+        email,
+        firstName,
+        lastName,
+        password: hashedPassword,
+        role,
+        profileImage: image || null,
+      });
+
+      console.log(`User created successfully with ID: ${user.id}`);
+
+      return {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      };
+    } catch (error) {
+      console.error('Error in checkUser method:', error);
+      throw error; // Make sure to propagate the error
+    }
   }
 }

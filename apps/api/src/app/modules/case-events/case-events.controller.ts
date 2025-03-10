@@ -32,7 +32,7 @@ export class CaseEventsController {
   @Get('case/:caseId')
   findByCaseId(
     @Param('caseId') caseId: number,
-    @Query('includeInvisible') includeInvisible: boolean
+    @Query('includeInvisible') includeInvisible: boolean,
   ) {
     return this.caseEventsService.findByCaseId(caseId, includeInvisible);
   }
@@ -54,7 +54,7 @@ export class CaseEventsController {
   @Roles('professor', 'admin')
   update(
     @Param('id') id: number,
-    @Body() updateCaseEventDto: UpdateCaseEventDto
+    @Body() updateCaseEventDto: UpdateCaseEventDto,
   ) {
     return this.caseEventsService.update(id, updateCaseEventDto);
   }

@@ -26,7 +26,7 @@ export default async function handler(
         from: process.env.GMAIL_USER,
         to: email,
         subject: 'You are invited to join as an instructor',
-        text: `You have been invited to join as an instructor. Please login using your Google account: http://localhost:3000/login`,
+        text: 'You have been invited to join as an instructor. Please login using your Google account: http://localhost:3000/login',
       };
 
       await transporter.sendMail(mailOptions);

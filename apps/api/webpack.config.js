@@ -1,14 +1,16 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { composePlugins, withNx } = require('@nx/webpack');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const path = require('path');
 
 // Nx plugins for webpack.
-module.exports = composePlugins(withNx(), (config) => {
+module.exports = composePlugins(withNx(), config => {
   // Add Node.js specific configurations
   config.target = 'node';
-  
+
   // Externalize node_modules - using a safer approach
   config.externalsPresets = { node: true };
-  
+
   // Configure output
   config.output = {
     ...config.output,
@@ -16,17 +18,17 @@ module.exports = composePlugins(withNx(), (config) => {
     filename: 'main.js',
     libraryTarget: 'commonjs',
   };
-  
+
   // Ensure module rules exists before pushing
   if (!config.module) config.module = {};
   if (!config.module.rules) config.module.rules = [];
-  
+
   // Handle assets
   config.module.rules.push({
     test: /\.(txt|sql|html|hbs)$/,
-    type: 'asset/source',  // Modern approach instead of raw-loader
+    type: 'asset/source', // Modern approach instead of raw-loader
   });
-  
+
   // Optimize for Node.js
   config.optimization = {
     ...config.optimization,

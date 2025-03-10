@@ -1,8 +1,10 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import { NextAuthOptions } from 'next-auth';
+import axios from 'axios';
 
-const invitedInstructors: string[] = [];
+// Very important: use the correct API_URL format
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333';
 
 const options: NextAuthOptions = {
   providers: [
@@ -13,18 +15,48 @@ const options: NextAuthOptions = {
   ],
   secret: process.env.NEXTAUTH_SECRET as string,
   callbacks: {
-    async signIn({ user, account, profile, email, credentials }) {
-      // Check if the user is an invited instructor
-      if (user.email && invitedInstructors.includes(user.email)) {
-        // Create the instructor account if necessary
-        // In a real application, you would create the account in the database
-        user.role = 'instructor'; // Assign the role
+    async signIn({ user }) {
+      try {
+        console.log('Starting signIn callback, checking user:', user.email);
+
+        // Make sure to add the /api prefix if your NestJS app uses it
+        const checkUserUrl = `${API_URL}/api/auth/check-user`;
+        console.log('Making request to:', checkUserUrl);
+
+        const response = await axios.post(checkUserUrl, {
+          email: user.email,
+          name: user.name,
+          image: user.image,
+          checkFirstUser: true,
+        });
+
+        console.log('Check user response:', response.data);
+
+        if (response.data && response.data.role) {
+          user.role = response.data.role;
+          user.id = response.data.id;
+        } else {
+          user.role = 'student';
+        }
+
         return true;
-      } else {
-        return false;
+      } catch (error) {
+        console.error('Error checking user:', error);
+        // If API fails, default to student and allow login
+        user.role = 'student';
+        return true;
       }
     },
-    async session({ session, token, user }) {
+
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id as string;
+        token.role = user.role as string; // Add the role to the token
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
       // Add user information to the session
       if (session.user) {
         session.user.id = token.id as string;
@@ -32,13 +64,10 @@ const options: NextAuthOptions = {
       }
       return session;
     },
-    async jwt({ token, user, account, profile, isNewUser }) {
-      if (user) {
-        token.id = user.id as string;
-        token.role = user.role as string; // Add the role to the token
-      }
-      return token;
-    },
+  },
+  pages: {
+    signIn: '/login',
+    error: '/login',
   },
 };
 

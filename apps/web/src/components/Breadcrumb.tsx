@@ -3,15 +3,13 @@ import { useRouter } from 'next/router';
 
 const Breadcrumb = () => {
   const router = useRouter();
-  const pathnames = router.pathname.split('/').filter((x) => x);
+  const pathnames = router.pathname.split('/').filter(x => x);
 
   return (
     <nav aria-label="breadcrumb">
       <ol>
         <li>
-          <Link href="/">
-            <a>Home</a>
-          </Link>
+          <Link href="/">Home</Link>
         </li>
         {pathnames.map((value, index) => {
           const href = `/${pathnames.slice(0, index + 1).join('/')}`;
@@ -20,9 +18,7 @@ const Breadcrumb = () => {
             <li key={index}>{value}</li>
           ) : (
             <li key={index}>
-              <Link href={href}>
-                <a>{value}</a>
-              </Link>
+              <Link href={href}>{value}</Link>
             </li>
           );
         })}

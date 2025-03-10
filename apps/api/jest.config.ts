@@ -1,4 +1,4 @@
-export default {
+const config = {
   displayName: 'api',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',
@@ -8,3 +8,5 @@ export default {
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageDirectory: '../../coverage/apps/api',
 };
+
+export default config;

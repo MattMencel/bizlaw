@@ -1,12 +1,23 @@
-import '../styles/globals.css';
-import { SessionProvider } from 'next-auth/react';
+import React from 'react';
 import type { AppProps } from 'next/app';
+import '../styles/globals.css';
+import dynamic from 'next/dynamic';
 
-function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
+// Create a client-only wrapper component for SessionProvider
+const ClientSessionProvider = dynamic(
+  () => import('../components/ClientSessionProvider'),
+  {
+    ssr: false,
+    // Use a simple loading component that doesn't try to access children
+    loading: () => <div>Loading...</div>,
+  },
+);
+
+function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <SessionProvider session={session}>
+    <ClientSessionProvider session={pageProps.session}>
       <Component {...pageProps} />
-    </SessionProvider>
+    </ClientSessionProvider>
   );
 }
 
