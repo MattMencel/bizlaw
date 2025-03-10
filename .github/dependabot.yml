@@ -1,17 +1,14 @@
 version: 2
 updates:
-  - package-ecosystem: docker
-    directory: '/'
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
-    labels:
-      - 'source: dependencies'
-      - 'pr: chore'
-      - 'docker'
-
   - package-ecosystem: npm
     directory: /
+    schedule:
+      interval: weekly
+      day: sunday
+      time: '22:00'
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    rebase-strategy: auto
     groups:
       babel:
         patterns:
@@ -28,6 +25,25 @@ updates:
         patterns:
           - 'jest'
           - 'jest-*'
+
+      # Add NX packages group
+      nx:
+        patterns:
+          - '@nx/*'
+          - 'nx'
+
+      # Add Next.js packages group
+      next:
+        patterns:
+          - 'next'
+          - 'next-*'
+          - '@next/*'
+          - 'eslint-config-next'
+
+      # Add NestJS packages group
+      nest:
+        patterns:
+          - '@nestjs/*'
 
       react:
         patterns:
@@ -64,15 +80,11 @@ updates:
           - 'webpack-cli'
           - 'webpack-dev-server'
 
-    commit-message:
-      prefix: 'chore'
-      include: 'scope'
-    schedule:
-      interval: weekly
-      day: sunday
-      time: '22:00'
-    open-pull-requests-limit: 10 # Allow up to 10 PRs at a time
-    versioning-strategy: increase
+    labels:
+      - 'source: dependencies'
+      - 'pr: chore'
+    reviewers:
+      - 'matt.mencel'
     ignore:
       # Only allow patch as minor babel versions need to be upgraded all together
       - dependency-name: '@babel/*'
@@ -85,9 +97,21 @@ updates:
           - 'version-update:semver-patch'
           - 'version-update:semver-major'
 
+  # Add security-focused configuration
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 5
+    groups:
+      security-critical:
+        patterns:
+          - 'axios'
+          - 'jsonwebtoken'
+          - 'express'
     labels:
       - 'source: dependencies'
-      - 'pr: chore'
+      - 'security'
 
   - package-ecosystem: github-actions
     open-pull-requests-limit: 0
@@ -102,3 +126,10 @@ updates:
     labels:
       - 'source: dependencies'
       - 'pr: chore'
+
+  # Add Docker configuration
+  - package-ecosystem: docker
+    directory: '/'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
