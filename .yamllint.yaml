@@ -1,0 +1,9 @@
+---
+extends: default
+
+rules:
+  comments:
+    min-spaces-from-content: 1
+    max: 120
+  truthy:
+    check-keys: false
