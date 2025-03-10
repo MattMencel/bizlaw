@@ -27,6 +27,16 @@ export class CasesController {
   @Get(':id')
   @Render('cases/detail')
   async findOne(@Param('id') id: string) {
+    // Validate the id parameter to ensure it only contains alphanumeric characters
+    const isValidId = /^[a-zA-Z0-9]+$/.test(id);
+    if (!isValidId) {
+      return {
+        case: null,
+        events: [],
+        error: 'Invalid case ID',
+        title: 'Case Details',
+      };
+    }
     try {
       const { data: caseData } = await axios.get(
         `${this.apiUrl}/api/cases/${id}`,
