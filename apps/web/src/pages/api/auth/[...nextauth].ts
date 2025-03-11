@@ -3,7 +3,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import { NextAuthOptions } from 'next-auth';
 import axios from 'axios';
 
-// Very important: use the correct API_URL format
+// Very important: use the correct API_URL format for server-to-server communication
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333';
 
 const options: NextAuthOptions = {
@@ -32,9 +32,10 @@ const options: NextAuthOptions = {
 
         console.log('Check user response:', response.data);
 
-        if (response.data && response.data.role) {
-          user.role = response.data.role;
+        if (response.data) {
+          // Store the user's ID and role properly
           user.id = response.data.id;
+          user.role = response.data.role;
         } else {
           user.role = 'student';
         }
@@ -49,18 +50,46 @@ const options: NextAuthOptions = {
     },
 
     async jwt({ token, user }) {
+      // Removed 'account' parameter
+      // This is called whenever a JWT is created or updated
       if (user) {
-        token.id = user.id as string;
-        token.role = user.role as string; // Add the role to the token
+        // Initial sign in
+        token.id = user.id;
+        token.role = user.role;
+
+        try {
+          // Get JWT token from your API for backend authorization
+          const response = await axios.post(`${API_URL}/api/auth/login`, {
+            email: user.email,
+          });
+
+          if (response.data && response.data.accessToken) {
+            token.accessToken = response.data.accessToken;
+            console.log(
+              'JWT token obtained:',
+              response.data.accessToken.substring(0, 10) + '...',
+            );
+          } else {
+            console.error('No access token returned from API');
+          }
+        } catch (error) {
+          console.error('Error getting JWT token:', error);
+        }
       }
       return token;
     },
 
     async session({ session, token }) {
-      // Add user information to the session
+      // This is called whenever a session is accessed
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as string; // Add the role to the session
+        session.user.role = token.role as string;
+        session.accessToken = token.accessToken as string;
+
+        console.log(
+          'Session created with accessToken:',
+          token.accessToken ? 'present' : 'missing',
+        );
       }
       return session;
     },
@@ -69,6 +98,7 @@ const options: NextAuthOptions = {
     signIn: '/login',
     error: '/login',
   },
+  debug: process.env.NODE_ENV === 'development',
 };
 
 export default NextAuth(options);

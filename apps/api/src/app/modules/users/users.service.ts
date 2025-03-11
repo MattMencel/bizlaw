@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import * as bcrypt from 'bcryptjs';
-import { User } from '../../models';
+import { User } from '../../models/user.model';
 
 @Injectable()
 export class UsersService {
@@ -11,9 +11,18 @@ export class UsersService {
   ) {}
 
   async findAll(): Promise<User[]> {
-    return this.userModel.findAll({
-      attributes: { exclude: ['password'] },
+    const users = await this.userModel.findAll({
+      attributes: [
+        'id',
+        'email',
+        'firstName',
+        'lastName',
+        'role',
+        ['created_at', 'createdAt'],
+        ['updated_at', 'updatedAt'],
+      ],
     });
+    return users;
   }
 
   async findOne(id: number): Promise<User> {

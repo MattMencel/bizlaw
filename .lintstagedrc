@@ -1,7 +1,7 @@
 {
   "*.{js,jsx,ts,tsx}": [
-    "prettier --write",
-    "eslint --fix --ext .js,.jsx,.ts,.tsx"
+    "nx affected --target=lint --fix --files",
+    "nx format:write --files"
   ],
   "!(*.js|*.jsx|*.ts|*.tsx)": ["prettier --write --ignore-unknown"]
 }
