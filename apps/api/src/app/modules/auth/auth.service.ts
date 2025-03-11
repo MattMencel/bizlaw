@@ -3,20 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/sequelize';
 import * as bcrypt from 'bcryptjs';
 import { User, Invitation } from '../../models';
-
-// Define proper interfaces for type safety
-interface UserData {
-  id: number;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-}
-
-interface LoginResponse {
-  accessToken: string;
-  user: UserData;
-}
+import { UserData, LoginResponse } from './types/auth.types';
 
 @Injectable()
 export class AuthService {
@@ -51,8 +38,59 @@ export class AuthService {
     return result;
   }
 
-  async login(user: UserData): Promise<LoginResponse> {
-    const payload = { email: user.email, sub: user.id, role: user.role };
+  // Combined login method that accepts either a full user object or just email
+  async login(
+    userOrEmail: UserData | { email: string },
+  ): Promise<LoginResponse> {
+    let user: User | null;
+
+    if ('id' in userOrEmail) {
+      // If userOrEmail has an id property, it's already a full user object
+      const payload = {
+        email: userOrEmail.email,
+        sub: userOrEmail.id,
+        role: userOrEmail.role,
+      };
+
+      return {
+        accessToken: this.jwtService.sign(payload),
+        user: {
+          id: userOrEmail.id,
+          email: userOrEmail.email,
+          firstName: userOrEmail.firstName,
+          lastName: userOrEmail.lastName,
+          role: userOrEmail.role,
+        },
+      };
+    } else {
+      // If only email is provided, find the user first
+      user = await this.findUserByEmail(userOrEmail.email);
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      return this.generateToken(user);
+    }
+  }
+
+  // Add the findUserByEmail method
+  async findUserByEmail(email: string): Promise<User | null> {
+    return this.userModel.findOne({
+      where: { email },
+    });
+  }
+
+  // Add the generateToken method
+  async generateToken(user: User) {
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
+
     return {
       accessToken: this.jwtService.sign(payload),
       user: {
@@ -81,6 +119,7 @@ export class AuthService {
 
       // If user exists, return their role
       if (user) {
+        console.log(`User found: ${user.id}, role: ${user.role}`);
         return {
           id: user.id,
           email: user.email,
@@ -93,8 +132,10 @@ export class AuthService {
 
       if (checkFirstUser) {
         const userCount = await this.userModel.count();
+        console.log(`User count: ${userCount}`);
         if (userCount === 0) {
           role = 'admin'; // First user gets admin role
+          console.log('Setting first user as admin');
         }
       }
 
@@ -107,7 +148,7 @@ export class AuthService {
       const randomPassword = Math.random().toString(36).slice(-8);
       const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
-      // Create the user - THIS IS THE CRITICAL PART THAT MIGHT BE FAILING
+      // Create the user with explicit values for all required fields
       console.log(`Creating new user with email: ${email}, role: ${role}`);
 
       user = await this.userModel.create({
@@ -116,7 +157,8 @@ export class AuthService {
         lastName,
         password: hashedPassword,
         role,
-        profileImage: image || null,
+        // Only set profileImage if the column exists in the database
+        ...(image ? { profileImage: image } : {}),
       });
 
       console.log(`User created successfully with ID: ${user.id}`);

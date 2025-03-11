@@ -20,10 +20,6 @@ RUN npm ci --ignore-scripts && \
 COPY . .
 RUN npx nx build api
 
-# # Remove dev dependencies
-# RUN npm prune --production
-
-
 FROM base
 
 WORKDIR /app
@@ -31,12 +27,12 @@ WORKDIR /app
 COPY --from=builder /app/dist/apps/api .
 COPY --from=builder /app/node_modules ./node_modules
 
-# # Create directory structure for migrations
-# RUN mkdir -p config migrations
+# Create directory structure for migrations
+RUN mkdir -p migrations config
 
-# Copy migrations and config with correct paths
+# Copy migrations with correct paths (only one location)
 COPY --from=builder /app/apps/api/src/assets/migrations/*.* ./migrations/
-COPY --from=builder /app/apps/api/src/app/config/sequelize-cli.config.js ./config/
+COPY --from=builder /app/apps/api/src/config/sequelize-cli.config.js ./config/
 
 # Create a startup script
 COPY --from=builder /app/apps/api/entrypoint.sh ./entrypoint.sh

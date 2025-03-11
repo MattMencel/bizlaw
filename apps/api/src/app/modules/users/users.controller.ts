@@ -17,14 +17,13 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get()
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  findAll(): Promise<User[]> {
+  @Get()
+  async findAll(): Promise<User[]> {
     return this.usersService.findAll();
   }
 
