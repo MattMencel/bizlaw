@@ -2,15 +2,7 @@ import { Strategy } from 'passport-local';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from '../auth.service';
-
-// Define interface for the user data
-interface UserData {
-  id: number;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-}
+import { UserData } from '../types/auth.types';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {

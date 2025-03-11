@@ -9,6 +9,7 @@
 # Include necessary files and directories for api Dockerfile
 !apps/api/Dockerfile
 !apps/api/src/
+!apps/api/.sequelizerc
 !apps/api/entrypoint.sh
 !apps/api/package*.json
 !apps/api/project.json

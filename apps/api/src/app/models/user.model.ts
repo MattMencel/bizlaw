@@ -1,54 +1,67 @@
-import { Column, Model, Table, HasMany, DataType } from 'sequelize-typescript';
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  HasMany, // Add this import
+} from 'sequelize-typescript';
 import { Course } from './course.model';
 import { TeamMember } from './team-member.model';
 import { Document } from './document.model';
 
 @Table({
   tableName: 'users',
+  underscored: true, // This tells Sequelize to use snake_case in the database
   timestamps: true,
-  createdAt: 'created_at',
-  updatedAt: 'updated_at',
 })
 export class User extends Model {
   @Column({
+    type: DataType.UUID,
+    defaultValue: DataType.UUIDV4,
     primaryKey: true,
-    autoIncrement: true,
-    type: DataType.INTEGER,
   })
-  id: number;
+  id: string;
 
   @Column({
+    type: DataType.STRING,
     allowNull: false,
     unique: true,
-    type: DataType.STRING(100),
   })
   email: string;
 
   @Column({
-    allowNull: false,
-    type: DataType.STRING(255),
+    type: DataType.STRING,
+    allowNull: true,
   })
   password: string;
 
   @Column({
-    allowNull: false,
-    field: 'first_name',
-    type: DataType.STRING(50),
+    type: DataType.STRING,
+    allowNull: true,
+    field: 'first_name', // Explicitly map to snake_case column
   })
   firstName: string;
 
   @Column({
-    allowNull: false,
-    field: 'last_name',
-    type: DataType.STRING(50),
+    type: DataType.STRING,
+    allowNull: true,
+    field: 'last_name', // Explicitly map to snake_case column
   })
   lastName: string;
 
   @Column({
+    type: DataType.STRING,
     allowNull: false,
-    type: DataType.STRING(20),
+    defaultValue: 'student',
   })
-  role: 'professor' | 'student' | 'admin';
+  role: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    field: 'profile_image', // Explicitly map to snake_case column
+  })
+  profileImage: string;
 
   // Relationships
   @HasMany(() => Course, 'professor_id')

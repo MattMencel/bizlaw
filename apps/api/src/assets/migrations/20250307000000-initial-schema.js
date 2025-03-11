@@ -6,7 +6,25 @@ const path = require('path');
 module.exports = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async up(queryInterface, Sequelize) {
-    // Read the SQL file content
+    // First check if users table already exists to make the migration idempotent
+    const tableExists = await queryInterface.sequelize
+      .query(
+        `SELECT EXISTS (
+          SELECT FROM information_schema.tables
+          WHERE table_schema = 'public'
+          AND table_name = 'users'
+        );`,
+        { type: queryInterface.sequelize.QueryTypes.SELECT }
+      )
+      .then(result => result[0].exists);
+
+    // If tables already exist, skip this migration
+    if (tableExists) {
+      console.log('Tables already exist, skipping initial schema creation');
+      return;
+    }
+
+    // Continue with original migration code
     const sqlPath = path.join(__dirname, 'initial.sql');
     const sql = fs.readFileSync(sqlPath, 'utf8');
 
