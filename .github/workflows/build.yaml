@@ -11,14 +11,11 @@ jobs:
 
     strategy:
       matrix:
-        service: [api, web]
+        service: [bizlaw]
         include:
-          - service: api
-            dockerfile: ./apps/api/Dockerfile
-            image: business-law-api
-          - service: web
-            dockerfile: ./apps/web/Dockerfile
-            image: business-law-web
+          - service: bizlaw
+            dockerfile: ./Dockerfile
+            image: business-law-bizlaw
 
     permissions:
       contents: read
