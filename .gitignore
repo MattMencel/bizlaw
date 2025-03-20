@@ -46,3 +46,4 @@ testem.log
 
 # Docker
 docker-compose.override.yml
+.vercel

@@ -146,8 +146,8 @@ export async function updateCase(id: number, data: Partial<NewCase>): Promise<Ca
 export async function deleteCase(id: number): Promise<boolean> {
   const db = getDb();
 
-  // Fix: Check the returned array to determine success
-  const result = await db.delete(cases).where(eq(cases.id, id)).returning({ id: cases.id });
+  // Fix: Call returning() without arguments
+  const result = await db.delete(cases).where(eq(cases.id, id)).returning();
 
   return result.length > 0;
 }
