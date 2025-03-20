@@ -6,31 +6,21 @@
 **/coverage
 **/.next
 
-# Include necessary files and directories for api Dockerfile
-!apps/api/Dockerfile
-!apps/api/src/
-!apps/api/.sequelizerc
-!apps/api/entrypoint.sh
-!apps/api/package*.json
-!apps/api/project.json
-!apps/api/tsconfig*
-!apps/api/webpack.config.js
-
-# Include necessary files and directories for web Dockerfile
-!apps/web/Dockerfile
-!apps/web/entrypoint.sh
-!apps/web/package*.json
-!apps/web/project.json
-!apps/web/public/
-!apps/web/src/
-!apps/web/types/
-!apps/web/next.config.js
-!apps/web/tsconfig*
-!apps/web/webpack.config.js
+# Include necessary files and directories for bizlaw Dockerfile
+!apps/bizlaw/drizzle/
+!apps/bizlaw/public/
+!apps/bizlaw/src/
+!apps/bizlaw/entrypoint.sh
+!apps/bizlaw/next.config.js
+!apps/bizlaw/package*.json
+!apps/bizlaw/project.json
+!apps/bizlaw/tsconfig*
+!apps/bizlaw/webpack.config.js
 
 # Include configuration files
 !.env
 !.prettierrc
+!drizzle/
 !eslint*
 !package*.json
 !tsconfig.json

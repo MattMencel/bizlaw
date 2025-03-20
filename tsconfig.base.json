@@ -15,7 +15,9 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@business-law-nx/shared": ["libs/shared/src/index.ts"]
+      "@business-law-nx/shared": ["libs/shared/src/index.ts"],
+      "@apps/bizlaw/*": ["apps/bizlaw/*"],
+      "@/*": ["apps/bizlaw/src/*"]
     },
     "esModuleInterop": true
   },
