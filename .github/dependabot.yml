@@ -80,11 +80,6 @@ updates:
           - 'webpack-cli'
           - 'webpack-dev-server'
 
-    labels:
-      - 'source: dependencies'
-      - 'pr: chore'
-    reviewers:
-      - 'matt.mencel'
     ignore:
       # Only allow patch as minor babel versions need to be upgraded all together
       - dependency-name: '@babel/*'
@@ -103,12 +98,6 @@ updates:
     schedule:
       interval: daily
     open-pull-requests-limit: 5
-    groups:
-      security-critical:
-        patterns:
-          - 'axios'
-          - 'jsonwebtoken'
-          - 'express'
     labels:
       - 'source: dependencies'
       - 'security'
@@ -126,10 +115,3 @@ updates:
     labels:
       - 'source: dependencies'
       - 'pr: chore'
-
-  # Add Docker configuration
-  - package-ecosystem: docker
-    directory: '/'
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
