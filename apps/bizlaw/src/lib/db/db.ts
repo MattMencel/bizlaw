@@ -6,12 +6,12 @@ import * as schema from './schema';
 
 // Define a more specific type for options
 type PostgresOptions = {
-  max?: number;
+  max?: number
   ssl?:
     | {
-        rejectUnauthorized: boolean;
-      }
-    | undefined;
+      rejectUnauthorized: boolean
+    }
+    | undefined
 };
 
 let db: ReturnType<typeof createDbWithOptions> | null = null;
@@ -28,7 +28,8 @@ function createDbWithOptions(connectionString: string, options: PostgresOptions 
       schema,
       logger: process.env.NODE_ENV !== 'production',
     });
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error creating database client:', error);
     throw error;
   }
@@ -37,13 +38,13 @@ function createDbWithOptions(connectionString: string, options: PostgresOptions 
 export async function initDb() {
   if (!db) {
     // Vercel typically uses DATABASE_URL environment variable
-    const connectionString =
-      process.env.DATABASE_URL ||
-      `postgres://${process.env.DB_USER || 'postgres'}:${
-        process.env.DB_PASSWORD || 'postgres'
-      }@${process.env.DB_HOST || 'localhost'}:${
-        process.env.DB_PORT || '5432'
-      }/${process.env.DB_NAME || 'business_law'}`;
+    const connectionString
+      = process.env.DATABASE_URL
+        || `postgres://${process.env.DB_USER || 'postgres'}:${
+          process.env.DB_PASSWORD || 'postgres'
+        }@${process.env.DB_HOST || 'localhost'}:${
+          process.env.DB_PORT || '5432'
+        }/${process.env.DB_NAME || 'business_law'}`;
 
     const options = {
       max: 10,
@@ -78,7 +79,7 @@ export function closeDb() {
 // This ensures the database is initialized when the module is first imported
 if (process.env.NODE_ENV !== 'test') {
   console.info('Auto-initializing database connection...');
-  initDb().catch(err => {
+  initDb().catch((err) => {
     console.error('Failed to auto-initialize database:', err);
   });
 }
