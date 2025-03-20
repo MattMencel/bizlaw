@@ -13,20 +13,9 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Courses table
-export const courses = pgTable('courses', {
-  id: serial('id').primaryKey(),
-  name: text('name').notNull(),
-  description: text('description'),
-  professorId: uuid('professor_id').references(() => users.id),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
-// Cases table
+// Cases table (modified to remove courseId reference)
 export const cases = pgTable('cases', {
   id: serial('id').primaryKey(),
-  courseId: integer('course_id').references(() => courses.id),
   title: text('title').notNull(),
   description: text('description'),
   active: boolean('active').default(true),
@@ -74,49 +63,12 @@ export const documents = pgTable('documents', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Enrollments table
-export const enrollments = pgTable('enrollments', {
-  id: serial('id').primaryKey(),
-  userId: uuid('user_id').references(() => users.id),
-  courseId: integer('course_id').references(() => courses.id),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
-// Invitations table
-export const invitations = pgTable('invitations', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  email: text('email').notNull(),
-  inviterId: uuid('inviter_id').references(() => users.id),
-  courseId: integer('course_id').references(() => courses.id),
-  role: text('role').notNull().default('student'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  expiresAt: timestamp('expires_at'),
-});
-
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({
-  courses: many(courses, { relationName: 'professorCourses' }),
-  enrollments: many(enrollments),
   teamMembers: many(teamMembers),
-  sentInvitations: many(invitations, { relationName: 'sentInvitations' }),
 }));
 
-export const coursesRelations = relations(courses, ({ many, one }) => ({
-  professor: one(users, {
-    fields: [courses.professorId],
-    references: [users.id],
-    relationName: 'professorCourses',
-  }),
-  cases: many(cases),
-  enrollments: many(enrollments),
-}));
-
-export const casesRelations = relations(cases, ({ many, one }) => ({
-  course: one(courses, {
-    fields: [cases.courseId],
-    references: [courses.id],
-  }),
+export const casesRelations = relations(cases, ({ many }) => ({
   teams: many(teams),
   events: many(caseEvents),
 }));
@@ -130,15 +82,36 @@ export const teamsRelations = relations(teams, ({ many, one }) => ({
   documents: many(documents),
 }));
 
+export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
+  team: one(teams, {
+    fields: [teamMembers.teamId],
+    references: [teams.id],
+  }),
+  user: one(users, {
+    fields: [teamMembers.userId],
+    references: [users.id],
+  }),
+}));
+
+export const caseEventsRelations = relations(caseEvents, ({ one }) => ({
+  case: one(cases, {
+    fields: [caseEvents.caseId],
+    references: [cases.id],
+  }),
+}));
+
+export const documentsRelations = relations(documents, ({ one }) => ({
+  team: one(teams, {
+    fields: [documents.teamId],
+    references: [teams.id],
+  }),
+}));
+
 // Export type interfaces for each table
 
 // User types
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
-
-// Course types
-export type Course = typeof courses.$inferSelect;
-export type NewCourse = typeof courses.$inferInsert;
 
 // Case types
 export type Case = typeof cases.$inferSelect;
@@ -160,14 +133,6 @@ export type NewCaseEvent = typeof caseEvents.$inferInsert;
 export type Document = typeof documents.$inferSelect;
 export type NewDocument = typeof documents.$inferInsert;
 
-// Enrollment types
-export type Enrollment = typeof enrollments.$inferSelect;
-export type NewEnrollment = typeof enrollments.$inferInsert;
-
-// Invitation types
-export type Invitation = typeof invitations.$inferSelect;
-export type NewInvitation = typeof invitations.$inferInsert;
-
 // Enum types for better type safety
 export enum UserRole {
   ADMIN = 'admin',
@@ -183,20 +148,10 @@ export enum TeamRole {
 
 // Interface with relations for complete objects
 export interface UserWithRelations extends User {
-  coursesTeaching?: Course[]
-  enrollments?: Enrollment[]
   teamMembers?: TeamMember[]
-  sentInvitations?: Invitation[]
-}
-
-export interface CourseWithRelations extends Course {
-  professor?: User
-  cases?: Case[]
-  enrollments?: Enrollment[]
 }
 
 export interface CaseWithRelations extends Case {
-  course?: Course
   teams?: Team[]
   events?: CaseEvent[]
 }
@@ -205,4 +160,17 @@ export interface TeamWithRelations extends Team {
   case?: Case
   members?: TeamMember[]
   documents?: Document[]
+}
+
+export interface TeamMemberWithRelations extends TeamMember {
+  team?: Team
+  user?: User
+}
+
+export interface DocumentWithRelations extends Document {
+  team?: Team
+}
+
+export interface CaseEventWithRelations extends CaseEvent {
+  case?: Case
 }

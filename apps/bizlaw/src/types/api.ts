@@ -1,6 +1,6 @@
-import type { Course } from '@/lib/db/schema';
+import type { Case } from '@/lib/db/schema';
 
-export interface CourseResponse extends Course {
-  professorName?: string | null
+export interface CaseResponse extends Case {
+  teamCount?: number
   // Any other API-specific fields
 }

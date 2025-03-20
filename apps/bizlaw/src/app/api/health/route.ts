@@ -1,4 +1,6 @@
+import { sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+
 import { initDb, getDb } from '../../../lib/db/db';
 
 export async function GET() {
@@ -14,7 +16,8 @@ export async function GET() {
       database: 'connected',
       timestamp: new Date().toISOString(),
     });
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Health check failed:', error);
     return NextResponse.json(
       {

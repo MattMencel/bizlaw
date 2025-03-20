@@ -51,18 +51,16 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account }) {
       if (account?.provider === 'google') {
         try {
-          // Make sure DB is initialized
           let db;
           try {
             await initDb();
             db = getDb();
-          } catch (dbError) {
-            console.error('Failed to initialize database in signIn callback:', dbError);
-            // Allow sign in even without DB access
+          }
+          catch (dbError) {
+            console.error('Failed to connect to database in signIn callback:', dbError);
             return true;
           }
 
-          // Find user by email
           try {
             const existingUsers = await db
               .select()
@@ -72,14 +70,11 @@ export const authOptions: NextAuthOptions = {
 
             const dbUser = existingUsers[0];
 
-            // If no user exists, create one
             if (!dbUser) {
-              // Check if this is the first user (admin)
               const result = await db.select({ value: drizzleCount() }).from(users);
               const userCount = result[0]?.value || 0;
               const role = userCount === 0 ? 'admin' : 'student';
 
-              // Create user
               const [newUser] = await db
                 .insert(users)
                 .values({
@@ -92,18 +87,19 @@ export const authOptions: NextAuthOptions = {
 
               user.id = newUser.id;
               user.role = newUser.role;
-            } else {
+            }
+            else {
               user.id = dbUser.id;
               user.role = dbUser.role;
             }
-          } catch (dbOpError) {
-            console.error('Database operation failed in signIn callback:', dbOpError);
-            // Allow sign in even if DB operations fail
+          }
+          catch (dbError) {
+            console.error('Database operation failed in signIn callback:', dbError);
             return true;
           }
-        } catch (error) {
+        }
+        catch (error) {
           console.error('Unexpected error in signIn callback:', error);
-          // Allow sign in even if unexpected errors occur
           return true;
         }
       }

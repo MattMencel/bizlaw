@@ -2,10 +2,10 @@ import axios from 'axios';
 import { useState, useEffect } from 'react';
 
 interface User {
-  id: number
-  email: string
+  id: string
   firstName: string
   lastName: string
+  email: string
   role: string
 }
 
@@ -38,13 +38,33 @@ const InstructorManagement = () => {
   }, []);
 
   // Update user role
-  const handleRoleChange = async (userId: number, isInstructor: boolean) => {
+  const handleRoleChange = async (userId: string, isInstructor: boolean) => {
     try {
-      const role = isInstructor ? 'professor' : 'student';
-      await axios.put(`/api/admin/users/${userId}/role`, { role });
+      const token = localStorage.getItem('token');
+      await axios.patch(
+        `/api/admin/users/${userId}`,
+        {
+          role: isInstructor ? 'professor' : 'student',
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
-      // Update local state
-      setUsers(users.map(user => (user.id === userId ? { ...user, role } : user)));
+      // Update the local state
+      setUsers(
+        users.map((user) => {
+          if (user.id === userId) {
+            return {
+              ...user,
+              role: isInstructor ? 'professor' : 'student',
+            };
+          }
+          return user;
+        }),
+      );
     }
     catch (err) {
       console.error('Error updating user role:', err);
@@ -52,45 +72,56 @@ const InstructorManagement = () => {
     }
   };
 
-  if (loading) return <div>Loading users...</div>;
-  if (error) return <div className="error">{error}</div>;
+  if (loading) {
+    return <div>Loading users...</div>;
+  }
+
+  if (error) {
+    return <div className="error">{error}</div>;
+  }
 
   return (
-    <div className="instructor-management">
-      <h2>Manage Instructors</h2>
-
-      {users.length === 0
-        ? (
-          <p>No users found.</p>
-        )
-        : (
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Current Role</th>
-                <th>Instructor</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map(user => (
-                <tr key={user.id}>
-                  <td>{`${user.firstName} ${user.lastName}`}</td>
-                  <td>{user.email}</td>
-                  <td>{user.role}</td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={user.role === 'professor'}
-                      onChange={e => handleRoleChange(user.id, e.target.checked)}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+    <div>
+      <h2>Instructor Management</h2>
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Name
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Email
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Role
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {users.map(user => (
+            <tr key={user.id}>
+              <td className="px-6 py-4 whitespace-nowrap">
+                {user.firstName}
+                {' '}
+                {user.lastName}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{user.role}</td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <button
+                  onClick={() => handleRoleChange(user.id, user.role !== 'professor')}
+                  className="text-blue-600 hover:text-blue-900"
+                >
+                  {user.role === 'professor' ? 'Make Student' : 'Make Instructor'}
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };

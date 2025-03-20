@@ -1,4 +1,4 @@
-export default function CourseListSkeleton() {
+export default function CasesListSkeleton() {
   // Create an array of placeholder items
   const skeletonItems = Array(6).fill(0);
 
