@@ -35,8 +35,24 @@
       "plugin": "@nx/jest/plugin",
       "options": {
         "targetName": "test"
-      },
-      "exclude": ["apps/api-e2e/**/*", "apps/web-e2e/**/*"]
+      }
+    },
+    {
+      "plugin": "@nx/next/plugin",
+      "options": {
+        "startTargetName": "start",
+        "buildTargetName": "next:build",
+        "devTargetName": "dev",
+        "serveStaticTargetName": "next:serve-static",
+        "buildDepsTargetName": "next:build-deps",
+        "watchDepsTargetName": "next:watch-deps"
+      }
+    },
+    {
+      "plugin": "@nx/playwright/plugin",
+      "options": {
+        "targetName": "e2e"
+      }
     }
   ],
   "targetDefaults": {
@@ -46,16 +62,27 @@
       "inputs": ["production", "^production"]
     },
     "build": {
-      "cache": true
+      "cache": true,
+      "dependsOn": ["lint"],
+      "inputs": ["production", "^production"]
     },
     "lint": {
-      "cache": true
+      "cache": true,
+      "options": {
+        "fix": true
+      }
     },
     "test": {
       "cache": true
     },
     "e2e": {
       "cache": true
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "prettier --write ."
+      }
     }
   },
   "generators": {
@@ -66,12 +93,17 @@
         "bundler": "webpack",
         "babel": true
       }
+    },
+    "@nx/next": {
+      "application": {
+        "style": "tailwind",
+        "linter": "eslint"
+      }
     }
   },
-  "defaultProject": "web",
+  "defaultProject": "bizlaw",
   "projects": {
-    "api": "apps/api",
-    "web": "apps/web"
+    "bizlaw": "apps/bizlaw"
   },
   "defaultBase": "main"
 }

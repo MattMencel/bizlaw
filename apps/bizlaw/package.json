@@ -1,0 +1,12 @@
+{
+  "name": "bizlaw",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "next-auth": "^4.24.5",
+    "pg": "^8.11.3",
+    "pg-hstore": "^2.3.4",
+    "bcryptjs": "^2.4.3"
+  }
+}
