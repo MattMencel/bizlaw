@@ -80,11 +80,6 @@ updates:
           - 'webpack-cli'
           - 'webpack-dev-server'
 
-    labels:
-      - 'source: dependencies'
-      - 'pr: chore'
-    reviewers:
-      - 'matt.mencel'
     ignore:
       # Only allow patch as minor babel versions need to be upgraded all together
       - dependency-name: '@babel/*'
@@ -96,6 +91,7 @@ updates:
         update-types:
           - 'version-update:semver-patch'
           - 'version-update:semver-major'
+
 
   - package-ecosystem: github-actions
     open-pull-requests-limit: 0
@@ -110,10 +106,3 @@ updates:
     labels:
       - 'source: dependencies'
       - 'pr: chore'
-
-  # Add Docker configuration
-  - package-ecosystem: docker
-    directory: '/'
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
