@@ -92,15 +92,6 @@ updates:
           - 'version-update:semver-patch'
           - 'version-update:semver-major'
 
-  # Add security-focused configuration
-  - package-ecosystem: npm
-    directory: /
-    schedule:
-      interval: daily
-    open-pull-requests-limit: 5
-    labels:
-      - 'source: dependencies'
-      - 'security'
 
   - package-ecosystem: github-actions
     open-pull-requests-limit: 0

@@ -4,8 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { useState } from 'react'; // Corrected: Import `useState` as a value
 import { FiUser, FiMenu, FiX } from 'react-icons/fi';
 
 type MainLayoutProps = {
@@ -21,7 +21,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Courses', href: '/courses' },
     { name: 'Cases', href: '/cases' },
     ...(session?.user?.role === 'admin' ? [{ name: 'Admin', href: '/admin' }] : []),
   ];

@@ -20,12 +20,12 @@ export default async function DashboardPage() {
       <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Course Card */}
+        {/* Cases Card */}
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Your Courses</h2>
-          <p className="text-gray-600 mb-4">Manage and access your enrolled courses.</p>
-          <Link href="/courses" className="inline-flex items-center text-blue-600 hover:text-blue-800">
-            View all courses
+          <h2 className="text-xl font-semibold mb-4">Your Cases</h2>
+          <p className="text-gray-600 mb-4">Manage and access your legal case simulations.</p>
+          <Link href="/cases" className="inline-flex items-center text-blue-600 hover:text-blue-800">
+            View all cases
             <svg className="ml-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
               <path
                 fillRule="evenodd"
@@ -37,12 +37,12 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
-        {/* Cases Card */}
+        {/* Teams Card */}
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Active Cases</h2>
-          <p className="text-gray-600 mb-4">Work on your ongoing legal case simulations.</p>
-          <Link href="/cases" className="inline-flex items-center text-blue-600 hover:text-blue-800">
-            View active cases
+          <h2 className="text-xl font-semibold mb-4">Your Teams</h2>
+          <p className="text-gray-600 mb-4">View your assigned case teams and documents.</p>
+          <Link href="/teams" className="inline-flex items-center text-blue-600 hover:text-blue-800">
+            View your teams
             <svg className="ml-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
               <path
                 fillRule="evenodd"

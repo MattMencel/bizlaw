@@ -16,15 +16,15 @@ export default function HomePage() {
               Business Law Education Platform
             </h1>
             <p className="mt-6 text-lg leading-8 text-gray-600">
-              A comprehensive learning platform for business law students and professionals. Access courses, collaborate
-              on cases, and enhance your legal expertise.
+              A comprehensive learning platform for business law students and professionals. Collaborate on cases and
+              enhance your legal expertise.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Link
-                href="/courses"
+                href="/cases"
                 className="rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
               >
-                Explore Courses
+                Explore Cases
               </Link>
               <Link href="/about" className="text-sm font-semibold leading-6 text-gray-900">
                 Learn more

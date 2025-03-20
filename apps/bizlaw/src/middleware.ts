@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+
 import { initDb } from './lib/db/db';
 
 // List of paths that should trigger DB initialization
@@ -12,7 +13,8 @@ export async function middleware(request: NextRequest) {
   if (DB_DEPENDENT_PATHS.some(p => path.includes(p))) {
     try {
       await initDb();
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Middleware: Failed to initialize database:', error);
       // Continue anyway to let the route handle the error
     }
