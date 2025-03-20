@@ -15,7 +15,9 @@
     "resolveJsonModule": true,
     "strict": true,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ]
     },
     "plugins": [
       {
@@ -27,16 +29,21 @@
       "./node_modules/@types",
       "./src/types"
     ],
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
     "**/*.js",
     "**/*.jsx",
+    "**/*.ts",
+    "**/*.tsx",
+    "../../dist/apps/bizlaw/.next/types/**/*.ts",
     "next-env.d.ts",
     "src/types/**/*.d.ts",
-    "../../dist/apps/bizlaw/.next/types/**/*.ts"
+    ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }
