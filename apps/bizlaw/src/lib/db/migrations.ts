@@ -1,8 +1,9 @@
+import fs from 'fs';
 import path from 'path';
+
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
-import fs from 'fs';
 
 import * as schema from './schema';
 
@@ -30,13 +31,16 @@ export function findMigrationsDirectory(): string {
       if (sqlFiles.length > 0) {
         console.info(`Found ${sqlFiles.length} SQL files in ${migrationsPath}`);
         return rootDrizzlePath; // Return the base drizzle directory, not the migrations subdirectory
-      } else {
+      }
+      else {
         console.warn(`Directory exists but no SQL files in ${migrationsPath}`);
       }
-    } catch (err) {
+    }
+    catch (err) {
       console.warn(`Error reading migrations directory ${migrationsPath}:`, err);
     }
-  } else {
+  }
+  else {
     console.warn(`Migrations directory not found at ${migrationsPath}`);
   }
 
@@ -59,7 +63,8 @@ export function findMigrationsDirectory(): string {
           console.info(`Found ${sqlFiles.length} SQL files in ${migrationSubdir}`);
           return basePath; // Return the base drizzle directory, not the migrations subdirectory
         }
-      } catch (err) {
+      }
+      catch (err) {
         console.warn(`Error checking ${migrationSubdir}:`, err);
       }
     }
@@ -104,9 +109,9 @@ export async function runMigrations({
   migrationsFolder = findMigrationsDirectory(),
   force = false,
 }: {
-  connectionString?: string;
-  migrationsFolder?: string;
-  force?: boolean;
+  connectionString?: string
+  migrationsFolder?: string
+  force?: boolean
 } = {}) {
   // Skip if migrations already ran (unless forced)
   if (migrationsRan && !force) {
@@ -125,8 +130,8 @@ export async function runMigrations({
     }
 
     // Handle SSL settings consistently
-    const sslConfig =
-      process.env.NODE_ENV === 'development' || process.env.POSTGRES_REJECT_UNAUTHORIZED === 'false'
+    const sslConfig
+      = process.env.NODE_ENV === 'development' || process.env.POSTGRES_REJECT_UNAUTHORIZED === 'false'
         ? { rejectUnauthorized: false }
         : true;
 
@@ -146,10 +151,12 @@ export async function runMigrations({
         const sqlFiles = files.filter(file => file.endsWith('.sql'));
         console.info(`Found ${sqlFiles.length} SQL files for migration:`);
         sqlFiles.forEach(file => console.info(`- ${file}`));
-      } catch (err) {
+      }
+      catch (err) {
         console.warn('Error listing migration files:', err);
       }
-    } else {
+    }
+    else {
       console.warn(`No migrations subdirectory found at ${migrationsSubdir}`);
     }
 
@@ -162,7 +169,8 @@ export async function runMigrations({
     // Close the connection
     await migrationClient.end();
     return true;
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Migration failed:', error);
     throw error;
   }
