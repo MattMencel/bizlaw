@@ -138,7 +138,7 @@ export async function initDb() {
         }
       }
 
-      console.info(`Connecting to database with SSL config: ${JSON.stringify(sslConfig)}`);
+      console.info('Connecting to database with SSL enabled');
 
       // Remove any sslmode parameter from the connection string
       // and let Node.js handle the SSL configuration
