@@ -57,7 +57,10 @@ export async function initDb() {
       let sslConfig: any;
 
       // Special handling for Supabase connections
-      if (connectionString.includes('supabase.com') || connectionString.includes('pooler.supabase.com')) {
+      // Parse the URL to safely check for Supabase domains
+      const url = new URL(connectionString.replace('postgres://', 'http://'));
+      const hostname = url.hostname;
+      if (hostname.endsWith('supabase.co') || hostname.endsWith('pooler.supabase.com')) {
         console.info('Detected Supabase connection - applying specific configuration');
 
         // Parse connection string to extract the host for logging
@@ -106,7 +109,7 @@ export async function initDb() {
           } else if (envCertPath && fs.existsSync(envCertPath)) {
             certPath = envCertPath;
             certContent = fs.readFileSync(certPath).toString();
-            console.info(`Using SSL certificate from env path: ${envCertPath}`);
+            console.info('Using SSL certificate from environment path variable');
           }
           // Check environment variable for certificate content
           else if (process.env.SSL_CERT_CONTENT) {
