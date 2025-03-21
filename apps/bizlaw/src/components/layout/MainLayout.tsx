@@ -2,31 +2,53 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
+import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { FiUser, FiMenu, FiX } from 'react-icons/fi';
+import { FiUser, FiMenu, FiX, FiLogOut, FiSettings, FiChevronDown } from 'react-icons/fi';
 
 type MainLayoutProps = {
-  children: ReactNode
+  children: ReactNode;
 };
 
 export default function MainLayout({ children }: MainLayoutProps) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  const isActive = (path: string) => pathname === path;
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      if (userMenuOpen) setUserMenuOpen(false);
+    };
 
+    document.addEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener('click', handleOutsideClick);
+  }, [userMenuOpen]);
+
+  const isActive = (path: string) => pathname === path || pathname?.startsWith(`${path}/`);
+
+  const isAdmin = session?.user?.role === 'admin';
+  const isInstructor = ['professor', 'instructor'].includes(session?.user?.role as string);
+
+  const handleSignOut = async () => {
+    await signOut({ redirect: false });
+    router.push('/');
+  };
+
+  // Define navigation based on user role
   const navigation = [
     { name: 'Dashboard', href: '/dashboard' },
     { name: 'Cases', href: '/cases' },
-    ...(session?.user?.role === 'admin' ? [{ name: 'Admin', href: '/admin' }] : []),
+    ...(isInstructor || isAdmin ? [{ name: 'Course Admin', href: '/course-admin' }] : []),
+    ...(isAdmin ? [{ name: 'Admin', href: '/admin' }] : []),
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -69,42 +91,68 @@ export default function MainLayout({ children }: MainLayoutProps) {
             <div className="flex items-center">
               {/* User Menu */}
               <div className="ml-4 flex items-center md:ml-6">
-                {status === 'loading'
-                  ? (
-                    <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
-                  )
-                  : status === 'authenticated'
-                    ? (
-                      <Link
-                        href="/profile"
-                        className="flex items-center gap-2 text-sm px-3 py-2 rounded-md hover:bg-gray-100"
-                      >
-                        {session.user?.image
-                          ? (
-                            <Image
-                              src={session.user.image}
-                              alt="User avatar"
-                              width={32}
-                              height={32}
-                              className="h-8 w-8 rounded-full"
-                            />
-                          )
-                          : (
-                            <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                              <FiUser className="h-4 w-4" />
-                            </div>
-                          )}
-                        <span className="hidden md:block">{session.user?.name || 'Profile'}</span>
-                      </Link>
-                    )
-                    : (
-                      <Link
-                        href="/api/auth/signin"
-                        className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
-                      >
-                        Sign In
-                      </Link>
+                {status === 'loading' ? (
+                  <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+                ) : status === 'authenticated' ? (
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={e => {
+                        e.stopPropagation();
+                        setUserMenuOpen(!userMenuOpen);
+                      }}
+                      className="flex items-center gap-2 text-sm px-3 py-2 rounded-md hover:bg-gray-100"
+                    >
+                      {session.user?.image ? (
+                        <Image
+                          src={session.user.image}
+                          alt="User avatar"
+                          width={32}
+                          height={32}
+                          className="h-8 w-8 rounded-full"
+                        />
+                      ) : (
+                        <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                          <FiUser className="h-4 w-4" />
+                        </div>
+                      )}
+                      <span className="hidden md:block">{session.user?.name || 'Profile'}</span>
+                      <FiChevronDown className="h-4 w-4" />
+                    </button>
+
+                    {/* Dropdown menu */}
+                    {userMenuOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 ring-1 ring-black ring-opacity-5">
+                        <div className="px-4 py-2 text-xs text-gray-500">
+                          Signed in as
+                          <div className="font-medium text-gray-900">{session.user?.email}</div>
+                          <div className="mt-1 text-gray-500">Role: {session.user?.role || 'student'}</div>
+                        </div>
+                        <hr className="my-1" />
+                        <Link
+                          href="/profile"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          <FiSettings className="mr-2 h-4 w-4" /> Profile Settings
+                        </Link>
+                        <button
+                          onClick={handleSignOut}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                        >
+                          <FiLogOut className="mr-2 h-4 w-4" /> Sign Out
+                        </button>
+                      </div>
                     )}
+                  </div>
+                ) : (
+                  <Link
+                    href="/api/auth/signin"
+                    className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
+                  >
+                    Sign In
+                  </Link>
+                )}
               </div>
 
               {/* Mobile menu button */}
@@ -117,13 +165,11 @@ export default function MainLayout({ children }: MainLayoutProps) {
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 >
                   <span className="sr-only">{mobileMenuOpen ? 'Close main menu' : 'Open main menu'}</span>
-                  {mobileMenuOpen
-                    ? (
-                      <FiX className="block h-6 w-6" aria-hidden="true" />
-                    )
-                    : (
-                      <FiMenu className="block h-6 w-6" aria-hidden="true" />
-                    )}
+                  {mobileMenuOpen ? (
+                    <FiX className="block h-6 w-6" aria-hidden="true" />
+                  ) : (
+                    <FiMenu className="block h-6 w-6" aria-hidden="true" />
+                  )}
                 </button>
               </div>
             </div>
@@ -147,17 +193,28 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 {item.name}
               </Link>
             ))}
+
+            {status === 'authenticated' && (
+              <button
+                onClick={handleSignOut}
+                className="block w-full text-left pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
+              >
+                <div className="flex items-center">
+                  <FiLogOut className="mr-2" /> Sign Out
+                </div>
+              </button>
+            )}
           </div>
         </div>
       </header>
 
       {/* Main content */}
-      <main className="py-6">
+      <main className="py-6 flex-grow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">{children}</div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200">
+      <footer className="bg-white border-t border-gray-200 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6 md:flex md:items-center md:justify-between">
             <div className="text-center md:text-left">
