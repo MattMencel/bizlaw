@@ -11,6 +11,16 @@ const nextConfig = {
     svgr: false,
   },
 
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        pathname: '/a/**',
+      },
+    ],
+  },
+
   webpack: (config, { isServer }) => {
     // Disable strictExportPresence to prevent 'Cannot access r before initialization'
     config.module.parser = {
