@@ -35,7 +35,6 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        // Fix: Convert null to undefined to match expected types
         token.role = user.role || undefined;
       }
       return token;
@@ -43,7 +42,6 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        // Use consistent null handling here too
         session.user.role = (token.role as string) || undefined;
       }
       return session;
@@ -55,15 +53,19 @@ export const authOptions: NextAuthOptions = {
           try {
             await initDb();
             db = getDb();
-          }
-          catch (dbError) {
-            console.error('Failed to connect to database in signIn callback:', dbError);
-            return true;
+          } catch (dbError) {
+            console.error('Failed to connect to database:', dbError);
+            // Enhanced error logging
+            console.error('Database connection error details:', {
+              message: dbError instanceof Error ? dbError.message : String(dbError),
+              stack: dbError instanceof Error ? dbError.stack : undefined,
+            });
+            throw new Error('Database connection failed. Please try again later.');
           }
 
           try {
             // Use a transaction to ensure atomicity when checking user count
-            return await db.transaction(async (tx) => {
+            return await db.transaction(async tx => {
               const existingUsers = await tx
                 .select()
                 .from(users)
@@ -79,14 +81,20 @@ export const authOptions: NextAuthOptions = {
 
                 const allowedAdminEmails = process.env.ALLOWED_ADMIN_EMAILS?.split(',') || [];
 
-                // First user gets admin role
+                // Enhanced logging for admin role assignment
                 if (userCount === 0) {
                   console.info(`Assigning ADMIN role to first user: ${user.email}`);
+                  console.info(`Allowed admin emails: ${allowedAdminEmails.join(', ') || 'none specified'}`);
                 }
-                const role
-                  = userCount === 0 && (allowedAdminEmails.length === 0 || allowedAdminEmails.includes(user.email || ''))
-                    ? UserRole.ADMIN
-                    : UserRole.STUDENT;
+
+                // Check if should be admin - either first user or in allowed list
+                const isAdmin =
+                  userCount === 0 || (allowedAdminEmails.length > 0 && allowedAdminEmails.includes(user.email || ''));
+
+                const role = isAdmin ? UserRole.ADMIN : UserRole.STUDENT;
+
+                // Log the role being assigned
+                console.info(`Assigning role ${role} to user ${user.email}`);
 
                 // Insert new user
                 const [newUser] = await tx
@@ -101,28 +109,35 @@ export const authOptions: NextAuthOptions = {
 
                 user.id = newUser.id;
                 user.role = newUser.role;
-              }
-              else {
+              } else {
                 user.id = dbUser.id;
                 user.role = dbUser.role;
+                console.info(`User ${user.email} signed in with role ${dbUser.role}`);
               }
 
               return true;
             });
+          } catch (dbError) {
+            console.error('Database operation failed:', dbError);
+            // Enhanced error logging
+            console.error('Database operation error details:', {
+              message: dbError instanceof Error ? dbError.message : String(dbError),
+              code: dbError instanceof Error ? (dbError as any).code : undefined,
+            });
+            throw new Error('Failed to create or retrieve user account. Please try again later.');
           }
-          catch (dbError) {
-            console.error('Database operation failed in signIn callback:', dbError);
-            return true;
-          }
-        }
-        catch (error) {
-          console.error('Unexpected error in signIn callback:', error);
-          return true;
+        } catch (error) {
+          console.error('Authentication error:', error);
+          // Return the error object instead of false - NextAuth will handle it appropriately
+          return false;
         }
       }
       return true;
     },
   },
-  pages: authConfig.pages,
+  pages: {
+    ...authConfig.pages,
+    error: '/auth/error', // Make sure this route exists to show authentication errors
+  },
   debug: authConfig.debug,
 };
