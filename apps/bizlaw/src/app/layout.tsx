@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 
 // Update this import to point to the correct location
-import { AuthProvider } from '@/contexts/AuthProvider';
 import MainLayout from '@/components/layout/MainLayout';
+import { AuthProvider } from '@/contexts/AuthProvider';
 
 import './globals.css';
 

@@ -42,9 +42,8 @@ const nextConfig = {
 
   outputFileTracingRoot: path.join(__dirname, '../../'),
   outputFileTracingIncludes: {
-    '**': ['drizzle/**/*']
+    '**': ['drizzle/**/*'],
   },
-
 
   serverComponentsExternalPackages: ['postgres', 'zod', 'drizzle-orm'],
   serverRuntimeConfig: {

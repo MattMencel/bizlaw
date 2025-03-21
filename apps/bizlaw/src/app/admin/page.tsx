@@ -1,6 +1,6 @@
-import { Metadata } from 'next';
-import Link from 'next/link';
 import { Database, Users, FileText, Settings } from 'lucide-react';
+import type { Metadata } from 'next';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard',

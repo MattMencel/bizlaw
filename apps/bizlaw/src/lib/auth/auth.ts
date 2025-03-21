@@ -55,14 +55,15 @@ export const authOptions: NextAuthOptions = {
           try {
             await initDb();
             db = getDb();
-          } catch (dbError) {
+          }
+          catch (dbError) {
             console.error('Failed to connect to database in signIn callback:', dbError);
             return true;
           }
 
           try {
             // Use a transaction to ensure atomicity when checking user count
-            return await db.transaction(async tx => {
+            return await db.transaction(async (tx) => {
               const existingUsers = await tx
                 .select()
                 .from(users)
@@ -82,8 +83,8 @@ export const authOptions: NextAuthOptions = {
                 if (userCount === 0) {
                   console.info(`Assigning ADMIN role to first user: ${user.email}`);
                 }
-                const role =
-                  userCount === 0 && (allowedAdminEmails.length === 0 || allowedAdminEmails.includes(user.email || ''))
+                const role
+                  = userCount === 0 && (allowedAdminEmails.length === 0 || allowedAdminEmails.includes(user.email || ''))
                     ? UserRole.ADMIN
                     : UserRole.STUDENT;
 
@@ -100,18 +101,21 @@ export const authOptions: NextAuthOptions = {
 
                 user.id = newUser.id;
                 user.role = newUser.role;
-              } else {
+              }
+              else {
                 user.id = dbUser.id;
                 user.role = dbUser.role;
               }
 
               return true;
             });
-          } catch (dbError) {
+          }
+          catch (dbError) {
             console.error('Database operation failed in signIn callback:', dbError);
             return true;
           }
-        } catch (error) {
+        }
+        catch (error) {
           console.error('Unexpected error in signIn callback:', error);
           return true;
         }

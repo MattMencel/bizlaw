@@ -1,4 +1,5 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
+
 import DatabaseDashboard from '@/components/admin/DatabaseDashboard';
 
 export const metadata: Metadata = {

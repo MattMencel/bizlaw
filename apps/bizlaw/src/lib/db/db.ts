@@ -1,21 +1,22 @@
 import fs from 'fs';
 import path from 'path';
+
 import { neon, neonConfig } from '@neondatabase/serverless';
+import { sql as drizzleSql } from 'drizzle-orm';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import { drizzle } from 'drizzle-orm/neon-http';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { drizzle as nodeDrizzle } from 'drizzle-orm/node-postgres';
 // Add this import specifically for postgres-js migrations
 import { drizzle as pgDrizzle } from 'drizzle-orm/postgres-js';
-import { sql as drizzleSql } from 'drizzle-orm';
-import { Pool } from 'pg';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
+import { Pool } from 'pg';
 import postgres from 'postgres';
 
+import { runMigrations, shouldRunAutoMigrations } from './migrations';
 import * as schema from './schema';
 
 // Import the migration utilities
-import { runMigrations, shouldRunAutoMigrations } from './migrations';
 
 // Configure neon for edge runtime if needed
 neonConfig.fetchConnectionCache = true;
@@ -68,7 +69,8 @@ export async function initDb() {
         try {
           const url = new URL(connectionString.replace('postgres://', 'http://'));
           console.info(`Connecting to Supabase database at ${url.hostname}`);
-        } catch (e) {
+        }
+        catch (e) {
           console.info('Could not parse connection string for logging');
         }
 
@@ -107,7 +109,8 @@ export async function initDb() {
             certPath = prodCertPath;
             certContent = fs.readFileSync(certPath).toString();
             console.info(`Using SSL certificate from file: ${certPath}`);
-          } else if (envCertPath && fs.existsSync(envCertPath)) {
+          }
+          else if (envCertPath && fs.existsSync(envCertPath)) {
             certPath = envCertPath;
             certContent = fs.readFileSync(certPath).toString();
             console.info('Using SSL certificate from environment path variable');
@@ -123,20 +126,23 @@ export async function initDb() {
               ca: certContent,
               rejectUnauthorized: true,
             };
-          } else {
+          }
+          else {
             // Fallback to just using the system CA store
             console.warn('No specific SSL certificate found, using system CA store');
             sslConfig = true;
           }
-        } catch (err) {
-          console.error(`Error setting up SSL:`, err);
+        }
+        catch (err) {
+          console.error('Error setting up SSL:', err);
           // Fallback to disable strict verification in non-production
           if (process.env.NODE_ENV !== 'production') {
             console.warn('Falling back to non-strict SSL in non-production environment');
             sslConfig = {
               rejectUnauthorized: false,
             };
-          } else {
+          }
+          else {
             throw new Error(`SSL setup failed: ${err instanceof Error ? err.message : String(err)}`);
           }
         }
@@ -152,7 +158,8 @@ export async function initDb() {
           const url = new URL(connectionString.replace('postgres://', 'http://'));
           url.searchParams.delete('sslmode');
           cleanConnectionString = `postgres://${connectionString.split('postgres://')[1].split('?')[0]}${url.search}`;
-        } catch (e) {
+        }
+        catch (e) {
           console.warn('Could not clean connection string, using original', e);
         }
       }
@@ -173,12 +180,14 @@ export async function initDb() {
         // For edge runtime
         const result = await (db as NeonHttpDatabase<typeof schema>).execute(drizzleSql`SELECT 1 AS connected`);
         console.info('Edge database connection verified');
-      } else {
+      }
+      else {
         // For Node.js runtime
         const result = await (db as NodePgDatabase<typeof schema>).execute(drizzleSql`SELECT 1 AS connected`);
         console.info('Node.js database connection verified');
       }
-    } catch (verifyError) {
+    }
+    catch (verifyError) {
       console.error('Database connection verification failed:', verifyError);
       throw verifyError;
     }
@@ -188,14 +197,16 @@ export async function initDb() {
       dbMigrationsRan = true; // Mark as run immediately
       try {
         await runMigrations();
-      } catch (migrateError) {
+      }
+      catch (migrateError) {
         console.error('Auto-migration failed:', migrateError);
         // Continue even if migrations fail
       }
     }
 
     return db;
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to initialize database:', error);
     throw error;
   }
