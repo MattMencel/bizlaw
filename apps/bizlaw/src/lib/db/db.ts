@@ -90,8 +90,19 @@ export async function initDb() {
       else if (process.env.VERCEL) {
         console.info('Vercel environment detected, using individual parameters');
 
-        // For Supabase in Vercel, always disable certificate validation
-        sslConfig = { rejectUnauthorized: false };
+        // Set up SSL configuration for Vercel
+        if (process.env.SSL_CERT_CONTENT) {
+          console.info('Using SSL certificate from SSL_CERT_CONTENT environment variable');
+          sslConfig = {
+            ca: process.env.SSL_CERT_CONTENT,
+            rejectUnauthorized: true, // Use strict verification with provided cert
+          };
+        } else {
+          console.info('No SSL_CERT_CONTENT provided, using relaxed SSL settings');
+          sslConfig = {
+            rejectUnauthorized: false, // Fall back to relaxed SSL without cert
+          };
+        }
 
         // Use individual parameters for Vercel environment
         const host = process.env.POSTGRES_HOST;
@@ -100,7 +111,7 @@ export async function initDb() {
         const password = process.env.POSTGRES_PASSWORD;
         const database = process.env.POSTGRES_DATABASE || 'postgres';
 
-        console.info(`Connecting to database at ${host}:${port}/${database} with relaxed SSL`);
+        console.info(`Connecting to database at ${host}:${port}/${database} with SSL configuration`);
 
         // Use individual params instead of connection string
         pool = new Pool({
