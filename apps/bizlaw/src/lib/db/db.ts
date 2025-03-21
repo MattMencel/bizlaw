@@ -69,8 +69,7 @@ export async function initDb() {
         try {
           const url = new URL(connectionString.replace('postgres://', 'http://'));
           console.info(`Connecting to Supabase database at ${url.hostname}`);
-        }
-        catch (e) {
+        } catch (e) {
           console.info('Could not parse connection string for logging');
         }
 
@@ -87,10 +86,36 @@ export async function initDb() {
           rejectUnauthorized: false,
         };
       }
-      // For production with Vercel, try standard SSL first
+      // For production with Vercel, use individual parameters
       else if (process.env.VERCEL) {
-        console.info('Vercel environment detected, using built-in CA');
-        sslConfig = true; // Let Node.js use system CA store
+        console.info('Vercel environment detected, using individual parameters');
+
+        // For Supabase in Vercel, always disable certificate validation
+        sslConfig = { rejectUnauthorized: false };
+
+        // Use individual parameters for Vercel environment
+        const host = process.env.POSTGRES_HOST;
+        const port = process.env.POSTGRES_PORT || '6543'; // Default port for Supabase pooler
+        const user = process.env.POSTGRES_USER;
+        const password = process.env.POSTGRES_PASSWORD;
+        const database = process.env.POSTGRES_DATABASE || 'postgres';
+
+        console.info(`Connecting to database at ${host}:${port}/${database} with relaxed SSL`);
+
+        // Use individual params instead of connection string
+        pool = new Pool({
+          host,
+          port: parseInt(port),
+          user,
+          password,
+          database,
+          ssl: sslConfig,
+        });
+
+        db = nodeDrizzle(pool, { schema });
+
+        // Skip the later pool creation since we've already created it
+        return db;
       }
       // Other environments - continue with your existing code
       else {
@@ -109,8 +134,7 @@ export async function initDb() {
             certPath = prodCertPath;
             certContent = fs.readFileSync(certPath).toString();
             console.info(`Using SSL certificate from file: ${certPath}`);
-          }
-          else if (envCertPath && fs.existsSync(envCertPath)) {
+          } else if (envCertPath && fs.existsSync(envCertPath)) {
             certPath = envCertPath;
             certContent = fs.readFileSync(certPath).toString();
             console.info('Using SSL certificate from environment path variable');
@@ -126,14 +150,12 @@ export async function initDb() {
               ca: certContent,
               rejectUnauthorized: true,
             };
-          }
-          else {
+          } else {
             // Fallback to just using the system CA store
             console.warn('No specific SSL certificate found, using system CA store');
             sslConfig = true;
           }
-        }
-        catch (err) {
+        } catch (err) {
           console.error('Error setting up SSL:', err);
           // Fallback to disable strict verification in non-production
           if (process.env.NODE_ENV !== 'production') {
@@ -141,8 +163,7 @@ export async function initDb() {
             sslConfig = {
               rejectUnauthorized: false,
             };
-          }
-          else {
+          } else {
             throw new Error(`SSL setup failed: ${err instanceof Error ? err.message : String(err)}`);
           }
         }
@@ -158,8 +179,7 @@ export async function initDb() {
           const url = new URL(connectionString.replace('postgres://', 'http://'));
           url.searchParams.delete('sslmode');
           cleanConnectionString = `postgres://${connectionString.split('postgres://')[1].split('?')[0]}${url.search}`;
-        }
-        catch (e) {
+        } catch (e) {
           console.warn('Could not clean connection string, using original', e);
         }
       }
@@ -180,14 +200,12 @@ export async function initDb() {
         // For edge runtime
         const result = await (db as NeonHttpDatabase<typeof schema>).execute(drizzleSql`SELECT 1 AS connected`);
         console.info('Edge database connection verified');
-      }
-      else {
+      } else {
         // For Node.js runtime
         const result = await (db as NodePgDatabase<typeof schema>).execute(drizzleSql`SELECT 1 AS connected`);
         console.info('Node.js database connection verified');
       }
-    }
-    catch (verifyError) {
+    } catch (verifyError) {
       console.error('Database connection verification failed:', verifyError);
       throw verifyError;
     }
@@ -197,16 +215,14 @@ export async function initDb() {
       dbMigrationsRan = true; // Mark as run immediately
       try {
         await runMigrations();
-      }
-      catch (migrateError) {
+      } catch (migrateError) {
         console.error('Auto-migration failed:', migrateError);
         // Continue even if migrations fail
       }
     }
 
     return db;
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Failed to initialize database:', error);
     throw error;
   }
