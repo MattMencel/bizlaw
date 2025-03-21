@@ -16,7 +16,8 @@ export async function GET() {
     await runMigrations({ force: true, migrationsFolder });
 
     return NextResponse.json({ status: 'Database initialized and migrations completed' });
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error initializing database:', error);
     return NextResponse.json({ error: 'Failed to initialize database' }, { status: 500 });
   }

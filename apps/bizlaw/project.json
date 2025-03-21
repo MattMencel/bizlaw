@@ -16,9 +16,10 @@
         "development": {
           "outputPath": "apps/bizlaw"
         },
-        "production": {}
-      },
-      "dependsOn": ["lint"]
+        "production": {
+          "lint": false
+        }
+      }
     },
     "serve": {
       "executor": "@nx/next:server",

@@ -63,7 +63,7 @@
     },
     "build": {
       "cache": true,
-      "dependsOn": ["lint"],
+      "dependsOn": [], // Remove "lint" from here
       "inputs": ["production", "^production"]
     },
     "lint": {

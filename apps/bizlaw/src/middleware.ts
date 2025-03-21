@@ -20,7 +20,7 @@ export async function middleware(request: NextRequest) {
     if (!session || session.role !== 'admin') {
       console.info(`Unauthorized access attempt to admin route: ${path}`);
       // Redirect to login or unauthorized page
-      return NextResponse.redirect(new URL('/auth/login?from=' + encodeURIComponent(path), request.url));
+      return NextResponse.redirect(new URL(`/auth/login?from=${encodeURIComponent(path)}`, request.url));
     }
 
     console.info(`Admin access granted for route: ${path}`);

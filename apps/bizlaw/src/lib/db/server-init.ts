@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
+
 import * as schema from './schema';
 
 let migrationRan = false;
@@ -47,7 +48,8 @@ export async function runMigrations() {
 
     // Close the migration client when done
     await migrationClient.end();
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to run migrations:', error);
     // Don't throw here - we want the app to continue even if migrations fail
   }

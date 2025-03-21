@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+
 import { runMigrations, shouldRunAutoMigrations } from '@/lib/db/migrations';
 
 // Only run in Node.js runtime
@@ -22,7 +24,8 @@ export async function middleware(req: NextRequest) {
       console.info('Running migrations from API middleware (first request)');
       await runMigrations({ force: true });
       console.info('Migrations completed successfully from middleware');
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Middleware initialization failed:', error);
       // Continue processing the request even if migrations fail
     }

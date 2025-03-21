@@ -1,13 +1,15 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { NextRequest, NextResponse } from 'next/server';
-import postgres from 'postgres';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import { sql } from 'drizzle-orm';
 
+import { sql } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import postgres from 'postgres';
+
+import { runMigrations, findMigrationsDirectory } from '@/lib/db/migrations';
 import * as schema from '@/lib/db/schema';
 // Import from our consolidated migrations module
-import { runMigrations, findMigrationsDirectory } from '@/lib/db/migrations';
 
 // Only run in Node.js runtime
 export const runtime = 'nodejs';
@@ -17,13 +19,13 @@ const MIGRATIONS_FOLDER = findMigrationsDirectory();
 
 // Define interfaces for better type safety
 interface MigrationFile {
-  name: string;
-  path: string;
+  name: string
+  path: string
 }
 
 interface AppliedMigration {
-  migration_name: string;
-  created_at: string | Date;
+  migration_name: string
+  created_at: string | Date
 }
 
 /**
@@ -67,7 +69,8 @@ export async function GET(req: NextRequest) {
       autoMigrate: process.env.AUTO_MIGRATE === 'true',
       migrations: migrationStatus,
     });
-  } catch (error: unknown) {
+  }
+  catch (error: unknown) {
     console.error('Failed to check migration status:', error);
     return NextResponse.json(
       {
@@ -114,7 +117,8 @@ export async function POST(req: NextRequest) {
       message: 'Migrations completed successfully',
       migrations: migrationStatus,
     });
-  } catch (error: unknown) {
+  }
+  catch (error: unknown) {
     console.error('Failed to run migrations:', error);
     return NextResponse.json(
       {
@@ -162,7 +166,8 @@ async function getMigrationStatus(db: any, client: any) {
           name: file,
           path: path.join(MIGRATIONS_FOLDER, file),
         }));
-    } catch (err: unknown) {
+    }
+    catch (err: unknown) {
       console.error('Error reading migration files:', err);
     }
 
@@ -203,7 +208,8 @@ async function getMigrationStatus(db: any, client: any) {
         })),
       },
     };
-  } finally {
+  }
+  finally {
     // We don't close the client here as it's passed in
     // The caller is responsible for closing it
   }
