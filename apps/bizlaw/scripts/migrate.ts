@@ -1,40 +1,31 @@
 import * as dotenv from 'dotenv';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
-import postgres from 'postgres';
+import path from 'path';
 
-import * as schema from '../src/lib/db/schema';
-
-// Load environment variables
+// Load environment variables before imports
 dotenv.config();
 
-async function main() {
-  const connectionString
-    = process.env.DATABASE_URL
-      || `postgres://${process.env.DB_USER || 'postgres'}:${process.env.DB_PASSWORD || 'postgres'}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '5432'}/${process.env.DB_NAME || 'business_law'}`;
+// Use relative path since we're in a script
+// Can't use @/ aliases outside Next.js
+import { runMigrations } from '../src/lib/db/migrations';
 
-  console.info(
-    `Connecting to database for migrations: postgres://${process.env.DB_USER || 'postgres'}:***@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '5432'}/${process.env.DB_NAME || 'business_law'}`,
-  );
-
-  // Create Postgres client
-  const client = postgres(connectionString);
-
-  // Create Drizzle instance
-  const db = drizzle(client, { schema });
-
-  // Run migrations
-  console.info('Running migrations...');
-  await migrate(db, { migrationsFolder: './drizzle' });
-  console.info('Migrations complete!');
-
-  // Close the connection
-  await client.end();
-  console.info('Database connection closed');
-  process.exit(0);
+// We'll manually find the migrations directory
+function findMigrationsDirectory() {
+  const root = path.join(__dirname, '../../..');
+  return path.join(root, 'drizzle');
 }
 
-main().catch((error) => {
-  console.error('Migration failed:', error);
-  process.exit(1);
-});
+async function main() {
+  try {
+    const migrationsFolder = findMigrationsDirectory();
+    console.info(`Using migrations directory: ${migrationsFolder}`);
+
+    await runMigrations({ force: true, migrationsFolder });
+    console.info('Migration script completed successfully');
+    process.exit(0);
+  } catch (error) {
+    console.error('Migration script failed:', error);
+    process.exit(1);
+  }
+}
+
+main();

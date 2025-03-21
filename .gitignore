@@ -36,6 +36,7 @@ Thumbs.db
 /coverage
 /libpeerconnection.log
 npm-debug.log
+**/prod-ca-2021.crt
 yarn-error.log
 testem.log
 /typings

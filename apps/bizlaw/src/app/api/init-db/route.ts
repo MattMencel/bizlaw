@@ -1,20 +1,23 @@
 import { NextResponse } from 'next/server';
 
 import { initDb } from '../../../lib/db/db';
+import { runMigrations, findMigrationsDirectory } from '../../../lib/db/migrations';
 
-// Initialize DB connection using Drizzle
 export async function GET() {
   try {
-    // Use your existing Drizzle initialization
+    // Initialize database connection
     await initDb();
 
-    return NextResponse.json({ status: 'Database initialized successfully' });
-  }
-  catch (error) {
+    // Find migrations directory and run migrations
+    const migrationsFolder = findMigrationsDirectory();
+    console.info(`Using migrations directory: ${migrationsFolder}`);
+
+    // Run migrations
+    await runMigrations({ force: true, migrationsFolder });
+
+    return NextResponse.json({ status: 'Database initialized and migrations completed' });
+  } catch (error) {
     console.error('Error initializing database:', error);
-    return NextResponse.json(
-      { error: 'Failed to initialize database' },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Failed to initialize database' }, { status: 500 });
   }
 }
