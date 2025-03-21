@@ -60,7 +60,8 @@ export async function initDb() {
       // Parse the URL to safely check for Supabase domains
       const url = new URL(connectionString.replace('postgres://', 'http://'));
       const hostname = url.hostname;
-      if (hostname.endsWith('supabase.co') || hostname.endsWith('pooler.supabase.com')) {
+      const allowedHosts = ['supabase.co', 'pooler.supabase.com'];
+      if (allowedHosts.includes(hostname)) {
         console.info('Detected Supabase connection - applying specific configuration');
 
         // Parse connection string to extract the host for logging
