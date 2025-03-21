@@ -15,23 +15,15 @@
     "resolveJsonModule": true,
     "strict": true,
     "paths": {
-      "@/*": [
-        "src/*"
-      ]
+      "@/*": ["./src/*"]
     },
     "plugins": [
       {
         "name": "next"
       }
     ],
-    "typeRoots": [
-      "../../node_modules/@types",
-      "./node_modules/@types",
-      "./src/types"
-    ],
-    "types": [
-      "node"
-    ]
+    "typeRoots": ["../../node_modules/@types", "./node_modules/@types", "./src/types"],
+    "types": ["node"]
   },
   "include": [
     "**/*.js",
@@ -43,7 +35,5 @@
     "src/types/**/*.d.ts",
     ".next/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }
