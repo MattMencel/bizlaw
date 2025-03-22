@@ -19,6 +19,10 @@ yarn-error.log*
 # Build outputs
 dist/
 build/
+tsconfig.tsbuildinfo
+
+# Test
+test-results/
 
 # IDE and editor folders
 .idea/

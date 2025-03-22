@@ -221,6 +221,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
               <p className="text-sm text-gray-500">&copy; 2024 Business Law. All rights reserved.</p>
             </div>
             <div className="mt-4 flex justify-center md:mt-0">
+              <Link href="/about" className="text-sm text-gray-500 hover:text-gray-600 mr-4">
+                About
+              </Link>
               <Link href="/terms" className="text-sm text-gray-500 hover:text-gray-600 mr-4">
                 Terms
               </Link>

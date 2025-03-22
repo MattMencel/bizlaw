@@ -1,16 +1,18 @@
-import type { SQL } from 'drizzle-orm';
 import { eq, and, desc, sql, like, asc } from 'drizzle-orm';
-import type { z } from 'zod'; // Remove "type" keyword
+import type { SQL } from 'drizzle-orm';
+import type { z } from 'zod';
 
 import { getDb } from './db';
 import { cases, teams, teamMembers, users, documents, caseEvents } from './schema';
-import type { NewCase, Case, CaseWithRelations } from './schema';
-import type { listCasesSchema } from '../validation';
+import type { NewCase, Case } from './schema';
+// Import CaseWithRelations directly from combined-types
+import type { CaseWithRelations } from './schema/combined-types';
+import { listCasesSchema } from '@/lib/validation/case';
 
 // Get cases with filters
 export async function getCases(
   params: z.infer<typeof listCasesSchema>,
-): Promise<{ data: Case[], total: number, page: number, limit: number }> {
+): Promise<{ data: Case[]; total: number; page: number; limit: number }> {
   const { page = 1, limit = 10, search, sortBy = 'createdAt', sortOrder = 'desc', active } = params;
 
   const db = getDb();
@@ -35,8 +37,8 @@ export async function getCases(
   }
 
   // Build final where clause
-  const whereClause
-    = whereConditions.length > 0
+  const whereClause =
+    whereConditions.length > 0
       ? whereConditions.length === 1
         ? whereConditions[0] // If only one condition, use it directly
         : and(...whereConditions)

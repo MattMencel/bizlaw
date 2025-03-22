@@ -2,20 +2,22 @@
 
 import { revalidatePath } from 'next/cache';
 import { getServerSession } from 'next-auth';
-import type { z } from 'zod'; // REMOVE the "type" keyword here
+import type { z } from 'zod';
 
 import { authOptions } from '@/lib/auth/auth';
 import { initDb } from '@/lib/db/db';
 import { createCase, updateCase, deleteCase, getCaseById } from '@/lib/db/queries';
 import { newCaseSchema } from '@/lib/validation';
+// Add this import for the enums
+import { CaseType, CaseStatus } from '@/lib/db/schema';
 
 // Define error type
-type ActionResult<T> = { success: true, data: T } | { success: false, error: string };
+type ActionResult<T> = { success: true; data: T } | { success: false; error: string };
 
 /**
  * Helper function that only returns error results, never success results
  */
-function getValidationError(result: z.SafeParseReturnType<any, any>): { success: false, error: string } | null {
+function getValidationError(result: z.SafeParseReturnType<any, any>): { success: false; error: string } | null {
   if (!result.success) {
     const errorMessage = result.error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
 
@@ -68,6 +70,10 @@ export async function createCaseAction(formData: FormData): Promise<ActionResult
       title: validationResult.data.title,
       description: validationResult.data.description,
       active: validationResult.data.active,
+      // Add required fields:
+      referenceNumber: `CASE-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`,
+      caseType: CaseType.CONTRACT_DISPUTE, // Default case type
+      status: CaseStatus.DRAFT,
     });
 
     // Revalidate pages that display cases
@@ -77,8 +83,7 @@ export async function createCaseAction(formData: FormData): Promise<ActionResult
       success: true,
       data: { id: newCase.id },
     };
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Error creating case:', error);
     return {
       success: false,
@@ -148,8 +153,7 @@ export async function updateCaseAction(id: number, formData: FormData): Promise<
       success: true,
       data: { id: updatedCase.id },
     };
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Error updating case:', error);
     return {
       success: false,
