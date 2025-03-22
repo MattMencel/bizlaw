@@ -88,7 +88,7 @@
     "@swc/helpers": "~0.5.15",
     "@swc/jest": "~0.2.37",
     "@testing-library/dom": "10.4.0",
-    "@testing-library/react": "16.1.0",
+    "@testing-library/react": "16.2.0",
     "@types/bcrypt": "^5.0.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.0",
