@@ -1,9 +1,34 @@
+CREATE TABLE "case_details" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"case_id" integer NOT NULL,
+	"plaintiff_info" text,
+	"defendant_info" text,
+	"legal_issues" text,
+	"relevant_laws" text,
+	"timeline" text,
+	"teaching_notes" text,
+	"assignment_details" text,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "case_documents" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"case_id" integer NOT NULL,
+	"title" text NOT NULL,
+	"document_type" text NOT NULL,
+	"content" text,
+	"file_url" text,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "case_events" (
 	"id" serial PRIMARY KEY NOT NULL,
-	"case_id" integer,
+	"case_id" integer NOT NULL,
 	"title" text NOT NULL,
 	"description" text,
-	"due_date" timestamp,
+	"event_date" timestamp NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
@@ -12,6 +37,11 @@ CREATE TABLE "cases" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"title" text NOT NULL,
 	"description" text,
+	"summary" text,
+	"reference_number" text NOT NULL,
+	"case_type" text NOT NULL,
+	"status" text DEFAULT 'draft' NOT NULL,
+	"created_by" uuid,
 	"active" boolean DEFAULT true,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
@@ -19,24 +49,25 @@ CREATE TABLE "cases" (
 --> statement-breakpoint
 CREATE TABLE "documents" (
 	"id" serial PRIMARY KEY NOT NULL,
-	"team_id" integer,
+	"team_id" integer NOT NULL,
 	"title" text NOT NULL,
 	"content" text,
+	"file_url" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "team_members" (
 	"id" serial PRIMARY KEY NOT NULL,
-	"team_id" integer,
-	"user_id" uuid,
+	"team_id" integer NOT NULL,
+	"user_id" uuid NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "teams" (
 	"id" serial PRIMARY KEY NOT NULL,
-	"case_id" integer,
+	"case_id" integer NOT NULL,
 	"name" text NOT NULL,
 	"role" text NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
@@ -54,9 +85,3 @@ CREATE TABLE "users" (
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
---> statement-breakpoint
-ALTER TABLE "case_events" ADD CONSTRAINT "case_events_case_id_cases_id_fk" FOREIGN KEY ("case_id") REFERENCES "public"."cases"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "documents" ADD CONSTRAINT "documents_team_id_teams_id_fk" FOREIGN KEY ("team_id") REFERENCES "public"."teams"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "team_members" ADD CONSTRAINT "team_members_team_id_teams_id_fk" FOREIGN KEY ("team_id") REFERENCES "public"."teams"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "team_members" ADD CONSTRAINT "team_members_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "teams" ADD CONSTRAINT "teams_case_id_cases_id_fk" FOREIGN KEY ("case_id") REFERENCES "public"."cases"("id") ON DELETE no action ON UPDATE no action;
