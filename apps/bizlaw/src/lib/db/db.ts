@@ -86,34 +86,51 @@ export async function initDb() {
           rejectUnauthorized: false,
         };
       }
-      // For production with Vercel, use individual parameters
+      // For production with Vercel, use individual parameters matching the connection pooler
       else if (process.env.VERCEL) {
-        console.info('Vercel environment detected, using individual parameters');
+        console.info('Vercel environment detected, using connection pooler parameters');
 
-        // Set up SSL configuration for Vercel
-        if (process.env.SSL_CERT_CONTENT) {
-          console.info('Using SSL certificate from SSL_CERT_CONTENT environment variable');
-          sslConfig = {
-            ca: process.env.SSL_CERT_CONTENT,
-            rejectUnauthorized: true, // Use strict verification with provided cert
-          };
-        } else {
-          console.info('No SSL_CERT_CONTENT provided, using relaxed SSL settings');
-          sslConfig = {
-            rejectUnauthorized: false, // Fall back to relaxed SSL without cert
-          };
+        // Always disable certificate validation for Supabase pooler in Vercel
+        sslConfig = { rejectUnauthorized: false };
+
+        // Extract correct pooler values from the POSTGRES_URL if it exists
+        let host, port, user, password, database;
+
+        try {
+          // Try to parse the pooler URL first to get the correct values
+          const poolerUrl = process.env.POSTGRES_URL;
+          if (poolerUrl) {
+            const url = new URL(poolerUrl.replace('postgres://', 'http://'));
+            const [dbUser, dbProject] = (url.username || '').split('.');
+
+            host = url.hostname; // aws-0-us-east-1.pooler.supabase.com
+            port = url.port || '6543';
+            user = url.username; // postgres.hlroukgzthnbncjfrrjx
+            password = decodeURIComponent(url.password || '');
+            database = url.pathname.substring(1); // Remove leading slash
+
+            console.info(`Parsed pooler URL: host=${host}, port=${port}`);
+          } else {
+            // Fall back to individual parameters if no URL
+            host = 'aws-0-us-east-1.pooler.supabase.com'; // Use the pooler address!
+            port = process.env.POSTGRES_PORT || '6543';
+            user = process.env.POSTGRES_USER;
+            password = process.env.POSTGRES_PASSWORD;
+            database = process.env.POSTGRES_DATABASE || 'postgres';
+          }
+        } catch (parseError) {
+          console.warn('Error parsing pooler URL, falling back to environment variables:', parseError);
+
+          // Fall back to individual parameters
+          host = 'aws-0-us-east-1.pooler.supabase.com'; // Use the pooler address!
+          port = process.env.POSTGRES_PORT || '6543';
+          user = process.env.POSTGRES_USER;
+          password = process.env.POSTGRES_PASSWORD;
+          database = process.env.POSTGRES_DATABASE || 'postgres';
         }
 
-        // Use individual parameters for Vercel environment
-        const host = process.env.POSTGRES_HOST;
-        const port = process.env.POSTGRES_PORT || '6543'; // Default port for Supabase pooler
-        const user = process.env.POSTGRES_USER;
-        const password = process.env.POSTGRES_PASSWORD;
-        const database = process.env.POSTGRES_DATABASE || 'postgres';
+        console.info(`Connecting to Supabase pooler at ${host}:${port}/${database}`);
 
-        console.info(`Connecting to database at ${host}:${port}/${database} with SSL configuration`);
-
-        // Use individual params instead of connection string
         pool = new Pool({
           host,
           port: parseInt(port),
@@ -124,8 +141,6 @@ export async function initDb() {
         });
 
         db = nodeDrizzle(pool, { schema });
-
-        // Skip the later pool creation since we've already created it
         return db;
       }
       // Other environments - continue with your existing code
