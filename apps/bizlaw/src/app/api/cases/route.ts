@@ -1,74 +1,99 @@
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { desc, eq, and } from 'drizzle-orm';
 
-import { errorResponse, successResponse } from '@/lib/api/response';
-import { initDb } from '@/lib/db/db';
-import { getCases, createCase } from '@/lib/db/queries';
-import { validateRequest, listCasesSchema, newCaseSchema } from '@/lib/validation';
-import { isSuccessResult } from '@/lib/validation/utils';
+import { authOptions } from '@/lib/auth/auth';
+import { getDb, initDb } from '@/lib/db/db';
+import { cases, CaseStatus, CaseType } from '@/lib/db/schema';
+import { isValidEnumValue } from '@/lib/utils/type-guards';
 
-// Get list of cases with filtering
 export async function GET(request: NextRequest) {
   try {
-    await initDb();
+    const session = await getServerSession(authOptions);
 
-    // Get query parameters
-    const url = new URL(request.url);
-    const searchParams = Object.fromEntries(url.searchParams.entries());
-
-    // Validate query parameters
-    const validationResult = validateRequest(listCasesSchema, {
-      page: searchParams.page ? parseInt(searchParams.page) : undefined,
-      limit: searchParams.limit ? parseInt(searchParams.limit) : undefined,
-      search: searchParams.search,
-      sortBy: searchParams.sortBy,
-      sortOrder: searchParams.sortOrder,
-      active: searchParams.active === 'true' ? true : searchParams.active === 'false' ? false : undefined,
-    });
-
-    // Handle validation errors - updated to use isSuccessResult
-    if (!isSuccessResult(validationResult)) {
-      return validationResult;
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Use validated data
-    const { data: params } = validationResult;
-    const cases = await getCases(params);
+    const isAdmin = session.user.role === 'admin';
+    const isInstructor = ['professor', 'admin'].includes(session.user.role ?? '');
 
-    return successResponse(cases);
-  }
-  catch (error) {
+    const searchParams = request.nextUrl.searchParams;
+    const type = searchParams.get('type');
+    const status = searchParams.get('status');
+
+    await initDb();
+    const db = getDb();
+
+    // Build conditions array
+    const conditions = [];
+
+    // Use the type guard for CaseType validation
+    if (isValidEnumValue(CaseType, type)) {
+      conditions.push(eq(cases.caseType, type));
+    }
+
+    // Use the type guard for CaseStatus validation
+    if (isValidEnumValue(CaseStatus, status)) {
+      conditions.push(eq(cases.status, status));
+    }
+
+    // Non-instructors can only see published cases
+    if (!isInstructor) {
+      conditions.push(eq(cases.status, CaseStatus.PUBLISHED));
+    }
+
+    // Execute query with all conditions at once
+    const allCases = await db
+      .select()
+      .from(cases)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(cases.createdAt));
+
+    return NextResponse.json(allCases);
+  } catch (error) {
     console.error('Error fetching cases:', error);
-    return errorResponse('Failed to fetch cases', 500);
+    return NextResponse.json({ error: 'Failed to fetch cases' }, { status: 500 });
   }
 }
 
-// Create new case
+// Create a new case
 export async function POST(request: NextRequest) {
   try {
-    await initDb();
+    const session = await getServerSession(authOptions);
 
-    // Parse request body
-    const body = await request.json().catch(() => ({}));
-
-    // Validate request body against schema
-    const validationResult = validateRequest(newCaseSchema, body);
-
-    // Handle validation errors - updated to use isSuccessResult
-    if (!isSuccessResult(validationResult)) {
-      return validationResult;
+    if (!session?.user || !['admin', 'professor'].includes(session.user.role ?? '')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Use validated data
-    const { data: newCase } = validationResult;
+    const body = await request.json();
 
-    // Create the case
-    const createdCase = await createCase(newCase);
+    // Validate required fields
+    if (!body.title || !isValidEnumValue(CaseType, body.caseType)) {
+      return NextResponse.json({ error: 'Missing or invalid required fields' }, { status: 400 });
+    }
 
-    return successResponse(createdCase);
-  }
-  catch (error) {
+    await initDb();
+    const db = getDb();
+
+    // Generate a reference number
+    const referenceNumber = `CASE-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
+
+    const [newCase] = await db
+      .insert(cases)
+      .values({
+        title: body.title,
+        referenceNumber,
+        caseType: body.caseType,
+        description: body.description || null,
+        summary: body.summary || null,
+        createdBy: session.user.id,
+      })
+      .returning();
+
+    return NextResponse.json(newCase, { status: 201 });
+  } catch (error) {
     console.error('Error creating case:', error);
-    return errorResponse('Failed to create case', 500);
+    return NextResponse.json({ error: 'Failed to create case' }, { status: 500 });
   }
 }

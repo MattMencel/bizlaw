@@ -6,7 +6,7 @@ import path from 'path';
 dotenv.config();
 
 // Define paths more explicitly with absolute paths
-const MIGRATIONS_OUT_DIR = path.join(process.cwd(), 'drizzle');
+const MIGRATIONS_OUT_DIR = path.join('drizzle', 'migrations');
 
 export default {
   schema: path.join(process.cwd(), 'apps/bizlaw/src/lib/db/schema.ts'),
