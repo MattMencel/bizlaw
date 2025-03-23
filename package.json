@@ -31,7 +31,7 @@
     "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
-    "drizzle-orm": "^0.40.0",
+    "drizzle-orm": "^0.41.0",
     "express": "^5.0.1",
     "lucide-react": "^0.483.0",
     "next": "~15.1.4",
