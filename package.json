@@ -110,7 +110,7 @@
     "textlint": "^14.5.0",
     "textlint-rule-common-misspellings": "^1.0.1",
     "textlint-rule-write-good": "^2.0.0",
-    "ts-jest": "^29.2.6",
+    "ts-jest": "^29.3.4",
     "ts-loader": "^9.5.2",
     "ts-node": "10.9.2",
     "typescript": "~5.8.2",
