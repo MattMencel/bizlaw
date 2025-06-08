@@ -79,7 +79,7 @@ group :development, :test do
   gem "rubocop-rspec"
 
   # RSpec for Rails testing
-  gem "rspec-rails", "~> 7.1.0"
+  gem "rspec-rails", "~> 8.0.0"
 
   # Factory Bot for test data generation
   gem "factory_bot_rails"
