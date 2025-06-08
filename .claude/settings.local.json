@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rails --help)",
+      "Bash(mkdir:*)",
+      "Bash(bin/rubocop:*)",
+      "Bash(bin/rspec --format documentation --no-coverage)",
+      "Bash(bundle exec rspec:*)",
+      "Bash(find:*)",
+      "Bash(bin/cucumber:*)",
+      "Bash(bundle exec rails dbconsole:*)",
+      "Bash(git add:*)",
+      "Bash(yamllint:*)"
+    ],
+    "deny": []
+  }
+}

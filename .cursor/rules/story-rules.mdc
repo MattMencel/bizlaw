@@ -1,0 +1,90 @@
+---
+description:
+globs: stories/**/*.story.md, stories/**/*.v*.story.md
+alwaysApply: false
+---
+---
+description: User story and requirements management specifications, applicable to all requirements related documents.
+---
+# Requirements Management Rules
+
+## User Story Management Guidelines
+- File organization
+  - Storage directory: stories/
+  - File extension: .story.md
+  - Organize sub-directories by business module
+  - Naming format: `[module]-[function].story.md`
+
+- Story Document Structure
+
+```markdown
+# [story title]
+
+## As a
+[Role]
+
+## I want
+[Expected functions]
+
+## So that
+[Business Value Achieved]
+
+## Acceptance Criteria
+- [ ] [Acceptance Item 1]
+- [ ] [Acceptance Item 2]
+
+## Additional information
+- Business rules:
+  * [Rule 1]
+  * [Rule 2]
+- Technical requirements:
+  * [Requirement 1]
+  * [Requirement 2]
+
+## Associated files
+- Feature: [path]
+- API documentation: [path]
+- Prototyping: [path]
+```
+
+- Story Development Process
+  * Strictly follow the following order:
+    1. Create a user story document
+    2. Waiting for confirmation of user stories and acceptance criteria
+    3. Write a feature file only when the user explicitly requests it
+    4. Continue with the next development steps
+  * Do not write Feature files before the user story is confirmed
+  * Do not start writing feature files without explicit user request
+  * Feature file creation needs to wait for explicit instructions from the user
+
+- Requirements and Features
+  - Each requirement document corresponds to one or more feature files
+  - Record the associated feature file path in the requirements document
+  - Annotate the associated requirements document in the feature file header
+
+- Version management
+  - Version file naming: `[original file name].v[version number].story.md`
+  - Each version file needs to contain:
+    * Change Description
+    * Reason for change
+    * Scope of impact
+    * Updated related files
+
+## Best Practices
+- Story Writing
+  - One story focuses on a complete business value
+  - Stories should be small enough to be completed in one iteration
+  - Acceptance criteria should be specific and testable
+  - Avoid technical implementation details
+
+- Story Review
+  - Joint review by business personnel and developers
+  - Make sure the story is clear and complete
+  - Verify the rationality of acceptance criteria
+  - Evaluate technical feasibility
+  - You can only proceed to the next step after the story review is passed
+
+- Association Management
+  - Update associated files in a timely manner
+  - Maintain consistency between documents
+  - Regularly check the validity of the association

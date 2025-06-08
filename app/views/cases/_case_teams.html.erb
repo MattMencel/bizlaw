@@ -1,0 +1,125 @@
+<div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
+  <div class="px-4 py-5 sm:p-6">
+    <div class="space-y-6">
+      <!-- Plaintiff Team -->
+      <div>
+        <h4 class="text-sm font-medium text-gray-900">Plaintiff Team</h4>
+        <% if case.plaintiff_team %>
+          <div class="mt-2">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <% if case.plaintiff_team.avatar_url.present? %>
+                  <%= image_tag case.plaintiff_team.avatar_url, class: "h-8 w-8 rounded-full" %>
+                <% else %>
+                  <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                    <span class="text-sm font-medium text-gray-500">
+                      <%= case.plaintiff_team.name.first %>
+                    </span>
+                  </div>
+                <% end %>
+              </div>
+              <div class="ml-4">
+                <h5 class="text-sm font-medium text-gray-900"><%= case.plaintiff_team.name %></h5>
+                <p class="text-sm text-gray-500">
+                  <%= pluralize(case.plaintiff_team.team_members.count, 'member') %>
+                </p>
+              </div>
+            </div>
+            <div class="mt-4">
+              <h6 class="text-xs font-medium text-gray-500">Team Members</h6>
+              <ul role="list" class="mt-2 divide-y divide-gray-200">
+                <% case.plaintiff_team.team_members.includes(:user).each do |member| %>
+                  <li class="py-2">
+                    <div class="flex items-center space-x-3">
+                      <div class="flex-shrink-0">
+                        <% if member.user.avatar_url.present? %>
+                          <%= image_tag member.user.avatar_url, class: "h-6 w-6 rounded-full" %>
+                        <% else %>
+                          <div class="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center">
+                            <span class="text-xs font-medium text-gray-500">
+                              <%= member.user.name.first %>
+                            </span>
+                          </div>
+                        <% end %>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">
+                          <%= member.user.name %>
+                        </p>
+                        <p class="text-xs text-gray-500 truncate">
+                          <%= member.role.titleize %>
+                        </p>
+                      </div>
+                    </div>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        <% else %>
+          <p class="mt-2 text-sm text-gray-500">No plaintiff team assigned</p>
+        <% end %>
+      </div>
+
+      <!-- Defendant Team -->
+      <div>
+        <h4 class="text-sm font-medium text-gray-900">Defendant Team</h4>
+        <% if case.defendant_team %>
+          <div class="mt-2">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <% if case.defendant_team.avatar_url.present? %>
+                  <%= image_tag case.defendant_team.avatar_url, class: "h-8 w-8 rounded-full" %>
+                <% else %>
+                  <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                    <span class="text-sm font-medium text-gray-500">
+                      <%= case.defendant_team.name.first %>
+                    </span>
+                  </div>
+                <% end %>
+              </div>
+              <div class="ml-4">
+                <h5 class="text-sm font-medium text-gray-900"><%= case.defendant_team.name %></h5>
+                <p class="text-sm text-gray-500">
+                  <%= pluralize(case.defendant_team.team_members.count, 'member') %>
+                </p>
+              </div>
+            </div>
+            <div class="mt-4">
+              <h6 class="text-xs font-medium text-gray-500">Team Members</h6>
+              <ul role="list" class="mt-2 divide-y divide-gray-200">
+                <% case.defendant_team.team_members.includes(:user).each do |member| %>
+                  <li class="py-2">
+                    <div class="flex items-center space-x-3">
+                      <div class="flex-shrink-0">
+                        <% if member.user.avatar_url.present? %>
+                          <%= image_tag member.user.avatar_url, class: "h-6 w-6 rounded-full" %>
+                        <% else %>
+                          <div class="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center">
+                            <span class="text-xs font-medium text-gray-500">
+                              <%= member.user.name.first %>
+                            </span>
+                          </div>
+                        <% end %>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">
+                          <%= member.user.name %>
+                        </p>
+                        <p class="text-xs text-gray-500 truncate">
+                          <%= member.role.titleize %>
+                        </p>
+                      </div>
+                    </div>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        <% else %>
+          <p class="mt-2 text-sm text-gray-500">No defendant team assigned</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
