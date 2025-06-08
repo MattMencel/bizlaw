@@ -161,14 +161,13 @@ RSpec.describe DocumentPolicy, type: :policy do
 
     context 'when user is student' do
       let(:user) { student }
-      let(:case_ids) { [1, 2, 3] }
-      let(:team_ids) { [4, 5, 6] }
+      let(:case_ids) { [ 1, 2, 3 ] }
+      let(:team_ids) { [ 4, 5, 6 ] }
 
       before do
         teams_double = double('teams')
-        allow(user).to receive(:teams).and_return(teams_double)
         allow(teams_double).to receive(:joins).with(:cases).and_return(double(pluck: case_ids))
-        allow(user).to receive(:team_ids).and_return(team_ids)
+        allow(user).to receive_messages(teams: teams_double, team_ids: team_ids)
       end
 
       it 'returns documents for accessible cases, teams, and own documents' do

@@ -19,8 +19,8 @@ RSpec.describe 'API::V1::Documents', type: :request do
 
   before do
     # Mock team membership for student access
-    allow_any_instance_of(User).to receive(:teams).and_return([team])
-    allow_any_instance_of(User).to receive(:team_ids).and_return([team.id])
+    allow_any_instance_of(User).to receive(:teams).and_return([ team ])
+    allow_any_instance_of(User).to receive(:team_ids).and_return([ team.id ])
   end
 
   describe 'GET /api/v1/documents' do

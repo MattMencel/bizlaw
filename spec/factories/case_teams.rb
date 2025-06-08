@@ -15,7 +15,7 @@ FactoryBot.define do
     end
 
     trait :with_case do
-      association :case, factory: [:case, :sexual_harassment]
+      association :case, factory: [ :case, :sexual_harassment ]
     end
 
     trait :with_team do
@@ -28,8 +28,8 @@ FactoryBot.define do
     end
 
     # Factory for creating a complete case with both plaintiff and defendant teams
-    factory :case_team_plaintiff, traits: [:plaintiff, :complete_assignment]
-    factory :case_team_defendant, traits: [:defendant, :complete_assignment]
+    factory :case_team_plaintiff, traits: [ :plaintiff, :complete_assignment ]
+    factory :case_team_defendant, traits: [ :defendant, :complete_assignment ]
 
     # Helper factory for setting up a full case scenario
     factory :case_with_teams, class: 'Case' do

@@ -9,11 +9,11 @@ RSpec.describe RedisService, type: :service do
 
   describe 'class structure' do
     it 'exists as a class' do
-      expect(defined?(RedisService)).to eq('constant')
+      expect(defined?(described_class)).to eq('constant')
     end
 
     it 'can be instantiated' do
-      expect { RedisService.new }.not_to raise_error
+      expect { described_class.new }.not_to raise_error
     end
   end
 

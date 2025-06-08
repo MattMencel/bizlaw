@@ -271,61 +271,71 @@ Then("I should not be a member of the team {string}") do |team_name|
 end
 
 Then("the team should be created successfully") do
-  expect(page).to have_content("Team created successfully") ||
-  expect(page).to have_content("successfully created") ||
-  expect(page).to have_css(".alert-success")
+  success_present = page.has_content?("Team created successfully") ||
+                    page.has_content?("successfully created") ||
+                    page.has_css?(".alert-success")
+  expect(success_present).to be true
 end
 
 Then("the team should be updated successfully") do
-  expect(page).to have_content("Team updated successfully") ||
-  expect(page).to have_content("successfully updated") ||
-  expect(page).to have_css(".alert-success")
+  success_present = page.has_content?("Team updated successfully") ||
+                    page.has_content?("successfully updated") ||
+                    page.has_css?(".alert-success")
+  expect(success_present).to be true
 end
 
 Then("the team should be deleted successfully") do
-  expect(page).to have_content("Team deleted successfully") ||
-  expect(page).to have_content("successfully deleted") ||
-  expect(page).to have_css(".alert-success")
+  success_present = page.has_content?("Team deleted successfully") ||
+                    page.has_content?("successfully deleted") ||
+                    page.has_css?(".alert-success")
+  expect(success_present).to be true
 end
 
 Then("I should see a message about joining the team") do
-  expect(page).to have_content("joined") ||
-  expect(page).to have_content("Welcome to the team") ||
-  expect(page).to have_css(".alert-success")
+  join_present = page.has_content?("joined") ||
+                 page.has_content?("Welcome to the team") ||
+                 page.has_css?(".alert-success")
+  expect(join_present).to be true
 end
 
 Then("I should see a message about leaving the team") do
-  expect(page).to have_content("left") ||
-  expect(page).to have_content("removed from") ||
-  expect(page).to have_css(".alert-success")
+  leave_present = page.has_content?("left") ||
+                  page.has_content?("removed from") ||
+                  page.has_css?(".alert-success")
+  expect(leave_present).to be true
 end
 
 Then("I should see the team is full") do
-  expect(page).to have_content("Team is full") ||
-  expect(page).to have_content("No available spots") ||
-  expect(page).not_to have_link("Join Team")
+  full_indicated = page.has_content?("Team is full") ||
+                   page.has_content?("No available spots") ||
+                   !page.has_link?("Join Team")
+  expect(full_indicated).to be true
 end
 
 Then("I should see team activity") do
-  expect(page).to have_content("Activity") ||
-  expect(page).to have_css(".activity-timeline") ||
-  expect(page).to have_css(".team-events")
+  activity_present = page.has_content?("Activity") ||
+                     page.has_css?(".activity-timeline") ||
+                     page.has_css?(".team-events")
+  expect(activity_present).to be true
 end
 
 Then("an invitation should be sent to {string}") do |user_email|
   # This would check email delivery in a real scenario
-  expect(page).to have_content("Invitation sent") ||
-  expect(page).to have_content("invited")
+  invitation_sent = page.has_content?("Invitation sent") ||
+                    page.has_content?("invited")
+  expect(invitation_sent).to be true
 end
 
 Then("the team should be archived") do
-  expect(page).to have_content("Team archived") ||
-  expect(page).to have_content("archived successfully")
+  archived_present = page.has_content?("Team archived") ||
+                     page.has_content?("archived successfully")
+  expect(archived_present).to be true
 end
 
 Then("I should see a cloned team") do
-  expect(page).to have_content("Team cloned") ||
-  expect(page).to have_content("Copy of")
+  cloned_present = page.has_content?("Team cloned") ||
+                   page.has_content?("Copy of")
+  expect(cloned_present).to be true
 end
 
 Then("I should be redirected to the teams page") do

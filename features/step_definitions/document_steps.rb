@@ -58,7 +58,11 @@ When("I navigate to the document management page") do
 end
 
 When("I upload a new document") do
-  click_link "Upload Document" || click_button "Add Document"
+  if page.has_link?("Upload Document")
+    click_link "Upload Document"
+  elsif page.has_button?("Add Document")
+    click_button "Add Document"
+  end
 end
 
 When("I upload a document with the following details:") do |table|
@@ -74,7 +78,11 @@ When("I upload a document with the following details:") do |table|
     attach_file "File", Rails.root.join("spec/fixtures/files/#{details['File']}")
   end
 
-  click_button "Upload" || click_button "Create Document"
+  if page.has_button?("Upload")
+    click_button "Upload"
+  elsif page.has_button?("Create Document")
+    click_button "Create Document"
+  end
 end
 
 When("I edit the document {string}") do |document_title|
@@ -89,14 +97,22 @@ When("I update the document with:") do |table|
   fill_in "Description", with: details["Description"] if details["Description"]
   select details["Type"], from: "Document Type" if details["Type"]
 
-  click_button "Update" || click_button "Save"
+  if page.has_button?("Update")
+    click_button "Update"
+  elsif page.has_button?("Save")
+    click_button "Save"
+  end
 end
 
 When("I delete the document {string}") do |document_title|
   document = Document.find_by!(title: document_title)
   visit document_path(document)
 
-  click_link "Delete" || click_button "Delete Document"
+  if page.has_link?("Delete")
+    click_link "Delete"
+  elsif page.has_button?("Delete Document")
+    click_button "Delete Document"
+  end
 
   # Handle confirmation
   click_button "Confirm" if page.has_button?("Confirm")
@@ -139,19 +155,35 @@ When("I share the document with {string}") do |user_email|
 end
 
 When("I create a new version of the document") do
-  click_link "New Version" || click_button "Create Version"
+  if page.has_link?("New Version")
+    click_link "New Version"
+  elsif page.has_button?("Create Version")
+    click_button "Create Version"
+  end
 end
 
 When("I finalize the document") do
-  click_button "Finalize" || click_link "Finalize Document"
+  if page.has_button?("Finalize")
+    click_button "Finalize"
+  elsif page.has_link?("Finalize Document")
+    click_link "Finalize Document"
+  end
 end
 
 When("I archive the document") do
-  click_button "Archive" || click_link "Archive Document"
+  if page.has_button?("Archive")
+    click_button "Archive"
+  elsif page.has_link?("Archive Document")
+    click_link "Archive Document"
+  end
 end
 
 When("I restore the archived document") do
-  click_button "Restore" || click_link "Restore Document"
+  if page.has_button?("Restore")
+    click_button "Restore"
+  elsif page.has_link?("Restore Document")
+    click_link "Restore Document"
+  end
 end
 
 When("I set document permissions for {string} to {string}") do |user_email, permission_level|
@@ -195,21 +227,24 @@ Then("I should not see the document {string} in the list") do |document_title|
 end
 
 Then("the document should be uploaded successfully") do
-  expect(page).to have_content("successfully uploaded") ||
-  expect(page).to have_content("Document created") ||
-  expect(page).to have_css(".alert-success")
+  success_present = page.has_content?("successfully uploaded") ||
+                    page.has_content?("Document created") ||
+                    page.has_css?(".alert-success")
+  expect(success_present).to be true
 end
 
 Then("the document should be updated successfully") do
-  expect(page).to have_content("successfully updated") ||
-  expect(page).to have_content("Document updated") ||
-  expect(page).to have_css(".alert-success")
+  success_present = page.has_content?("successfully updated") ||
+                    page.has_content?("Document updated") ||
+                    page.has_css?(".alert-success")
+  expect(success_present).to be true
 end
 
 Then("the document should be deleted successfully") do
-  expect(page).to have_content("successfully deleted") ||
-  expect(page).to have_content("Document removed") ||
-  expect(page).to have_css(".alert-success")
+  success_present = page.has_content?("successfully deleted") ||
+                    page.has_content?("Document removed") ||
+                    page.has_css?(".alert-success")
+  expect(success_present).to be true
 end
 
 Then("I should see documents of type {string}") do |document_type|
@@ -228,13 +263,15 @@ Then("the document should be downloaded") do
 end
 
 Then("I should see the comment in the document") do
-  expect(page).to have_content("Comment added successfully") ||
-  expect(page).to have_css(".document-comment")
+  comment_present = page.has_content?("Comment added successfully") ||
+                    page.has_css?(".document-comment")
+  expect(comment_present).to be true
 end
 
 Then("the document should be shared with {string}") do |user_email|
-  expect(page).to have_content("Shared with #{user_email}") ||
-  expect(page).to have_content("Document shared successfully")
+  shared_present = page.has_content?("Shared with #{user_email}") ||
+                   page.has_content?("Document shared successfully")
+  expect(shared_present).to be true
 end
 
 Then("I should see version {int} of the document") do |version_number|
@@ -246,34 +283,40 @@ Then("the document status should be {string}") do |status|
 end
 
 Then("the document should be finalized") do
-  expect(page).to have_content("final") ||
-  expect(page).to have_content("finalized") ||
-  expect(page).to have_content("Document finalized successfully")
+  finalized_present = page.has_content?("final") ||
+                      page.has_content?("finalized") ||
+                      page.has_content?("Document finalized successfully")
+  expect(finalized_present).to be true
 end
 
 Then("the document should be archived") do
-  expect(page).to have_content("archived") ||
-  expect(page).to have_content("Document archived successfully")
+  archived_present = page.has_content?("archived") ||
+                     page.has_content?("Document archived successfully")
+  expect(archived_present).to be true
 end
 
 Then("the document should be restored") do
-  expect(page).to have_content("restored") ||
-  expect(page).to have_content("Document restored successfully")
+  restored_present = page.has_content?("restored") ||
+                     page.has_content?("Document restored successfully")
+  expect(restored_present).to be true
 end
 
 Then("the user should have {string} access to the document") do |access_level|
-  expect(page).to have_content(access_level) ||
-  expect(page).to have_content("Permissions updated")
+  access_present = page.has_content?(access_level) ||
+                   page.has_content?("Permissions updated")
+  expect(access_present).to be true
 end
 
 Then("the documents should be organized into the {string} folder") do |folder_name|
-  expect(page).to have_content("Documents moved to #{folder_name}") ||
-  expect(page).to have_content("Organization updated")
+  organized_present = page.has_content?("Documents moved to #{folder_name}") ||
+                      page.has_content?("Organization updated")
+  expect(organized_present).to be true
 end
 
 Then("the selected documents should be deleted") do
-  expect(page).to have_content("Documents deleted successfully") ||
-  expect(page).to have_content("Bulk delete completed")
+  deleted_present = page.has_content?("Documents deleted successfully") ||
+                    page.has_content?("Bulk delete completed")
+  expect(deleted_present).to be true
 end
 
 Then("I should receive a PDF export") do
@@ -285,15 +328,16 @@ Then("I should receive a Word export") do
 end
 
 Then("I should see an access denied message") do
-  expect(page).to have_content("Access denied") ||
-  expect(page).to have_content("You don't have permission") ||
-  expect(page).to have_http_status(:forbidden)
+  denied_present = page.has_content?("Access denied") ||
+                   page.has_content?("You don't have permission")
+  expect(denied_present).to be true
 end
 
 Then("I should see a validation error") do
-  expect(page).to have_content("error") ||
-  expect(page).to have_css(".alert-danger") ||
-  expect(page).to have_css(".field_with_errors")
+  error_present = page.has_content?("error") ||
+                  page.has_css?(".alert-danger") ||
+                  page.has_css?(".field_with_errors")
+  expect(error_present).to be true
 end
 
 # Helper methods

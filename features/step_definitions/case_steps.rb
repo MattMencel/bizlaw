@@ -84,7 +84,7 @@ Given("I have a case due in {int} days") do |days|
 end
 
 Given("I have completed multiple cases") do
-  case_types = [:sexual_harassment, :discrimination, :wrongful_termination]
+  case_types = [ :sexual_harassment, :discrimination, :wrongful_termination ]
 
   3.times do |i|
     case_attributes = { case_type: case_types[i] }
@@ -305,11 +305,15 @@ Then("I should see the case in the case list") do
 end
 
 Then("I should see a success message") do
-  expect(page).to have_content("successfully") ||
-  expect(page).to have_content("created") ||
-  expect(page).to have_content("updated") ||
-  expect(page).to have_css(".alert-success") ||
-  expect(page).to have_css(".notice")
+  success_indicators = [
+    "successfully", "created", "updated"
+  ]
+
+  success_present = success_indicators.any? { |indicator| page.has_content?(indicator) } ||
+                    page.has_css?(".alert-success") ||
+                    page.has_css?(".notice")
+
+  expect(success_present).to be true
 end
 
 Then("I should see the case details") do
@@ -331,14 +335,16 @@ Then("the case should be updated successfully") do
 end
 
 Then("the case should be deleted successfully") do
-  expect(page).to have_content("deleted") || expect(page).to have_content("removed")
+  deleted_present = page.has_content?("deleted") || page.has_content?("removed")
+  expect(deleted_present).to be true
 end
 
 Then("I should see an error message") do
-  expect(page).to have_css(".alert-danger") ||
-  expect(page).to have_css(".error") ||
-  expect(page).to have_content("error") ||
-  expect(page).to have_content("invalid")
+  error_present = page.has_css?(".alert-danger") ||
+                  page.has_css?(".error") ||
+                  page.has_content?("error") ||
+                  page.has_content?("invalid")
+  expect(error_present).to be true
 end
 
 Then("I should be redirected to the cases page") do
@@ -363,13 +369,15 @@ When("I view team assignments") do
   case_to_view = @case || Case.last
   visit case_path(case_to_view)
 
-  expect(page).to have_content("Team Assignments") ||
-  expect(page).to have_content("Plaintiff Team") ||
-  expect(page).to have_content("Defendant Team")
+  assignments_present = page.has_content?("Team Assignments") ||
+                        page.has_content?("Plaintiff Team") ||
+                        page.has_content?("Defendant Team")
+  expect(assignments_present).to be true
 end
 
 Then("I should see the team assignments") do
-  expect(page).to have_content("Plaintiff") || expect(page).to have_content("Defendant")
+  assignments_visible = page.has_content?("Plaintiff") || page.has_content?("Defendant")
+  expect(assignments_visible).to be true
 end
 
 # Case status management

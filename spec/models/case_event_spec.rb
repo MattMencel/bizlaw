@@ -33,7 +33,7 @@ RSpec.describe CaseEvent, type: :model do
       end
 
       it 'rejects array data' do
-        subject.data = ['invalid', 'array']
+        subject.data = [ 'invalid', 'array' ]
         expect(subject).not_to be_valid
         expect(subject.errors[:data]).to include('must be a valid JSON object')
       end
@@ -42,7 +42,7 @@ RSpec.describe CaseEvent, type: :model do
 
   describe 'enums' do
     it 'defines event_type enum with correct values' do
-      expect(CaseEvent.event_types).to eq({
+      expect(described_class.event_types).to eq({
         'created' => 'created',
         'updated' => 'updated',
         'status_changed' => 'status_changed',
@@ -55,14 +55,14 @@ RSpec.describe CaseEvent, type: :model do
     end
 
     it 'creates scopes for each event type' do
-      expect(CaseEvent).to respond_to(:event_type_created)
-      expect(CaseEvent).to respond_to(:event_type_updated)
-      expect(CaseEvent).to respond_to(:event_type_status_changed)
-      expect(CaseEvent).to respond_to(:event_type_document_added)
-      expect(CaseEvent).to respond_to(:event_type_document_removed)
-      expect(CaseEvent).to respond_to(:event_type_team_member_added)
-      expect(CaseEvent).to respond_to(:event_type_team_member_removed)
-      expect(CaseEvent).to respond_to(:event_type_comment_added)
+      expect(described_class).to respond_to(:event_type_created)
+      expect(described_class).to respond_to(:event_type_updated)
+      expect(described_class).to respond_to(:event_type_status_changed)
+      expect(described_class).to respond_to(:event_type_document_added)
+      expect(described_class).to respond_to(:event_type_document_removed)
+      expect(described_class).to respond_to(:event_type_team_member_added)
+      expect(described_class).to respond_to(:event_type_team_member_removed)
+      expect(described_class).to respond_to(:event_type_comment_added)
     end
   end
 

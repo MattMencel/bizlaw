@@ -10,7 +10,11 @@
       "Bash(bin/cucumber:*)",
       "Bash(bundle exec rails dbconsole:*)",
       "Bash(git add:*)",
-      "Bash(yamllint:*)"
+      "Bash(yamllint:*)",
+      "Bash(git checkout:*)",
+      "Bash(git push:*)",
+      "Bash(ruby -c:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }

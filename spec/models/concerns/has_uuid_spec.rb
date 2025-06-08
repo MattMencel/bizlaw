@@ -94,7 +94,7 @@ RSpec.describe HasUuid, type: :concern do
 
   describe 'edge cases' do
     it 'handles bulk operations' do
-      instances = test_class.create!([{}, {}, {}])
+      instances = test_class.create!([ {}, {}, {} ])
 
       expect(instances.length).to eq(3)
       instances.each do |instance|

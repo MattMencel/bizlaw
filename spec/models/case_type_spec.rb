@@ -23,12 +23,12 @@ RSpec.describe CaseType, type: :model do
     let(:case_type) { create(:case_type) }
 
     it 'can be soft deleted' do
-      expect { case_type.soft_delete }.to change { case_type.deleted_at }.from(nil)
+      expect { case_type.soft_delete }.to change(case_type, :deleted_at).from(nil)
     end
 
     it 'can be restored' do
       case_type.soft_delete
-      expect { case_type.restore }.to change { case_type.deleted_at }.to(nil)
+      expect { case_type.restore }.to change(case_type, :deleted_at).to(nil)
     end
   end
 end

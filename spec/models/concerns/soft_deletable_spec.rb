@@ -137,8 +137,8 @@ RSpec.describe SoftDeletable, type: :concern do
       expect(test_class.unscoped.count).to eq(3)
 
       # Test where clauses
-      expect(test_class.where(id: [active1.id, deleted1.id]).count).to eq(1)
-      expect(test_class.unscoped.where(id: [active1.id, deleted1.id]).count).to eq(2)
+      expect(test_class.where(id: [ active1.id, deleted1.id ]).count).to eq(1)
+      expect(test_class.unscoped.where(id: [ active1.id, deleted1.id ]).count).to eq(2)
     end
 
     it 'works with associations' do
@@ -205,7 +205,7 @@ RSpec.describe SoftDeletable, type: :concern do
       # In a real app, you'd want: add_index :table_name, :deleted_at
 
       # Create many records
-      instances = test_class.create!([{}, {}, {}, {}, {}])
+      instances = test_class.create!([ {}, {}, {}, {}, {} ])
       instances[0..2].each(&:soft_delete)
 
       # These queries should be efficient with proper indexing

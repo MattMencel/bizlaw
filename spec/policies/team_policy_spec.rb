@@ -16,8 +16,7 @@ RSpec.describe TeamPolicy, type: :policy do
 
   before do
     # Mock team relationships
-    allow(team_owner).to receive(:teams).and_return([team])
-    allow(student).to receive(:teams).and_return([team])
+    allow(team_owner).to receive(:teams).and_return([ team ])
     allow(other_student).to receive(:teams).and_return([])
 
     # Mock team_members for counting and role checking
@@ -30,7 +29,7 @@ RSpec.describe TeamPolicy, type: :policy do
     allow(team_manager).to receive(:team_members).and_return(manager_team_members)
     allow(manager_team_members).to receive(:exists?).with(team: team, role: :manager).and_return(true)
 
-    allow(student).to receive(:team_members).and_return(double(exists?: false))
+    allow(student).to receive_messages(teams: [ team ], team_members: double(exists?: false))
   end
 
   permissions :index? do

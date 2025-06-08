@@ -23,8 +23,8 @@ FactoryBot.define do
       data do
         {
           changes: {
-            title: ['Old Title', 'New Title'],
-            status: ['draft', 'published']
+            title: [ 'Old Title', 'New Title' ],
+            status: [ 'draft', 'published' ]
           },
           updated_by: 'Test User',
           timestamp: Time.current.iso8601
@@ -146,8 +146,8 @@ FactoryBot.define do
               new: { name: 'New Defendant LLC', type: 'llc' }
             },
             legal_issues: {
-              added: ['discrimination', 'wrongful_termination'],
-              removed: ['harassment']
+              added: [ 'discrimination', 'wrongful_termination' ],
+              removed: [ 'harassment' ]
             }
           },
           performance_metrics: {

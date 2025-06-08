@@ -52,13 +52,13 @@ RSpec.describe ActiveRecord::QueryCounter do
     it "increments query count" do
       expect {
         described_class.track_query(1.5)
-      }.to change { described_class.query_count }.by(1)
+      }.to change(described_class, :query_count).by(1)
     end
 
     it "adds duration to total" do
       expect {
         described_class.track_query(1.5)
-      }.to change { described_class.query_duration }.by(1.5)
+      }.to change(described_class, :query_duration).by(1.5)
     end
   end
 

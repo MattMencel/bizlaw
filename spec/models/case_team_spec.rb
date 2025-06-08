@@ -65,15 +65,15 @@ RSpec.describe CaseTeam, type: :model do
 
   describe 'enums' do
     it 'defines role enum with correct values' do
-      expect(CaseTeam.roles).to eq({
+      expect(described_class.roles).to eq({
         'plaintiff' => 'plaintiff',
         'defendant' => 'defendant'
       })
     end
 
     it 'creates scopes for each role' do
-      expect(CaseTeam).to respond_to(:role_plaintiff)
-      expect(CaseTeam).to respond_to(:role_defendant)
+      expect(described_class).to respond_to(:role_plaintiff)
+      expect(described_class).to respond_to(:role_defendant)
     end
 
     it 'creates role query methods' do

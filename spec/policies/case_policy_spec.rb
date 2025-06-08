@@ -15,10 +15,8 @@ RSpec.describe CasePolicy, type: :policy do
   let(:case_team) { build_stubbed(:case_team, case: case_record, team: team) }
 
   before do
-    allow(student).to receive(:teams).and_return(double(joins: double(exists?: true)))
-    allow(student).to receive(:team_ids).and_return([team.id])
-    allow(other_student).to receive(:teams).and_return(double(joins: double(exists?: false)))
-    allow(other_student).to receive(:team_ids).and_return([])
+    allow(student).to receive_messages(teams: double(joins: double(exists?: true)), team_ids: [ team.id ])
+    allow(other_student).to receive_messages(teams: double(joins: double(exists?: false)), team_ids: [])
   end
 
   permissions :index? do
