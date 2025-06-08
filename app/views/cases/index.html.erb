@@ -1,0 +1,80 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="py-8">
+    <div class="flex justify-between items-center">
+      <h1 class="text-3xl font-bold text-gray-900">Cases</h1>
+      <%= link_to "New Case", new_case_path,
+          class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
+          data: { turbo_frame: "_top" } %>
+    </div>
+
+    <div class="mt-8">
+      <%= form_with url: cases_path, method: :get, class: "space-y-4 md:space-y-0 md:flex md:items-center md:space-x-4 mb-6", data: { turbo_frame: "cases_list", turbo_action: "advance" } do |f| %>
+        <div class="flex-1">
+          <%= f.text_field :query,
+              placeholder: "Search cases...",
+              class: "shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" %>
+        </div>
+        <div>
+          <%= f.select :status,
+              Case.statuses.keys.map { |s| [s.titleize, s] },
+              { include_blank: "All Statuses" },
+              class: "mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" %>
+        </div>
+        <div>
+          <%= f.select :case_type,
+              (@case_types || []).map { |ct| [ct.title, ct.id] },
+              { include_blank: "All Types" },
+              class: "mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" %>
+        </div>
+        <%= f.submit "Filter",
+            class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+      <% end %>
+
+      <%= turbo_frame_tag "cases_list" do %>
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+          <ul role="list" class="divide-y divide-gray-200">
+            <% (@cases || []).each do |kase| %>
+              <%= turbo_frame_tag dom_id(kase) do %>
+                <li>
+                  <div class="px-4 py-4 sm:px-6">
+                    <div class="flex items-center justify-between">
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center">
+                          <%= link_to case_path(kase), class: "hover:text-indigo-600", data: { turbo_frame: "_top" } do %>
+                            <p class="text-sm font-medium text-indigo-600 truncate"><%= kase.title %></p>
+                          <% end %>
+                          <p class="ml-2 text-sm text-gray-500">
+                            <%= kase.reference_number %>
+                          </p>
+                        </div>
+                        <div class="mt-2 flex">
+                          <div class="flex items-center text-sm text-gray-500">
+                            <span class="truncate"><%= kase.case_type.title %></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex items-center space-x-4">
+                        <span class="<%= case_status_classes(kase.status) %> px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                          <%= kase.status.titleize %>
+                        </span>
+                        <% if kase.due_date.present? %>
+                          <div class="text-sm text-gray-500">
+                            Due <%= time_ago_in_words(kase.due_date) %> from now
+                          </div>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              <% end %>
+            <% end %>
+          </ul>
+        </div>
+
+        <div class="mt-4">
+          <%= paginate @cases %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

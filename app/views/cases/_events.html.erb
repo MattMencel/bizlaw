@@ -1,0 +1,39 @@
+<div class="bg-white shadow sm:rounded-lg">
+  <div class="px-4 py-5 sm:p-6">
+    <div class="flow-root">
+      <ul role="list" class="-mb-8">
+        <% case_record.case_events.includes(:user).order(created_at: :desc).each do |event| %>
+          <li>
+            <div class="relative pb-8">
+              <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+              <div class="relative flex space-x-3">
+                <div>
+                  <span class="h-8 w-8 rounded-full <%= event_type_classes(event.event_type) %> flex items-center justify-center ring-8 ring-white">
+                    <%= event_type_icon(event.event_type) %>
+                  </span>
+                </div>
+                <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                  <div>
+                    <p class="text-sm text-gray-500">
+                      <%= event_description(event) %>
+                    </p>
+                    <% if event.details.present? %>
+                      <div class="mt-2 text-sm text-gray-700">
+                        <%= event.details %>
+                      </div>
+                    <% end %>
+                  </div>
+                  <div class="whitespace-nowrap text-right text-sm text-gray-500">
+                    <time datetime="<%= event.created_at.iso8601 %>">
+                      <%= time_ago_in_words(event.created_at) %> ago
+                    </time>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+</div>
