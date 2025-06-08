@@ -8,7 +8,7 @@
         </p>
       </div>
       <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-        <%= link_to new_case_document_path(@case),
+        <%= link_to new_case_record_document_path(@case_record),
             class: "inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto",
             data: { turbo_frame: "new_document" } do %>
           Upload Document
@@ -35,7 +35,7 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200 bg-white">
-                <% case.documents.includes(:uploaded_by).order(created_at: :desc).each do |document| %>
+                <% case_record.documents.includes(:uploaded_by).order(created_at: :desc).each do |document| %>
                   <%= turbo_frame_tag dom_id(document) do %>
                     <tr>
                       <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
@@ -69,7 +69,7 @@
                               </svg>
                             <% end %>
                           <% end %>
-                          <%= link_to edit_case_document_path(@case, document),
+                          <%= link_to edit_case_record_document_path(@case_record, document),
                               class: "text-indigo-600 hover:text-indigo-900",
                               title: "Edit",
                               data: { turbo_frame: dom_id(document) } do %>
@@ -77,7 +77,7 @@
                               <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                             </svg>
                           <% end %>
-                          <%= button_to case_document_path(@case, document),
+                          <%= button_to case_record_document_path(@case_record, document),
                               method: :delete,
                               class: "text-red-600 hover:text-red-900",
                               title: "Delete",

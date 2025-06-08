@@ -2,7 +2,7 @@
   <div class="px-4 py-5 sm:p-6">
     <div class="flow-root">
       <ul role="list" class="-mb-8">
-        <% case.case_events.includes(:user).order(created_at: :desc).each do |event| %>
+        <% case_record.case_events.includes(:user).order(created_at: :desc).each do |event| %>
           <li>
             <div class="relative pb-8">
               <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>

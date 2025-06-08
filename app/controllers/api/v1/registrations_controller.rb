@@ -34,8 +34,7 @@ module Api
           :password,
           :password_confirmation,
           :first_name,
-          :last_name,
-          :role
+          :last_name
         )
       end
     end
