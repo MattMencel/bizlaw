@@ -13,7 +13,7 @@ repos:
       - id: check-xml
       - id: check-yaml
         args: [--allow-multiple-documents]
-        exclude: ^deploy/helm/
+        exclude: ^(deploy/helm/|config/cucumber\.yml)
       - id: end-of-file-fixer
       - id: fix-byte-order-marker
       - id: mixed-line-ending
@@ -46,12 +46,3 @@ repos:
     rev: v0.10.0
     hooks:
       - id: shellcheck
-
-  - repo: local
-    hooks:
-      - id: lint-staged
-        name: lint-staged
-        entry: ./node_modules/.bin/lint-staged
-        language: node
-        require_serial: true
-        types: [file]

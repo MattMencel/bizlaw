@@ -1,0 +1,65 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="py-8">
+    <div class="md:flex md:items-center md:justify-between">
+      <div class="flex-1 min-w-0">
+        <nav class="flex" aria-label="Breadcrumb">
+          <ol role="list" class="flex items-center space-x-4">
+            <li>
+              <div class="flex">
+                <%= link_to "Teams", teams_path, class: "text-sm font-medium text-gray-500 hover:text-gray-700" %>
+              </div>
+            </li>
+            <li>
+              <div class="flex items-center">
+                <svg class="flex-shrink-0 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                </svg>
+                <span class="ml-4 text-sm font-medium text-gray-500"><%= @team.name %></span>
+              </div>
+            </li>
+          </ol>
+        </nav>
+        <%= turbo_frame_tag dom_id(@team, :header) do %>
+          <h2 class="mt-2 text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate"><%= @team.name %></h2>
+          <p class="mt-1 text-sm text-gray-500"><%= @team.description %></p>
+        <% end %>
+      </div>
+      <div class="mt-4 flex md:ml-4 md:mt-0">
+        <%= link_to edit_team_path(@team),
+            class: "ml-3 inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
+            data: { turbo_frame: "_top" } do %>
+          <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+          </svg>
+          Edit Team
+        <% end %>
+      </div>
+    </div>
+
+    <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <!-- Team Members Section -->
+      <div>
+        <%= real_time_frame(
+              id: "team-members",
+              url: team_path(@team),
+              interval: 5000,
+              title: "Team Members"
+            ) do %>
+          <%= render "team_members", team: @team %>
+        <% end %>
+      </div>
+
+      <!-- Team Activity Section -->
+      <div>
+        <%= real_time_frame(
+              id: "team-activity",
+              url: team_path(@team),
+              interval: 10000,
+              title: "Recent Activity"
+            ) do %>
+          <%= render "activity", team: @team %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

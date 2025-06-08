@@ -1,0 +1,228 @@
+---
+description: Guidelines for writing high-quality Cucumber and RSpec tests in our Rails application.
+globs:
+alwaysApply: false
+---
+
+# Testing Guidelines
+
+Guidelines for writing high-quality Cucumber and RSpec tests in our Rails application.
+
+## Cucumber (Behavior-Driven Development)
+
+### Feature File Structure
+
+1. Write features in `features/*.feature` files using Gherkin syntax
+2. Follow this format for feature descriptions:
+   ```gherkin
+   Feature: [Feature Name]
+     In order to [achieve some business value]
+     As a [role/persona]
+     I want to [perform some action]
+   ```
+3. Group related scenarios together in the same feature file
+4. Name feature files descriptively (e.g., `user_authentication.feature`, `document_management.feature`)
+
+### Scenario Writing
+
+1. Write scenarios in Given-When-Then format:
+   ```gherkin
+   Scenario: [Descriptive scenario name]
+     Given [some context]
+     When [some action is taken]
+     Then [some outcome is expected]
+   ```
+2. Use scenario outlines for data-driven tests:
+
+   ```gherkin
+   Scenario Outline: [Description with variables]
+     Given I am a user with role <role>
+     When I attempt to access <resource>
+     Then I should <outcome>
+
+     Examples:
+       | role    | resource | outcome |
+       | admin   | /admin   | succeed |
+       | user    | /admin   | fail    |
+   ```
+
+3. Keep scenarios focused and atomic
+4. Use background steps for common setup:
+   ```gherkin
+   Background:
+     Given I am logged in as a user
+     And I am on the dashboard
+   ```
+
+### Step Definitions
+
+1. Place step definitions in `features/step_definitions/` organized by feature
+2. Write reusable steps that are clear and maintainable:
+   ```ruby
+   Given('I am logged in as a {string}') do |role|
+     @user = create(:user, role: role)
+     login_as(@user)
+   end
+   ```
+3. Use factory_bot for test data:
+   ```ruby
+   Given('there are {int} published articles') do |count|
+     create_list(:article, count, :published)
+   end
+   ```
+4. Keep step definitions DRY and focused
+5. Use descriptive step names that match the business domain
+
+## RSpec (Unit and Integration Testing)
+
+### File Organization
+
+1. Follow Rails convention for spec files:
+   ```
+   spec/
+   ├── models/
+   ├── controllers/
+   ├── requests/
+   ├── system/
+   ├── services/
+   ├── factories/
+   ├── support/
+   └── shared_examples/
+   ```
+2. Use appropriate spec types:
+   - `type: :model` for model specs
+   - `type: :controller` for controller specs
+   - `type: :request` for API/integration specs
+   - `type: :system` for browser-based testing
+
+### Best Practices
+
+1. Use descriptive contexts and examples:
+   ```ruby
+   RSpec.describe User, type: :model do
+     context "when validating attributes" do
+       it "requires an email address" do
+         # test code
+       end
+     end
+   end
+   ```
+2. Follow the Four-Phase Test pattern:
+
+   ```ruby
+   it "updates the user's profile" do
+     # Setup
+     user = create(:user)
+     new_attributes = attributes_for(:user)
+
+     # Exercise
+     user.update(new_attributes)
+
+     # Verify
+     expect(user.reload.attributes).to include(new_attributes)
+
+     # Teardown (handled by DatabaseCleaner)
+   end
+   ```
+
+3. Use factory_bot effectively:
+
+   ```ruby
+   FactoryBot.define do
+     factory :user do
+       sequence(:email) { |n| "user#{n}@example.com" }
+
+       trait :admin do
+         role { 'admin' }
+       end
+     end
+   end
+   ```
+
+4. Utilize shared examples for common behavior:
+   ```ruby
+   RSpec.shared_examples "requires authentication" do
+     it "redirects to login page" do
+       expect(response).to redirect_to(new_user_session_path)
+     end
+   end
+   ```
+
+### Model Specs
+
+1. Test validations:
+   ```ruby
+   it { should validate_presence_of(:email) }
+   it { should validate_uniqueness_of(:email).case_insensitive }
+   ```
+2. Test associations:
+   ```ruby
+   it { should have_many(:posts).dependent(:destroy) }
+   it { should belong_to(:organization) }
+   ```
+3. Test scopes and class methods:
+   ```ruby
+   describe ".active" do
+     it "returns only active users" do
+       active = create(:user, active: true)
+       inactive = create(:user, active: false)
+       expect(User.active).to include(active)
+       expect(User.active).not_to include(inactive)
+     end
+   end
+   ```
+
+### Request/Controller Specs
+
+1. Test different response formats:
+   ```ruby
+   context "with JSON request" do
+     before { get "/api/users", headers: json_headers }
+     it { expect(response.content_type).to eq("application/json") }
+   end
+   ```
+2. Test status codes and responses:
+   ```ruby
+   it "returns success response" do
+     get api_users_path
+     expect(response).to have_http_status(:success)
+     expect(json_response).to include("users")
+   end
+   ```
+
+### System Specs
+
+1. Use feature-level testing with Capybara:
+   ```ruby
+   it "allows user to create a post" do
+     visit new_post_path
+     fill_in "Title", with: "My Post"
+     fill_in "Content", with: "Post content"
+     click_button "Create Post"
+     expect(page).to have_content("Post was successfully created")
+   end
+   ```
+2. Test JavaScript interactions:
+   ```ruby
+   it "updates counter dynamically", js: true do
+     visit posts_path
+     click_button "Like"
+     expect(page).to have_content("1 like")
+   end
+   ```
+
+## General Testing Guidelines
+
+1. Keep tests focused and atomic
+2. Use meaningful test data
+3. Don't test implementation details
+4. Write tests that are easy to maintain
+5. Follow the testing pyramid:
+   - Many unit tests
+   - Fewer integration tests
+   - Fewer still system/end-to-end tests
+6. Use appropriate matchers and assertions
+7. Keep test setup DRY with shared contexts and helpers
+8. Test edge cases and error conditions
+9. Write tests before fixing bugs
+10. Run the full test suite before committing changes

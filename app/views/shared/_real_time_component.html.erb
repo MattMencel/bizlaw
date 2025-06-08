@@ -1,0 +1,27 @@
+<%# Usage: render "shared/real_time_component", id: "unique-id", url: refresh_path, interval: 5000 do |component| %>
+<%#   component.title do %>
+<%#     Component Title %>
+<%#   end %>
+<%#   component.content do %>
+<%#     Component Content %>
+<%#   end %>
+<%# end %>
+
+<%= turbo_frame_tag id do %>
+  <div data-controller="real-time"
+       data-real-time-url-value="<%= local_assigns[:url] %>"
+       data-real-time-refresh-interval-value="<%= local_assigns[:interval] || 0 %>"
+       class="bg-white shadow rounded-lg p-4">
+    <% if content_for?(:title) %>
+      <div class="border-b border-gray-200 pb-4 mb-4">
+        <h3 class="text-lg font-medium leading-6 text-gray-900">
+          <%= content_for(:title) %>
+        </h3>
+      </div>
+    <% end %>
+
+    <div data-real-time-target="content">
+      <%= content_for?(:content) ? content_for(:content) : yield %>
+    </div>
+  </div>
+<% end %>

@@ -1,0 +1,18 @@
+<div class="space-y-4">
+  <% plaintiff_info.each do |key, value| %>
+    <div>
+      <dt class="text-sm font-medium text-gray-700"><%= key.to_s.titleize %></dt>
+      <dd class="mt-1 text-sm text-gray-900">
+        <% if value.is_a?(Array) %>
+          <ul class="list-disc list-inside">
+            <% value.each do |item| %>
+              <li><%= item %></li>
+            <% end %>
+          </ul>
+        <% else %>
+          <%= value %>
+        <% end %>
+      </dd>
+    </div>
+  <% end %>
+</div>

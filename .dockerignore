@@ -1,28 +1,51 @@
-# Exclude everything
-**
-**/node_modules
-**/dist
-**/build
-**/coverage
-**/.next
+# See https://docs.docker.com/engine/reference/builder/#dockerignore-file for more about ignoring files.
 
-# Include necessary files and directories for bizlaw Dockerfile
-!apps/bizlaw/drizzle/
-!apps/bizlaw/public/
-!apps/bizlaw/src/
-!apps/bizlaw/entrypoint.sh
-!apps/bizlaw/next.config.js
-!apps/bizlaw/package*.json
-!apps/bizlaw/project.json
-!apps/bizlaw/tsconfig*
-!apps/bizlaw/webpack.config.js
+# Ignore git directory.
+/.git/
+/.gitignore
 
-# Include configuration files
-!.env
-!.prettierrc
-!drizzle/
-!eslint*
-!package*.json
-!tsconfig.json
-!tsconfig.base.json
-!nx.json
+# Ignore bundler config.
+/.bundle
+
+# Ignore all environment files.
+/.env*
+
+# Ignore all default key files.
+/config/master.key
+/config/credentials/*.key
+
+# Ignore all logfiles and tempfiles.
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+# Ignore pidfiles, but keep the directory.
+/tmp/pids/*
+!/tmp/pids/.keep
+
+# Ignore storage (uploaded files in development and any SQLite databases).
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/.keep
+
+# Ignore assets.
+/node_modules/
+/app/assets/builds/*
+!/app/assets/builds/.keep
+/public/assets
+
+# Ignore CI service files.
+/.github
+
+# Ignore Kamal files.
+/config/deploy*.yml
+/.kamal
+
+# Ignore development files
+/.devcontainer
+
+# Ignore Docker-related files
+/.dockerignore
+/Dockerfile*

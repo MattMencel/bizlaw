@@ -1,108 +1,72 @@
 version: 2
 updates:
-  - package-ecosystem: npm
-    directory: /
+  - package-ecosystem: bundler
+    directory: "/"
     schedule:
-      interval: weekly
-      day: sunday
-      time: '22:00'
+      interval: daily
     open-pull-requests-limit: 10
-    versioning-strategy: increase
-    rebase-strategy: auto
     groups:
-      babel:
+      rails:
         patterns:
-          - '@babel/*'
-          - 'babel-*'
-
-      eslint:
+          - "rails"
+          - "turbo-rails"
+          - "stimulus-rails"
+          - "importmap-rails"
+          - "tailwindcss-rails"
+          - "propshaft"
+          - "jbuilder"
+          - "solid_cache"
+          - "solid_queue"
+          - "solid_cable"
+          - "bootsnap"
+          - "tzinfo-data"
+      authentication:
         patterns:
-          - 'eslint'
-          - 'eslint-*'
-          - '@typescript-eslint/*'
-
-      jest:
+          - "devise"
+          - "devise-jwt"
+          - "pundit"
+          - "omniauth*"
+      api:
         patterns:
-          - 'jest'
-          - 'jest-*'
-
-      # Add NX packages group
-      nx:
+          - "jsonapi-serializer"
+          - "kaminari"
+          - "rack-attack"
+          - "rswag*"
+      monitoring:
         patterns:
-          - '@nx/*'
-          - 'nx'
-
-      # Add Next.js packages group
-      next:
+          - "statsd-instrument"
+          - "dogstatsd-ruby"
+          - "bullet"
+      development-tools:
         patterns:
-          - 'next'
-          - 'next-*'
-          - '@next/*'
-          - 'eslint-config-next'
-
-      # Add NestJS packages group
-      nest:
+          - "web-console"
+          - "debug"
+          - "dotenv-rails"
+          - "brakeman"
+          - "rubocop*"
+          - "solargraph"
+          - "kamal"
+          - "thruster"
+          - "dockerfile-rails"
+      test:
         patterns:
-          - '@nestjs/*'
-
-      react:
+          - "rspec-rails"
+          - "factory_bot_rails"
+          - "faker"
+          - "cucumber*"
+          - "capybara"
+          - "selenium-webdriver"
+          - "shoulda-matchers"
+          - "database_cleaner-active_record"
+          - "capybara-playwright-driver"
+          - "email_spec"
+          - "timecop"
+      storage:
         patterns:
-          - 'react'
-          - 'react-dom'
-
-      react-dnd:
-        patterns:
-          - 'react-dnd'
-          - 'react-dnd-*'
-
-      redux:
-        patterns:
-          - '@reduxjs/toolkit'
-          - 'react-redux'
-
-      richtext-editor:
-        patterns:
-          - 'markdown-it'
-          - 'markdown-it-*'
-
-      storybook:
-        patterns:
-          - 'storybook'
-          - '@storybook/*'
-
-      testing-library:
-        patterns:
-          - '@testing-library/*'
-
-      webpack:
-        patterns:
-          - 'webpack'
-          - 'webpack-cli'
-          - 'webpack-dev-server'
-
-    ignore:
-      # Only allow patch as minor babel versions need to be upgraded all together
-      - dependency-name: '@babel/*'
-        update-types:
-          - 'version-update:semver-major'
-          - 'version-update:semver-minor'
-
-      - dependency-name: '*'
-        update-types:
-          - 'version-update:semver-patch'
-          - 'version-update:semver-major'
-
-
+          - "active_storage_validations"
+          - "image_processing"
   - package-ecosystem: github-actions
-    open-pull-requests-limit: 0
-    directory: /
-    commit-message:
-      prefix: 'chore'
-      include: 'scope'
+    directory: "/"
     schedule:
-      interval: weekly
-      day: sunday
-      time: '22:00'
-    labels:
-      - 'source: dependencies'
-      - 'pr: chore'
+      interval: daily
+    open-pull-requests-limit: 10

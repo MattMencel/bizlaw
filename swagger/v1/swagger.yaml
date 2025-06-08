@@ -1,0 +1,79 @@
+---
+openapi: 3.0.1
+info:
+  title: Business Law API V1
+  version: v1
+  description: API documentation for the Business Law application
+  contact:
+    name: API Support
+    email: support@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+paths:
+  "/users/auth/google_oauth2/callback":
+    get:
+      summary: Handle Google OAuth2 callback
+      tags:
+      - Authentication
+      security:
+      - google_oauth2: []
+      responses:
+        '200':
+          description: User authenticated successfully
+        '401':
+          description: Authentication failed
+  "/users/auth/failure":
+    get:
+      summary: Handle OAuth failure
+      tags:
+      - Authentication
+      responses:
+        '401':
+          description: Authentication failed
+servers:
+- url: "{protocol}://{defaultHost}"
+  variables:
+    protocol:
+      default: http
+    defaultHost:
+      default: localhost:3000
+components:
+  securitySchemes:
+    bearer_auth:
+      type: http
+      scheme: bearer
+      bearer_format: JWT
+    google_oauth2:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: "/users/auth/google_oauth2"
+          scopes:
+            email profile: Basic user information
+  schemas:
+    error:
+      type: object
+      properties:
+        error:
+          type: string
+    user:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        avatar_url:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
