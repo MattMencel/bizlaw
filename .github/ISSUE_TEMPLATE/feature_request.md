@@ -11,12 +11,89 @@ assignees: ''
 
 Example: *As an instructor, I want to bulk-assign students to teams so that I can set up class projects faster.*
 
-## ✅ Acceptance Criteria
-What would success look like? Check off items as they're completed:
+## 🥒 Cucumber Scenarios
+Write scenarios in Gherkin format that can be directly used in Cucumber tests:
 
-- [ ] Criterion 1
-- [ ] Criterion 2
-- [ ] Criterion 3
+```gherkin
+Feature: [Feature Name]
+  As a [user role]
+  I want to [goal]
+  So that [benefit]
+
+  Background:
+    Given I am logged in as an [role]
+    And I have [prerequisite conditions]
+
+  Scenario: [Happy path scenario name]
+    Given [initial context]
+    When I [action]
+    Then I should [expected outcome]
+    And [additional verification]
+
+  Scenario: [Alternative scenario name]
+    Given [different context]
+    When I [different action]
+    Then I should [different outcome]
+
+  Scenario: [Error scenario name]
+    Given [error context]
+    When I [action that should fail]
+    Then I should see [error message]
+    And [system state verification]
+```
+
+**Example for bulk team assignment:**
+```gherkin
+Feature: Bulk Team Assignment
+  As an instructor
+  I want to bulk-assign students to teams
+  So that I can set up class projects faster
+
+  Background:
+    Given I am logged in as an instructor
+    And I have a course with 30 students
+    And there are 6 teams available
+
+  Scenario: Assign students to teams via CSV upload
+    Given I am on the team management page
+    When I upload a CSV file with student assignments
+    Then all students should be assigned to their designated teams
+    And I should see a success message "30 students assigned successfully"
+
+  Scenario: Auto-assign students evenly across teams
+    Given I am on the team management page
+    When I click "Auto-assign students"
+    And I select "Distribute evenly"
+    Then students should be distributed equally across all 6 teams
+    And each team should have 5 students
+
+  Scenario: Handle assignment errors gracefully
+    Given I am on the team management page
+    When I upload a CSV with invalid student emails
+    Then I should see "3 students could not be assigned"
+    And valid assignments should still be processed
+```
+
+## ✅ Acceptance Criteria
+Additional criteria not covered in scenarios:
+
+- [ ] Performance requirements
+- [ ] Security considerations
+- [ ] Accessibility requirements
+- [ ] Browser/device compatibility
+
+## 📋 Development Notes
+**Cucumber Feature File Path:** `features/[feature_name].feature`
+
+**Related Step Definitions:**
+- [ ] `features/step_definitions/[domain]_steps.rb`
+- [ ] New step definitions needed: [list any new steps]
+
+**Implementation Checklist:**
+- [ ] Copy Gherkin scenarios to feature file
+- [ ] Implement missing step definitions
+- [ ] Add factory traits if needed
+- [ ] Run feature to ensure all steps pass
 
 ## 👥 User Impact
 - **Who will use this feature?** (Students, Instructors, Admins)
