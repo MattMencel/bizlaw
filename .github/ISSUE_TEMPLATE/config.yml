@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 General Discussion
+    url: https://github.com/MattMencel/bizlaw/discussions
+    about: Ask questions, share ideas, and discuss the platform with the community
+  - name: 📚 Documentation
+    url: https://github.com/MattMencel/bizlaw/wiki
+    about: View user guides, tutorials, and platform documentation
+  - name: 🆘 Urgent Support
+    url: mailto:support@bizlaw.edu
+    about: For critical issues requiring immediate attention (system down, security concerns)
