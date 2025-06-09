@@ -16,7 +16,8 @@
       "Bash(ruby -c:*)",
       "Bash(git commit:*)",
       "Bash(bin/brakeman:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(git cherry-pick:*)"
     ],
     "deny": []
   }
