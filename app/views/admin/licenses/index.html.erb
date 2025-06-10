@@ -1,0 +1,184 @@
+<div class="min-h-screen bg-gray-100">
+  <div class="py-10">
+    <header>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-bold leading-tight text-gray-900">License Management</h1>
+        <p class="mt-2 text-gray-600">Manage all organization licenses</p>
+      </div>
+    </header>
+
+    <main>
+      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <!-- Filters and Search -->
+        <div class="mb-8">
+          <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+              <%= form_with url: admin_licenses_path, method: :get, local: true, class: "space-y-4 sm:space-y-0 sm:flex sm:items-center sm:space-x-4" do |form| %>
+                <div class="flex-1">
+                  <%= form.text_field :search,
+                      placeholder: "Search by organization, email, or license key",
+                      value: params[:search],
+                      class: "block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+                </div>
+
+                <div>
+                  <%= form.select :license_type,
+                      options_from_collection_for_select([
+                        ['All Types', ''],
+                        ['Free', 'free'],
+                        ['Starter', 'starter'],
+                        ['Professional', 'professional'],
+                        ['Enterprise', 'enterprise']
+                      ], :second, :first, params[:license_type]),
+                      {},
+                      { class: "block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" } %>
+                </div>
+
+                <div>
+                  <%= form.select :status,
+                      options_from_collection_for_select([
+                        ['All Statuses', ''],
+                        ['Active', 'active'],
+                        ['Expired', 'expired'],
+                        ['Expiring Soon', 'expiring_soon']
+                      ], :second, :first, params[:status]),
+                      {},
+                      { class: "block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" } %>
+                </div>
+
+                <div>
+                  <%= form.submit "Filter", class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Licenses Table -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg leading-6 font-medium text-gray-900">
+                Licenses (<%= @licenses.total_count if @licenses.respond_to?(:total_count) %>)
+              </h3>
+              <%= link_to "Generate New License", new_admin_license_path,
+                  class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700" %>
+            </div>
+          </div>
+
+          <% if @licenses.present? %>
+            <ul class="divide-y divide-gray-200">
+              <% @licenses.each do |license| %>
+                <li>
+                  <div class="px-4 py-4 sm:px-6">
+                    <div class="flex items-center justify-between">
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center">
+                          <p class="text-sm font-medium text-gray-900 truncate">
+                            <%= license.organization_name %>
+                          </p>
+                          <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            <%= license.license_type_free? ? 'bg-gray-100 text-gray-800' :
+                                license.license_type_starter? ? 'bg-blue-100 text-blue-800' :
+                                license.license_type_professional? ? 'bg-purple-100 text-purple-800' :
+                                'bg-green-100 text-green-800' %>">
+                            <%= license.license_type.humanize %>
+                          </span>
+                          <% if license.expired? %>
+                            <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              Expired
+                            </span>
+                          <% elsif license.expiring_soon? %>
+                            <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              Expiring Soon
+                            </span>
+                          <% end %>
+                        </div>
+                        <div class="mt-2 flex items-center text-sm text-gray-500">
+                          <p class="flex-shrink-0">
+                            <%= license.contact_email %>
+                          </p>
+                          <p class="ml-4 flex-shrink-0">
+                            License Key: <span class="font-mono text-xs"><%= license.license_key %></span>
+                          </p>
+                          <% if license.expires_at %>
+                            <p class="ml-4 flex-shrink-0">
+                              Expires: <%= license.expires_at.strftime("%b %d, %Y") %>
+                            </p>
+                          <% end %>
+                        </div>
+                        <div class="mt-2 flex items-center text-sm text-gray-500">
+                          <p>
+                            Limits: <%= license.max_instructors %> instructors,
+                            <%= license.max_students %> students,
+                            <%= license.max_courses %> courses
+                          </p>
+                          <% if license.organization %>
+                            <p class="ml-4">
+                              Assigned to: <%= license.organization.name %>
+                            </p>
+                          <% else %>
+                            <p class="ml-4 text-yellow-600">
+                              Unassigned
+                            </p>
+                          <% end %>
+                        </div>
+                      </div>
+                      <div class="flex items-center space-x-2">
+                        <%= link_to "View", admin_license_path(license),
+                            class: "text-blue-600 hover:text-blue-900 text-sm font-medium" %>
+
+                        <% if license.active? %>
+                          <%= link_to "Deactivate", deactivate_admin_license_path(license),
+                              method: :patch,
+                              class: "text-red-600 hover:text-red-900 text-sm font-medium",
+                              confirm: "Are you sure you want to deactivate this license?" %>
+                        <% else %>
+                          <%= link_to "Activate", activate_admin_license_path(license),
+                              method: :patch,
+                              class: "text-green-600 hover:text-green-900 text-sm font-medium" %>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              <% end %>
+            </ul>
+
+            <% if @licenses.respond_to?(:total_pages) && @licenses.total_pages > 1 %>
+              <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                <div class="flex justify-center">
+                  <%= paginate @licenses %>
+                </div>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-center py-12">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No licenses found</h3>
+              <p class="mt-1 text-sm text-gray-500">
+                <% if params[:search].present? || params[:license_type].present? || params[:status].present? %>
+                  Try adjusting your search criteria or filters.
+                <% else %>
+                  Get started by generating your first license.
+                <% end %>
+              </p>
+              <% unless params[:search].present? || params[:license_type].present? || params[:status].present? %>
+                <div class="mt-6">
+                  <%= link_to new_admin_license_path, class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700" do %>
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Generate New License
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
