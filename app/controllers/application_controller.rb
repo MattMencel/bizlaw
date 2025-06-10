@@ -23,6 +23,37 @@ class ApplicationController < ActionController::Base
     root_path
   end
 
+  # Impersonation helper methods
+  def current_user
+    if impersonating?
+      @current_user ||= User.find(session[:impersonated_user_id])
+    else
+      @current_user ||= super
+    end
+  end
+
+  def actual_user
+    if impersonating?
+      @actual_user ||= User.find(session[:admin_user_id])
+    else
+      current_user
+    end
+  end
+
+  def impersonating?
+    session[:admin_user_id].present? && session[:impersonated_user_id].present?
+  end
+
+  def read_only_mode?
+    impersonating? && !session[:impersonation_full_permissions]
+  end
+
+  def impersonation_full_permissions?
+    impersonating? && session[:impersonation_full_permissions] == true
+  end
+
+  helper_method :current_user, :actual_user, :impersonating?, :read_only_mode?, :impersonation_full_permissions?
+
   private
 
   def user_not_authorized

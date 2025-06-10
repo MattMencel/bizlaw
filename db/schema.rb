@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_07_213438) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_09_035757) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -91,6 +91,62 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_07_213438) do
     t.index ["updated_by_id"], name: "index_cases_on_updated_by_id"
   end
 
+  create_table "course_enrollments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.uuid "course_id", null: false
+    t.datetime "enrolled_at", null: false
+    t.string "status", default: "active", null: false
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["course_id"], name: "index_course_enrollments_on_course_id"
+    t.index ["deleted_at"], name: "index_course_enrollments_on_deleted_at"
+    t.index ["enrolled_at"], name: "index_course_enrollments_on_enrolled_at"
+    t.index ["status"], name: "index_course_enrollments_on_status"
+    t.index ["user_id", "course_id"], name: "index_course_enrollments_on_user_id_and_course_id", unique: true
+    t.index ["user_id"], name: "index_course_enrollments_on_user_id"
+  end
+
+  create_table "course_invitations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "course_id", null: false
+    t.string "token", null: false
+    t.string "name"
+    t.datetime "expires_at"
+    t.integer "max_uses"
+    t.integer "current_uses", default: 0, null: false
+    t.boolean "active", default: true, null: false
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_course_invitations_on_active"
+    t.index ["course_id"], name: "index_course_invitations_on_course_id"
+    t.index ["deleted_at"], name: "index_course_invitations_on_deleted_at"
+    t.index ["expires_at"], name: "index_course_invitations_on_expires_at"
+    t.index ["token"], name: "index_course_invitations_on_token", unique: true
+  end
+
+  create_table "courses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "title", null: false
+    t.text "description"
+    t.uuid "instructor_id", null: false
+    t.string "course_code", null: false
+    t.string "semester"
+    t.integer "year"
+    t.date "start_date"
+    t.date "end_date"
+    t.boolean "active", default: true, null: false
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.uuid "organization_id"
+    t.index ["active"], name: "index_courses_on_active"
+    t.index ["course_code", "organization_id"], name: "index_courses_on_course_code_and_organization_id", unique: true
+    t.index ["deleted_at"], name: "index_courses_on_deleted_at"
+    t.index ["instructor_id"], name: "index_courses_on_instructor_id"
+    t.index ["organization_id"], name: "index_courses_on_organization_id"
+    t.index ["year", "semester"], name: "index_courses_on_year_and_semester"
+  end
+
   create_table "documents", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "title", null: false
     t.text "description"
@@ -124,6 +180,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_07_213438) do
     t.index ["jti"], name: "index_jwt_denylist_on_jti", unique: true
   end
 
+  create_table "organizations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", null: false
+    t.string "domain", null: false
+    t.string "slug", null: false
+    t.text "description"
+    t.boolean "active", default: true, null: false
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_organizations_on_active"
+    t.index ["deleted_at"], name: "index_organizations_on_deleted_at"
+    t.index ["domain"], name: "index_organizations_on_domain", unique: true
+    t.index ["slug"], name: "index_organizations_on_slug", unique: true
+  end
+
   create_table "team_members", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "team_id", null: false
     t.uuid "user_id", null: false
@@ -148,6 +219,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_07_213438) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.uuid "course_id"
+    t.index ["course_id"], name: "index_teams_on_course_id"
     t.index ["deleted_at"], name: "index_teams_on_deleted_at"
     t.index ["name", "owner_id"], name: "index_teams_on_name_and_owner_id", unique: true
     t.index ["owner_id"], name: "index_teams_on_owner_id"
@@ -177,11 +250,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_07_213438) do
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
     t.boolean "active", default: true, null: false
+    t.uuid "organization_id"
     t.index "lower((first_name)::text), lower((last_name)::text)", name: "index_users_on_lower_names"
     t.index ["active"], name: "index_users_on_active"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["organization_id"], name: "index_users_on_organization_id"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true, where: "((provider IS NOT NULL) AND (uid IS NOT NULL))"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
@@ -193,8 +268,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_07_213438) do
   add_foreign_key "cases", "teams"
   add_foreign_key "cases", "users", column: "created_by_id"
   add_foreign_key "cases", "users", column: "updated_by_id"
+  add_foreign_key "course_enrollments", "courses"
+  add_foreign_key "course_enrollments", "users"
+  add_foreign_key "course_invitations", "courses"
+  add_foreign_key "courses", "organizations"
+  add_foreign_key "courses", "users", column: "instructor_id"
   add_foreign_key "documents", "users", column: "created_by_id"
   add_foreign_key "team_members", "teams", on_delete: :cascade
   add_foreign_key "team_members", "users"
+  add_foreign_key "teams", "courses"
   add_foreign_key "teams", "users", column: "owner_id"
+  add_foreign_key "users", "organizations"
 end

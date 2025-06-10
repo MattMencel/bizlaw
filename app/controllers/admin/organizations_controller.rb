@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class Admin::OrganizationsController < ApplicationController
-  include ImpersonationReadOnly
-
   before_action :authenticate_user!
   before_action :set_organization, only: [:show, :edit, :update, :destroy, :activate, :deactivate]
 
@@ -100,11 +98,5 @@ class Admin::OrganizationsController < ApplicationController
 
   def organization_params
     params.require(:organization).permit(:name, :domain, :slug, :active, :license_id)
-  end
-
-  def ensure_admin!
-    unless current_user&.admin?
-      redirect_to root_path, alert: 'Access denied. Admin privileges required.'
-    end
   end
 end

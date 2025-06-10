@@ -10,6 +10,7 @@ class Team < ApplicationRecord
   belongs_to :course, optional: true
   has_many :team_members, dependent: :destroy
   has_many :users, through: :team_members
+  has_many :members, through: :team_members, source: :user
   has_many :case_teams, dependent: :destroy
   has_many :cases, through: :case_teams
   has_many :documents, as: :documentable, dependent: :destroy

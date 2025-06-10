@@ -8,7 +8,7 @@ class CaseTeam < ApplicationRecord
   belongs_to :case
   belongs_to :team
 
-  enum role: { plaintiff: "plaintiff", defendant: "defendant" }, _prefix: :role
+  enum :role, { plaintiff: "plaintiff", defendant: "defendant" }, prefix: :role
 
   validates :role, presence: true
   validates :case_id, uniqueness: { scope: :role, message: "should have only one team per role" }

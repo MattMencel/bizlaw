@@ -1,8 +1,8 @@
 FactoryBot.define do
   factory :organization do
-    name { "Test University" }
-    domain { "test.edu" }
-    slug { "test-university" }
+    sequence(:name) { |n| "Test University #{n}" }
+    sequence(:domain) { |n| "test#{n}.edu" }
+    sequence(:slug) { |n| "test-university-#{n}" }
     active { true }
     created_at { Time.current }
     updated_at { Time.current }

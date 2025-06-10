@@ -1,4 +1,5 @@
 class CasesController < ApplicationController
+  include ImpersonationReadOnly
   def index
     @cases = Case.page(params[:page])
     @case_types = CaseType.all

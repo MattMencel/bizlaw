@@ -21,6 +21,22 @@ class UserPolicy < ApplicationPolicy
     user.admin? && user != record
   end
 
+  def impersonate?
+    user.admin? && user != record && record.present?
+  end
+
+  def stop_impersonation?
+    user.admin?
+  end
+
+  def enable_full_permissions?
+    user.admin?
+  end
+
+  def disable_full_permissions?
+    user.admin?
+  end
+
   class Scope < Scope
     def resolve
       case user.role

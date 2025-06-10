@@ -14,8 +14,16 @@ class User < ApplicationRecord
   has_many :team_members, dependent: :destroy
   has_many :teams, through: :team_members
   has_many :cases, through: :teams
-  has_many :documents, as: :owner
+  has_many :documents, foreign_key: :created_by_id
   has_many :owned_teams, class_name: "Team", foreign_key: :owner_id, dependent: :destroy
+
+  # Organization association
+  belongs_to :organization, optional: true
+
+  # Course associations
+  has_many :taught_courses, class_name: "Course", foreign_key: :instructor_id, dependent: :destroy
+  has_many :course_enrollments, dependent: :destroy
+  has_many :enrolled_courses, through: :course_enrollments, source: :course
 
   # Validations
   validates :email, presence: true, uniqueness: true
@@ -82,6 +90,7 @@ class User < ApplicationRecord
 
   # Callbacks
   before_validation :downcase_email
+  before_create :enforce_license_limits
 
   def self.from_omniauth(auth)
     where(provider: auth.provider, uid: auth.uid).first_or_create do |user|
@@ -97,5 +106,27 @@ class User < ApplicationRecord
 
   def downcase_email
     self.email = email.downcase if email.present?
+  end
+
+  def enforce_license_limits
+    return if Rails.application.config.skip_license_enforcement
+    return unless organization
+
+    enforcement_service = LicenseEnforcementService.new(organization: organization)
+
+    begin
+      enforcement_service.enforce_user_limit!(role)
+    rescue LicenseEnforcementService::LicenseLimitExceeded => e
+      errors.add(:base, e.message)
+      throw :abort
+    end
+  end
+
+  def license_enforcement
+    @license_enforcement ||= LicenseEnforcementService.new(user: self)
+  end
+
+  def can_access_feature?(feature_name)
+    license_enforcement.can_access_feature?(feature_name)
   end
 end

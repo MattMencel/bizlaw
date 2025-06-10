@@ -2,36 +2,36 @@
 
 class OrganizationPolicy < ApplicationPolicy
   def index?
-    user.admin?
+    user&.admin? == true
   end
 
   def show?
-    user.admin?
+    user&.admin? == true
   end
 
   def create?
-    user.admin?
+    user&.admin? == true
   end
 
   def update?
-    user.admin?
+    user&.admin? == true
   end
 
   def destroy?
-    user.admin? && record.users.empty?
+    user&.admin? == true && record.users.empty?
   end
 
   def activate?
-    user.admin?
+    user&.admin? == true
   end
 
   def deactivate?
-    user.admin?
+    user&.admin? == true
   end
 
   class Scope < Scope
     def resolve
-      if user.admin?
+      if user&.admin?
         scope.all
       else
         scope.none

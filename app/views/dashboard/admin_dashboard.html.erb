@@ -15,20 +15,20 @@
             <div class="px-4 py-5 sm:p-6">
               <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Quick Actions</h3>
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <%= link_to admin_organizations_path, class: "bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200" do %>
-                  Manage Organizations
-                <% end %>
-
                 <%= link_to admin_licenses_path, class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200" do %>
                   Manage Licenses
                 <% end %>
 
-                <%= link_to license_status_path, class: "bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200" do %>
-                  License Status
+                <%= link_to admin_organizations_path, class: "bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200" do %>
+                  Manage Organizations
                 <% end %>
 
                 <%= link_to "#", class: "bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200" do %>
                   User Management
+                <% end %>
+
+                <%= link_to license_status_path, class: "bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200" do %>
+                  License Status
                 <% end %>
               </div>
             </div>
@@ -124,7 +124,7 @@
           </div>
         </div>
 
-        <!-- Organization Management -->
+        <!-- Organization Statistics -->
         <div class="mb-8">
           <div class="bg-white shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
@@ -141,7 +141,7 @@
                   <p class="text-2xl font-bold text-blue-600 mt-2">
                     <%= @total_organizations %>
                   </p>
-                  <p class="text-sm text-gray-500 mt-1">Registered organizations</p>
+                  <p class="text-sm text-gray-500 mt-1">All registered organizations</p>
                 </div>
 
                 <div class="border border-gray-200 rounded-lg p-4">
@@ -154,12 +154,49 @@
               </div>
 
               <div class="mt-4 pt-4 border-t">
-                <%= link_to new_admin_organization_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700" do %>
+                <%= link_to new_admin_organization_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
                   <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                   </svg>
                   Add New Organization
                 <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Overview -->
+        <div class="mb-8">
+          <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">System Overview</h3>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <h4 class="font-medium text-gray-900">Total Cases</h4>
+                  <p class="text-2xl font-bold text-blue-600 mt-2">
+                    <%= Case.count %>
+                  </p>
+                  <p class="text-sm text-gray-500 mt-1">All case simulations</p>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <h4 class="font-medium text-gray-900">Active Teams</h4>
+                  <p class="text-2xl font-bold text-green-600 mt-2">
+                    <%= Team.count %>
+                  </p>
+                  <p class="text-sm text-gray-500 mt-1">Currently active teams</p>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <h4 class="font-medium text-gray-900">Total Documents</h4>
+                  <p class="text-2xl font-bold text-purple-600 mt-2">
+                    <%= Document.count %>
+                  </p>
+                  <p class="text-sm text-gray-500 mt-1">Uploaded documents</p>
+                </div>
               </div>
             </div>
           </div>
@@ -264,7 +301,17 @@
                         </div>
                       </div>
                       <div class="flex items-center space-x-2">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= user.role == 'admin' ? 'bg-red-100 text-red-800' : user.role == 'instructor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' %>">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= user.role == 'admin' ? 'bg-red-100 text-red-800' : user.role == 'instructor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' %>"
+                              title="<%= case user.role
+                                        when 'admin'
+                                          'Administrator: Full system access and user management'
+                                        when 'instructor'
+                                          'Instructor: Can create courses, manage teams, and view student progress'
+                                        when 'student'
+                                          'Student: Can join teams, participate in case simulations'
+                                        else
+                                          'User role: ' + user.role.capitalize
+                                        end %>">
                           <%= user.role.capitalize %>
                         </span>
                         <%= button_to "Impersonate", impersonate_user_path(user), method: :post, class: "text-blue-600 hover:text-blue-900 text-sm font-medium bg-transparent border-none p-0 cursor-pointer" %>
