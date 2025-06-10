@@ -1,0 +1,331 @@
+<div class="min-h-screen bg-gray-100">
+  <div class="py-10">
+    <header>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-bold leading-tight text-gray-900">Admin Dashboard</h1>
+        <p class="mt-2 text-gray-600">System administration and management</p>
+      </div>
+    </header>
+
+    <main>
+      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <!-- Quick Actions -->
+        <div class="mb-8">
+          <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+              <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Quick Actions</h3>
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <%= link_to admin_organizations_path, class: "bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200" do %>
+                  Manage Organizations
+                <% end %>
+
+                <%= link_to admin_licenses_path, class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200" do %>
+                  Manage Licenses
+                <% end %>
+
+                <%= link_to license_status_path, class: "bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200" do %>
+                  License Status
+                <% end %>
+
+                <%= link_to "#", class: "bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200" do %>
+                  User Management
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Stats -->
+        <div class="mb-8">
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <!-- Total Users -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+              <div class="p-5">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt class="text-sm font-medium text-gray-500 truncate">Total Users</dt>
+                      <dd class="text-lg font-medium text-gray-900"><%= @total_users %></dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Instructors -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+              <div class="p-5">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt class="text-sm font-medium text-gray-500 truncate">Instructors</dt>
+                      <dd class="text-lg font-medium text-gray-900"><%= @total_instructors %></dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Students -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+              <div class="p-5">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt class="text-sm font-medium text-gray-500 truncate">Students</dt>
+                      <dd class="text-lg font-medium text-gray-900"><%= @total_students %></dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Active Teams -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+              <div class="p-5">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt class="text-sm font-medium text-gray-500 truncate">Active Teams</dt>
+                      <dd class="text-lg font-medium text-gray-900"><%= Team.count %></dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Organization Management -->
+        <div class="mb-8">
+          <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Organization Management</h3>
+                <%= link_to admin_organizations_path, class: "text-sm text-blue-600 hover:text-blue-900 font-medium" do %>
+                  View all organizations →
+                <% end %>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <h4 class="font-medium text-gray-900">Total Organizations</h4>
+                  <p class="text-2xl font-bold text-blue-600 mt-2">
+                    <%= @total_organizations %>
+                  </p>
+                  <p class="text-sm text-gray-500 mt-1">Registered organizations</p>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <h4 class="font-medium text-gray-900">Active Organizations</h4>
+                  <p class="text-2xl font-bold text-green-600 mt-2">
+                    <%= @active_organizations %>
+                  </p>
+                  <p class="text-sm text-gray-500 mt-1">Currently active</p>
+                </div>
+              </div>
+
+              <div class="mt-4 pt-4 border-t">
+                <%= link_to new_admin_organization_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700" do %>
+                  <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                  </svg>
+                  Add New Organization
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Impersonation -->
+        <div class="mb-8">
+          <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+              <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">User Impersonation</h3>
+              <p class="text-sm text-gray-600 mb-4">Temporarily sign in as another user for support purposes.</p>
+
+              <form action="#" method="GET" class="flex gap-4">
+                <div class="flex-1">
+                  <label for="user_search" class="sr-only">Search users</label>
+                  <input type="text"
+                         name="user_search"
+                         id="user_search"
+                         class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                         placeholder="Search by name or email...">
+                </div>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md">
+                  Search
+                </button>
+              </form>
+
+              <!-- User Results (placeholder) -->
+              <div class="mt-4 border-t pt-4">
+                <p class="text-sm text-gray-500">Search for users to impersonate them.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- License Management -->
+        <div class="mb-8">
+          <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">License Management</h3>
+                <%= link_to admin_licenses_path, class: "text-sm text-blue-600 hover:text-blue-900 font-medium" do %>
+                  View all licenses →
+                <% end %>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <h4 class="font-medium text-gray-900">Active Licenses</h4>
+                  <p class="text-2xl font-bold text-green-600 mt-2">
+                    <%= License.where(active: true).count rescue 0 %>
+                  </p>
+                  <p class="text-sm text-gray-500 mt-1">Currently active</p>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <h4 class="font-medium text-gray-900">Inactive Licenses</h4>
+                  <p class="text-2xl font-bold text-yellow-600 mt-2">
+                    <%= License.where(active: false).count rescue 0 %>
+                  </p>
+                  <p class="text-sm text-gray-500 mt-1">Currently inactive</p>
+                </div>
+              </div>
+
+              <div class="mt-4 pt-4 border-t">
+                <%= link_to admin_licenses_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+                  <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                  </svg>
+                  Add New License
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Users -->
+        <div class="mb-8">
+          <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Users</h3>
+                <%= link_to "#", class: "text-sm text-blue-600 hover:text-blue-900 font-medium" do %>
+                  View all users →
+                <% end %>
+              </div>
+
+              <% if @recent_users.present? %>
+                <div class="space-y-3">
+                  <% @recent_users.each do |user| %>
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                      <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10">
+                          <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                            <span class="text-sm font-medium text-gray-700">
+                              <%= user.first_name&.first&.upcase %><%= user.last_name&.first&.upcase %>
+                            </span>
+                          </div>
+                        </div>
+                        <div class="ml-4">
+                          <div class="text-sm font-medium text-gray-900"><%= user.full_name %></div>
+                          <div class="text-sm text-gray-500"><%= user.email %></div>
+                        </div>
+                      </div>
+                      <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= user.role == 'admin' ? 'bg-red-100 text-red-800' : user.role == 'instructor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' %>">
+                          <%= user.role.capitalize %>
+                        </span>
+                        <%= button_to "Impersonate", impersonate_user_path(user), method: :post, class: "text-blue-600 hover:text-blue-900 text-sm font-medium bg-transparent border-none p-0 cursor-pointer" %>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              <% else %>
+                <p class="text-gray-500 text-center py-4">No recent users found.</p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Health -->
+        <div class="mb-8">
+          <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+              <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">System Health</h3>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="text-center">
+                  <div class="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-2">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  </div>
+                  <p class="text-sm font-medium text-gray-900">Database</p>
+                  <p class="text-xs text-green-600">Healthy</p>
+                </div>
+
+                <div class="text-center">
+                  <div class="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-2">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  </div>
+                  <p class="text-sm font-medium text-gray-900">Redis</p>
+                  <p class="text-xs text-green-600">Connected</p>
+                </div>
+
+                <div class="text-center">
+                  <div class="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-2">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  </div>
+                  <p class="text-sm font-medium text-gray-900">Application</p>
+                  <p class="text-xs text-green-600">Running</p>
+                </div>
+              </div>
+
+              <div class="mt-4 pt-4 border-t">
+                <%= link_to "/health", class: "text-sm text-blue-600 hover:text-blue-900 font-medium" do %>
+                  View detailed health check →
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

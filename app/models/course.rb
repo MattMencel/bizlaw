@@ -1,0 +1,132 @@
+# frozen_string_literal: true
+
+class Course < ApplicationRecord
+  include HasUuid
+  include HasTimestamps
+  include SoftDeletable
+
+  # Associations
+  belongs_to :organization
+  belongs_to :instructor, class_name: "User"
+  has_many :course_enrollments, dependent: :destroy
+  has_many :students, through: :course_enrollments, source: :user
+  has_many :course_invitations, dependent: :destroy
+  has_many :teams, dependent: :nullify
+
+  # Validations
+  validates :title, presence: true, length: { maximum: 255 }
+  validates :course_code, presence: true,
+                         length: { maximum: 20 },
+                         uniqueness: { scope: :organization_id, case_sensitive: false }
+  validates :instructor_id, presence: true
+  validates :year, presence: true,
+                  numericality: {
+                    greater_than: 2000,
+                    less_than_or_equal_to: -> { Date.current.year + 5 }
+                  }
+  validate :instructor_must_be_instructor_or_admin
+  validate :end_date_after_start_date
+
+  # Callbacks
+  before_create :enforce_license_limits
+
+  # Scopes
+  scope :active, -> { where(active: true) }
+  scope :for_instructor, ->(user) { where(instructor: user) }
+  scope :current_semester, -> {
+    current_year = Date.current.year
+    where(year: current_year)
+  }
+  scope :search_by_title, ->(query) {
+    where("LOWER(title) LIKE :query", query: "%#{query.downcase}%")
+  }
+  scope :search_by_code, ->(query) {
+    where("LOWER(course_code) LIKE :query", query: "%#{query.downcase}%")
+  }
+
+  # Instance methods
+  def display_name
+    "#{course_code}: #{title}"
+  end
+
+  def semester_display
+    return semester if semester.present?
+
+    case Date.current.month
+    when 1..5
+      "Spring"
+    when 6..8
+      "Summer"
+    when 9..12
+      "Fall"
+    end
+  end
+
+  def full_title
+    "#{display_name} (#{semester_display} #{year})"
+  end
+
+  def enrolled?(user)
+    course_enrollments.exists?(user: user, status: 'active')
+  end
+
+  def enroll_student(user, invitation = nil)
+    return false if enrolled?(user)
+    return false unless user.student?
+
+    enrollment = course_enrollments.create(
+      user: user,
+      enrolled_at: Time.current,
+      status: 'active'
+    )
+
+    # Track invitation usage if provided
+    if invitation && enrollment.persisted?
+      invitation.increment!(:current_uses)
+    end
+
+    enrollment.persisted?
+  end
+
+  def student_count
+    course_enrollments.where(status: 'active').count
+  end
+
+  def can_be_managed_by?(user)
+    return true if user.admin?
+    return true if instructor == user
+    false
+  end
+
+  private
+
+  def instructor_must_be_instructor_or_admin
+    return unless instructor
+
+    unless instructor.instructor? || instructor.admin?
+      errors.add(:instructor, "must be an instructor or admin")
+    end
+  end
+
+  def end_date_after_start_date
+    return unless start_date && end_date
+
+    if end_date <= start_date
+      errors.add(:end_date, "must be after start date")
+    end
+  end
+
+  def enforce_license_limits
+    return if Rails.application.config.skip_license_enforcement
+    return unless organization
+
+    enforcement_service = LicenseEnforcementService.new(organization: organization)
+
+    begin
+      enforcement_service.enforce_course_limit!
+    rescue LicenseEnforcementService::LicenseLimitExceeded => e
+      errors.add(:base, e.message)
+      throw :abort
+    end
+  end
+end

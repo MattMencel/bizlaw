@@ -1,0 +1,147 @@
+<div class="min-h-screen bg-gray-100">
+  <div class="py-10">
+    <header>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="md:flex md:items-center md:justify-between">
+          <div class="flex-1 min-w-0">
+            <h1 class="text-3xl font-bold leading-tight text-gray-900">Organizations</h1>
+            <p class="mt-2 text-gray-600">Manage organizations and their settings</p>
+          </div>
+          <div class="mt-4 flex md:mt-0 md:ml-4">
+            <%= link_to new_admin_organization_path, class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" do %>
+              <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              New Organization
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <!-- Filters -->
+        <div class="mb-8">
+          <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+              <%= form_with url: admin_organizations_path, method: :get, local: true, class: "space-y-4 md:space-y-0 md:flex md:items-end md:space-x-4" do |form| %>
+                <div class="flex-1">
+                  <%= form.label :search, "Search organizations", class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.text_field :search, value: params[:search], placeholder: "Search by name...", class: "mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" %>
+                </div>
+
+                <div>
+                  <%= form.label :status, "Status", class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.select :status, options_for_select([
+                    ['All Organizations', ''],
+                    ['Active', 'active'],
+                    ['Inactive', 'inactive']
+                  ], params[:status]), {}, { class: "mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md" } %>
+                </div>
+
+                <div>
+                  <%= form.submit "Filter", class: "w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Organizations List -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+          <% if @organizations.any? %>
+            <ul class="divide-y divide-gray-200">
+              <% @organizations.each do |organization| %>
+                <li>
+                  <div class="px-4 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10">
+                        <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                          <span class="text-sm font-medium text-gray-700">
+                            <%= organization.name.first&.upcase %>
+                          </span>
+                        </div>
+                      </div>
+                      <div class="ml-4">
+                        <div class="flex items-center">
+                          <div class="text-sm font-medium text-gray-900">
+                            <%= link_to organization.name, admin_organization_path(organization), class: "hover:text-blue-600" %>
+                          </div>
+                          <% if organization.active? %>
+                            <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              Active
+                            </span>
+                          <% else %>
+                            <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              Inactive
+                            </span>
+                          <% end %>
+                        </div>
+                        <div class="text-sm text-gray-500">
+                          <span><%= organization.domain %></span>
+                          <span class="mx-2">•</span>
+                          <span><%= pluralize(organization.users.count, 'user') %></span>
+                          <span class="mx-2">•</span>
+                          <span><%= pluralize(organization.courses.count, 'course') %></span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                      <% if organization.active? %>
+                        <%= link_to "Deactivate", deactivate_admin_organization_path(organization),
+                            method: :patch,
+                            data: { confirm: "Are you sure you want to deactivate this organization?" },
+                            class: "text-sm text-red-600 hover:text-red-900 font-medium" %>
+                      <% else %>
+                        <%= link_to "Activate", activate_admin_organization_path(organization),
+                            method: :patch,
+                            class: "text-sm text-green-600 hover:text-green-900 font-medium" %>
+                      <% end %>
+
+                      <%= link_to "Edit", edit_admin_organization_path(organization),
+                          class: "text-sm text-blue-600 hover:text-blue-900 font-medium" %>
+
+                      <%= link_to "View", admin_organization_path(organization),
+                          class: "text-sm text-gray-600 hover:text-gray-900 font-medium" %>
+                    </div>
+                  </div>
+                </li>
+              <% end %>
+            </ul>
+
+            <!-- Pagination -->
+            <% if @organizations.respond_to?(:current_page) %>
+              <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                <%= paginate @organizations if respond_to?(:paginate) %>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-center py-12">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No organizations found</h3>
+              <p class="mt-1 text-sm text-gray-500">
+                <% if params[:search].present? || params[:status].present? %>
+                  Try adjusting your search criteria.
+                <% else %>
+                  Get started by creating a new organization.
+                <% end %>
+              </p>
+              <div class="mt-6">
+                <%= link_to new_admin_organization_path, class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" do %>
+                  <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                  </svg>
+                  New Organization
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
