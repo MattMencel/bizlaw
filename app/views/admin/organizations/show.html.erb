@@ -1,0 +1,270 @@
+<div class="min-h-screen bg-gray-100">
+  <div class="py-10">
+    <header>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="md:flex md:items-center md:justify-between">
+          <div class="flex-1 min-w-0">
+            <nav class="flex" aria-label="Breadcrumb">
+              <ol class="flex items-center space-x-4">
+                <li>
+                  <%= link_to admin_organizations_path, class: "text-gray-400 hover:text-gray-500" do %>
+                    <span>Organizations</span>
+                  <% end %>
+                </li>
+                <li>
+                  <div class="flex items-center">
+                    <svg class="flex-shrink-0 h-5 w-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="ml-4 text-sm font-medium text-gray-500"><%= @organization.name %></span>
+                  </div>
+                </li>
+              </ol>
+            </nav>
+            <h1 class="mt-2 text-3xl font-bold leading-tight text-gray-900"><%= @organization.name %></h1>
+            <div class="mt-1 flex items-center">
+              <% if @organization.active? %>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Active
+                </span>
+              <% else %>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  Inactive
+                </span>
+              <% end %>
+              <span class="ml-2 text-sm text-gray-500">Created <%= time_ago_in_words(@organization.created_at) %> ago</span>
+            </div>
+          </div>
+          <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+            <% if @organization.active? %>
+              <%= link_to deactivate_admin_organization_path(@organization),
+                  method: :patch,
+                  data: { confirm: "Are you sure you want to deactivate this organization?" },
+                  class: "inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" do %>
+                Deactivate
+              <% end %>
+            <% else %>
+              <%= link_to activate_admin_organization_path(@organization),
+                  method: :patch,
+                  class: "inline-flex items-center px-4 py-2 border border-green-300 rounded-md shadow-sm text-sm font-medium text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" do %>
+                Activate
+              <% end %>
+            <% end %>
+
+            <%= link_to edit_admin_organization_path(@organization), class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" do %>
+              <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+              Edit
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <!-- Organization Details -->
+          <div class="lg:col-span-2">
+            <!-- Basic Info -->
+            <div class="bg-white shadow rounded-lg mb-8">
+              <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Organization Details</h3>
+
+                <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                  <div>
+                    <dt class="text-sm font-medium text-gray-500">Name</dt>
+                    <dd class="mt-1 text-sm text-gray-900"><%= @organization.name %></dd>
+                  </div>
+
+                  <div>
+                    <dt class="text-sm font-medium text-gray-500">Domain</dt>
+                    <dd class="mt-1 text-sm text-gray-900"><%= @organization.domain %></dd>
+                  </div>
+
+                  <div>
+                    <dt class="text-sm font-medium text-gray-500">Slug</dt>
+                    <dd class="mt-1 text-sm text-gray-900"><%= @organization.slug %></dd>
+                  </div>
+
+                  <div>
+                    <dt class="text-sm font-medium text-gray-500">License</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                      <% if @organization.license %>
+                        <%= @organization.license.license_type.humanize %>
+                        <span class="text-gray-500">(<%= @organization.license.status.humanize %>)</span>
+                      <% else %>
+                        <span class="text-gray-500">No license assigned</span>
+                      <% end %>
+                    </dd>
+                  </div>
+
+                  <div>
+                    <dt class="text-sm font-medium text-gray-500">Created</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                      <%= @organization.created_at.strftime("%B %d, %Y at %I:%M %p") %>
+                    </dd>
+                  </div>
+
+                  <div>
+                    <dt class="text-sm font-medium text-gray-500">Last Updated</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                      <%= @organization.updated_at.strftime("%B %d, %Y at %I:%M %p") %>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+
+            <!-- Recent Users -->
+            <div class="bg-white shadow rounded-lg mb-8">
+              <div class="px-4 py-5 sm:p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Users</h3>
+                  <span class="text-sm text-gray-500"><%= pluralize(@users_count, 'total user') %></span>
+                </div>
+
+                <% if @recent_users.any? %>
+                  <div class="space-y-3">
+                    <% @recent_users.each do |user| %>
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                          <div class="flex-shrink-0 h-8 w-8">
+                            <div class="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
+                              <span class="text-xs font-medium text-gray-700">
+                                <%= user.first_name&.first&.upcase %><%= user.last_name&.first&.upcase %>
+                              </span>
+                            </div>
+                          </div>
+                          <div class="ml-3">
+                            <div class="text-sm font-medium text-gray-900"><%= user.full_name %></div>
+                            <div class="text-sm text-gray-500"><%= user.email %></div>
+                          </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= user.role == 'admin' ? 'bg-red-100 text-red-800' : user.role == 'instructor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' %>">
+                            <%= user.role.capitalize %>
+                          </span>
+                          <%= button_to "Impersonate", impersonate_user_path(user), method: :post, class: "text-blue-600 hover:text-blue-900 text-xs font-medium bg-transparent border-none p-0 cursor-pointer" %>
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+                <% else %>
+                  <p class="text-gray-500 text-center py-4">No users found in this organization.</p>
+                <% end %>
+              </div>
+            </div>
+
+            <!-- Recent Courses -->
+            <div class="bg-white shadow rounded-lg">
+              <div class="px-4 py-5 sm:p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Courses</h3>
+                  <span class="text-sm text-gray-500"><%= pluralize(@courses_count, 'total course') %></span>
+                </div>
+
+                <% if @recent_courses.any? %>
+                  <div class="space-y-3">
+                    <% @recent_courses.each do |course| %>
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <div class="text-sm font-medium text-gray-900"><%= course.title %></div>
+                          <div class="text-sm text-gray-500">
+                            <%= course.course_code %> • <%= course.instructor.full_name %> • <%= pluralize(course.student_count, 'student') %>
+                          </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                          <% if course.active? %>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              Active
+                            </span>
+                          <% else %>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                              Inactive
+                            </span>
+                          <% end %>
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+                <% else %>
+                  <p class="text-gray-500 text-center py-4">No courses found in this organization.</p>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats Sidebar -->
+          <div class="lg:col-span-1">
+            <div class="bg-white shadow rounded-lg">
+              <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Organization Statistics</h3>
+
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-500">Total Users</span>
+                    <span class="text-sm font-semibold text-gray-900"><%= @users_count %></span>
+                  </div>
+
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-500">Instructors</span>
+                    <span class="text-sm font-semibold text-gray-900"><%= @organization.instructors.count %></span>
+                  </div>
+
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-500">Students</span>
+                    <span class="text-sm font-semibold text-gray-900"><%= @organization.students.count %></span>
+                  </div>
+
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-500">Admins</span>
+                    <span class="text-sm font-semibold text-gray-900"><%= @organization.admins.count %></span>
+                  </div>
+
+                  <hr class="border-gray-200">
+
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-500">Total Courses</span>
+                    <span class="text-sm font-semibold text-gray-900"><%= @courses_count %></span>
+                  </div>
+
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-500">Active Courses</span>
+                    <span class="text-sm font-semibold text-gray-900"><%= @organization.courses.where(active: true).count %></span>
+                  </div>
+                </div>
+
+                <% if @organization.license %>
+                  <hr class="border-gray-200 my-4">
+                  <div class="space-y-4">
+                    <h4 class="text-sm font-medium text-gray-900">License Usage</h4>
+
+                    <% usage = @organization.usage_summary %>
+                    <% usage.each do |type, data| %>
+                      <div>
+                        <div class="flex items-center justify-between text-sm">
+                          <span class="text-gray-500"><%= type.to_s.humanize %></span>
+                          <span class="font-medium">
+                            <%= data[:count] %> / <%= data[:limit] == Float::INFINITY ? "∞" : data[:limit] %>
+                          </span>
+                        </div>
+                        <% if data[:limit] != Float::INFINITY %>
+                          <div class="mt-1 w-full bg-gray-200 rounded-full h-2">
+                            <% percentage = (data[:count].to_f / data[:limit] * 100).round(1) %>
+                            <div class="<%= percentage > 100 ? 'bg-red-600' : percentage > 80 ? 'bg-yellow-600' : 'bg-green-600' %> h-2 rounded-full" style="width: <%= [percentage, 100].min %>%"></div>
+                          </div>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

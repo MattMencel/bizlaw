@@ -1,0 +1,135 @@
+<div class="min-h-screen bg-gray-50 py-12">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-white shadow-xl rounded-lg overflow-hidden">
+      <!-- Header -->
+      <div class="px-6 py-8 bg-gradient-to-r from-blue-600 to-indigo-700">
+        <div class="text-center">
+          <div class="mx-auto h-16 w-16 bg-white rounded-full flex items-center justify-center mb-4">
+            <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+          </div>
+          <h1 class="text-3xl font-bold text-white mb-2">Join Course</h1>
+          <p class="text-xl text-blue-100"><%= @course.display_name %></p>
+          <p class="text-sm text-blue-200 mt-1">Instructor: <%= @course.instructor.full_name %></p>
+        </div>
+      </div>
+
+      <!-- Course Description -->
+      <div class="px-6 py-6 border-b border-gray-200">
+        <% if @course.description.present? %>
+          <h3 class="text-lg font-medium text-gray-900 mb-3">About This Course</h3>
+          <p class="text-gray-600 leading-relaxed"><%= simple_format(@course.description) %></p>
+        <% end %>
+
+        <div class="grid grid-cols-2 gap-4 mt-4 text-sm">
+          <div>
+            <span class="font-medium text-gray-700">Semester:</span>
+            <span class="text-gray-600"><%= @course.semester_display %> <%= @course.year %></span>
+          </div>
+          <div>
+            <span class="font-medium text-gray-700">Students Enrolled:</span>
+            <span class="text-gray-600"><%= @course.student_count %></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- QR Code Display -->
+      <div class="px-6 py-6 bg-gray-50 text-center border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Mobile-Friendly QR Code</h3>
+        <div class="flex justify-center">
+          <%= qr_code_image_tag(@invitation, size: 200, alt: "QR Code to join #{@course.display_name}") %>
+        </div>
+        <p class="text-sm text-gray-500 mt-3">Scan with your phone to join quickly</p>
+      </div>
+
+      <!-- Enrollment Action -->
+      <div class="px-6 py-6">
+        <% if current_user.nil? %>
+          <div class="text-center">
+            <p class="text-gray-600 mb-4">You need to be logged in to join this course.</p>
+            <%= link_to "Sign In to Join", new_user_session_path(redirect_to: request.fullpath),
+                        class: "inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+          </div>
+        <% elsif !current_user.student? %>
+          <div class="text-center">
+            <div class="rounded-md bg-yellow-50 p-4">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-yellow-800">Account Type Notice</h3>
+                  <p class="mt-1 text-sm text-yellow-700">Only students can enroll in courses. Your account is set as: <strong><%= current_user.role.humanize %></strong></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% elsif @already_enrolled %>
+          <div class="text-center">
+            <div class="rounded-md bg-green-50 p-4">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-green-800">Already Enrolled</h3>
+                  <p class="mt-1 text-sm text-green-700">You are already enrolled in this course.</p>
+                </div>
+              </div>
+            </div>
+            <div class="mt-4">
+              <%= link_to "Go to Course", course_path(@course),
+                          class: "inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" %>
+            </div>
+          </div>
+        <% else %>
+          <div class="text-center">
+            <p class="text-gray-600 mb-6">Ready to join <strong><%= @course.display_name %></strong>?</p>
+            <%= button_to "Join Course Now", join_course_invitation_path(@invitation.token),
+                          method: :post,
+                          class: "inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200",
+                          data: { confirm: "Are you sure you want to join this course?" } %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Invitation Details for Instructors -->
+      <% if current_user&.admin? || @course.instructor == current_user %>
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+          <div class="text-sm text-gray-600">
+            <h4 class="font-medium text-gray-900 mb-2">Invitation Details (Instructor View)</h4>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <span class="font-medium">Token:</span> <%= @invitation.token %>
+              </div>
+              <div>
+                <span class="font-medium">Status:</span> <%= invitation_status_badge(@invitation) %>
+              </div>
+              <div>
+                <span class="font-medium">Uses:</span> <%= @invitation.usage_summary %>
+              </div>
+              <div>
+                <span class="font-medium">Expires:</span>
+                <%= @invitation.expires_at ? @invitation.expires_at.strftime("%B %d, %Y at %I:%M %p") : "Never" %>
+              </div>
+            </div>
+
+            <div class="mt-4 flex space-x-3">
+              <%= qr_code_download_link(@invitation, format: 'png', text: 'Download PNG',
+                                       css_class: 'text-sm px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-gray-700') %>
+              <%= qr_code_download_link(@invitation, format: 'svg', text: 'Download SVG',
+                                       css_class: 'text-sm px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-gray-700') %>
+              <%= link_to "Manage Invitations", manage_invitations_course_path(@course),
+                          class: 'text-sm px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-white' %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

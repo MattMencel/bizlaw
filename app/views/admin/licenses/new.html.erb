@@ -1,0 +1,155 @@
+<div class="min-h-screen bg-gray-100">
+  <div class="py-10">
+    <header>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-3xl font-bold leading-tight text-gray-900">Generate New License</h1>
+            <p class="mt-2 text-gray-600">Create a new license for an organization</p>
+          </div>
+          <%= link_to "Back to Licenses", admin_licenses_path,
+              class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+        <div class="bg-white shadow sm:rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <%= form_with model: [:admin, @license], local: true, class: "space-y-6" do |form| %>
+              <% if @license.errors.any? %>
+                <div class="bg-red-50 border border-red-200 rounded-md p-4">
+                  <div class="flex">
+                    <div class="flex-shrink-0">
+                      <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                      </svg>
+                    </div>
+                    <div class="ml-3">
+                      <h3 class="text-sm font-medium text-red-800">There were errors with your submission</h3>
+                      <div class="mt-2 text-sm text-red-700">
+                        <ul class="list-disc space-y-1 pl-5">
+                          <% @license.errors.full_messages.each do |message| %>
+                            <li><%= message %></li>
+                          <% end %>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+
+              <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                <div class="sm:col-span-2">
+                  <%= form.label :organization_name, "Organization Name", class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.text_field :organization_name,
+                      placeholder: "e.g., University of Example",
+                      class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+                </div>
+
+                <div class="sm:col-span-2">
+                  <%= form.label :contact_email, "Contact Email", class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.email_field :contact_email,
+                      placeholder: "admin@university.edu",
+                      class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+                </div>
+
+                <div>
+                  <%= form.label :license_type, "License Type", class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.select :license_type,
+                      options_for_select([
+                        ['Free', 'free'],
+                        ['Starter', 'starter'],
+                        ['Professional', 'professional'],
+                        ['Enterprise', 'enterprise']
+                      ], @license.license_type),
+                      { prompt: 'Select license type' },
+                      { class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" } %>
+                </div>
+
+                <div>
+                  <%= form.label :expires_at, "Expiration Date", class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.date_field :expires_at,
+                      class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+                  <p class="mt-1 text-xs text-gray-500">Leave blank for no expiration</p>
+                </div>
+
+                <div>
+                  <%= form.label :max_instructors, "Max Instructors", class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.number_field :max_instructors,
+                      min: 1, step: 1,
+                      class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+                </div>
+
+                <div>
+                  <%= form.label :max_students, "Max Students", class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.number_field :max_students,
+                      min: 1, step: 1,
+                      class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+                </div>
+
+                <div>
+                  <%= form.label :max_courses, "Max Courses", class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.number_field :max_courses,
+                      min: 1, step: 1,
+                      class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+                </div>
+
+                <div class="sm:col-span-2">
+                  <%= form.label :notes, "Notes", class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.text_area :notes,
+                      rows: 3,
+                      placeholder: "Optional notes about this license",
+                      class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+                </div>
+              </div>
+
+              <div class="pt-5">
+                <div class="flex justify-end space-x-3">
+                  <%= link_to "Cancel", admin_licenses_path,
+                      class: "bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+                  <%= form.submit "Generate License",
+                      class: "inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- License Type Information -->
+        <div class="mt-8 bg-white shadow sm:rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">License Type Information</h3>
+
+            <div class="space-y-4">
+              <div class="border border-gray-200 rounded-lg p-4">
+                <h4 class="text-sm font-medium text-gray-900">Free</h4>
+                <p class="text-sm text-gray-600 mt-1">Limited functionality for evaluation purposes</p>
+                <p class="text-xs text-gray-500 mt-1">Typical limits: 1 instructor, 5 students, 1 course</p>
+              </div>
+
+              <div class="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                <h4 class="text-sm font-medium text-blue-900">Starter</h4>
+                <p class="text-sm text-blue-700 mt-1">Perfect for small departments or trial periods</p>
+                <p class="text-xs text-blue-600 mt-1">Typical limits: 2 instructors, 25 students, 5 courses</p>
+              </div>
+
+              <div class="border border-purple-200 rounded-lg p-4 bg-purple-50">
+                <h4 class="text-sm font-medium text-purple-900">Professional</h4>
+                <p class="text-sm text-purple-700 mt-1">For medium-sized institutions</p>
+                <p class="text-xs text-purple-600 mt-1">Typical limits: 10 instructors, 100 students, 20 courses</p>
+              </div>
+
+              <div class="border border-green-200 rounded-lg p-4 bg-green-50">
+                <h4 class="text-sm font-medium text-green-900">Enterprise</h4>
+                <p class="text-sm text-green-700 mt-1">For large institutions with advanced needs</p>
+                <p class="text-xs text-green-600 mt-1">Custom limits and features available</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

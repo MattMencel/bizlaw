@@ -1,0 +1,215 @@
+<div class="bg-white">
+  <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-4xl text-center">
+      <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+        Simple, Fair Pricing
+      </h1>
+      <p class="mt-4 text-lg text-gray-600">
+        Start free with everything you need. Pay only when you need more students.
+      </p>
+    </div>
+
+    <div class="mt-16 grid gap-8 lg:grid-cols-2 lg:gap-12">
+      <!-- Free Tier -->
+      <div class="relative rounded-2xl border border-gray-200 p-8 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h3 class="text-2xl font-semibold text-gray-900">Free Forever</h3>
+          <span class="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
+            Always Free
+          </span>
+        </div>
+
+        <p class="mt-4 text-gray-600">
+          Perfect for trying out the platform or small class exercises.
+        </p>
+
+        <div class="mt-8">
+          <div class="flex items-baseline">
+            <span class="text-4xl font-bold text-gray-900">$0</span>
+            <span class="ml-2 text-gray-500">forever</span>
+          </div>
+        </div>
+
+        <ul class="mt-8 space-y-4">
+          <li class="flex items-start">
+            <svg class="h-5 w-5 flex-shrink-0 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="ml-3 text-gray-700">1 course per instructor</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="h-5 w-5 flex-shrink-0 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="ml-3 text-gray-700">Up to 3 students per course</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="h-5 w-5 flex-shrink-0 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="ml-3 text-gray-700">All core simulation features</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="h-5 w-5 flex-shrink-0 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="ml-3 text-gray-700">Sexual harassment case simulations</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="h-5 w-5 flex-shrink-0 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="ml-3 text-gray-700">Team collaboration tools</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="h-5 w-5 flex-shrink-0 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="ml-3 text-gray-700">Document management</span>
+          </li>
+        </ul>
+
+        <div class="mt-8">
+          <%= link_to "Get Started Free", new_user_registration_path,
+              class: "block w-full rounded-lg border border-gray-300 bg-white py-3 px-4 text-center text-sm font-medium text-gray-700 hover:bg-gray-50" %>
+        </div>
+      </div>
+
+      <!-- Paid Tier -->
+      <div class="relative rounded-2xl border-2 border-blue-600 p-8 shadow-lg">
+        <div class="absolute -top-4 left-1/2 -translate-x-1/2">
+          <span class="rounded-full bg-blue-600 px-4 py-1 text-sm font-medium text-white">
+            Most Popular
+          </span>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <h3 class="text-2xl font-semibold text-gray-900">Course Upgrade</h3>
+        </div>
+
+        <p class="mt-4 text-gray-600">
+          When you need more than 3 students in your course simulations.
+        </p>
+
+        <div class="mt-8">
+          <div class="flex items-baseline">
+            <span class="text-4xl font-bold text-gray-900">$99</span>
+            <span class="ml-2 text-gray-500">per course per semester</span>
+          </div>
+          <p class="mt-2 text-sm text-gray-600">
+            Or $25 per additional student beyond the first 3
+          </p>
+        </div>
+
+        <ul class="mt-8 space-y-4">
+          <li class="flex items-start">
+            <svg class="h-5 w-5 flex-shrink-0 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="ml-3 text-gray-700"><strong>Everything in Free</strong></span>
+          </li>
+          <li class="flex items-start">
+            <svg class="h-5 w-5 flex-shrink-0 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="ml-3 text-gray-700">Up to 50 students per course</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="h-5 w-5 flex-shrink-0 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="ml-3 text-gray-700">Unlimited courses per instructor</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="h-5 w-5 flex-shrink-0 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="ml-3 text-gray-700">Priority email support</span>
+          </li>
+        </ul>
+
+        <div class="mt-8">
+          <%= link_to "Upgrade Course", license_status_path,
+              class: "block w-full rounded-lg bg-blue-600 py-3 px-4 text-center text-sm font-medium text-white hover:bg-blue-700" %>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="mt-20">
+      <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">
+        Frequently Asked Questions
+      </h2>
+
+      <div class="grid gap-8 lg:grid-cols-2">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">
+            Who pays for the upgrade?
+          </h3>
+          <p class="text-gray-600">
+            The instructor pays for course upgrades. This keeps things simple and gives instructors direct control over their course capacity.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">
+            What happens at the end of the semester?
+          </h3>
+          <p class="text-gray-600">
+            Course access expires at the end of the semester. You can archive your course data and renew for the next semester if needed.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">
+            Can I try before upgrading?
+          </h3>
+          <p class="text-gray-600">
+            Absolutely! Start with the free tier (3 students) to test the platform. Upgrade only when you need more students.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">
+            Do you offer institutional pricing?
+          </h3>
+          <p class="text-gray-600">
+            We're focused on individual instructor needs for now. Institutional pricing may be available in the future.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">
+            What payment methods do you accept?
+          </h3>
+          <p class="text-gray-600">
+            We accept all major credit cards and debit cards through our secure payment processor.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">
+            Can I get a refund?
+          </h3>
+          <p class="text-gray-600">
+            Yes, we offer a 30-day money-back guarantee if you're not satisfied with the platform.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Section -->
+    <div class="mt-20 bg-gray-50 rounded-2xl p-8 text-center">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">
+        Have questions about pricing?
+      </h2>
+      <p class="text-gray-600 mb-6">
+        We're here to help you choose the right plan for your needs.
+      </p>
+      <a href="mailto:support@bizlaw.edu?subject=Pricing Question"
+         class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700">
+        Contact Support
+      </a>
+    </div>
+  </div>
+</div>

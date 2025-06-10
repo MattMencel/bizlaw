@@ -1,0 +1,99 @@
+<div class="min-h-screen bg-gray-100">
+  <div class="py-10">
+    <header>
+      <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex" aria-label="Breadcrumb">
+          <ol class="flex items-center space-x-4">
+            <li>
+              <%= link_to admin_organizations_path, class: "text-gray-400 hover:text-gray-500" do %>
+                <span>Organizations</span>
+              <% end %>
+            </li>
+            <li>
+              <div class="flex items-center">
+                <svg class="flex-shrink-0 h-5 w-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+                <span class="ml-4 text-sm font-medium text-gray-500">New Organization</span>
+              </div>
+            </li>
+          </ol>
+        </nav>
+        <h1 class="mt-2 text-3xl font-bold leading-tight text-gray-900">Create New Organization</h1>
+        <p class="mt-2 text-gray-600">Add a new organization to the system</p>
+      </div>
+    </header>
+
+    <main>
+      <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <%= form_with model: [:admin, @organization], local: true, class: "space-y-6" do |form| %>
+              <% if @organization.errors.any? %>
+                <div class="rounded-md bg-red-50 p-4">
+                  <div class="flex">
+                    <div class="flex-shrink-0">
+                      <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                      </svg>
+                    </div>
+                    <div class="ml-3">
+                      <h3 class="text-sm font-medium text-red-800">
+                        There were errors with your submission:
+                      </h3>
+                      <ul class="mt-2 text-sm text-red-700 list-disc pl-5">
+                        <% @organization.errors.full_messages.each do |message| %>
+                          <li><%= message %></li>
+                        <% end %>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+
+              <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div class="sm:col-span-2">
+                  <%= form.label :name, class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.text_field :name, class: "mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md", placeholder: "University of Example" %>
+                </div>
+
+                <div>
+                  <%= form.label :domain, class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.text_field :domain, class: "mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md", placeholder: "university.edu" %>
+                  <p class="mt-1 text-sm text-gray-500">The email domain for this organization (e.g., university.edu)</p>
+                </div>
+
+                <div>
+                  <%= form.label :slug, class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.text_field :slug, class: "mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md", placeholder: "university-example" %>
+                  <p class="mt-1 text-sm text-gray-500">URL-friendly identifier (lowercase letters, numbers, and hyphens only)</p>
+                </div>
+
+                <div>
+                  <%= form.label :license_id, "License", class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.collection_select :license_id, License.all, :id, :display_name,
+                      { prompt: "Select a license (optional)" },
+                      { class: "mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md" } %>
+                  <p class="mt-1 text-sm text-gray-500">License to assign to this organization</p>
+                </div>
+
+                <div class="flex items-center">
+                  <%= form.check_box :active, class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" %>
+                  <%= form.label :active, "Active", class: "ml-2 block text-sm text-gray-900" %>
+                  <p class="ml-2 text-sm text-gray-500">Organization is active and users can register</p>
+                </div>
+              </div>
+
+              <div class="flex justify-end space-x-3">
+                <%= link_to admin_organizations_path, class: "bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" do %>
+                  Cancel
+                <% end %>
+                <%= form.submit "Create Organization", class: "inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
