@@ -57,7 +57,12 @@ class License < ApplicationRecord
   end
 
   def self.generate_signed_license(attrs)
-    license = new(attrs)
+    filtered_attrs = attrs.slice(
+      :organization_name, :contact_email, :license_type,
+      :max_instructors, :max_students, :max_courses,
+      :expires_at, :notes, features: [:feature_a, :feature_b, :feature_c]
+    )
+    license = new(filtered_attrs)
     license.signature = sign_license_data(license.attributes_for_signing)
     license
   end

@@ -109,7 +109,7 @@ class Admin::LicensesController < ApplicationController
     params.require(:license).permit(
       :organization_name, :contact_email, :license_type,
       :max_instructors, :max_students, :max_courses,
-      :expires_at, :notes, features: {}
+      :expires_at, :notes, features: [:feature_a, :feature_b, :feature_c]
     )
   end
 
