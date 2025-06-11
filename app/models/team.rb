@@ -7,7 +7,7 @@ class Team < ApplicationRecord
 
   # Associations
   belongs_to :owner, class_name: "User"
-  belongs_to :course, optional: true
+  belongs_to :course
   has_many :team_members, dependent: :destroy
   has_many :users, through: :team_members
   has_many :members, through: :team_members, source: :user

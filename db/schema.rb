@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_11_023836) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_11_043107) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -139,11 +139,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_11_023836) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.uuid "organization_id"
+    t.uuid "term_id"
     t.index ["active"], name: "index_courses_on_active"
     t.index ["course_code", "organization_id"], name: "index_courses_on_course_code_and_organization_id", unique: true
     t.index ["deleted_at"], name: "index_courses_on_deleted_at"
     t.index ["instructor_id"], name: "index_courses_on_instructor_id"
     t.index ["organization_id"], name: "index_courses_on_organization_id"
+    t.index ["term_id"], name: "index_courses_on_term_id"
     t.index ["year", "semester"], name: "index_courses_on_year_and_semester"
   end
 
@@ -255,6 +257,27 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_11_023836) do
     t.index ["owner_id"], name: "index_teams_on_owner_id"
   end
 
+  create_table "terms", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "term_name", null: false
+    t.integer "academic_year", null: false
+    t.string "slug", null: false
+    t.date "start_date", null: false
+    t.date "end_date", null: false
+    t.text "description"
+    t.uuid "organization_id", null: false
+    t.boolean "active", default: true, null: false
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["academic_year"], name: "index_terms_on_academic_year"
+    t.index ["active"], name: "index_terms_on_active"
+    t.index ["deleted_at"], name: "index_terms_on_deleted_at"
+    t.index ["organization_id", "academic_year", "active"], name: "index_terms_on_organization_id_and_academic_year_and_active"
+    t.index ["organization_id", "slug"], name: "index_terms_on_organization_id_and_slug", unique: true
+    t.index ["organization_id"], name: "index_terms_on_organization_id"
+    t.index ["start_date", "end_date"], name: "index_terms_on_start_date_and_end_date"
+  end
+
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "first_name", null: false
     t.string "last_name", null: false
@@ -301,6 +324,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_11_023836) do
   add_foreign_key "course_enrollments", "users"
   add_foreign_key "course_invitations", "courses"
   add_foreign_key "courses", "organizations"
+  add_foreign_key "courses", "terms"
   add_foreign_key "courses", "users", column: "instructor_id"
   add_foreign_key "documents", "users", column: "created_by_id"
   add_foreign_key "organizations", "licenses"
@@ -308,5 +332,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_11_023836) do
   add_foreign_key "team_members", "users"
   add_foreign_key "teams", "courses"
   add_foreign_key "teams", "users", column: "owner_id"
+  add_foreign_key "terms", "organizations"
   add_foreign_key "users", "organizations"
 end

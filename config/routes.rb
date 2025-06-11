@@ -3,6 +3,7 @@
 Rails.application.routes.draw do
   # Course management routes
   resources :courses do
+    resources :teams, except: [:index]
     member do
       get :manage_invitations
       post :create_invitation
@@ -85,7 +86,7 @@ Rails.application.routes.draw do
 
   # Main resources
   resources :cases
-  resources :teams
+  resources :teams, only: [:index, :show]
 
   # Static pages
   get "about", to: "pages#about"

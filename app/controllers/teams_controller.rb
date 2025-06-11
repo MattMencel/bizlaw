@@ -3,6 +3,7 @@
 class TeamsController < ApplicationController
   include ImpersonationReadOnly
 
+  before_action :set_course, only: [ :new, :create, :edit, :update, :destroy ]
   before_action :set_team, only: [ :show, :edit, :update, :destroy ]
 
   def index
@@ -23,18 +24,19 @@ class TeamsController < ApplicationController
   end
 
   def new
-    @team = Team.new
+    @team = @course.teams.build
   end
 
   def edit
   end
 
   def create
-    @team = Team.new(team_params)
+    @team = @course.teams.build(team_params)
+    @team.owner = current_user
 
     respond_to do |format|
       if @team.save
-        format.html { redirect_to team_path(@team), notice: "Team was successfully created." }
+        format.html { redirect_to course_path(@course), notice: "Team was successfully created." }
         format.json { render json: TeamSerializer.new(@team).serializable_hash, status: :created }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -66,11 +68,19 @@ class TeamsController < ApplicationController
 
   private
 
+  def set_course
+    @course = Course.find(params[:course_id]) if params[:course_id]
+  end
+
   def set_team
-    @team = Team.find(params[:id])
+    if @course
+      @team = @course.teams.find(params[:id])
+    else
+      @team = Team.find(params[:id])
+    end
   end
 
   def team_params
-    params.require(:team).permit(:name, :description)
+    params.require(:team).permit(:name, :description, :max_members)
   end
 end

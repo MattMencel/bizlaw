@@ -8,6 +8,7 @@ class Course < ApplicationRecord
   # Associations
   belongs_to :organization, counter_cache: true
   belongs_to :instructor, class_name: "User"
+  belongs_to :term, optional: true
   has_many :course_enrollments, dependent: :destroy
   has_many :students, through: :course_enrollments, source: :user
   has_many :course_invitations, dependent: :destroy
@@ -34,8 +35,25 @@ class Course < ApplicationRecord
   scope :active, -> { where(active: true) }
   scope :for_instructor, ->(user) { where(instructor: user) }
   scope :current_semester, -> {
-    current_year = Date.current.year
-    where(year: current_year)
+    # Courses with terms that are currently active
+    term_courses = joins(:term).where(terms: { start_date: ..Date.current, end_date: Date.current.. })
+
+    # Legacy courses without terms - fall back to year
+    legacy_courses = where(term_id: nil, year: Date.current.year)
+
+    # Combine both
+    from("(#{term_courses.to_sql} UNION #{legacy_courses.to_sql}) AS courses")
+  }
+  scope :for_term, ->(term) { where(term: term) }
+  scope :for_academic_year, ->(year) {
+    # Courses with terms for the given academic year
+    term_courses = joins(:term).where(terms: { academic_year: year })
+
+    # Legacy courses without terms
+    legacy_courses = where(term_id: nil, year: year)
+
+    # Combine both
+    from("(#{term_courses.to_sql} UNION #{legacy_courses.to_sql}) AS courses")
   }
   scope :search_by_title, ->(query) {
     where("LOWER(title) LIKE :query", query: "%#{query.downcase}%")
@@ -50,8 +68,10 @@ class Course < ApplicationRecord
   end
 
   def semester_display
+    return term.term_name if term.present?
     return semester if semester.present?
 
+    # Fallback for courses without terms
     case Date.current.month
     when 1..5
       "Spring"
@@ -62,8 +82,17 @@ class Course < ApplicationRecord
     end
   end
 
+  def academic_year
+    return term.academic_year if term.present?
+    year # Fallback to old year field
+  end
+
   def full_title
-    "#{display_name} (#{semester_display} #{year})"
+    "#{display_name} (#{semester_display} #{academic_year})"
+  end
+
+  def term_name
+    term&.term_name || semester_display
   end
 
   def enrolled?(user)

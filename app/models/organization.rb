@@ -8,6 +8,7 @@ class Organization < ApplicationRecord
   # Associations
   belongs_to :license, optional: true
   has_many :users, dependent: :nullify
+  has_many :terms, dependent: :destroy
   has_many :courses, dependent: :destroy
   has_many :instructors, -> { where(role: :instructor) }, class_name: "User"
   has_many :students, -> { where(role: :student) }, class_name: "User"

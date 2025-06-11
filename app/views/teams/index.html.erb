@@ -2,20 +2,18 @@
   <div class="py-8">
     <div class="flex justify-between items-center">
       <h1 class="text-3xl font-bold text-gray-900">Teams</h1>
-      <%= link_to "New Team", new_team_path,
-          class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
-          data: { turbo_frame: "_top" } %>
+      <p class="text-sm text-gray-600">Teams are created within courses. Visit a course to create a new team.</p>
     </div>
 
     <div class="mt-8">
-      <%= real_time_frame(
-            id: "teams-list",
-            url: teams_path,
-            interval: 5000,
-            title: "Active Teams"
-          ) do %>
-        <%= render "list", teams: @teams %>
-      <% end %>
+      <div class="bg-white shadow rounded-lg p-4">
+        <div class="border-b border-gray-200 pb-4 mb-4">
+          <h3 class="text-lg font-medium leading-6 text-gray-900">Active Teams</h3>
+        </div>
+        <div id="teams-list">
+          <%= render "list", teams: @teams %>
+        </div>
+      </div>
     </div>
   </div>
 </div>
