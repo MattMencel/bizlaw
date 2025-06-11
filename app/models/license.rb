@@ -155,6 +155,10 @@ class License < ApplicationRecord
     stats[:courses_count] < max_courses
   end
 
+  def display_name
+    "#{organization_name} (#{license_type.titleize})"
+  end
+
   def feature_enabled?(feature_name)
     return true if license_type_enterprise?
 
