@@ -40,6 +40,8 @@ demo_orgs.each do |org_attrs|
     o.name = org_attrs[:name]
     o.domain = org_attrs[:domain]
     o.active = org_attrs[:active]
+    o.created_at = Time.current
+    o.updated_at = Time.current
   end
   puts "✅ Organization created: #{org.name}"
 end
@@ -70,8 +72,8 @@ forgottonia_users = [
   { email: "alexander.harris@forgottonia.edu", first_name: "Alexander", last_name: "Harris", role: :student }
 ]
 
-# Generate secure demo password
-demo_password = ENV.fetch('DEMO_PASSWORD', Devise.friendly_token[0, 12])
+# Generate demo password (can be updated later)
+demo_password = ENV.fetch('DEMO_PASSWORD', 'Password123!')
 
 forgottonia_users.each do |user_attrs|
   user = User.find_or_create_by!(email: user_attrs[:email]) do |u|
