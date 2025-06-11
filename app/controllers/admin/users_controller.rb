@@ -7,9 +7,6 @@ class Admin::UsersController < ApplicationController
   def index
     authorize User
     @users = policy_scope(User).includes(:organization)
-                               .left_joins(:team_members)
-                               .group('users.id')
-                               .select('users.*, COUNT(team_members.id) as teams_count')
 
     # Apply sorting
     sort_column = params[:sort] || "first_name"

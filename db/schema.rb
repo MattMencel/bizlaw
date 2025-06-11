@@ -215,9 +215,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_11_023836) do
     t.datetime "updated_at", null: false
     t.integer "courses_count", default: 0, null: false
     t.integer "users_count", default: 0, null: false
+    t.uuid "license_id"
     t.index ["active"], name: "index_organizations_on_active"
     t.index ["deleted_at"], name: "index_organizations_on_deleted_at"
     t.index ["domain"], name: "index_organizations_on_domain", unique: true
+    t.index ["license_id"], name: "index_organizations_on_license_id"
     t.index ["slug"], name: "index_organizations_on_slug", unique: true
   end
 
@@ -301,6 +303,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_11_023836) do
   add_foreign_key "courses", "organizations"
   add_foreign_key "courses", "users", column: "instructor_id"
   add_foreign_key "documents", "users", column: "created_by_id"
+  add_foreign_key "organizations", "licenses"
   add_foreign_key "team_members", "teams", on_delete: :cascade
   add_foreign_key "team_members", "users"
   add_foreign_key "teams", "courses"
