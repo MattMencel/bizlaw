@@ -36,14 +36,16 @@ demo_orgs = [
 ]
 
 demo_orgs.each do |org_attrs|
-  org = Organization.find_or_create_by!(slug: org_attrs[:slug]) do |o|
+  org = Organization.find_or_create_by(slug: org_attrs[:slug]) do |o|
     o.name = org_attrs[:name]
     o.domain = org_attrs[:domain]
     o.active = org_attrs[:active]
-    o.created_at = Time.current
-    o.updated_at = Time.current
   end
-  puts "✅ Organization created: #{org.name}"
+  if org.persisted?
+    puts "✅ Organization created: #{org.name}"
+  else
+    puts "❌ Failed to create organization: #{org.errors.full_messages.join(', ')}"
+  end
 end
 
 # Create Demo Users
