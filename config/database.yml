@@ -38,6 +38,7 @@ test:
   password: <%= ENV.fetch("PGPASSWORD", "postgres") %>
   database: <%= ENV.fetch("PGDATABASE_TEST", "bizlaw_test") %>
 
+
 # Store production database in the storage/ directory, which by default
 # is mounted as a persistent Docker volume in config/deploy.yml.
 production:
@@ -48,4 +49,25 @@ production:
   # Increase pool size for production
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 } %>
   # SSL is required for Supabase
+  sslmode: require
+
+# Cable database for ActionCable/Solid Cable
+cable:
+  <<: *default
+  url: <%= ENV['DATABASE_URL'] %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  sslmode: require
+
+# Queue database for Solid Queue
+queue:
+  <<: *default
+  url: <%= ENV['DATABASE_URL'] %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  sslmode: require
+
+# Cache database for Solid Cache
+cache:
+  <<: *default
+  url: <%= ENV['DATABASE_URL'] %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   sslmode: require
