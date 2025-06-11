@@ -39,6 +39,11 @@ class License < ApplicationRecord
     find_or_create_by(license_type: "free", organization_name: "Default") do |license|
       license.contact_email = "admin@example.com"
       license.license_key = "FREE-LICENSE-DEFAULT"
+      license.max_instructors = 10
+      license.max_students = 100
+      license.max_courses = 20
+      license.active = true
+      license.features = {}
       license.signature = sign_license_data(license.attributes_for_signing)
     end
   end
@@ -190,7 +195,9 @@ class License < ApplicationRecord
     Organization.create!(
       name: organization_name,
       license: self,
-      subdomain: organization_name.parameterize
+      slug: organization_name.parameterize,
+      domain: "#{organization_name.parameterize}.example.edu",
+      active: true
     )
   end
 
