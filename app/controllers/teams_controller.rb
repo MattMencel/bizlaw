@@ -6,7 +6,7 @@ class TeamsController < ApplicationController
   before_action :set_team, only: [ :show, :edit, :update, :destroy ]
 
   def index
-    @teams = Team.includes(:team_members).all
+    @teams = Team.all
 
     respond_to do |format|
       format.html

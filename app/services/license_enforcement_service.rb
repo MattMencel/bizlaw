@@ -64,7 +64,7 @@ class LicenseEnforcementService
   end
 
   def license_status
-    return 'no_organization' unless organization
+    return "no_organization" unless organization
 
     organization.license_status
   end
@@ -77,7 +77,7 @@ class LicenseEnforcementService
 
   def should_show_upgrade_prompt?
     case license_status
-    when 'expired', 'over_limits', 'expiring_soon'
+    when "expired", "over_limits", "expiring_soon"
       true
     else
       false
@@ -86,11 +86,11 @@ class LicenseEnforcementService
 
   def upgrade_message
     case license_status
-    when 'expired'
+    when "expired"
       "Your license has expired. Please renew to continue using all features."
-    when 'over_limits'
+    when "over_limits"
       "You've exceeded your license limits. Please upgrade to add more users or courses."
-    when 'expiring_soon'
+    when "expiring_soon"
       "Your license expires soon. Please renew to avoid service interruption."
     else
       "Upgrade your license to unlock more features and capacity."

@@ -26,6 +26,14 @@ class DashboardController < ApplicationController
     @total_organizations = Organization.count
     @active_organizations = Organization.active.count
     @recent_users = User.order(created_at: :desc).limit(5)
+
+    # Handle user search for impersonation
+    if params[:user_search].present?
+      @search_results = User.where(
+        "LOWER(first_name) LIKE :query OR LOWER(last_name) LIKE :query OR LOWER(email) LIKE :query",
+        query: "%#{params[:user_search].downcase}%"
+      ).where.not(id: current_user.id).limit(10)
+    end
   end
 
   def load_instructor_data

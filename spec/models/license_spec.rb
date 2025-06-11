@@ -21,7 +21,7 @@ RSpec.describe License, type: :model do
 
   describe 'enums' do
     it do
-      is_expected.to define_enum_for(:license_type)
+      expect(subject).to define_enum_for(:license_type)
         .with_values(free: 'free', starter: 'starter', professional: 'professional', enterprise: 'enterprise')
         .with_prefix(:license_type)
     end

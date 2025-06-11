@@ -18,7 +18,7 @@ class User < ApplicationRecord
   has_many :owned_teams, class_name: "Team", foreign_key: :owner_id, dependent: :destroy
 
   # Organization association
-  belongs_to :organization, optional: true
+  belongs_to :organization, optional: true, counter_cache: true
 
   # Course associations
   has_many :taught_courses, class_name: "Course", foreign_key: :instructor_id, dependent: :destroy

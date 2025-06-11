@@ -94,7 +94,6 @@ Devise.setup do |config|
   # Add a new OAuth provider. For example, the following would add Google OAuth2:
 
   if ENV["GOOGLE_CLIENT_ID"].present? && ENV["GOOGLE_CLIENT_SECRET"].present?
-    puts "[DEBUG] Inside OmniAuth provider block"
     Rails.logger.info "[Devise] Google OmniAuth provider enabled."
     config.omniauth :google_oauth2,
       ENV["GOOGLE_CLIENT_ID"],
@@ -103,7 +102,6 @@ Devise.setup do |config|
         scope: "email,profile"
       }
   else
-    puts "[DEBUG] OmniAuth provider block NOT enabled"
     Rails.logger.warn "[Devise] GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET is missing. Google OmniAuth provider NOT enabled."
   end
 

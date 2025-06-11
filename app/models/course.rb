@@ -6,7 +6,7 @@ class Course < ApplicationRecord
   include SoftDeletable
 
   # Associations
-  belongs_to :organization
+  belongs_to :organization, counter_cache: true
   belongs_to :instructor, class_name: "User"
   has_many :course_enrollments, dependent: :destroy
   has_many :students, through: :course_enrollments, source: :user
@@ -67,7 +67,7 @@ class Course < ApplicationRecord
   end
 
   def enrolled?(user)
-    course_enrollments.exists?(user: user, status: 'active')
+    course_enrollments.exists?(user: user, status: "active")
   end
 
   def enroll_student(user, invitation = nil)
@@ -77,7 +77,7 @@ class Course < ApplicationRecord
     enrollment = course_enrollments.create(
       user: user,
       enrolled_at: Time.current,
-      status: 'active'
+      status: "active"
     )
 
     # Track invitation usage if provided
@@ -89,7 +89,7 @@ class Course < ApplicationRecord
   end
 
   def student_count
-    course_enrollments.where(status: 'active').count
+    course_enrollments.where(status: "active").count
   end
 
   def can_be_managed_by?(user)

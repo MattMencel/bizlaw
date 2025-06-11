@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 class CourseInvitationsController < ApplicationController
-  before_action :authenticate_user!, except: [:show]
-  before_action :find_invitation, only: [:show, :join]
-  before_action :validate_invitation, only: [:show, :join]
-  before_action :require_student, only: [:join]
+  before_action :authenticate_user!, except: [ :show ]
+  before_action :find_invitation, only: [ :show, :join ]
+  before_action :validate_invitation, only: [ :show, :join ]
+  before_action :require_student, only: [ :join ]
 
   def show
     @course = @invitation.course
@@ -54,7 +54,7 @@ class CourseInvitationsController < ApplicationController
   def qr_code
     invitation = CourseInvitation.find_by!(token: params[:token])
     size = params[:size]&.to_i || 300
-    format = params[:format] || 'png'
+    format = params[:format] || "png"
 
     # Authorization check - only course instructor/admin can download QR codes
     unless current_user&.admin? || invitation.course.instructor == current_user
@@ -63,18 +63,18 @@ class CourseInvitationsController < ApplicationController
     end
 
     case format.downcase
-    when 'png'
+    when "png"
       png_data = invitation.qr_code_png(size: size)
       send_data png_data.to_s,
-                type: 'image/png',
+                type: "image/png",
                 filename: "course_invitation_#{invitation.token}.png",
-                disposition: 'attachment'
-    when 'svg'
+                disposition: "attachment"
+    when "svg"
       svg_data = invitation.qr_code_svg(size: size)
       send_data svg_data,
-                type: 'image/svg+xml',
+                type: "image/svg+xml",
                 filename: "course_invitation_#{invitation.token}.svg",
-                disposition: 'attachment'
+                disposition: "attachment"
     else
       redirect_to courses_path, alert: "Invalid QR code format requested."
     end
@@ -91,11 +91,11 @@ class CourseInvitationsController < ApplicationController
   def validate_invitation
     unless @invitation.can_be_used?
       case @invitation.status
-      when 'expired'
+      when "expired"
         redirect_to courses_path, alert: "This invitation has expired."
-      when 'usage_exceeded'
+      when "usage_exceeded"
         redirect_to courses_path, alert: "This invitation has reached its usage limit."
-      when 'inactive'
+      when "inactive"
         redirect_to courses_path, alert: "This invitation is no longer active."
       else
         redirect_to courses_path, alert: "This invitation is not valid."

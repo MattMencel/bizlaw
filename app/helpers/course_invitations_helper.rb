@@ -12,11 +12,11 @@ module CourseInvitationsHelper
   def qr_code_svg(invitation, size: 200, css_class: "qr-code")
     svg_content = invitation.qr_code_svg(size: size)
     # Add CSS class to the SVG
-    svg_with_class = svg_content.gsub('<svg', "<svg class=\"#{css_class}\"")
+    svg_with_class = svg_content.gsub("<svg", "<svg class=\"#{css_class}\"")
     raw svg_with_class
   end
 
-  def qr_code_download_link(invitation, format: 'png', size: 300, text: nil, css_class: "btn btn-outline")
+  def qr_code_download_link(invitation, format: "png", size: 300, text: nil, css_class: "btn btn-outline")
     text ||= "Download QR Code (#{format.upcase})"
 
     link_to text,
@@ -62,13 +62,13 @@ module CourseInvitationsHelper
     status = invitation.status
 
     case status
-    when 'active'
+    when "active"
       content_tag :span, "Active", class: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
-    when 'expired'
+    when "expired"
       content_tag :span, "Expired", class: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
-    when 'usage_exceeded'
+    when "usage_exceeded"
       content_tag :span, "Usage Exceeded", class: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
-    when 'inactive'
+    when "inactive"
       content_tag :span, "Inactive", class: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
     else
       content_tag :span, status.humanize, class: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"

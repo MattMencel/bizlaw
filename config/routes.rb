@@ -113,6 +113,8 @@ Rails.application.routes.draw do
         patch :deactivate
       end
     end
+
+    resources :users, except: [:new, :create]
   end
 
   # License management routes

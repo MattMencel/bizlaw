@@ -1,0 +1,146 @@
+<div class="min-h-screen bg-gray-100">
+  <div class="py-10">
+    <header>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center">
+          <div>
+            <h1 class="text-3xl font-bold leading-tight text-gray-900"><%= @user.full_name %></h1>
+            <p class="mt-2 text-gray-600"><%= @user.email %></p>
+          </div>
+          <div class="flex space-x-3">
+            <%= link_to admin_users_path, class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" do %>
+              ← Back to Users
+            <% end %>
+            <%= link_to edit_admin_user_path(@user), class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700" do %>
+              Edit User
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <!-- User Details -->
+        <div class="mb-8">
+          <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+              <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">User Information</h3>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Full Name</dt>
+                  <dd class="mt-1 text-sm text-gray-900"><%= @user.full_name %></dd>
+                </div>
+
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Email</dt>
+                  <dd class="mt-1 text-sm text-gray-900"><%= @user.email %></dd>
+                </div>
+
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Role</dt>
+                  <dd class="mt-1">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= @user.role == 'admin' ? 'bg-red-100 text-red-800' : @user.role == 'instructor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' %>">
+                      <%= @user.role.capitalize %>
+                    </span>
+                  </dd>
+                </div>
+
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Organization</dt>
+                  <dd class="mt-1 text-sm text-gray-900">
+                    <% if @user.organization %>
+                      <%= link_to @user.organization.name, admin_organization_path(@user.organization), class: "text-blue-600 hover:text-blue-900" %>
+                    <% else %>
+                      None
+                    <% end %>
+                  </dd>
+                </div>
+
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Status</dt>
+                  <dd class="mt-1">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= @user.active? ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
+                      <%= @user.active? ? 'Active' : 'Inactive' %>
+                    </span>
+                  </dd>
+                </div>
+
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Member Since</dt>
+                  <dd class="mt-1 text-sm text-gray-900"><%= @user.created_at.strftime("%B %d, %Y") %></dd>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Memberships -->
+        <div class="mb-8">
+          <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Team Memberships</h3>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                  <%= pluralize(@teams_count, 'team') %>
+                </span>
+              </div>
+
+              <% if @recent_teams.any? %>
+                <div class="space-y-3">
+                  <% @recent_teams.each do |team| %>
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                      <div>
+                        <div class="text-sm font-medium text-gray-900"><%= team.name %></div>
+                        <div class="text-sm text-gray-500">
+                          <%= pluralize(team.member_count, 'member') %> •
+                          <%= pluralize(team.cases.count, 'case') %>
+                        </div>
+                      </div>
+                      <div>
+                        <%= link_to "View Team", team_path(team), class: "text-blue-600 hover:text-blue-900 text-sm" %>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+
+                <% if @teams_count > @recent_teams.count %>
+                  <div class="mt-4 pt-4 border-t">
+                    <p class="text-sm text-gray-500">Showing <%= @recent_teams.count %> of <%= @teams_count %> teams</p>
+                  </div>
+                <% end %>
+              <% else %>
+                <p class="text-gray-500 text-center py-4">User is not a member of any teams.</p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="mb-8">
+          <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+              <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Actions</h3>
+
+              <div class="flex space-x-4">
+                <%= button_to "Impersonate User", impersonate_user_path(@user),
+                    method: :post,
+                    class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700",
+                    confirm: "Are you sure you want to impersonate #{@user.full_name}? You will be logged in as them in read-only mode." %>
+
+                <% if @user != current_user %>
+                  <%= link_to "Delete User", admin_user_path(@user),
+                      method: :delete,
+                      class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700",
+                      confirm: "Are you sure you want to delete #{@user.full_name}? This action cannot be undone.",
+                      data: { turbo_method: :delete } %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

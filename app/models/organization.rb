@@ -9,9 +9,9 @@ class Organization < ApplicationRecord
   belongs_to :license, optional: true
   has_many :users, dependent: :nullify
   has_many :courses, dependent: :destroy
-  has_many :instructors, -> { where(role: :instructor) }, class_name: 'User'
-  has_many :students, -> { where(role: :student) }, class_name: 'User'
-  has_many :admins, -> { where(role: :admin) }, class_name: 'User'
+  has_many :instructors, -> { where(role: :instructor) }, class_name: "User"
+  has_many :students, -> { where(role: :student) }, class_name: "User"
+  has_many :admins, -> { where(role: :admin) }, class_name: "User"
 
   # Validations
   validates :name, presence: true, length: { maximum: 255 }
@@ -44,7 +44,7 @@ class Organization < ApplicationRecord
 
   # Class methods
   def self.find_by_email_domain(email)
-    domain = email.split('@').last&.downcase
+    domain = email.split("@").last&.downcase
     return nil unless domain
 
     find_by(domain: domain, active: true)
@@ -52,10 +52,10 @@ class Organization < ApplicationRecord
 
   def self.generate_slug_from_name(name)
     name.downcase
-        .gsub(/[^a-z0-9\s-]/, '')  # Remove special chars
-        .gsub(/\s+/, '-')          # Replace spaces with hyphens
-        .gsub(/-+/, '-')           # Collapse multiple hyphens
-        .gsub(/^-|-$/, '')         # Remove leading/trailing hyphens
+        .gsub(/[^a-z0-9\s-]/, "")  # Remove special chars
+        .gsub(/\s+/, "-")          # Replace spaces with hyphens
+        .gsub(/-+/, "-")           # Collapse multiple hyphens
+        .gsub(/^-|-$/, "")         # Remove leading/trailing hyphens
   end
 
   # Instance methods
@@ -63,7 +63,7 @@ class Organization < ApplicationRecord
     name
   end
 
-  def branded_url(path = '')
+  def branded_url(path = "")
     "#{slug}.bizlaw.edu#{path}"
   end
 
@@ -82,7 +82,7 @@ class Organization < ApplicationRecord
   def user_belongs_to_organization?(user)
     return false unless user&.email
 
-    email_domain = user.email.split('@').last&.downcase
+    email_domain = user.email.split("@").last&.downcase
     email_domain == domain
   end
 
@@ -112,12 +112,12 @@ class Organization < ApplicationRecord
   end
 
   def license_status
-    return 'unlicensed' unless license
-    return 'expired' if license.expired?
-    return 'expiring_soon' if license.expiring_soon?
-    return 'over_limits' unless within_license_limits?
+    return "unlicensed" unless license
+    return "expired" if license.expired?
+    return "expiring_soon" if license.expiring_soon?
+    return "over_limits" unless within_license_limits?
 
-    'valid'
+    "valid"
   end
 
   def usage_summary

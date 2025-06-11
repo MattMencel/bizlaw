@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_09_035757) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_11_023836) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -180,6 +180,30 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_09_035757) do
     t.index ["jti"], name: "index_jwt_denylist_on_jti", unique: true
   end
 
+  create_table "licenses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "license_key", null: false
+    t.string "organization_name", null: false
+    t.string "contact_email", null: false
+    t.string "license_type", default: "free", null: false
+    t.integer "max_instructors", default: 1
+    t.integer "max_students", default: 3
+    t.integer "max_courses", default: 1
+    t.date "expires_at"
+    t.text "signature", null: false
+    t.jsonb "features", default: {}
+    t.boolean "active", default: true
+    t.datetime "last_validated_at"
+    t.string "validation_hash"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_licenses_on_active"
+    t.index ["expires_at"], name: "index_licenses_on_expires_at"
+    t.index ["license_key"], name: "index_licenses_on_license_key", unique: true
+    t.index ["license_type"], name: "index_licenses_on_license_type"
+    t.index ["organization_name"], name: "index_licenses_on_organization_name"
+  end
+
   create_table "organizations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name", null: false
     t.string "domain", null: false
@@ -189,6 +213,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_09_035757) do
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "courses_count", default: 0, null: false
+    t.integer "users_count", default: 0, null: false
     t.index ["active"], name: "index_organizations_on_active"
     t.index ["deleted_at"], name: "index_organizations_on_deleted_at"
     t.index ["domain"], name: "index_organizations_on_domain", unique: true
@@ -220,6 +246,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_09_035757) do
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
     t.uuid "course_id"
+    t.integer "team_members_count", default: 0, null: false
     t.index ["course_id"], name: "index_teams_on_course_id"
     t.index ["deleted_at"], name: "index_teams_on_deleted_at"
     t.index ["name", "owner_id"], name: "index_teams_on_name_and_owner_id", unique: true

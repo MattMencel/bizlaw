@@ -15,10 +15,10 @@ module LicenseEnforcement
     return if license_enforcement_service.grace_period_active?
 
     case license_enforcement_service.license_status
-    when 'expired'
+    when "expired"
       handle_expired_license
-    when 'over_limits'
-      handle_over_limits unless action_name.in?(['show', 'index'])
+    when "over_limits"
+      handle_over_limits unless action_name.in?([ "show", "index" ])
     end
   end
 
@@ -26,7 +26,7 @@ module LicenseEnforcement
     flash.now[:alert] = "Your license has expired. Some features may be limited. Please renew your license."
 
     # Allow read-only operations during grace period
-    unless action_name.in?(['show', 'index']) || license_enforcement_service.grace_period_active?
+    unless action_name.in?([ "show", "index" ]) || license_enforcement_service.grace_period_active?
       redirect_to license_status_path, alert: "License expired. Please renew to continue using the platform."
     end
   end
@@ -53,8 +53,8 @@ module LicenseEnforcement
 
   def skip_license_check?
     # Skip license checks for certain controllers/actions
-    controller_name.in?(['license_status', 'health', 'home']) ||
-      (controller_name == 'users' && action_name.in?(['show', 'edit', 'update']))
+    controller_name.in?([ "license_status", "health", "home" ]) ||
+      (controller_name == "users" && action_name.in?([ "show", "edit", "update" ]))
   end
 
   def require_feature!(feature_name)

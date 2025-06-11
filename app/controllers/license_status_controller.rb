@@ -72,7 +72,7 @@ class LicenseStatusController < ApplicationController
     trial_license = License.generate_signed_license(
       organization_name: organization.name,
       contact_email: current_user.email,
-      license_type: 'starter',
+      license_type: "starter",
       max_instructors: 2,
       max_students: 25,
       max_courses: 5,

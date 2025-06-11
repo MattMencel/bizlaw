@@ -21,12 +21,12 @@ class CourseInvitation < ApplicationRecord
   scope :active, -> { where(active: true) }
   scope :valid_invitations, -> {
     active.where(
-      'expires_at IS NULL OR expires_at > ? AND (max_uses IS NULL OR current_uses < max_uses)',
+      "expires_at IS NULL OR expires_at > ? AND (max_uses IS NULL OR current_uses < max_uses)",
       Time.current
     )
   }
-  scope :expired, -> { where('expires_at IS NOT NULL AND expires_at <= ?', Time.current) }
-  scope :usage_exceeded, -> { where('max_uses IS NOT NULL AND current_uses >= max_uses') }
+  scope :expired, -> { where("expires_at IS NOT NULL AND expires_at <= ?", Time.current) }
+  scope :usage_exceeded, -> { where("max_uses IS NOT NULL AND current_uses >= max_uses") }
 
   # Callbacks
   before_validation :generate_token, on: :create
@@ -62,7 +62,7 @@ class CourseInvitation < ApplicationRecord
 
   def remaining_uses
     return Float::INFINITY if max_uses.nil?
-    [max_uses - current_uses, 0].max
+    [ max_uses - current_uses, 0 ].max
   end
 
   def can_be_used?
@@ -88,7 +88,7 @@ class CourseInvitation < ApplicationRecord
 
   def extend_expiration(duration)
     new_expiration = if expires_at.present?
-      [expires_at + duration, Time.current + duration].max
+      [ expires_at + duration, Time.current + duration ].max
     else
       Time.current + duration
     end
@@ -107,7 +107,7 @@ class CourseInvitation < ApplicationRecord
     @qr_code_svg = generate_qr_code_svg(size)
   end
 
-  def qr_code_png(size: 200, fill: '000', background: 'FFF')
+  def qr_code_png(size: 200, fill: "000", background: "FFF")
     qrcode = RQRCode::QRCode.new(invitation_url)
     qrcode.as_png(
       resize_gte_to: false,
@@ -120,16 +120,16 @@ class CourseInvitation < ApplicationRecord
     )
   end
 
-  def qr_code_data_uri(size: 200, fill: '000000', background: 'FFFFFF')
+  def qr_code_data_uri(size: 200, fill: "000000", background: "FFFFFF")
     png_data = qr_code_png(size: size, fill: fill, background: background)
     "data:image/png;base64,#{Base64.strict_encode64(png_data.to_s)}"
   end
 
   def status
-    return 'expired' if expired?
-    return 'usage_exceeded' if usage_exceeded?
-    return 'inactive' unless active?
-    'active'
+    return "expired" if expired?
+    return "usage_exceeded" if usage_exceeded?
+    return "inactive" unless active?
+    "active"
   end
 
   def display_name

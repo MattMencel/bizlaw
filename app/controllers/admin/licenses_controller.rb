@@ -3,7 +3,7 @@
 class Admin::LicensesController < ApplicationController
   before_action :authenticate_user!
   before_action :ensure_admin!
-  before_action :set_license, only: [:show, :edit, :update, :destroy, :activate, :deactivate]
+  before_action :set_license, only: [ :show, :edit, :update, :destroy, :activate, :deactivate ]
 
   def index
     @licenses = License.includes(:organization)
@@ -23,11 +23,11 @@ class Admin::LicensesController < ApplicationController
 
     if params[:status].present?
       case params[:status]
-      when 'active'
+      when "active"
         @licenses = @licenses.where(active: true)
-      when 'expired'
+      when "expired"
         @licenses = @licenses.expired
-      when 'expiring_soon'
+      when "expiring_soon"
         @licenses = @licenses.expiring_soon
       end
     end
@@ -45,7 +45,7 @@ class Admin::LicensesController < ApplicationController
     @license = License.generate_signed_license(license_params)
 
     if @license.save
-      redirect_to admin_license_path(@license), notice: 'License was successfully created.'
+      redirect_to admin_license_path(@license), notice: "License was successfully created."
     else
       render :new, status: :unprocessable_entity
     end
@@ -58,7 +58,7 @@ class Admin::LicensesController < ApplicationController
     if @license.update(license_params.except(:license_key))
       # Regenerate signature after update
       @license.update!(signature: License.sign_license_data(@license.attributes_for_signing))
-      redirect_to admin_license_path(@license), notice: 'License was successfully updated.'
+      redirect_to admin_license_path(@license), notice: "License was successfully updated."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -66,17 +66,17 @@ class Admin::LicensesController < ApplicationController
 
   def destroy
     @license.destroy
-    redirect_to admin_licenses_path, notice: 'License was successfully deleted.'
+    redirect_to admin_licenses_path, notice: "License was successfully deleted."
   end
 
   def activate
     @license.update!(active: true)
-    redirect_to admin_license_path(@license), notice: 'License activated successfully.'
+    redirect_to admin_license_path(@license), notice: "License activated successfully."
   end
 
   def deactivate
     @license.update!(active: false)
-    redirect_to admin_license_path(@license), notice: 'License deactivated successfully.'
+    redirect_to admin_license_path(@license), notice: "License deactivated successfully."
   end
 
   def validate_key
@@ -95,7 +95,7 @@ class Admin::LicensesController < ApplicationController
         }
       }
     else
-      render json: { valid: false, error: 'Invalid or expired license key' }
+      render json: { valid: false, error: "Invalid or expired license key" }
     end
   end
 
@@ -114,6 +114,6 @@ class Admin::LicensesController < ApplicationController
   end
 
   def ensure_admin!
-    redirect_to root_path, alert: 'Access denied.' unless current_user.admin?
+    redirect_to root_path, alert: "Access denied." unless current_user.admin?
   end
 end

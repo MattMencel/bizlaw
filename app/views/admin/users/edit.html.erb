@@ -1,0 +1,110 @@
+<div class="min-h-screen bg-gray-100">
+  <div class="py-10">
+    <header>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center">
+          <div>
+            <h1 class="text-3xl font-bold leading-tight text-gray-900">Edit User</h1>
+            <p class="mt-2 text-gray-600">Update user information and settings</p>
+          </div>
+          <%= link_to admin_user_path(@user), class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" do %>
+            ← Back to User
+          <% end %>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <%= form_with model: [:admin, @user], local: true, class: "space-y-6" do |form| %>
+              <% if @user.errors.any? %>
+                <div class="bg-red-50 border border-red-200 rounded-md p-4">
+                  <div class="flex">
+                    <div class="flex-shrink-0">
+                      <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                      </svg>
+                    </div>
+                    <div class="ml-3">
+                      <h3 class="text-sm font-medium text-red-800">
+                        There were errors with your submission:
+                      </h3>
+                      <div class="mt-2 text-sm text-red-700">
+                        <ul class="list-disc list-inside space-y-1">
+                          <% @user.errors.full_messages.each do |message| %>
+                            <li><%= message %></li>
+                          <% end %>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <%= form.label :first_name, class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.text_field :first_name,
+                      class: "mt-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" %>
+                </div>
+
+                <div>
+                  <%= form.label :last_name, class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.text_field :last_name,
+                      class: "mt-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" %>
+                </div>
+              </div>
+
+              <div>
+                <%= form.label :email, class: "block text-sm font-medium text-gray-700" %>
+                <%= form.email_field :email,
+                    class: "mt-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" %>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <%= form.label :role, class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.select :role,
+                      options_for_select([
+                        ['Student', 'student'],
+                        ['Instructor', 'instructor'],
+                        ['Admin', 'admin']
+                      ], @user.role),
+                      {},
+                      { class: "mt-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" } %>
+                  <p class="mt-1 text-sm text-gray-500">Choose the user's role and access level</p>
+                </div>
+
+                <div>
+                  <%= form.label :organization_id, "Organization", class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.select :organization_id,
+                      options_from_collection_for_select(Organization.order(:name), :id, :name, @user.organization_id),
+                      { include_blank: "No organization" },
+                      { class: "mt-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" } %>
+                  <p class="mt-1 text-sm text-gray-500">Assign user to an organization</p>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex items-center">
+                  <%= form.check_box :active, class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" %>
+                  <%= form.label :active, "Active user", class: "ml-2 block text-sm text-gray-900" %>
+                </div>
+                <p class="mt-1 text-sm text-gray-500">Inactive users cannot log in to the system</p>
+              </div>
+
+              <div class="flex justify-end space-x-3 pt-6 border-t">
+                <%= link_to "Cancel", admin_user_path(@user),
+                    class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" %>
+                <%= form.submit "Update User",
+                    class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

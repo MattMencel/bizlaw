@@ -80,7 +80,7 @@ class Team < ApplicationRecord
   end
 
   def member_count
-    team_members.count
+    team_members_count
   end
 
   def full?

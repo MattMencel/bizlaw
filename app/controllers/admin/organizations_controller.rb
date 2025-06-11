@@ -2,14 +2,22 @@
 
 class Admin::OrganizationsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_organization, only: [:show, :edit, :update, :destroy, :activate, :deactivate]
+  before_action :set_organization, only: [ :show, :edit, :update, :destroy, :activate, :deactivate ]
 
   def index
     authorize Organization
-    @organizations = policy_scope(Organization).includes(:license, :users, :courses)
-                                              .order(:name)
-                                              .page(params[:page])
-                                              .per(20)
+    @organizations = policy_scope(Organization)
+
+    # Apply sorting
+    sort_column = params[:sort] || "name"
+    sort_direction = params[:direction] || "asc"
+
+    # Validate sort parameters
+    valid_sort_columns = %w[name domain created_at]
+    sort_column = "name" unless valid_sort_columns.include?(sort_column)
+    sort_direction = "asc" unless %w[asc desc].include?(sort_direction)
+
+    @organizations = @organizations.order("#{sort_column} #{sort_direction}")
 
     # Filter by search query if provided
     if params[:search].present?
@@ -18,19 +26,21 @@ class Admin::OrganizationsController < ApplicationController
 
     # Filter by status if provided
     case params[:status]
-    when 'active'
+    when "active"
       @organizations = @organizations.active
-    when 'inactive'
+    when "inactive"
       @organizations = @organizations.where(active: false)
     end
+
+    @organizations = @organizations.page(params[:page]).per(20)
   end
 
   def show
     authorize @organization
-    @users_count = @organization.users.count
-    @courses_count = @organization.courses.count
+    @users_count = @organization.users_count
+    @courses_count = @organization.courses_count
     @recent_users = @organization.users.order(created_at: :desc).limit(10)
-    @recent_courses = @organization.courses.order(created_at: :desc).limit(10)
+    @recent_courses = @organization.courses.includes(:instructor).order(created_at: :desc).limit(10)
   end
 
   def new
@@ -44,7 +54,7 @@ class Admin::OrganizationsController < ApplicationController
 
     if @organization.save
       redirect_to admin_organization_path(@organization),
-                  notice: 'Organization was successfully created.'
+                  notice: "Organization was successfully created."
     else
       render :new, status: :unprocessable_entity
     end
@@ -58,7 +68,7 @@ class Admin::OrganizationsController < ApplicationController
     authorize @organization
     if @organization.update(organization_params)
       redirect_to admin_organization_path(@organization),
-                  notice: 'Organization was successfully updated.'
+                  notice: "Organization was successfully updated."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -68,11 +78,11 @@ class Admin::OrganizationsController < ApplicationController
     authorize @organization
     if @organization.users.exists?
       redirect_to admin_organizations_path,
-                  alert: 'Cannot delete organization with existing users. Please transfer or delete users first.'
+                  alert: "Cannot delete organization with existing users. Please transfer or delete users first."
     else
       @organization.destroy
       redirect_to admin_organizations_path,
-                  notice: 'Organization was successfully deleted.'
+                  notice: "Organization was successfully deleted."
     end
   end
 
@@ -80,14 +90,14 @@ class Admin::OrganizationsController < ApplicationController
     authorize @organization
     @organization.update!(active: true)
     redirect_to admin_organization_path(@organization),
-                notice: 'Organization activated successfully.'
+                notice: "Organization activated successfully."
   end
 
   def deactivate
     authorize @organization
     @organization.update!(active: false)
     redirect_to admin_organization_path(@organization),
-                notice: 'Organization deactivated successfully.'
+                notice: "Organization deactivated successfully."
   end
 
   private

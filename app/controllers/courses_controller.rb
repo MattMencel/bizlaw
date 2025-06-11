@@ -2,17 +2,17 @@
 
 class CoursesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_course, only: [:show, :edit, :update, :destroy, :manage_invitations, :create_invitation]
-  before_action :require_instructor_or_admin, except: [:index, :show]
-  before_action :authorize_course_access, only: [:show, :edit, :update, :destroy, :manage_invitations, :create_invitation]
-  before_action :check_course_creation_limit!, only: [:create]
+  before_action :set_course, only: [ :show, :edit, :update, :destroy, :manage_invitations, :create_invitation ]
+  before_action :require_instructor_or_admin, except: [ :index, :show ]
+  before_action :authorize_course_access, only: [ :show, :edit, :update, :destroy, :manage_invitations, :create_invitation ]
+  before_action :check_course_creation_limit!, only: [ :create ]
 
   def index
     @courses = if current_user.instructor? || current_user.admin?
                 current_user.taught_courses.includes(:students, :course_invitations).active
-              else
+    else
                 current_user.enrolled_courses.includes(:instructor).active
-              end
+    end
 
     @courses = @courses.search_by_title(params[:search]) if params[:search].present?
   end
@@ -41,7 +41,7 @@ class CoursesController < ApplicationController
         expires_at: 1.month.from_now
       )
 
-      redirect_to @course, notice: 'Course was successfully created with a default invitation code.'
+      redirect_to @course, notice: "Course was successfully created with a default invitation code."
     else
       render :new, status: :unprocessable_entity
     end
@@ -52,7 +52,7 @@ class CoursesController < ApplicationController
 
   def update
     if @course.update(course_params)
-      redirect_to @course, notice: 'Course was successfully updated.'
+      redirect_to @course, notice: "Course was successfully updated."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -60,7 +60,7 @@ class CoursesController < ApplicationController
 
   def destroy
     @course.destroy
-    redirect_to courses_path, notice: 'Course was successfully deleted.'
+    redirect_to courses_path, notice: "Course was successfully deleted."
   end
 
   def manage_invitations
@@ -104,7 +104,7 @@ class CoursesController < ApplicationController
   def authorize_course_access
     return if current_user.admin?
     return if @course.instructor == current_user
-    return if current_user.student? && @course.enrolled?(current_user) && action_name == 'show'
+    return if current_user.student? && @course.enrolled?(current_user) && action_name == "show"
 
     redirect_to courses_path, alert: "You are not authorized to access this course."
   end

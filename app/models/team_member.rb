@@ -6,7 +6,7 @@ class TeamMember < ApplicationRecord
   include SoftDeletable
 
   # Associations
-  belongs_to :team
+  belongs_to :team, counter_cache: true
   belongs_to :user
   has_many :documents, as: :documentable, dependent: :destroy
 
