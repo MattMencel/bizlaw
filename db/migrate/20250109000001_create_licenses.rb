@@ -25,8 +25,5 @@ class CreateLicenses < ActiveRecord::Migration[8.0]
     add_index :licenses, :expires_at
     add_index :licenses, :active
     add_index :licenses, :organization_name
-
-    # Add license reference to existing organizations table
-    add_reference :organizations, :license, null: true, foreign_key: true, type: :uuid
   end
 end
