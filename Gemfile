@@ -115,6 +115,9 @@ group :test do
   # Shoulda Matchers for RSpec
   gem "shoulda-matchers"
 
+  # Pundit matchers for policy testing
+  gem "pundit-matchers"
+
   # Database Cleaner for test database management
   gem "database_cleaner-active_record"
 
@@ -123,6 +126,9 @@ group :test do
 
   gem "email_spec"
   gem "timecop"
+
+  # Code coverage analysis with Coveralls integration
+  gem "coveralls_reborn", require: false
 end
 
 gem "dockerfile-rails", ">= 1.7", group: :development

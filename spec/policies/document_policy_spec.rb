@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe DocumentPolicy, type: :policy do
-  subject { described_class }
 
   let(:admin) { build_stubbed(:user, role: :admin) }
   let(:instructor) { build_stubbed(:user, role: :instructor) }
@@ -22,92 +21,136 @@ RSpec.describe DocumentPolicy, type: :policy do
     allow(TeamPolicy).to receive(:new).and_return(double(show?: true, update?: true))
   end
 
-  permissions :index? do
+  describe '#index?' do
     it 'permits access for all users' do
-      expect(subject).to permit(admin, case_document)
-      expect(subject).to permit(instructor, case_document)
-      expect(subject).to permit(student, case_document)
+      policy = described_class.new(admin, case_document)
+      expect(policy.index?).to be true
+      policy = described_class.new(instructor, case_document)
+      expect(policy.index?).to be true
+      policy = described_class.new(student, case_document)
+      expect(policy.index?).to be true
     end
   end
 
-  permissions :show? do
+  describe '#show?' do
     it 'permits admin access' do
-      expect(subject).to permit(admin, case_document)
+      policy = described_class.new(admin, case_document)
+      expect(policy.show?).to be true
     end
 
     it 'permits creator access' do
-      expect(subject).to permit(document_creator, case_document)
+      policy = described_class.new(document_creator, case_document)
+      expect(policy.show?).to be true
     end
 
     it 'permits access when user can access documentable' do
-      expect(subject).to permit(student, case_document)
+      policy = described_class.new(student, case_document)
+      expect(policy.show?).to be true
     end
 
     it 'denies access when user cannot access documentable' do
       allow(CasePolicy).to receive(:new).and_return(double(show?: false))
-      expect(subject).not_to permit(other_student, case_document)
+      policy = described_class.new(other_student, case_document)
+      expect(policy.show?).to be false
     end
   end
 
-  permissions :create? do
+  describe '#create?' do
     it 'permits creation when user can access documentable' do
-      expect(subject).to permit(student, case_document)
+      policy = described_class.new(student, case_document)
+      expect(policy.create?).to be true
     end
 
     it 'denies creation when user cannot access documentable' do
       allow(CasePolicy).to receive(:new).and_return(double(show?: false))
-      expect(subject).not_to permit(other_student, case_document)
+      policy = described_class.new(other_student, case_document)
+      expect(policy.create?).to be false
     end
   end
 
-  permissions :update?, :destroy? do
+  describe '#update?' do
     it 'permits admin access' do
-      expect(subject).to permit(admin, case_document)
+      policy = described_class.new(admin, case_document)
+      expect(policy.update?).to be true
     end
 
     it 'permits creator access' do
-      expect(subject).to permit(document_creator, case_document)
+      policy = described_class.new(document_creator, case_document)
+      expect(policy.update?).to be true
     end
 
     it 'permits access when user can update documentable' do
-      expect(subject).to permit(student, case_document)
+      policy = described_class.new(student, case_document)
+      expect(policy.update?).to be true
     end
 
     it 'denies access when user cannot update documentable' do
       allow(CasePolicy).to receive(:new).and_return(double(update?: false))
-      expect(subject).not_to permit(other_student, case_document)
+      policy = described_class.new(other_student, case_document)
+      expect(policy.update?).to be false
     end
   end
 
-  permissions :finalize? do
+  describe '#destroy?' do
+    it 'permits admin access' do
+      policy = described_class.new(admin, case_document)
+      expect(policy.destroy?).to be true
+    end
+
+    it 'permits creator access' do
+      policy = described_class.new(document_creator, case_document)
+      expect(policy.destroy?).to be true
+    end
+
+    it 'permits access when user can update documentable' do
+      policy = described_class.new(student, case_document)
+      expect(policy.destroy?).to be true
+    end
+
+    it 'denies access when user cannot update documentable' do
+      allow(CasePolicy).to receive(:new).and_return(double(update?: false))
+      policy = described_class.new(other_student, case_document)
+      expect(policy.destroy?).to be false
+    end
+  end
+
+  describe '#finalize?' do
     it 'permits finalization of draft documents when user can manage' do
-      expect(subject).to permit(admin, case_document)
-      expect(subject).to permit(document_creator, case_document)
+      policy = described_class.new(admin, case_document)
+      expect(policy.finalize?).to be true
+      policy = described_class.new(document_creator, case_document)
+      expect(policy.finalize?).to be true
     end
 
     it 'denies finalization of non-draft documents' do
-      expect(subject).not_to permit(admin, team_document) # status is "final"
+      policy = described_class.new(admin, team_document) # status is "final"
+      expect(policy.finalize?).to be false
     end
 
     it 'denies finalization when user cannot manage' do
       allow(CasePolicy).to receive(:new).and_return(double(update?: false))
-      expect(subject).not_to permit(other_student, case_document)
+      policy = described_class.new(other_student, case_document)
+      expect(policy.finalize?).to be false
     end
   end
 
-  permissions :archive? do
+  describe '#archive?' do
     it 'permits archiving of final documents when user can manage' do
-      expect(subject).to permit(admin, team_document)
-      expect(subject).to permit(document_creator, team_document)
+      policy = described_class.new(admin, team_document)
+      expect(policy.archive?).to be true
+      policy = described_class.new(document_creator, team_document)
+      expect(policy.archive?).to be true
     end
 
     it 'denies archiving of non-final documents' do
-      expect(subject).not_to permit(admin, case_document) # status is "draft"
+      policy = described_class.new(admin, case_document) # status is "draft"
+      expect(policy.archive?).to be false
     end
 
     it 'denies archiving when user cannot manage' do
       allow(TeamPolicy).to receive(:new).and_return(double(update?: false))
-      expect(subject).not_to permit(other_student, team_document)
+      policy = described_class.new(other_student, team_document)
+      expect(policy.archive?).to be false
     end
   end
 
@@ -143,17 +186,17 @@ RSpec.describe DocumentPolicy, type: :policy do
 
   describe DocumentPolicy::Scope do
     let(:scope) { Document }
-    let(:policy_scope) { described_class::Scope.new(user, scope) }
+    let(:policy_scope) { DocumentPolicy::Scope.new(user, scope) }
 
     context 'when user is admin or instructor' do
       it 'returns all documents for admin' do
-        policy_scope = described_class::Scope.new(admin, scope)
+        policy_scope = DocumentPolicy::Scope.new(admin, scope)
         expect(scope).to receive(:all)
         policy_scope.resolve
       end
 
       it 'returns all documents for instructor' do
-        policy_scope = described_class::Scope.new(instructor, scope)
+        policy_scope = DocumentPolicy::Scope.new(instructor, scope)
         expect(scope).to receive(:all)
         policy_scope.resolve
       end

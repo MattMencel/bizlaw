@@ -1,5 +1,7 @@
 # BizLaw - Legal Education Simulation Platform
 
+[![Coverage Status](https://coveralls.io/repos/github/MattMencel/bizlaw/badge.svg)](https://coveralls.io/github/MattMencel/bizlaw)
+
 A comprehensive Rails application designed for college business law courses, enabling students to work in teams on legal case simulations, particularly focused on sexual harassment lawsuit negotiations.
 
 ## 🏗️ Architecture

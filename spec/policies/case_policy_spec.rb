@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe CasePolicy, type: :policy do
-  subject { described_class }
 
   let(:admin) { build_stubbed(:user, role: :admin) }
   let(:instructor) { build_stubbed(:user, role: :instructor) }
@@ -19,72 +18,112 @@ RSpec.describe CasePolicy, type: :policy do
     allow(other_student).to receive_messages(teams: double(joins: double(exists?: false)), team_ids: [])
   end
 
-  permissions :index? do
+  describe '#index?' do
     it 'permits access for all users' do
-      expect(subject).to permit(admin, case_record)
-      expect(subject).to permit(instructor, case_record)
-      expect(subject).to permit(student, case_record)
+      policy = described_class.new(admin, case_record)
+      expect(policy.index?).to be true
+
+      policy = described_class.new(instructor, case_record)
+      expect(policy.index?).to be true
+
+      policy = described_class.new(student, case_record)
+      expect(policy.index?).to be true
     end
   end
 
-  permissions :show? do
+  describe '#show?' do
     it 'permits admin access' do
-      expect(subject).to permit(admin, case_record)
+      policy = described_class.new(admin, case_record)
+      expect(policy.show?).to be true
     end
 
     it 'permits instructor access' do
-      expect(subject).to permit(instructor, case_record)
+      policy = described_class.new(instructor, case_record)
+      expect(policy.show?).to be true
     end
 
     it 'permits creator access' do
-      expect(subject).to permit(instructor, case_record)
+      policy = described_class.new(instructor, case_record)
+      expect(policy.show?).to be true
     end
 
     it 'permits student access when on assigned team' do
-      expect(subject).to permit(student, case_record)
+      policy = described_class.new(student, case_record)
+      expect(policy.show?).to be true
     end
 
     it 'denies student access when not on assigned team' do
-      expect(subject).not_to permit(other_student, case_record)
+      policy = described_class.new(other_student, case_record)
+      expect(policy.show?).to be false
     end
   end
 
-  permissions :create? do
+  describe '#create?' do
     it 'permits admin to create cases' do
-      expect(subject).to permit(admin, Case)
+      policy = described_class.new(admin, Case)
+      expect(policy.create?).to be true
     end
 
     it 'permits instructor to create cases' do
-      expect(subject).to permit(instructor, Case)
+      policy = described_class.new(instructor, Case)
+      expect(policy.create?).to be true
     end
 
     it 'denies student access to create cases' do
-      expect(subject).not_to permit(student, Case)
+      policy = described_class.new(student, Case)
+      expect(policy.create?).to be false
     end
   end
 
-  permissions :update?, :destroy? do
+  describe '#update?' do
     it 'permits admin access' do
-      expect(subject).to permit(admin, case_record)
+      policy = described_class.new(admin, case_record)
+      expect(policy.update?).to be true
     end
 
     it 'permits creator access' do
-      expect(subject).to permit(instructor, case_record)
+      policy = described_class.new(instructor, case_record)
+      expect(policy.update?).to be true
     end
 
     it 'permits instructor access' do
       other_instructor = build_stubbed(:user, role: :instructor)
-      expect(subject).to permit(other_instructor, case_record)
+      policy = described_class.new(other_instructor, case_record)
+      expect(policy.update?).to be true
     end
 
     it 'denies student access' do
-      expect(subject).not_to permit(student, case_record)
+      policy = described_class.new(student, case_record)
+      expect(policy.update?).to be false
+    end
+  end
+
+  describe '#destroy?' do
+    it 'permits admin access' do
+      policy = described_class.new(admin, case_record)
+      expect(policy.destroy?).to be true
+    end
+
+    it 'permits creator access' do
+      policy = described_class.new(instructor, case_record)
+      expect(policy.destroy?).to be true
+    end
+
+    it 'permits instructor access' do
+      other_instructor = build_stubbed(:user, role: :instructor)
+      policy = described_class.new(other_instructor, case_record)
+      expect(policy.destroy?).to be true
+    end
+
+    it 'denies student access' do
+      policy = described_class.new(student, case_record)
+      expect(policy.destroy?).to be false
     end
   end
 
   describe CasePolicy::Scope do
     let(:scope) { Case }
-    let(:policy_scope) { described_class::Scope.new(user, scope) }
+    let(:policy_scope) { CasePolicy::Scope.new(user, scope) }
 
     context 'when user is admin' do
       let(:user) { admin }

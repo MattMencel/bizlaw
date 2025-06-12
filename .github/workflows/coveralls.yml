@@ -1,0 +1,62 @@
+name: Coveralls
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: bizlaw_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: .ruby-version
+        bundler-cache: true
+
+    - name: Setup test database
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/bizlaw_test
+        RAILS_ENV: test
+      run: |
+        bin/rails db:create
+        bin/rails db:migrate
+
+    - name: Run tests and upload coverage
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/bizlaw_test
+        RAILS_ENV: test
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+      run: |
+        bundle exec rspec
+        bundle exec cucumber
+
+    - name: Upload coverage to Coveralls
+      uses: coverallsapp/github-action@v2
+
+    - name: Run Rubocop
+      run: |
+        bundle exec rubocop
+
+    - name: Run Brakeman
+      run: |
+        bundle exec brakeman --exit-on-warn

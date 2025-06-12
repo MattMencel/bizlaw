@@ -6,9 +6,9 @@ FactoryBot.define do
     association :created_by, factory: :user
     association :updated_by, factory: :user
 
-    title { "Mitchell v. TechFlow Industries" }
+    sequence(:title) { |n| "Mitchell v. TechFlow Industries #{n}" }
     description { "Sexual harassment lawsuit involving workplace misconduct allegations" }
-    reference_number { "CASE-#{SecureRandom.hex(4).upcase}" }
+    sequence(:reference_number) { |n| "CASE-#{n.to_s.rjust(4, '0')}" }
     status { :not_started }
     difficulty_level { :intermediate }
     case_type { :sexual_harassment }
