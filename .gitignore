@@ -70,3 +70,4 @@ mcp-server/
 .cursor/SCENARIO_*
 features/scenario_*
 **/SCENARIO_*
+coverage/
