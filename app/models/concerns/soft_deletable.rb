@@ -2,19 +2,25 @@ module SoftDeletable
   extend ActiveSupport::Concern
 
   included do
-    scope :active, -> { where(active: true) }
-    scope :inactive, -> { where(active: false) }
+    scope :active, -> { where(deleted_at: nil) }
+    scope :deleted, -> { unscoped.where.not(deleted_at: nil) }
+    default_scope { where(deleted_at: nil) }
   end
 
   def soft_delete
-    update(active: false)
+    return if deleted?
+    update(deleted_at: Time.current, active: false)
   end
 
   def restore
-    update(active: true)
+    update(deleted_at: nil, active: true)
   end
 
   def deleted?
-    !active?
+    deleted_at.present?
+  end
+
+  def active?
+    !deleted?
   end
 end

@@ -8,6 +8,7 @@ class User < ApplicationRecord
          :timeoutable,
          :omniauthable, omniauth_providers: [ :google_oauth2 ]
   include HasUuid
+  include HasTimestamps
   include SoftDeletable
 
   # Associations
@@ -29,7 +30,10 @@ class User < ApplicationRecord
   has_many :sent_invitations, class_name: "Invitation", as: :invited_by, dependent: :destroy
 
   # Validations
-  validates :email, presence: true, uniqueness: true
+  validates :email, presence: true, uniqueness: true, format: {
+    with: /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/,
+    message: "must be a valid email address"
+  }
   validates :first_name, presence: true
   validates :last_name, presence: true
   validates :role, presence: true
