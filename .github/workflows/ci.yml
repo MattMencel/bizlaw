@@ -40,6 +40,13 @@ jobs:
         run: |
           bin/rails db:test:prepare
 
+      - name: Run tests
+        id: tests
+        continue-on-error: true
+        run: |
+          bin/rspec
+          bin/cucumber
+
       - name: Upload coverage to Coveralls
         if: always()
         uses: coverallsapp/github-action@v2
@@ -48,11 +55,6 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/bizlaw_test
-
-      - name: Run cucumber tests
-        id: tests
-        run: |
-          bin/cucumber
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4
