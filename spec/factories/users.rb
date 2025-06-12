@@ -21,6 +21,11 @@ FactoryBot.define do
       role { :admin }
     end
 
+    trait :org_admin do
+      role { :instructor }
+      org_admin { true }
+    end
+
     trait :with_teams do
       transient do
         teams_count { 2 }

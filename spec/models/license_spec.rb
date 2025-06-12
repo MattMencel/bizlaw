@@ -35,22 +35,22 @@ RSpec.describe License, type: :model do
 
     describe '.active' do
       it 'returns only active licenses' do
-        expect(License.active).to include(active_license)
-        expect(License.active).not_to include(inactive_license)
+        expect(described_class.active).to include(active_license)
+        expect(described_class.active).not_to include(inactive_license)
       end
     end
 
     describe '.expired' do
       it 'returns only expired licenses' do
-        expect(License.expired).to include(expired_license)
-        expect(License.expired).not_to include(active_license)
+        expect(described_class.expired).to include(expired_license)
+        expect(described_class.expired).not_to include(active_license)
       end
     end
 
     describe '.expiring_soon' do
       it 'returns licenses expiring within 30 days' do
-        expect(License.expiring_soon).to include(expiring_license)
-        expect(License.expiring_soon).not_to include(active_license)
+        expect(described_class.expiring_soon).to include(expiring_license)
+        expect(described_class.expiring_soon).not_to include(active_license)
       end
     end
   end
@@ -163,30 +163,30 @@ RSpec.describe License, type: :model do
     let!(:inactive_license) { create(:license, :inactive, license_key: 'INACTIVE-KEY-789') }
 
     it 'returns license for valid key' do
-      expect(License.validate_license_key('VALID-KEY-123')).to eq(valid_license)
+      expect(described_class.validate_license_key('VALID-KEY-123')).to eq(valid_license)
     end
 
     it 'returns nil for expired license' do
-      expect(License.validate_license_key('EXPIRED-KEY-456')).to be_nil
+      expect(described_class.validate_license_key('EXPIRED-KEY-456')).to be_nil
     end
 
     it 'returns nil for inactive license' do
-      expect(License.validate_license_key('INACTIVE-KEY-789')).to be_nil
+      expect(described_class.validate_license_key('INACTIVE-KEY-789')).to be_nil
     end
 
     it 'returns nil for non-existent key' do
-      expect(License.validate_license_key('NON-EXISTENT')).to be_nil
+      expect(described_class.validate_license_key('NON-EXISTENT')).to be_nil
     end
   end
 
   describe '.default_free_license' do
     it 'creates a default free license' do
-      expect { License.default_free_license }.to change(License, :count).by(1)
+      expect { described_class.default_free_license }.to change(described_class, :count).by(1)
     end
 
     it 'returns existing default license if it exists' do
-      first_call = License.default_free_license
-      second_call = License.default_free_license
+      first_call = described_class.default_free_license
+      second_call = described_class.default_free_license
       expect(first_call).to eq(second_call)
     end
   end

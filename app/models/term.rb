@@ -32,9 +32,9 @@ class Term < ApplicationRecord
   # Scopes
   scope :active, -> { where(active: true) }
   scope :for_year, ->(year) { where(academic_year: year) }
-  scope :current, -> { where('start_date <= ? AND end_date >= ?', Date.current, Date.current) }
-  scope :upcoming, -> { where('start_date > ?', Date.current) }
-  scope :past, -> { where('end_date < ?', Date.current) }
+  scope :current, -> { where("start_date <= ? AND end_date >= ?", Date.current, Date.current) }
+  scope :upcoming, -> { where("start_date > ?", Date.current) }
+  scope :past, -> { where("end_date < ?", Date.current) }
   scope :by_start_date, -> { order(:start_date) }
 
   # Instance methods
@@ -94,11 +94,11 @@ class Term < ApplicationRecord
 
   def generate_slug
     base_slug = term_name.downcase
-                         .gsub(/[^\w\s\-]/, '')     # Remove special characters
-                         .gsub(/\s+/, '-')          # Replace spaces with hyphens
-                         .gsub(/-+/, '-')           # Replace multiple hyphens with single
+                         .gsub(/[^\w\s\-]/, "")     # Remove special characters
+                         .gsub(/\s+/, "-")          # Replace spaces with hyphens
+                         .gsub(/-+/, "-")           # Replace multiple hyphens with single
                          .strip
-                         .gsub(/^-|-$/, '')         # Remove leading/trailing hyphens
+                         .gsub(/^-|-$/, "")         # Remove leading/trailing hyphens
 
     # Add academic year if not already included
     unless base_slug.include?(academic_year.to_s)
@@ -112,8 +112,8 @@ class Term < ApplicationRecord
     return unless slug.present?
 
     self.slug = slug.downcase
-                   .gsub(/[^\w\-]/, '')    # Remove invalid characters
-                   .gsub(/-+/, '-')        # Replace multiple hyphens with single
-                   .gsub(/^-|-$/, '')      # Remove leading/trailing hyphens
+                   .gsub(/[^\w\-]/, "")    # Remove invalid characters
+                   .gsub(/-+/, "-")        # Replace multiple hyphens with single
+                   .gsub(/^-|-$/, "")      # Remove leading/trailing hyphens
   end
 end

@@ -25,6 +25,9 @@ class User < ApplicationRecord
   has_many :course_enrollments, dependent: :destroy
   has_many :enrolled_courses, through: :course_enrollments, source: :course
 
+  # Invitation associations
+  has_many :sent_invitations, class_name: "Invitation", as: :invited_by, dependent: :destroy
+
   # Validations
   validates :email, presence: true, uniqueness: true
   validates :first_name, presence: true
@@ -39,6 +42,7 @@ class User < ApplicationRecord
   scope :instructors, -> { where(role: :instructor) }
   scope :students, -> { where(role: :student) }
   scope :admins, -> { where(role: :admin) }
+  scope :org_admins, -> { where(org_admin: true) }
   scope :search_by_name, ->(query) {
     where("LOWER(first_name) LIKE :query OR LOWER(last_name) LIKE :query",
           query: "%#{query.downcase}%")
@@ -69,8 +73,22 @@ class User < ApplicationRecord
     role_admin?
   end
 
+  def org_admin?
+    org_admin
+  end
+
   def can_manage_team?(team)
-    admin? || team.owner_id == id || team_members.exists?(team: team, role: :manager)
+    admin? || org_admin? || team.owner_id == id || team_members.exists?(team: team, role: :manager)
+  end
+
+  def can_manage_organization?(organization)
+    return false unless organization
+    admin? || (org_admin? && self.organization_id == organization.id)
+  end
+
+  def can_assign_org_admin?
+    return false unless organization
+    admin? || (org_admin? && organization_id.present?)
   end
 
   def avatar_url
@@ -91,6 +109,7 @@ class User < ApplicationRecord
   # Callbacks
   before_validation :downcase_email
   before_create :enforce_license_limits
+  after_create :assign_first_instructor_as_org_admin
 
   def self.from_omniauth(auth)
     where(provider: auth.provider, uid: auth.uid).first_or_create do |user|
@@ -128,5 +147,12 @@ class User < ApplicationRecord
 
   def can_access_feature?(feature_name)
     license_enforcement.can_access_feature?(feature_name)
+  end
+
+  def assign_first_instructor_as_org_admin
+    return unless instructor? && organization
+    return if organization.users.org_admins.exists?
+
+    update_column(:org_admin, true)
   end
 end

@@ -4,13 +4,6 @@ module HasTimestamps
   extend ActiveSupport::Concern
 
   included do
-    # Ensure standard Rails timestamps are present
-    validates :created_at, presence: true
-    validates :updated_at, presence: true
-
-    before_create :set_creation_time
-    before_save :set_update_time
-
     # Scopes for timestamp-based queries
     scope :created_before, ->(time) { where(arel_table[:created_at].lt(time)) }
     scope :created_after, ->(time) { where(arel_table[:created_at].gt(time)) }
@@ -41,14 +34,6 @@ module HasTimestamps
   end
 
   private
-
-  def set_creation_time
-    self.created_at ||= current_time_from_proper_timezone
-  end
-
-  def set_update_time
-    self.updated_at = current_time_from_proper_timezone
-  end
 
   def time_ago_in_words(time)
     return "" unless time

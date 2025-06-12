@@ -96,6 +96,24 @@ Rails.application.routes.draw do
   resource :profile, only: [ :show, :update ]
   resource :settings, only: [ :show, :update ]
 
+  # Invitation routes
+  resources :invitations, except: [:show] do
+    member do
+      patch :resend
+      patch :revoke
+    end
+    collection do
+      get :shareable, to: 'invitations#new_shareable'
+      post :create_shareable
+    end
+  end
+
+  # Invitation acceptance routes
+  get 'accept/:token', to: 'invitation_acceptance#show', as: :accept_invitation
+  post 'accept/:token', to: 'invitation_acceptance#accept', as: :process_invitation
+  get 'join/:token', to: 'invitation_acceptance#show_shareable', as: :accept_shareable_invitation
+  post 'join/:token', to: 'invitation_acceptance#accept_shareable', as: :process_shareable_invitation
+
   # Admin routes
   namespace :admin do
     resources :licenses do
@@ -115,7 +133,12 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :users, except: [:new, :create]
+    resources :users, except: [:new, :create] do
+      member do
+        patch :assign_org_admin
+        patch :remove_org_admin
+      end
+    end
   end
 
   # License management routes

@@ -1,0 +1,28 @@
+You're Invited to Join <%= @organization&.name || 'Our Platform' %>!
+
+Hello,
+
+<%= @inviter.full_name %> has invited you to join <% if @organization %><%= @organization.name %><% else %>our platform<% end %> as a <%= @role_display %>.
+
+<% if @organization %>
+Organization Details:
+- Name: <%= @organization.name %>
+<% if @organization.domain %>- Domain: <%= @organization.domain %><% end %>
+<% end %>
+
+Your Role: <%= @role_display %>
+<% if @invitation.org_admin? %>
+As an Organization Admin, you'll have permissions to manage your organization, including creating courses, managing terms, and inviting other users.
+<% elsif @invitation.role == 'instructor' %>
+As an Instructor, you'll be able to create and manage courses, assign students to teams, and oversee legal case simulations.
+<% elsif @invitation.role == 'student' %>
+As a Student, you'll participate in legal case simulations, work in teams, and complete course assignments.
+<% end %>
+
+To accept your invitation, click this link:
+<%= @accept_url %>
+
+This invitation will expire in 7 days. If you don't accept it by then, you'll need to request a new invitation.
+
+If you didn't expect this invitation, you can safely ignore this email.
+If you have any questions, please contact your administrator.

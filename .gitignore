@@ -64,3 +64,9 @@ tasks/
 mcp-server/
 
 .claude/
+
+# Scenario-specific PRDs and sensitive simulation content
+.prd/SCENARIO_*
+.cursor/SCENARIO_*
+features/scenario_*
+**/SCENARIO_*

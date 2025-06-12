@@ -30,7 +30,7 @@ RSpec.describe OrganizationPolicy, type: :policy do
   end
 
   describe 'admin permissions' do
-    let(:policy) { OrganizationPolicy.new(admin_user, organization) }
+    let(:policy) { described_class.new(admin_user, organization) }
 
     it 'allows all actions' do
       expect(policy.index?).to be true
@@ -46,7 +46,7 @@ RSpec.describe OrganizationPolicy, type: :policy do
   end
 
   describe 'instructor permissions' do
-    let(:policy) { OrganizationPolicy.new(instructor_user, organization) }
+    let(:policy) { described_class.new(instructor_user, organization) }
 
     it 'denies all actions' do
       expect(policy.index?).to be false
@@ -62,7 +62,7 @@ RSpec.describe OrganizationPolicy, type: :policy do
   end
 
   describe 'student permissions' do
-    let(:policy) { OrganizationPolicy.new(student_user, organization) }
+    let(:policy) { described_class.new(student_user, organization) }
 
     it 'denies all actions' do
       expect(policy.index?).to be false
@@ -78,7 +78,7 @@ RSpec.describe OrganizationPolicy, type: :policy do
   end
 
   describe 'unauthenticated user permissions' do
-    let(:policy) { OrganizationPolicy.new(nil, organization) }
+    let(:policy) { described_class.new(nil, organization) }
 
     it 'denies all actions' do
       expect(policy.index?).to be false

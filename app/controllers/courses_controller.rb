@@ -33,6 +33,7 @@ class CoursesController < ApplicationController
   def create
     @course = Course.new(course_params)
     @course.instructor = current_user
+    @course.organization = current_user.organization
 
     if @course.save
       # Create a default invitation
@@ -88,7 +89,7 @@ class CoursesController < ApplicationController
   end
 
   def course_params
-    params.require(:course).permit(:title, :description, :course_code, :semester, :year, :start_date, :end_date, :active)
+    params.require(:course).permit(:title, :description, :course_code, :semester, :year, :start_date, :end_date, :active, :term_id)
   end
 
   def invitation_params

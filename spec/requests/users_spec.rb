@@ -35,7 +35,7 @@ RSpec.describe "Users", type: :request do
         expect(flash[:notice]).to eq("You are now impersonating #{student_user.full_name} in read-only mode.")
         expect(session[:admin_user_id]).to eq(admin_user.id)
         expect(session[:impersonated_user_id]).to eq(student_user.id)
-        expect(session[:impersonation_full_permissions]).to eq(false)
+        expect(session[:impersonation_full_permissions]).to be(false)
       end
     end
 
@@ -49,7 +49,7 @@ RSpec.describe "Users", type: :request do
         expect(flash[:notice]).to eq("You are now impersonating #{student_user.full_name} in read-only mode.")
         expect(session[:admin_user_id]).to eq(instructor_user.id)
         expect(session[:impersonated_user_id]).to eq(student_user.id)
-        expect(session[:impersonation_full_permissions]).to eq(false)
+        expect(session[:impersonation_full_permissions]).to be(false)
       end
 
       it "denies impersonating students not in their courses" do
@@ -117,7 +117,7 @@ RSpec.describe "Users", type: :request do
 
         expect(response).to have_http_status(:redirect)
         expect(flash[:notice]).to eq("Full permissions enabled for testing purposes.")
-        expect(session[:impersonation_full_permissions]).to eq(true)
+        expect(session[:impersonation_full_permissions]).to be(true)
       end
     end
 
@@ -149,7 +149,7 @@ RSpec.describe "Users", type: :request do
 
         expect(response).to have_http_status(:redirect)
         expect(flash[:notice]).to eq("Returned to read-only mode.")
-        expect(session[:impersonation_full_permissions]).to eq(false)
+        expect(session[:impersonation_full_permissions]).to be(false)
       end
     end
   end

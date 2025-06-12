@@ -37,6 +37,16 @@ class UserPolicy < ApplicationPolicy
     user.admin?
   end
 
+  def assign_org_admin?
+    return false unless user.organization == record.organization
+    user.admin? || user.can_assign_org_admin?
+  end
+
+  def remove_org_admin?
+    return false unless user.organization == record.organization
+    user.admin? || (user.can_assign_org_admin? && user != record)
+  end
+
   class Scope < Scope
     def resolve
       case user.role

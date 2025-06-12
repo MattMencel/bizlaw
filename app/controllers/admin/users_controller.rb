@@ -2,7 +2,7 @@
 
 class Admin::UsersController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_user, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_user, only: [ :show, :edit, :update, :destroy, :assign_org_admin, :remove_org_admin ]
 
   def index
     authorize User
@@ -77,6 +77,30 @@ class Admin::UsersController < ApplicationController
     end
   end
 
+  def assign_org_admin
+    authorize @user, :assign_org_admin?
+
+    if @user.update(org_admin: true)
+      redirect_back(fallback_location: admin_user_path(@user),
+                    notice: "User successfully assigned as organization admin.")
+    else
+      redirect_back(fallback_location: admin_user_path(@user),
+                    alert: "Failed to assign user as organization admin.")
+    end
+  end
+
+  def remove_org_admin
+    authorize @user, :remove_org_admin?
+
+    if @user.update(org_admin: false)
+      redirect_back(fallback_location: admin_user_path(@user),
+                    notice: "Organization admin role removed from user.")
+    else
+      redirect_back(fallback_location: admin_user_path(@user),
+                    alert: "Failed to remove organization admin role.")
+    end
+  end
+
   private
 
   def set_user
@@ -84,6 +108,6 @@ class Admin::UsersController < ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:first_name, :last_name, :email, :role, :organization_id, :active)
+    params.require(:user).permit(:first_name, :last_name, :email, :role, :organization_id, :active, :org_admin)
   end
 end

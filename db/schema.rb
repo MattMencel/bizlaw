@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_11_043107) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_12_022615) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -173,6 +173,30 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_11_043107) do
     t.index ["status"], name: "index_documents_on_status"
   end
 
+  create_table "invitations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "email", null: false
+    t.string "role", null: false
+    t.string "invited_by_type", null: false
+    t.uuid "invited_by_id", null: false
+    t.uuid "organization_id"
+    t.string "token", null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "accepted_at"
+    t.boolean "shareable", default: false, null: false
+    t.boolean "org_admin", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email", "organization_id"], name: "index_invitations_on_email_and_organization_id", unique: true, where: "((status)::text = 'pending'::text)"
+    t.index ["email"], name: "index_invitations_on_email"
+    t.index ["invited_by_type", "invited_by_id"], name: "index_invitations_on_invited_by"
+    t.index ["organization_id"], name: "index_invitations_on_organization_id"
+    t.index ["role"], name: "index_invitations_on_role"
+    t.index ["shareable"], name: "index_invitations_on_shareable"
+    t.index ["status"], name: "index_invitations_on_status"
+    t.index ["token"], name: "index_invitations_on_token", unique: true
+  end
+
   create_table "jwt_denylist", force: :cascade do |t|
     t.string "jti", null: false
     t.datetime "exp", null: false
@@ -303,11 +327,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_11_043107) do
     t.datetime "deleted_at"
     t.boolean "active", default: true, null: false
     t.uuid "organization_id"
+    t.boolean "org_admin", default: false, null: false
     t.index "lower((first_name)::text), lower((last_name)::text)", name: "index_users_on_lower_names"
     t.index ["active"], name: "index_users_on_active"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["organization_id", "org_admin"], name: "index_users_on_organization_id_and_org_admin", where: "(org_admin = true)"
     t.index ["organization_id"], name: "index_users_on_organization_id"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true, where: "((provider IS NOT NULL) AND (uid IS NOT NULL))"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
@@ -327,6 +353,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_11_043107) do
   add_foreign_key "courses", "terms"
   add_foreign_key "courses", "users", column: "instructor_id"
   add_foreign_key "documents", "users", column: "created_by_id"
+  add_foreign_key "invitations", "organizations"
   add_foreign_key "organizations", "licenses"
   add_foreign_key "team_members", "teams", on_delete: :cascade
   add_foreign_key "team_members", "users"

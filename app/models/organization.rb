@@ -13,6 +13,7 @@ class Organization < ApplicationRecord
   has_many :instructors, -> { where(role: :instructor) }, class_name: "User"
   has_many :students, -> { where(role: :student) }, class_name: "User"
   has_many :admins, -> { where(role: :admin) }, class_name: "User"
+  has_many :org_admins, -> { where(org_admin: true) }, class_name: "User"
 
   # Validations
   validates :name, presence: true, length: { maximum: 255 }

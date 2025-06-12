@@ -1,0 +1,147 @@
+<% content_for :title, "Invitations" %>
+
+<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+  <!-- Header -->
+  <div class="md:flex md:items-center md:justify-between mb-8">
+    <div class="min-w-0 flex-1">
+      <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+        Invitations
+      </h2>
+      <p class="mt-1 text-sm text-gray-500">
+        Manage user invitations to join your organization
+      </p>
+    </div>
+    <div class="mt-4 flex md:ml-4 md:mt-0 space-x-3">
+      <%= link_to "Create Shareable Link", shareable_invitations_path,
+          class: "inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" %>
+      <%= link_to "Send Invitation", new_invitation_path,
+          class: "inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600" %>
+    </div>
+  </div>
+
+  <!-- Invitations Table -->
+  <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden">
+    <% if @invitations.any? %>
+      <table class="min-w-full divide-y divide-gray-300">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Email / Type</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Role</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Organization</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Invited By</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Expires</th>
+            <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 bg-white">
+          <% @invitations.each do |invitation| %>
+            <tr class="hover:bg-gray-50">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+                <% if invitation.shareable? %>
+                  <div class="flex items-center">
+                    <svg class="h-5 w-5 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                    </svg>
+                    <span class="font-medium text-gray-900">Shareable Link</span>
+                  </div>
+                <% else %>
+                  <div class="font-medium text-gray-900"><%= invitation.email %></div>
+                <% end %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset
+                  <% case invitation.role %>
+                  <% when 'admin' %>
+                    bg-purple-50 text-purple-700 ring-purple-600/20
+                  <% when 'instructor' %>
+                    bg-blue-50 text-blue-700 ring-blue-600/20
+                  <% when 'student' %>
+                    bg-green-50 text-green-700 ring-green-600/20
+                  <% end %>">
+                  <%= invitation.org_admin? ? 'Org Admin' : invitation.role.humanize %>
+                </span>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                <%= invitation.organization&.name || 'Any Organization' %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset
+                  <% case invitation.status %>
+                  <% when 'pending' %>
+                    bg-yellow-50 text-yellow-800 ring-yellow-600/20
+                  <% when 'accepted' %>
+                    bg-green-50 text-green-800 ring-green-600/20
+                  <% when 'expired' %>
+                    bg-gray-50 text-gray-800 ring-gray-600/20
+                  <% when 'revoked' %>
+                    bg-red-50 text-red-800 ring-red-600/20
+                  <% end %>">
+                  <%= invitation.status.humanize %>
+                </span>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                <%= invitation.invited_by.full_name %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                <%= time_ago_in_words(invitation.expires_at) %> ago
+              </td>
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                <div class="flex justify-end space-x-2">
+                  <% if policy(invitation).resend? %>
+                    <%= link_to "Resend", resend_invitation_path(invitation), method: :patch,
+                        class: "text-blue-600 hover:text-blue-900" %>
+                  <% end %>
+                  <% if policy(invitation).revoke? %>
+                    <%= link_to "Revoke", revoke_invitation_path(invitation), method: :patch,
+                        class: "text-red-600 hover:text-red-900",
+                        data: { confirm: "Are you sure you want to revoke this invitation?" } %>
+                  <% end %>
+                  <% if invitation.shareable? %>
+                    <%= link_to "Share", "#", onclick: "copyToClipboard('#{invitation.invitation_url}')",
+                        class: "text-green-600 hover:text-green-900" %>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <% if respond_to?(:paginate) && @invitations.respond_to?(:current_page) %>
+        <div class="border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+          <%= paginate @invitations %>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 7.89a2 2 0 002.83 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+        <h3 class="mt-2 text-sm font-semibold text-gray-900">No invitations</h3>
+        <p class="mt-1 text-sm text-gray-500">Get started by sending your first invitation.</p>
+        <div class="mt-6">
+          <%= link_to "Send Invitation", new_invitation_path,
+              class: "inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(function() {
+    // Show a temporary success message
+    const originalText = event.target.innerText;
+    event.target.innerText = 'Copied!';
+    event.target.classList.add('text-green-600');
+    setTimeout(() => {
+      event.target.innerText = originalText;
+      event.target.classList.remove('text-green-600');
+    }, 2000);
+  });
+}
+</script>
