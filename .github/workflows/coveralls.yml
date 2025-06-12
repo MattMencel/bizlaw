@@ -41,20 +41,17 @@ jobs:
         bin/rails db:create
         bin/rails db:migrate
 
-    - name: Run RSpec tests
+    - name: Run tests and upload coverage
       env:
         DATABASE_URL: postgres://postgres:postgres@localhost:5432/bizlaw_test
         RAILS_ENV: test
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
       run: |
         bundle exec rspec
-
-    - name: Run Cucumber tests
-      env:
-        DATABASE_URL: postgres://postgres:postgres@localhost:5432/bizlaw_test
-        RAILS_ENV: test
-      run: |
         bundle exec cucumber
+
+    - name: Upload coverage to Coveralls
+      uses: coverallsapp/github-action@v2
 
     - name: Run Rubocop
       run: |

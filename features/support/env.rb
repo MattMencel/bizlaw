@@ -6,6 +6,9 @@
 # instead of editing this one. Cucumber will automatically load all features/**/*.rb
 # files.
 
+# Initialize Coveralls for Cucumber tests
+require 'coveralls'
+Coveralls.wear_merged!('rails')
 
 require 'cucumber/rails'
 require 'rack/test'
