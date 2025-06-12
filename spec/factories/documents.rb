@@ -4,13 +4,11 @@ FactoryBot.define do
   factory :document do
     association :documentable, factory: :case
     association :created_by, factory: :user
-    title { Faker::Lorem.sentence }
+    sequence(:title) { |n| "Document #{n}" }
     description { Faker::Lorem.paragraph }
     file_url { Faker::Internet.url }
     file_type { "pdf" }
     file_size { 1024 }
-
-    sequence(:title) { |n| "Document #{n}" }
     document_type { "assignment" }
     status { "draft" }
 

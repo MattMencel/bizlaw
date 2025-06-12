@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe TeamPolicy, type: :policy do
-  subject { described_class }
 
   let(:admin) { build_stubbed(:user, role: :admin) }
   let(:instructor) { build_stubbed(:user, role: :instructor) }
@@ -32,138 +31,196 @@ RSpec.describe TeamPolicy, type: :policy do
     allow(student).to receive_messages(teams: [ team ], team_members: double(exists?: false))
   end
 
-  permissions :index? do
+  describe '#index?' do
     it 'permits access for all users' do
-      expect(subject).to permit(admin, team)
-      expect(subject).to permit(instructor, team)
-      expect(subject).to permit(student, team)
+      policy = described_class.new(admin, team)
+      expect(policy.index?).to be true
+      policy = described_class.new(instructor, team)
+      expect(policy.index?).to be true
+      policy = described_class.new(student, team)
+      expect(policy.index?).to be true
     end
   end
 
-  permissions :show? do
+  describe '#show?' do
     it 'permits admin access' do
-      expect(subject).to permit(admin, team)
+      policy = described_class.new(admin, team)
+      expect(policy.show?).to be true
     end
 
     it 'permits instructor access' do
-      expect(subject).to permit(instructor, team)
+      policy = described_class.new(instructor, team)
+      expect(policy.show?).to be true
     end
 
     it 'permits owner access' do
-      expect(subject).to permit(team_owner, team)
+      policy = described_class.new(team_owner, team)
+      expect(policy.show?).to be true
     end
 
     it 'permits team member access' do
-      expect(subject).to permit(student, team)
+      policy = described_class.new(student, team)
+      expect(policy.show?).to be true
     end
 
     it 'denies access to non-members' do
-      expect(subject).not_to permit(other_student, team)
+      policy = described_class.new(other_student, team)
+      expect(policy.show?).to be false
     end
   end
 
-  permissions :create? do
+  describe '#create?' do
     it 'permits admin to create teams' do
-      expect(subject).to permit(admin, Team)
+      policy = described_class.new(admin, Team)
+      expect(policy.create?).to be true
     end
 
     it 'permits instructor to create teams' do
-      expect(subject).to permit(instructor, Team)
+      policy = described_class.new(instructor, Team)
+      expect(policy.create?).to be true
     end
 
     it 'denies student access to create teams' do
-      expect(subject).not_to permit(student, Team)
+      policy = described_class.new(student, Team)
+      expect(policy.create?).to be false
     end
   end
 
-  permissions :update?, :destroy? do
+  describe '#update?' do
     it 'permits admin access' do
-      expect(subject).to permit(admin, team)
+      policy = described_class.new(admin, team)
+      expect(policy.update?).to be true
     end
 
     it 'permits owner access' do
-      expect(subject).to permit(team_owner, team)
+      policy = described_class.new(team_owner, team)
+      expect(policy.update?).to be true
     end
 
     it 'permits instructor access' do
-      expect(subject).to permit(instructor, team)
+      policy = described_class.new(instructor, team)
+      expect(policy.update?).to be true
     end
 
     it 'permits team manager access' do
-      expect(subject).to permit(team_manager, team)
+      policy = described_class.new(team_manager, team)
+      expect(policy.update?).to be true
     end
 
     it 'denies regular member access' do
-      expect(subject).not_to permit(student, team)
+      policy = described_class.new(student, team)
+      expect(policy.update?).to be false
     end
 
     it 'denies non-member access' do
-      expect(subject).not_to permit(other_student, team)
+      policy = described_class.new(other_student, team)
+      expect(policy.update?).to be false
     end
   end
 
-  permissions :join? do
+  describe '#destroy?' do
+    it 'permits admin access' do
+      policy = described_class.new(admin, team)
+      expect(policy.destroy?).to be true
+    end
+
+    it 'permits owner access' do
+      policy = described_class.new(team_owner, team)
+      expect(policy.destroy?).to be true
+    end
+
+    it 'permits instructor access' do
+      policy = described_class.new(instructor, team)
+      expect(policy.destroy?).to be true
+    end
+
+    it 'permits team manager access' do
+      policy = described_class.new(team_manager, team)
+      expect(policy.destroy?).to be true
+    end
+
+    it 'denies regular member access' do
+      policy = described_class.new(student, team)
+      expect(policy.destroy?).to be false
+    end
+
+    it 'denies non-member access' do
+      policy = described_class.new(other_student, team)
+      expect(policy.destroy?).to be false
+    end
+  end
+
+  describe '#join?' do
     context 'when user is student' do
       it 'permits joining if not already member and team has space' do
-        expect(subject).to permit(other_student, team)
+        policy = described_class.new(other_student, team)
+        expect(policy.join?).to be true
       end
 
       it 'denies joining if already a member' do
-        expect(subject).not_to permit(student, team)
+        policy = described_class.new(student, team)
+        expect(policy.join?).to be false
       end
 
       it 'denies joining if team is full' do
         allow(team.team_members).to receive(:count).and_return(5)
-        expect(subject).not_to permit(other_student, team)
+        policy = described_class.new(other_student, team)
+        expect(policy.join?).to be false
       end
     end
 
     context 'when user is not student' do
       it 'denies admin joining teams' do
-        expect(subject).not_to permit(admin, team)
+        policy = described_class.new(admin, team)
+        expect(policy.join?).to be false
       end
 
       it 'denies instructor joining teams' do
-        expect(subject).not_to permit(instructor, team)
+        policy = described_class.new(instructor, team)
+        expect(policy.join?).to be false
       end
     end
   end
 
-  permissions :leave? do
+  describe '#leave?' do
     context 'when user is student' do
       it 'permits leaving if member of team' do
-        expect(subject).to permit(student, team)
+        policy = described_class.new(student, team)
+        expect(policy.leave?).to be true
       end
 
       it 'denies leaving if not member of team' do
-        expect(subject).not_to permit(other_student, team)
+        policy = described_class.new(other_student, team)
+        expect(policy.leave?).to be false
       end
     end
 
     context 'when user is not student' do
       it 'denies admin leaving teams' do
-        expect(subject).not_to permit(admin, team)
+        policy = described_class.new(admin, team)
+        expect(policy.leave?).to be false
       end
 
       it 'denies instructor leaving teams' do
-        expect(subject).not_to permit(instructor, team)
+        policy = described_class.new(instructor, team)
+        expect(policy.leave?).to be false
       end
     end
   end
 
   describe TeamPolicy::Scope do
     let(:scope) { Team }
-    let(:policy_scope) { described_class::Scope.new(user, scope) }
+    let(:policy_scope) { TeamPolicy::Scope.new(user, scope) }
 
     context 'when user is admin or instructor' do
       it 'returns all teams for admin' do
-        policy_scope = described_class::Scope.new(admin, scope)
+        policy_scope = TeamPolicy::Scope.new(admin, scope)
         expect(scope).to receive(:all)
         policy_scope.resolve
       end
 
       it 'returns all teams for instructor' do
-        policy_scope = described_class::Scope.new(instructor, scope)
+        policy_scope = TeamPolicy::Scope.new(instructor, scope)
         expect(scope).to receive(:all)
         policy_scope.resolve
       end

@@ -3,8 +3,18 @@
 FactoryBot.define do
   factory :case do
     association :team
-    association :case_type
+    association :created_by, factory: :user
+    association :updated_by, factory: :user
+
+    sequence(:title) { |n| "Case #{n}" }
+    description { "A detailed case description" }
+    case_type { :sexual_harassment }
+    difficulty_level { :intermediate }
     status { :not_started }
+    sequence(:reference_number) { |n| "REF-#{n}" }
+    plaintiff_info { { "name" => "John Doe", "role" => "Employee" } }
+    defendant_info { { "name" => "ABC Corp", "role" => "Employer" } }
+    legal_issues { ["Sexual harassment", "Hostile work environment"] }
 
     trait :with_documents do
       transient do

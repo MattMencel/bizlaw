@@ -92,3 +92,25 @@ Shoulda::Matchers.configure do |config|
     with.library :rails
   end
 end
+
+# Pundit RSpec configuration
+require 'pundit/matchers'
+RSpec.configure do |config|
+  config.include Pundit::Matchers, type: :policy
+end
+
+# Add permissions DSL for policy specs
+RSpec.configure do |config|
+  config.extend Module.new {
+    def permissions(*args, &block)
+      action = args.first
+      describe "##{action}" do
+        # Include Pundit matchers at the example group level
+        before do
+          extend Pundit::Matchers
+        end
+        class_eval(&block)
+      end
+    end
+  }, type: :policy
+end

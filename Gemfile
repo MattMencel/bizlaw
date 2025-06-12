@@ -115,6 +115,9 @@ group :test do
   # Shoulda Matchers for RSpec
   gem "shoulda-matchers"
 
+  # Pundit matchers for policy testing
+  gem "pundit-matchers"
+
   # Database Cleaner for test database management
   gem "database_cleaner-active_record"
 

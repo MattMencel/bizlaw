@@ -4,8 +4,6 @@ FactoryBot.define do
   factory :case_type do
     sequence(:title) { |n| "Case Type #{n}" }
     description { "A detailed description of the case type" }
-    difficulty_level { :intermediate }
-    estimated_time { 60 } # minutes
 
     trait :with_documents do
       transient do
@@ -25,16 +23,6 @@ FactoryBot.define do
       after(:create) do |case_type, evaluator|
         create_list(:case, evaluator.cases_count, case_type: case_type)
       end
-    end
-
-    trait :beginner do
-      difficulty_level { :beginner }
-      estimated_time { 30 }
-    end
-
-    trait :advanced do
-      difficulty_level { :advanced }
-      estimated_time { 120 }
     end
 
     trait :soft_deleted do

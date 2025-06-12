@@ -49,7 +49,7 @@ RSpec.describe ApplicationPolicy, type: :policy do
 
   describe ApplicationPolicy::Scope do
     let(:scope) { double('Scope') }
-    let(:policy_scope) { described_class::Scope.new(user, scope) }
+    let(:policy_scope) { ApplicationPolicy::Scope.new(user, scope) }
 
     describe '#resolve' do
       it 'raises NotImplementedError' do
