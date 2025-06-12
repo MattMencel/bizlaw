@@ -44,8 +44,9 @@ jobs:
         id: tests
         continue-on-error: true
         run: |
-          bin/rspec
-          bin/cucumber
+          bundle exec rspec
+          bundle exec cucumber
+          bundle exec rails test:system
 
       - name: Upload coverage to Coveralls
         if: always()
