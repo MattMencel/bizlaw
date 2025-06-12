@@ -127,8 +127,8 @@ group :test do
   gem "email_spec"
   gem "timecop"
 
-  # Code coverage analysis with Coveralls integration
-  gem "coveralls_reborn", require: false
+  # Code coverage analysis
+  gem "simplecov", require: false
 end
 
 gem "dockerfile-rails", ">= 1.7", group: :development
