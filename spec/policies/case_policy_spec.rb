@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe CasePolicy, type: :policy do
-
   let(:admin) { build_stubbed(:user, role: :admin) }
   let(:instructor) { build_stubbed(:user, role: :instructor) }
   let(:student) { build_stubbed(:user, role: :student) }

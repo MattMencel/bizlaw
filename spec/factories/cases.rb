@@ -14,7 +14,7 @@ FactoryBot.define do
     sequence(:reference_number) { |n| "REF-#{n}" }
     plaintiff_info { { "name" => "John Doe", "role" => "Employee" } }
     defendant_info { { "name" => "ABC Corp", "role" => "Employer" } }
-    legal_issues { ["Sexual harassment", "Hostile work environment"] }
+    legal_issues { [ "Sexual harassment", "Hostile work environment" ] }
 
     trait :with_documents do
       transient do
