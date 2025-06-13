@@ -253,12 +253,19 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
   end
 
   def case_material_params
-    params.require(:case_material).permit(
+    permitted_params = params.require(:case_material).permit(
       :title, :description, :category, :access_level, :file,
       team_restrictions: {}, tags: []
-    ).tap do |permitted|
-      permitted[:document_type] = 'resource' # Override to case material type
-    end
+    )
+    
+    # Sanitize nested and array attributes
+    permitted_params[:team_restrictions] = sanitize_team_restrictions(permitted_params[:team_restrictions])
+    permitted_params[:tags] = sanitize_tags(permitted_params[:tags])
+    
+    # Override document_type to case material type
+    permitted_params[:document_type] = 'resource'
+    
+    permitted_params
   end
 
   def case_material_update_params
@@ -425,5 +432,16 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
   def should_process_content?
     # Only process text-based documents for search indexing
     %w[application/pdf text/plain text/markdown].include?(@case_material.file.content_type)
+  end
+  private
+
+  def sanitize_team_restrictions(team_restrictions)
+    return {} unless team_restrictions.is_a?(Hash)
+    team_restrictions.slice(:allowed_teams, :restricted_teams) # Example keys to allow
+  end
+
+  def sanitize_tags(tags)
+    return [] unless tags.is_a?(Array)
+    tags.map(&:to_s).reject(&:blank?) # Ensure tags are strings and not empty
   end
 end
