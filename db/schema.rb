@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_12_031850) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_13_025902) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pg_trgm"
 
   # Custom types defined in this database.
   # Note that some types may not work with other database engines. Be careful if changing database.
@@ -215,12 +216,51 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_12_031850) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.string "category"
+    t.string "access_level", default: "case_teams"
+    t.jsonb "team_restrictions", default: {}
+    t.text "searchable_content"
+    t.jsonb "annotations", default: []
+    t.jsonb "tags", default: []
+    t.index ["access_level"], name: "index_documents_on_access_level"
+    t.index ["category"], name: "index_documents_on_category"
     t.index ["created_at"], name: "index_documents_on_created_at"
     t.index ["created_by_id"], name: "index_documents_on_created_by_id"
     t.index ["deleted_at"], name: "index_documents_on_deleted_at"
     t.index ["document_type"], name: "index_documents_on_document_type"
+    t.index ["documentable_type", "documentable_id", "category"], name: "idx_on_documentable_type_documentable_id_category_6128a8a1f0"
     t.index ["documentable_type", "documentable_id"], name: "index_documents_on_documentable"
+    t.index ["searchable_content"], name: "index_documents_on_searchable_content", opclass: :gin_trgm_ops, using: :gin
     t.index ["status"], name: "index_documents_on_status"
+    t.index ["tags"], name: "index_documents_on_tags", using: :gin
+    t.index ["team_restrictions"], name: "index_documents_on_team_restrictions", using: :gin
+  end
+
+  create_table "evidence_releases", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "simulation_id", null: false
+    t.uuid "document_id", null: false
+    t.integer "release_round"
+    t.datetime "scheduled_release_at"
+    t.datetime "released_at"
+    t.jsonb "release_conditions", default: {}
+    t.boolean "team_requested", default: false
+    t.uuid "requesting_team_id"
+    t.boolean "auto_release", default: true
+    t.string "evidence_type"
+    t.text "impact_description"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["deleted_at"], name: "index_evidence_releases_on_deleted_at"
+    t.index ["document_id"], name: "index_evidence_releases_on_document_id"
+    t.index ["evidence_type"], name: "index_evidence_releases_on_evidence_type"
+    t.index ["release_round"], name: "index_evidence_releases_on_release_round"
+    t.index ["released_at"], name: "index_evidence_releases_on_released_at"
+    t.index ["requesting_team_id"], name: "index_evidence_releases_on_requesting_team_id"
+    t.index ["scheduled_release_at"], name: "index_evidence_releases_on_scheduled_release_at"
+    t.index ["simulation_id", "release_round"], name: "index_evidence_releases_on_simulation_id_and_release_round"
+    t.index ["simulation_id", "team_requested"], name: "index_evidence_releases_on_simulation_id_and_team_requested"
+    t.index ["simulation_id"], name: "index_evidence_releases_on_simulation_id"
   end
 
   create_table "invitations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -356,6 +396,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_12_031850) do
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "instructor_legal_reasoning_score"
+    t.integer "instructor_factual_analysis_score"
+    t.integer "instructor_strategic_thinking_score"
+    t.integer "instructor_professionalism_score"
+    t.integer "instructor_creativity_score"
+    t.integer "instructor_quality_score"
+    t.text "instructor_feedback"
+    t.uuid "scored_by_id"
+    t.datetime "scored_at"
+    t.integer "final_quality_score"
     t.index ["deleted_at"], name: "index_settlement_offers_on_deleted_at"
     t.index ["negotiation_round_id", "team_id"], name: "index_settlement_offers_on_negotiation_round_id_and_team_id", unique: true
     t.index ["negotiation_round_id"], name: "index_settlement_offers_on_negotiation_round_id"
@@ -363,6 +413,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_12_031850) do
     t.index ["submitted_at"], name: "index_settlement_offers_on_submitted_at"
     t.index ["submitted_by_id"], name: "index_settlement_offers_on_submitted_by_id"
     t.index ["team_id"], name: "index_settlement_offers_on_team_id"
+    t.check_constraint "final_quality_score >= 0 AND final_quality_score <= 125", name: "check_final_quality_score_range"
+    t.check_constraint "instructor_creativity_score >= 0 AND instructor_creativity_score <= 25", name: "check_creativity_score_range"
+    t.check_constraint "instructor_factual_analysis_score >= 0 AND instructor_factual_analysis_score <= 25", name: "check_factual_analysis_score_range"
+    t.check_constraint "instructor_legal_reasoning_score >= 0 AND instructor_legal_reasoning_score <= 25", name: "check_legal_reasoning_score_range"
+    t.check_constraint "instructor_professionalism_score >= 0 AND instructor_professionalism_score <= 25", name: "check_professionalism_score_range"
+    t.check_constraint "instructor_quality_score >= 0 AND instructor_quality_score <= 125", name: "check_instructor_quality_score_range"
+    t.check_constraint "instructor_strategic_thinking_score >= 0 AND instructor_strategic_thinking_score <= 25", name: "check_strategic_thinking_score_range"
   end
 
   create_table "simulation_events", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -517,6 +574,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_12_031850) do
   add_foreign_key "courses", "terms"
   add_foreign_key "courses", "users", column: "instructor_id"
   add_foreign_key "documents", "users", column: "created_by_id"
+  add_foreign_key "evidence_releases", "documents"
+  add_foreign_key "evidence_releases", "simulations"
+  add_foreign_key "evidence_releases", "teams", column: "requesting_team_id"
   add_foreign_key "invitations", "organizations"
   add_foreign_key "negotiation_rounds", "simulations"
   add_foreign_key "organizations", "licenses"
@@ -525,6 +585,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_12_031850) do
   add_foreign_key "performance_scores", "users"
   add_foreign_key "settlement_offers", "negotiation_rounds"
   add_foreign_key "settlement_offers", "teams"
+  add_foreign_key "settlement_offers", "users", column: "scored_by_id"
   add_foreign_key "settlement_offers", "users", column: "submitted_by_id"
   add_foreign_key "simulation_events", "simulations"
   add_foreign_key "simulations", "cases"

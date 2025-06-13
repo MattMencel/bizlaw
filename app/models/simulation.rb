@@ -13,6 +13,7 @@ class Simulation < ApplicationRecord
   has_many :performance_scores, dependent: :destroy
   has_many :client_feedbacks, dependent: :destroy
   has_one :arbitration_outcome, dependent: :destroy
+  has_many :evidence_releases, dependent: :destroy
 
   # Delegated associations through case
   delegate :plaintiff_team, :defendant_team, :assigned_teams, to: :case

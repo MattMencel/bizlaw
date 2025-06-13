@@ -85,34 +85,50 @@ Task list generated from [.prd/SCENARIO_SEXUAL_HARASSMENT_SIMULATION_PRD.md](../
 ## Phase 2: Simulation Logic (Weeks 3-4)
 
 ### Advanced Simulation Features
-- [ ] **Implement arbitration trigger logic** _(4 pts)_
-  - Automatic arbitration after 6 rounds without settlement
-  - Randomized arbitration outcomes within realistic ranges
+- [x] **Implement arbitration trigger logic** _(4 pts)_ - COMPLETED
+  - ✅ Automatic arbitration after 6 rounds without settlement
+  - ✅ Randomized arbitration outcomes with sophisticated ArbitrationCalculator
+  - ✅ Considers evidence strength, argument quality, negotiation history
+  - ✅ Integrated with SimulationOrchestrationService for automatic triggering
   - Dependencies: Negotiation round tracking
   - Acceptance: Cases automatically proceed to arbitration when appropriate
 
-- [ ] **Build argument quality assessment system** _(6 pts)_
-  - Instructor scoring interface for argument quality
-  - Automatic impact on dynamic ranges based on argument scores
+- [x] **Build argument quality assessment system** _(6 pts)_ - COMPLETED
+  - ✅ Instructor scoring interface with 5 detailed categories (legal reasoning, factual analysis, strategic thinking, professionalism, creativity)
+  - ✅ API endpoints: /api/v1/cases/:id/argument_quality with full CRUD and rubric
+  - ✅ Real-time impact on dynamic settlement ranges based on quality scores
+  - ✅ Weighted scoring system (70% instructor, 30% automatic assessment)
+  - ✅ Migration: add_instructor_scoring_to_settlement_offers
   - Dependencies: Negotiation round API, feedback system
   - Acceptance: Instructor can score arguments and affect simulation dynamics
 
-- [ ] **Create pressure escalation system** _(3 pts)_
-  - Time-based pressure increases affecting acceptable ranges
-  - Media attention impact on settlement willingness
+- [x] **Create pressure escalation system** _(3 pts)_ - COMPLETED
+  - ✅ Time-based pressure increases with configurable escalation rates (low/moderate/high)
+  - ✅ Media attention impact on settlement willingness for both sides
+  - ✅ Enhanced SimulationDynamicsService with comprehensive pressure factor calculations
+  - ✅ Automatic integration with settlement offer processing
   - Dependencies: Dynamic range algorithm, triggered events
   - Acceptance: Settlement ranges become more flexible over time
 
 ### Content Management
-- [ ] **Build case materials management system** _(5 pts)_
-  - Document upload, categorization, and team-specific access control
-  - Search and annotation capabilities for evidence review
+- [x] **Build case materials management system** _(5 pts)_ - COMPLETED
+  - ✅ Document upload with 11 specialized categories (case_facts, legal_precedents, evidence_documents, etc.)
+  - ✅ Team-specific access control and document restrictions
+  - ✅ Advanced search capabilities with full-text indexing (PostgreSQL + pg_trgm)
+  - ✅ Collaborative annotation system for team document review
+  - ✅ API endpoints: /api/v1/cases/:id/case_materials with search, categorization, and annotation
+  - ✅ Migration: add_case_material_fields_to_documents
   - Dependencies: Existing Document model extensions
   - Acceptance: Teams can access, search, and annotate case materials
 
-- [ ] **Create evidence release schedule system** _(4 pts)_
-  - Timed release of additional evidence based on rounds
-  - Team request system for additional discovery materials
+- [x] **Create evidence release schedule system** _(4 pts)_ - COMPLETED
+  - ✅ Timed release of additional evidence based on simulation rounds
+  - ✅ Team request system with instructor approval workflow for additional discovery
+  - ✅ 12 evidence types with sophisticated release conditions and scheduling
+  - ✅ API endpoints: /api/v1/cases/:id/evidence_releases with approval/denial workflow
+  - ✅ New EvidenceRelease model with comprehensive release management
+  - ✅ Background job processing for automatic evidence releases
+  - ✅ Migration: create_evidence_releases
   - Dependencies: Case materials system, round progression
   - Acceptance: Evidence becomes available according to simulation timeline
 
