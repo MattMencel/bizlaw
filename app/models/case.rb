@@ -14,6 +14,7 @@ class Case < ApplicationRecord
   has_many :assigned_teams, through: :case_teams, source: :team
   has_many :documents, as: :documentable, dependent: :destroy
   has_many :case_events, dependent: :destroy
+  has_one :simulation, dependent: :destroy
 
   # Helper methods for team roles
   def plaintiff_team

@@ -6,15 +6,24 @@ FactoryBot.define do
     association :created_by, factory: :user
     association :updated_by, factory: :user
 
-    sequence(:title) { |n| "Case #{n}" }
-    description { "A detailed case description" }
-    case_type { :sexual_harassment }
-    difficulty_level { :intermediate }
+    sequence(:title) { |n| "Mitchell v. TechFlow Industries #{n}" }
+    description { "Sexual harassment lawsuit involving workplace misconduct allegations" }
+    sequence(:reference_number) { |n| "CASE-#{n.to_s.rjust(4, '0')}" }
     status { :not_started }
-    sequence(:reference_number) { |n| "REF-#{n}" }
-    plaintiff_info { { "name" => "John Doe", "role" => "Employee" } }
-    defendant_info { { "name" => "ABC Corp", "role" => "Employer" } }
-    legal_issues { [ "Sexual harassment", "Hostile work environment" ] }
+    difficulty_level { :intermediate }
+    case_type { :sexual_harassment }
+    plaintiff_info { { "name" => "Sarah Mitchell", "position" => "Software Engineer" } }
+    defendant_info { { "name" => "TechFlow Industries", "type" => "Corporation" } }
+    legal_issues { ["Sexual harassment", "Hostile work environment", "Retaliation"] }
+
+    # Create case teams after the case is created
+    after(:create) do |case_instance|
+      plaintiff_team = create(:team, name: "#{case_instance.title} - Plaintiff Team")
+      defendant_team = create(:team, name: "#{case_instance.title} - Defendant Team")
+
+      create(:case_team, case: case_instance, team: plaintiff_team, role: "plaintiff")
+      create(:case_team, case: case_instance, team: defendant_team, role: "defendant")
+    end
 
     trait :with_documents do
       transient do
@@ -44,6 +53,12 @@ FactoryBot.define do
 
     trait :soft_deleted do
       deleted_at { Time.current }
+    end
+
+    trait :with_simulation do
+      after(:create) do |case_instance|
+        create(:simulation, case: case_instance)
+      end
     end
   end
 end

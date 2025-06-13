@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_12_022615) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_12_031850) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -21,8 +21,37 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_12_022615) do
   create_enum "case_type", ["sexual_harassment", "discrimination", "wrongful_termination", "contract_dispute", "intellectual_property"]
   create_enum "document_status", ["draft", "final", "archived"]
   create_enum "document_type", ["template", "submission", "feedback", "resource"]
+  create_enum "event_type", ["media_attention", "witness_change", "ipo_delay", "court_deadline", "additional_evidence", "expert_testimony"]
+  create_enum "feedback_type", ["offer_reaction", "strategy_guidance", "pressure_response", "settlement_satisfaction"]
+  create_enum "mood_level", ["very_unhappy", "unhappy", "neutral", "satisfied", "very_satisfied"]
+  create_enum "offer_type", ["initial_demand", "counteroffer", "final_offer"]
+  create_enum "outcome_type", ["plaintiff_victory", "defendant_victory", "split_decision", "no_award"]
+  create_enum "pressure_escalation", ["low", "moderate", "high"]
+  create_enum "round_status", ["pending", "active", "plaintiff_submitted", "defendant_submitted", "both_submitted", "completed"]
+  create_enum "simulation_status", ["setup", "active", "paused", "completed", "arbitration"]
   create_enum "team_member_role", ["member", "manager"]
   create_enum "user_role", ["student", "instructor", "admin"]
+
+  create_table "arbitration_outcomes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "simulation_id", null: false
+    t.decimal "award_amount", precision: 12, scale: 2, null: false
+    t.text "rationale", null: false
+    t.jsonb "factors_considered", default: {}, null: false
+    t.datetime "calculated_at", null: false
+    t.enum "outcome_type", null: false, enum_type: "outcome_type"
+    t.decimal "evidence_strength_factor", precision: 5, scale: 2
+    t.decimal "argument_quality_factor", precision: 5, scale: 2
+    t.decimal "negotiation_history_factor", precision: 5, scale: 2
+    t.decimal "random_variance", precision: 5, scale: 2
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["award_amount"], name: "index_arbitration_outcomes_on_award_amount"
+    t.index ["calculated_at"], name: "index_arbitration_outcomes_on_calculated_at"
+    t.index ["deleted_at"], name: "index_arbitration_outcomes_on_deleted_at"
+    t.index ["outcome_type"], name: "index_arbitration_outcomes_on_outcome_type"
+    t.index ["simulation_id"], name: "index_arbitration_outcomes_on_simulation_id"
+  end
 
   create_table "case_events", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "case_id", null: false
@@ -89,6 +118,27 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_12_022615) do
     t.index ["status"], name: "index_cases_on_status"
     t.index ["team_id"], name: "index_cases_on_team_id"
     t.index ["updated_by_id"], name: "index_cases_on_updated_by_id"
+  end
+
+  create_table "client_feedbacks", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "simulation_id", null: false
+    t.uuid "team_id", null: false
+    t.enum "feedback_type", null: false, enum_type: "feedback_type"
+    t.enum "mood_level", null: false, enum_type: "mood_level"
+    t.decimal "satisfaction_score", precision: 5, scale: 2, null: false
+    t.text "feedback_text", null: false
+    t.integer "triggered_by_round", null: false
+    t.uuid "settlement_offer_id"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["deleted_at"], name: "index_client_feedbacks_on_deleted_at"
+    t.index ["feedback_type"], name: "index_client_feedbacks_on_feedback_type"
+    t.index ["mood_level"], name: "index_client_feedbacks_on_mood_level"
+    t.index ["settlement_offer_id"], name: "index_client_feedbacks_on_settlement_offer_id"
+    t.index ["simulation_id"], name: "index_client_feedbacks_on_simulation_id"
+    t.index ["team_id"], name: "index_client_feedbacks_on_team_id"
+    t.index ["triggered_by_round"], name: "index_client_feedbacks_on_triggered_by_round"
   end
 
   create_table "course_enrollments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -230,6 +280,23 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_12_022615) do
     t.index ["organization_name"], name: "index_licenses_on_organization_name"
   end
 
+  create_table "negotiation_rounds", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "simulation_id", null: false
+    t.integer "round_number", null: false
+    t.enum "status", default: "pending", null: false, enum_type: "round_status"
+    t.datetime "deadline", null: false
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["deadline"], name: "index_negotiation_rounds_on_deadline"
+    t.index ["deleted_at"], name: "index_negotiation_rounds_on_deleted_at"
+    t.index ["simulation_id", "round_number"], name: "index_negotiation_rounds_on_simulation_id_and_round_number", unique: true
+    t.index ["simulation_id"], name: "index_negotiation_rounds_on_simulation_id"
+    t.index ["status"], name: "index_negotiation_rounds_on_status"
+  end
+
   create_table "organizations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name", null: false
     t.string "domain", null: false
@@ -247,6 +314,99 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_12_022615) do
     t.index ["domain"], name: "index_organizations_on_domain", unique: true
     t.index ["license_id"], name: "index_organizations_on_license_id"
     t.index ["slug"], name: "index_organizations_on_slug", unique: true
+  end
+
+  create_table "performance_scores", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "simulation_id", null: false
+    t.uuid "team_id", null: false
+    t.uuid "user_id"
+    t.decimal "settlement_quality_score", precision: 5, scale: 2
+    t.decimal "legal_strategy_score", precision: 5, scale: 2
+    t.decimal "collaboration_score", precision: 5, scale: 2
+    t.decimal "efficiency_score", precision: 5, scale: 2
+    t.decimal "speed_bonus", precision: 5, scale: 2
+    t.decimal "creative_terms_score", precision: 5, scale: 2
+    t.decimal "total_score", precision: 6, scale: 2, null: false
+    t.jsonb "score_breakdown", default: {}, null: false
+    t.datetime "scored_at", null: false
+    t.string "score_type", null: false
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["deleted_at"], name: "index_performance_scores_on_deleted_at"
+    t.index ["score_type"], name: "index_performance_scores_on_score_type"
+    t.index ["simulation_id", "team_id", "user_id"], name: "idx_on_simulation_id_team_id_user_id_9f822f0236", unique: true, where: "(user_id IS NOT NULL)"
+    t.index ["simulation_id", "team_id"], name: "index_performance_scores_on_simulation_id_and_team_id", unique: true, where: "(user_id IS NULL)"
+    t.index ["simulation_id"], name: "index_performance_scores_on_simulation_id"
+    t.index ["team_id"], name: "index_performance_scores_on_team_id"
+    t.index ["total_score"], name: "index_performance_scores_on_total_score"
+    t.index ["user_id"], name: "index_performance_scores_on_user_id"
+  end
+
+  create_table "settlement_offers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "negotiation_round_id", null: false
+    t.uuid "team_id", null: false
+    t.enum "offer_type", null: false, enum_type: "offer_type"
+    t.decimal "amount", precision: 12, scale: 2, null: false
+    t.text "justification", null: false
+    t.text "non_monetary_terms"
+    t.uuid "submitted_by_id", null: false
+    t.datetime "submitted_at", null: false
+    t.decimal "quality_score", precision: 5, scale: 2
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["deleted_at"], name: "index_settlement_offers_on_deleted_at"
+    t.index ["negotiation_round_id", "team_id"], name: "index_settlement_offers_on_negotiation_round_id_and_team_id", unique: true
+    t.index ["negotiation_round_id"], name: "index_settlement_offers_on_negotiation_round_id"
+    t.index ["offer_type"], name: "index_settlement_offers_on_offer_type"
+    t.index ["submitted_at"], name: "index_settlement_offers_on_submitted_at"
+    t.index ["submitted_by_id"], name: "index_settlement_offers_on_submitted_by_id"
+    t.index ["team_id"], name: "index_settlement_offers_on_team_id"
+  end
+
+  create_table "simulation_events", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "simulation_id", null: false
+    t.enum "event_type", null: false, enum_type: "event_type"
+    t.jsonb "event_data", default: {}, null: false
+    t.datetime "triggered_at", null: false
+    t.text "impact_description", null: false
+    t.jsonb "pressure_adjustment", default: {}, null: false
+    t.integer "trigger_round", null: false
+    t.boolean "automatic", default: true, null: false
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["deleted_at"], name: "index_simulation_events_on_deleted_at"
+    t.index ["event_type"], name: "index_simulation_events_on_event_type"
+    t.index ["simulation_id"], name: "index_simulation_events_on_simulation_id"
+    t.index ["trigger_round"], name: "index_simulation_events_on_trigger_round"
+    t.index ["triggered_at"], name: "index_simulation_events_on_triggered_at"
+  end
+
+  create_table "simulations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "case_id", null: false
+    t.datetime "start_date", null: false
+    t.datetime "end_date"
+    t.integer "total_rounds", default: 6, null: false
+    t.integer "current_round", default: 1, null: false
+    t.enum "status", default: "setup", null: false, enum_type: "simulation_status"
+    t.decimal "plaintiff_min_acceptable", precision: 12, scale: 2, null: false
+    t.decimal "plaintiff_ideal", precision: 12, scale: 2, null: false
+    t.decimal "defendant_max_acceptable", precision: 12, scale: 2, null: false
+    t.decimal "defendant_ideal", precision: 12, scale: 2, null: false
+    t.enum "pressure_escalation_rate", default: "moderate", null: false, enum_type: "pressure_escalation"
+    t.jsonb "simulation_config", default: {}, null: false
+    t.boolean "auto_events_enabled", default: true, null: false
+    t.boolean "argument_quality_required", default: true, null: false
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["case_id"], name: "index_simulations_on_case_id"
+    t.index ["current_round"], name: "index_simulations_on_current_round"
+    t.index ["deleted_at"], name: "index_simulations_on_deleted_at"
+    t.index ["start_date"], name: "index_simulations_on_start_date"
+    t.index ["status"], name: "index_simulations_on_status"
   end
 
   create_table "team_members", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -339,6 +499,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_12_022615) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "arbitration_outcomes", "simulations"
   add_foreign_key "case_events", "cases", on_delete: :cascade
   add_foreign_key "case_events", "users"
   add_foreign_key "case_teams", "cases"
@@ -346,6 +507,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_12_022615) do
   add_foreign_key "cases", "teams"
   add_foreign_key "cases", "users", column: "created_by_id"
   add_foreign_key "cases", "users", column: "updated_by_id"
+  add_foreign_key "client_feedbacks", "settlement_offers"
+  add_foreign_key "client_feedbacks", "simulations"
+  add_foreign_key "client_feedbacks", "teams"
   add_foreign_key "course_enrollments", "courses"
   add_foreign_key "course_enrollments", "users"
   add_foreign_key "course_invitations", "courses"
@@ -354,7 +518,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_12_022615) do
   add_foreign_key "courses", "users", column: "instructor_id"
   add_foreign_key "documents", "users", column: "created_by_id"
   add_foreign_key "invitations", "organizations"
+  add_foreign_key "negotiation_rounds", "simulations"
   add_foreign_key "organizations", "licenses"
+  add_foreign_key "performance_scores", "simulations"
+  add_foreign_key "performance_scores", "teams"
+  add_foreign_key "performance_scores", "users"
+  add_foreign_key "settlement_offers", "negotiation_rounds"
+  add_foreign_key "settlement_offers", "teams"
+  add_foreign_key "settlement_offers", "users", column: "submitted_by_id"
+  add_foreign_key "simulation_events", "simulations"
+  add_foreign_key "simulations", "cases"
   add_foreign_key "team_members", "teams", on_delete: :cascade
   add_foreign_key "team_members", "users"
   add_foreign_key "teams", "courses"
