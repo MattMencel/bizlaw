@@ -15,8 +15,13 @@ RSpec.describe User, type: :model do
     it { is_expected.to have_many(:team_members).dependent(:destroy) }
     it { is_expected.to have_many(:teams).through(:team_members) }
     it { is_expected.to have_many(:owned_teams).class_name("Team").with_foreign_key(:owner_id).dependent(:destroy) }
-    it { is_expected.to have_many(:documents) }
+    it { is_expected.to have_many(:documents).with_foreign_key(:created_by_id) }
     it { is_expected.to have_many(:cases).through(:teams) }
+    it { is_expected.to belong_to(:organization).optional.counter_cache(true) }
+    it { is_expected.to have_many(:taught_courses).class_name("Course").with_foreign_key(:instructor_id).dependent(:destroy) }
+    it { is_expected.to have_many(:course_enrollments).dependent(:destroy) }
+    it { is_expected.to have_many(:enrolled_courses).through(:course_enrollments).source(:course) }
+    it { is_expected.to have_many(:sent_invitations).class_name("Invitation").dependent(:destroy) }
   end
 
   # Validations

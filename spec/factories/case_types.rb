@@ -25,8 +25,5 @@ FactoryBot.define do
       end
     end
 
-    trait :soft_deleted do
-      deleted_at { Time.current }
-    end
   end
 end

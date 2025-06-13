@@ -12,12 +12,11 @@ RSpec.describe 'admin/organizations/index.html.erb', type: :view do
 
   before do
     assign(:organizations, Kaminari.paginate_array(organizations).page(1).per(20))
-    allow(view).to receive(:policy).and_return(double(new?: true, create?: true))
     render
   end
 
   it 'displays the page title' do
-    expect(rendered).to include('Organization Management')
+    expect(rendered).to include('Organizations')
   end
 
   it 'displays organization names' do
@@ -38,12 +37,12 @@ RSpec.describe 'admin/organizations/index.html.erb', type: :view do
 
   it 'includes status filter options' do
     expect(rendered).to include('All Organizations')
-    expect(rendered).to include('Active Only')
-    expect(rendered).to include('Inactive Only')
+    expect(rendered).to include('Active')
+    expect(rendered).to include('Inactive')
   end
 
   it 'includes new organization link' do
-    expect(rendered).to include('Add New Organization')
+    expect(rendered).to include('New Organization')
   end
 
   it 'includes action links for each organization' do

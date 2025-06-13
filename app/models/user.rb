@@ -81,6 +81,10 @@ class User < ApplicationRecord
     org_admin
   end
 
+  def professional?
+    false
+  end
+
   def can_manage_team?(team)
     admin? || org_admin? || team.owner_id == id || team_members.exists?(team: team, role: :manager)
   end
