@@ -48,7 +48,20 @@ RSpec.describe User, type: :model do
 
   # Enums
   describe "enums" do
-    it { is_expected.to define_enum_for(:role).with_values(student: "student", instructor: "instructor", admin: "admin").with_prefix(true) }
+    it "defines role enum with proper values" do
+      expect(User.defined_enums["role"]).to eq({
+        "student" => "student",
+        "instructor" => "instructor",
+        "admin" => "admin"
+      })
+    end
+
+    it "provides role prefix methods" do
+      user = build(:user, role: :student)
+      expect(user).to respond_to(:role_student?)
+      expect(user).to respond_to(:role_instructor?)
+      expect(user).to respond_to(:role_admin?)
+    end
   end
 
   # Scopes

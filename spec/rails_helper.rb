@@ -109,6 +109,7 @@ RSpec.configure do |config|
         before do
           extend Pundit::Matchers
         end
+
         class_eval(&block)
       end
     end

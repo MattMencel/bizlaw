@@ -6,6 +6,7 @@ FactoryBot.define do
     description { Faker::Lorem.paragraph }
     max_members { 5 }
     association :owner, factory: :user
+    association :course
 
     trait :with_members do
       transient do
