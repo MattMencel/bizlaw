@@ -27,6 +27,13 @@ class Document < ApplicationRecord
     other: "other"
   }, prefix: true
 
+  enum :access_level, {
+    public: "public",
+    case_teams: "case_teams",
+    team_restricted: "team_restricted",
+    instructor_only: "instructor_only"
+  }, prefix: true
+
   # Validations
   validates :title, presence: true,
                    length: { minimum: 3, maximum: 255 }
@@ -48,6 +55,9 @@ class Document < ApplicationRecord
                     message: "must be a PDF, Word, Excel, PowerPoint, text, or markdown file"
                   },
                   size: { less_than: 100.megabytes, message: "must be less than 100MB" }
+  
+  validates :access_level, presence: true
+  validates :category, presence: true, if: :case_material?
 
   # Scopes
   scope :by_type, ->(type) { where(document_type: type) }
@@ -120,6 +130,120 @@ class Document < ApplicationRecord
   def archive!
     return false unless can_archive?
     update(status: :archived, archived_at: Time.current)
+  end
+
+  # Case material specific methods
+  def case_material?
+    document_type_resource? && documentable_type == 'Case'
+  end
+
+  def accessible_by_team?(team)
+    return true if access_level_public?
+    return true if access_level_case_teams? && team_in_case?(team)
+    return true if access_level_team_restricted? && team_allowed?(team)
+    false
+  end
+
+  def accessible_by_user?(user)
+    return true if user.role_admin? || user.role_instructor?
+    return true if access_level_public?
+    return true if created_by == user
+    
+    if case_material?
+      user_teams = user.teams.joins(:case_teams).where(case_teams: { case: documentable })
+      user_teams.any? { |team| accessible_by_team?(team) }
+    else
+      false
+    end
+  end
+
+  def add_annotation!(user, content, options = {})
+    return false unless case_material?
+    
+    annotation = {
+      id: SecureRandom.uuid,
+      user_id: user.id,
+      user_name: user.full_name,
+      content: content,
+      page_number: options[:page_number],
+      position: options[:position] || {},
+      created_at: Time.current
+    }
+
+    current_annotations = annotations || []
+    current_annotations << annotation
+    update!(annotations: current_annotations)
+    
+    annotation
+  end
+
+  def remove_annotation!(annotation_id, user)
+    return false unless case_material?
+    
+    current_annotations = annotations || []
+    annotation = current_annotations.find { |a| a['id'] == annotation_id }
+    
+    return false unless annotation
+    return false unless annotation['user_id'] == user.id || user.role_instructor? || user.role_admin?
+    
+    current_annotations.reject! { |a| a['id'] == annotation_id }
+    update!(annotations: current_annotations)
+    
+    true
+  end
+
+  def add_tag!(tag)
+    current_tags = tags || []
+    current_tags << tag.to_s unless current_tags.include?(tag.to_s)
+    update!(tags: current_tags.uniq)
+  end
+
+  def remove_tag!(tag)
+    current_tags = tags || []
+    current_tags.delete(tag.to_s)
+    update!(tags: current_tags)
+  end
+
+  def update_searchable_content!
+    return unless case_material?
+    
+    content = extract_text_content
+    update!(searchable_content: content) if content.present?
+  end
+
+  private
+
+  def team_in_case?(team)
+    return false unless documentable_type == 'Case'
+    team.case_teams.exists?(case: documentable)
+  end
+
+  def team_allowed?(team)
+    team_restrictions.present? && 
+    (team_restrictions[team.id.to_s] == true || 
+     team_restrictions['allowed_teams']&.include?(team.id.to_s))
+  end
+
+  def extract_text_content
+    return nil unless file.attached?
+    
+    case file.content_type
+    when 'text/plain', 'text/markdown'
+      file.download
+    when 'application/pdf'
+      # Would use a gem like pdf-reader to extract text
+      extract_pdf_content if defined?(PDF::Reader)
+    else
+      nil
+    end
+  rescue
+    nil
+  end
+
+  def extract_pdf_content
+    # Placeholder for PDF text extraction
+    # In a real implementation, you'd use PDF::Reader or similar
+    nil
   end
 
   # Template methods

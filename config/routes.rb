@@ -56,6 +56,18 @@ Rails.application.routes.draw do
         resources :events, controller: "case_events", only: [ :index, :create ]
         resources :documents, controller: "case_documents", shallow: true
         
+        # Case materials management
+        resources :case_materials, only: [ :index, :show, :create, :update, :destroy ] do
+          member do
+            get :download
+            post :annotate
+          end
+          collection do
+            get :search
+            get :categories
+          end
+        end
+        
         # Simulation endpoints
         resources :negotiation_rounds, only: [ :index, :show, :create, :update ]
         
@@ -65,6 +77,25 @@ Rails.application.routes.draw do
           get :pressure_status
           get :negotiation_history
           get :events_feed
+        end
+        
+        # Argument quality scoring endpoints (instructor only)
+        resources :argument_quality, only: [ :index, :show, :update ] do
+          collection do
+            get :rubric
+          end
+        end
+        
+        # Evidence release schedule endpoints
+        resources :evidence_releases, only: [ :index, :show, :create ] do
+          member do
+            put :approve
+            put :deny
+          end
+          collection do
+            get :schedule
+            post :schedule_automatic
+          end
         end
       end
     end

@@ -274,6 +274,276 @@ class SimulationDynamicsService
     )
   end
 
+  # Calculate impact of specific settlement offer quality on simulation dynamics
+  def calculate_quality_impact(settlement_offer)
+    return {} unless settlement_offer.final_quality_score.present?
+
+    quality_score = settlement_offer.final_quality_score
+    quality_percentage = quality_score / 125.0
+
+    impact = {
+      quality_score: quality_score,
+      quality_percentage: (quality_percentage * 100).round(1),
+      impact_level: determine_quality_impact_level(quality_percentage),
+      range_adjustments: calculate_single_offer_quality_adjustments(settlement_offer),
+      team_confidence_impact: calculate_team_confidence_impact(settlement_offer)
+    }
+
+    impact
+  end
+
+  # Apply argument quality adjustments when instructor scores an offer
+  def apply_argument_quality_adjustments!(settlement_offer)
+    return unless settlement_offer.final_quality_score.present?
+
+    quality_impact = calculate_quality_impact(settlement_offer)
+    adjustments = quality_impact[:range_adjustments]
+
+    return if adjustments.empty?
+
+    # Apply immediate adjustments based on the specific offer quality
+    apply_quality_specific_adjustments!(settlement_offer, adjustments)
+  end
+
+  # Get current pressure factors affecting the simulation
+  def current_pressure_factors
+    current_round = simulation.current_round
+    
+    {
+      time_pressure: calculate_time_pressure_factor(current_round),
+      media_pressure: calculate_media_pressure_factor(current_round),
+      quality_pressure: calculate_average_quality_pressure,
+      event_pressure: calculate_event_pressure_factor(current_round),
+      overall_pressure_level: determine_overall_pressure_level(current_round)
+    }
+  end
+
+  private
+
+  def determine_quality_impact_level(quality_percentage)
+    case quality_percentage
+    when 0.9..1.0
+      "exceptional"
+    when 0.8..0.89
+      "high"
+    when 0.7..0.79
+      "above_average"
+    when 0.6..0.69
+      "average"
+    when 0.4..0.59
+      "below_average"
+    else
+      "poor"
+    end
+  end
+
+  def calculate_single_offer_quality_adjustments(settlement_offer)
+    adjustments = {}
+    quality_percentage = settlement_offer.final_quality_score / 125.0
+    team_role = settlement_offer.team_role
+
+    case team_role
+    when "plaintiff"
+      if quality_percentage > 0.8
+        # High quality plaintiff arguments increase defendant's willingness to pay
+        adjustment = simulation.defendant_max_acceptable * 0.02
+        adjustments[:high_quality_plaintiff_defendant_flexibility] = adjustment
+      elsif quality_percentage < 0.4
+        # Poor quality plaintiff arguments decrease defendant's willingness to pay
+        adjustment = simulation.defendant_max_acceptable * 0.015
+        adjustments[:poor_quality_plaintiff_defendant_rigidity] = -adjustment
+      end
+    when "defendant"
+      if quality_percentage > 0.8
+        # High quality defendant arguments reduce plaintiff's expectations
+        adjustment = simulation.plaintiff_min_acceptable * 0.02
+        adjustments[:high_quality_defendant_plaintiff_flexibility] = -adjustment
+      elsif quality_percentage < 0.4
+        # Poor quality defendant arguments increase plaintiff's confidence
+        adjustment = simulation.plaintiff_min_acceptable * 0.015
+        adjustments[:poor_quality_defendant_plaintiff_rigidity] = adjustment
+      end
+    end
+
+    adjustments
+  end
+
+  def calculate_team_confidence_impact(settlement_offer)
+    quality_percentage = settlement_offer.final_quality_score / 125.0
+    team_role = settlement_offer.team_role
+
+    base_confidence = 0.5
+    quality_modifier = (quality_percentage - 0.5) * 0.6 # Range from -0.3 to +0.3
+
+    team_confidence = (base_confidence + quality_modifier).clamp(0.1, 0.9)
+
+    {
+      team_role: team_role,
+      quality_percentage: (quality_percentage * 100).round(1),
+      confidence_level: (team_confidence * 100).round(1),
+      confidence_description: describe_confidence_level(team_confidence)
+    }
+  end
+
+  def describe_confidence_level(confidence)
+    case confidence
+    when 0.8..1.0
+      "Very High - Confident in their position"
+    when 0.65..0.79
+      "High - Strong belief in their arguments"
+    when 0.5..0.64
+      "Moderate - Reasonably confident"
+    when 0.35..0.49
+      "Low - Some doubts about their position"
+    else
+      "Very Low - Significant concerns about their case"
+    end
+  end
+
+  def apply_quality_specific_adjustments!(settlement_offer, adjustments)
+    return if adjustments.empty?
+
+    total_plaintiff_change = 0
+    total_defendant_change = 0
+
+    adjustments.each do |key, value|
+      if key.to_s.include?("plaintiff")
+        total_plaintiff_change += value
+      elsif key.to_s.include?("defendant")
+        total_defendant_change += value
+      end
+    end
+
+    # Apply changes if significant enough
+    if total_plaintiff_change.abs > 500
+      new_min = simulation.plaintiff_min_acceptable + total_plaintiff_change
+      new_min = new_min.clamp(0, simulation.plaintiff_ideal)
+      simulation.update!(plaintiff_min_acceptable: new_min)
+    end
+
+    if total_defendant_change.abs > 500
+      new_max = simulation.defendant_max_acceptable + total_defendant_change
+      new_max = [new_max, simulation.defendant_ideal].max
+      simulation.update!(defendant_max_acceptable: new_max)
+    end
+
+    # Log the quality-based adjustment
+    simulation.simulation_events.create!(
+      event_type: :additional_evidence,
+      trigger_round: simulation.current_round,
+      triggered_at: Time.current,
+      impact_description: "Range adjustments applied based on argument quality scoring by instructor",
+      event_data: {
+        "adjustment_type" => "instructor_quality_scoring",
+        "settlement_offer_id" => settlement_offer.id,
+        "quality_score" => settlement_offer.final_quality_score,
+        "team_role" => settlement_offer.team_role,
+        "adjustments_applied" => adjustments,
+        "plaintiff_change" => total_plaintiff_change,
+        "defendant_change" => total_defendant_change
+      },
+      pressure_adjustment: {},
+      automatic: false
+    )
+  end
+
+  def calculate_time_pressure_factor(round_number)
+    total_rounds = simulation.total_rounds
+    progress = round_number.to_f / total_rounds
+    
+    {
+      round_number: round_number,
+      total_rounds: total_rounds,
+      progress_percentage: (progress * 100).round(1),
+      pressure_level: determine_time_pressure_level(progress)
+    }
+  end
+
+  def determine_time_pressure_level(progress)
+    case progress
+    when 0.0..0.3
+      "low"
+    when 0.31..0.6
+      "moderate"
+    when 0.61..0.8
+      "high"
+    else
+      "critical"
+    end
+  end
+
+  def calculate_media_pressure_factor(round_number)
+    media_events = simulation.simulation_events
+                            .where(event_type: :media_attention)
+                            .where("trigger_round <= ?", round_number)
+
+    {
+      media_events_count: media_events.count,
+      pressure_level: media_events.count > 2 ? "high" : (media_events.count > 0 ? "moderate" : "none")
+    }
+  end
+
+  def calculate_average_quality_pressure
+    offers = simulation.settlement_offers.where.not(final_quality_score: nil)
+    return { average_quality: 0, pressure_level: "none" } if offers.empty?
+
+    avg_quality = offers.average(:final_quality_score)
+    
+    {
+      average_quality: avg_quality.round(1),
+      total_scored_offers: offers.count,
+      pressure_level: avg_quality > 90 ? "high_performance" : (avg_quality > 70 ? "moderate_performance" : "low_performance")
+    }
+  end
+
+  def calculate_event_pressure_factor(round_number)
+    events = simulation.simulation_events
+                      .where("trigger_round <= ?", round_number)
+                      .where.not(event_type: :additional_evidence)
+
+    high_impact_events = events.where(event_type: [:witness_change, :ipo_delay, :court_deadline])
+    
+    {
+      total_events: events.count,
+      high_impact_events: high_impact_events.count,
+      pressure_level: high_impact_events.count > 2 ? "high" : (events.count > 3 ? "moderate" : "low")
+    }
+  end
+
+  def determine_overall_pressure_level(round_number)
+    factors = current_pressure_factors
+    pressure_score = 0
+
+    # Weight different pressure factors
+    case factors[:time_pressure][:pressure_level]
+    when "critical" then pressure_score += 4
+    when "high" then pressure_score += 3
+    when "moderate" then pressure_score += 2
+    when "low" then pressure_score += 1
+    end
+
+    case factors[:media_pressure][:pressure_level]
+    when "high" then pressure_score += 2
+    when "moderate" then pressure_score += 1
+    end
+
+    case factors[:event_pressure][:pressure_level]
+    when "high" then pressure_score += 2
+    when "moderate" then pressure_score += 1
+    end
+
+    case pressure_score
+    when 0..2
+      "low"
+    when 3..5
+      "moderate"
+    when 6..7
+      "high"
+    else
+      "critical"
+    end
+  end
+
   # Event triggering logic
   def should_trigger_media_attention?
     # Trigger media attention based on case progression and randomness

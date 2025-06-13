@@ -9,6 +9,7 @@ class SettlementOffer < ApplicationRecord
   belongs_to :negotiation_round
   belongs_to :team
   belongs_to :submitted_by, class_name: "User"
+  belongs_to :scored_by, class_name: "User", optional: true
   has_many :client_feedbacks, dependent: :nullify
 
   # Delegated associations
@@ -141,6 +142,83 @@ class SettlementOffer < ApplicationRecord
   def update_quality_score!
     assessment = quality_assessment
     update!(quality_score: assessment[:total_score])
+    calculate_final_quality_score!
+  end
+
+  def calculate_instructor_quality_score!
+    return unless has_instructor_scores?
+
+    total = [
+      instructor_legal_reasoning_score,
+      instructor_factual_analysis_score,
+      instructor_strategic_thinking_score,
+      instructor_professionalism_score,
+      instructor_creativity_score
+    ].compact.sum
+
+    update!(instructor_quality_score: total)
+    calculate_final_quality_score!
+  end
+
+  def calculate_final_quality_score!
+    if instructor_quality_score.present?
+      # Use instructor score when available (weighted 70% instructor, 30% automatic)
+      final_score = (instructor_quality_score * 0.7) + ((quality_score || 0) * 0.3)
+    else
+      # Use automatic assessment only
+      final_score = quality_score || 0
+    end
+
+    update!(final_quality_score: final_score.round)
+  end
+
+  def has_instructor_scores?
+    [
+      instructor_legal_reasoning_score,
+      instructor_factual_analysis_score,
+      instructor_strategic_thinking_score,
+      instructor_professionalism_score,
+      instructor_creativity_score
+    ].any?(&:present?)
+  end
+
+  def instructor_scoring_complete?
+    [
+      instructor_legal_reasoning_score,
+      instructor_factual_analysis_score,
+      instructor_strategic_thinking_score,
+      instructor_professionalism_score,
+      instructor_creativity_score
+    ].all?(&:present?)
+  end
+
+  def instructor_assessment_breakdown
+    return {} unless has_instructor_scores?
+
+    {
+      legal_reasoning: {
+        score: instructor_legal_reasoning_score,
+        percentage: instructor_legal_reasoning_score ? (instructor_legal_reasoning_score / 25.0 * 100).round(1) : nil
+      },
+      factual_analysis: {
+        score: instructor_factual_analysis_score,
+        percentage: instructor_factual_analysis_score ? (instructor_factual_analysis_score / 25.0 * 100).round(1) : nil
+      },
+      strategic_thinking: {
+        score: instructor_strategic_thinking_score,
+        percentage: instructor_strategic_thinking_score ? (instructor_strategic_thinking_score / 25.0 * 100).round(1) : nil
+      },
+      professionalism: {
+        score: instructor_professionalism_score,
+        percentage: instructor_professionalism_score ? (instructor_professionalism_score / 25.0 * 100).round(1) : nil
+      },
+      creativity: {
+        score: instructor_creativity_score,
+        percentage: instructor_creativity_score ? (instructor_creativity_score / 25.0 * 100).round(1) : nil
+      },
+      total_score: instructor_quality_score,
+      total_percentage: instructor_quality_score ? (instructor_quality_score / 125.0 * 100).round(1) : nil
+    }
   end
 
   private
