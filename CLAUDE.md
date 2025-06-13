@@ -89,3 +89,8 @@ This codebase follows Rails Omakase conventions:
 - ActiveRecord validations and associations
 
 When working with this codebase, leverage the existing patterns rather than creating new architectural approaches.
+
+## Project Documentation
+
+- **PRDs**: Product Requirements Documents are located in the `.prd/` folder
+- **Tasks**: Task lists and project planning are located in the `.cursor/` folder
