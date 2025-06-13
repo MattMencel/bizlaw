@@ -269,10 +269,16 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
   end
 
   def case_material_update_params
-    params.require(:case_material).permit(
+    permitted_params = params.require(:case_material).permit(
       :title, :description, :category, :access_level,
       team_restrictions: {}, tags: []
     )
+    
+    # Sanitize nested and array attributes
+    permitted_params[:team_restrictions] = sanitize_team_restrictions(permitted_params[:team_restrictions])
+    permitted_params[:tags] = sanitize_tags(permitted_params[:tags])
+    
+    permitted_params
   end
 
   def case_material_types
