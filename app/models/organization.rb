@@ -73,6 +73,14 @@ class Organization < ApplicationRecord
     courses.active.count
   end
 
+  def courses_count
+    courses.count
+  end
+
+  def users_count
+    users.count
+  end
+
   def student_count
     students.count
   end
