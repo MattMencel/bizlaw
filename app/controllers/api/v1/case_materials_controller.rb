@@ -439,7 +439,6 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
     # Only process text-based documents for search indexing
     %w[application/pdf text/plain text/markdown].include?(@case_material.file.content_type)
   end
-  private
 
   def sanitize_team_restrictions(team_restrictions)
     return {} unless team_restrictions.is_a?(Hash)
