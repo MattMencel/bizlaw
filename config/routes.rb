@@ -55,6 +55,17 @@ Rails.application.routes.draw do
       resources :cases do
         resources :events, controller: "case_events", only: [ :index, :create ]
         resources :documents, controller: "case_documents", shallow: true
+        
+        # Simulation endpoints
+        resources :negotiation_rounds, only: [ :index, :show, :create, :update ]
+        
+        # Simulation status endpoints
+        resource :simulation_status, only: [ :show ], controller: "simulation_status" do
+          get :client_mood
+          get :pressure_status
+          get :negotiation_history
+          get :events_feed
+        end
       end
     end
 

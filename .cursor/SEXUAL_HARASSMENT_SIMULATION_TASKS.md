@@ -5,61 +5,80 @@ Task list generated from [.prd/SCENARIO_SEXUAL_HARASSMENT_SIMULATION_PRD.md](../
 ## Phase 1: Core Infrastructure (Weeks 1-2)
 
 ### Database Schema & Models
-- [ ] **Extend Case model for simulation data** _(5 pts)_
-  - Add simulation-specific fields (plaintiff_min_acceptable, defendant_max_acceptable, current_round, etc.)
-  - Add case_type enum value for "sexual_harassment"
-  - Add media_pressure_level and arbitration_triggered fields
+- [x] **Extend Case model for simulation data** _(5 pts)_ - COMPLETED
+  - ✅ Case model has `case_type` enum with "sexual_harassment" value
+  - ✅ Case model has relationship to Simulation model (has_one :simulation)
+  - ✅ All simulation-specific data moved to dedicated Simulation model
   - Dependencies: None
   - Acceptance: Case model supports all simulation parameters from PRD
 
-- [ ] **Create NegotiationRound model** _(3 pts)_
-  - Fields: simulation_case_id, round_number, plaintiff_offer, defendant_offer, justifications, system_feedback
-  - Associations: belongs_to case, validation for round sequences
+- [x] **Create NegotiationRound model** _(3 pts)_ - COMPLETED
+  - ✅ Comprehensive model with all required fields and associations
+  - ✅ belongs_to :simulation, has_many :settlement_offers
+  - ✅ Tracks round status, deadlines, and settlement logic
+  - ✅ Validation for round sequences and completion logic
   - Dependencies: Extended Case model
   - Acceptance: Can track 6 rounds of negotiations per case
 
-- [ ] **Extend CaseEvent model for simulation events** _(2 pts)_
-  - Add event_type enum values: "media_story", "witness_change", "ipo_delay", "court_deadline"
-  - Add impact_description, financial_impact, triggered_automatically fields
+- [x] **Extend CaseEvent model for simulation events** _(2 pts)_ - COMPLETED
+  - ✅ Separate SimulationEvent model created with all required event types
+  - ✅ Event types: "media_attention", "witness_change", "ipo_delay", "court_deadline", etc.
+  - ✅ Includes impact_description, pressure_adjustment, trigger_round fields
+  - ✅ Automatic pressure adjustment logic implemented
   - Dependencies: None
   - Acceptance: Can track and trigger simulation-specific events
 
-- [ ] **Create SimulationSettings model** _(2 pts)_
-  - Store case-specific configuration (round duration, pressure escalation rates)
-  - Allow instructor customization of simulation parameters
+- [x] **Create Simulation model (replaces SimulationSettings)** _(2 pts)_ - COMPLETED
+  - ✅ Comprehensive Simulation model with all configuration fields
+  - ✅ Fields: plaintiff_min_acceptable, defendant_max_acceptable, current_round, status, etc.
+  - ✅ Pressure escalation rates, auto-events configuration
+  - ✅ Rich associations to NegotiationRounds, SimulationEvents, PerformanceScores
   - Dependencies: Extended Case model
   - Acceptance: Instructors can configure simulation behavior per case
 
 ### Core Business Logic
-- [ ] **Implement dynamic range adjustment algorithm** _(8 pts)_
-  - Calculate acceptable range changes based on time, arguments, events
-  - Factor in media pressure, quality scores, and triggered events
+- [x] **Implement dynamic range adjustment algorithm** _(8 pts)_ - COMPLETED
+  - ✅ SimulationDynamicsService calculates range changes based on time, arguments, events
+  - ✅ Factors in media pressure, argument quality scores, and triggered events
+  - ✅ Progressive pressure escalation system with configurable rates
+  - ✅ Real-time pressure level calculation and overlap zone detection
   - Dependencies: NegotiationRound model, CaseEvent extensions
   - Acceptance: Ranges adjust realistically based on simulation state
 
-- [ ] **Build automated feedback generation system** _(5 pts)_
-  - Generate natural language feedback based on offer proximity and argument quality
-  - Create feedback templates with dynamic content insertion
+- [x] **Build automated feedback generation system** _(5 pts)_ - COMPLETED
+  - ✅ ClientFeedbackService generates contextual natural language feedback
+  - ✅ Multiple feedback types: offer reactions, strategic guidance, pressure responses
+  - ✅ Dynamic templates with role-specific content and mood tracking
+  - ✅ Real-time client mood indicators and satisfaction trends
   - Dependencies: Dynamic range algorithm
   - Acceptance: Teams receive meaningful feedback without revealing opponent data
 
-- [ ] **Create triggered event system** _(6 pts)_
-  - Automatic event generation based on round progression and team actions
-  - Configurable event schedules per simulation type
+- [x] **Create triggered event system** _(6 pts)_ - COMPLETED
+  - ✅ SimulationEventOrchestrator manages automatic event generation
+  - ✅ Round-based, state-based, and cascade event triggering
+  - ✅ Configurable event schedules with probabilistic triggering
+  - ✅ Event effects orchestration with pressure adjustments and notifications
   - Dependencies: Extended CaseEvent model
   - Acceptance: Events trigger automatically and affect negotiation dynamics
 
 ### API Endpoints
-- [ ] **Build negotiation round API endpoints** _(4 pts)_
-  - POST /api/v1/cases/:id/negotiation_rounds (submit offers)
-  - GET /api/v1/cases/:id/negotiation_rounds (view history)
-  - PUT /api/v1/cases/:id/negotiation_rounds/:round_id (update offers)
+- [x] **Build negotiation round API endpoints** _(4 pts)_ - COMPLETED
+  - ✅ NegotiationRoundsController with full CRUD operations
+  - ✅ POST /api/v1/cases/:id/negotiation_rounds (submit offers)
+  - ✅ GET /api/v1/cases/:id/negotiation_rounds (view history)
+  - ✅ PUT /api/v1/cases/:id/negotiation_rounds/:round_id (update offers)
+  - ✅ Integrated with simulation dynamics and feedback systems
   - Dependencies: NegotiationRound model
   - Acceptance: Teams can submit and view negotiation data via API
 
-- [ ] **Create simulation status API endpoints** _(3 pts)_
-  - GET /api/v1/cases/:id/simulation_status (current state, feedback, pressure)
-  - GET /api/v1/cases/:id/client_mood (abstract indicators without revealing ranges)
+- [x] **Create simulation status API endpoints** _(3 pts)_ - COMPLETED
+  - ✅ SimulationStatusController with comprehensive status endpoints
+  - ✅ GET /api/v1/cases/:id/simulation_status (complete simulation state)
+  - ✅ GET /api/v1/cases/:id/simulation_status/client_mood (mood indicators)
+  - ✅ GET /api/v1/cases/:id/simulation_status/pressure_status (pressure analysis)
+  - ✅ GET /api/v1/cases/:id/simulation_status/negotiation_history (progress tracking)
+  - ✅ GET /api/v1/cases/:id/simulation_status/events_feed (real-time events)
+  - ✅ Team-specific data visibility with security controls
   - Dependencies: Dynamic range algorithm, feedback system
   - Acceptance: UI can display real-time simulation state
 
