@@ -1,22 +1,25 @@
 Feature: Team Management
   As a user
-  I want to manage teams
+  I want to manage teams within my course
   So that I can collaborate with other users
 
   Background:
     Given I am a logged in user
-    And I have the following teams:
+    And I belong to an organization "University of Business Law"
+    And I am enrolled in a course "Business Law 101"
+    And I have the following teams in this course:
       | name        | description          | max_members |
       | Alpha Team  | Main project team    | 5           |
       | Beta Team   | Secondary team       | 3           |
 
   Scenario: Creating a new team
     When I create a team with the following details:
-      | name         | description       | max_members |
-      | Gamma Team   | New project team | 4           |
+      | name         | description       | max_members | course           |
+      | Gamma Team   | New project team | 4           | Business Law 101 |
     Then I should see a success message "Team was successfully created"
     And I should be the owner of "Gamma Team"
     And the team should have 0 members
+    And the team should be associated with my course
 
   Scenario: Viewing my teams
     When I visit the teams page
@@ -45,7 +48,7 @@ Feature: Team Management
     Then I should see an error message "Team has reached maximum member limit"
 
   Scenario: Search for teams
-    Given the following teams exist:
+    Given the following teams exist in my course:
       | name          | description     |
       | Dev Team      | Developers     |
       | Design Team   | Designers      |

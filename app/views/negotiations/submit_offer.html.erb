@@ -1,0 +1,361 @@
+<% content_for :title, "Submit Settlement Offer - #{@case.title}" %>
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center space-x-4">
+      <%= link_to case_negotiations_path(@case), 
+          class: "text-gray-400 hover:text-gray-500" do %>
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+      <% end %>
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Submit Settlement Offer</h1>
+        <p class="mt-2 text-sm text-gray-600">
+          Round <%= @current_round.round_number %> of <%= @simulation.total_rounds %> • 
+          Deadline: <%= @current_round.deadline.strftime("%B %d, %Y at %I:%M %p") %>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <%= form_with model: [@case, @settlement_offer], 
+      url: create_offer_case_negotiation_path(@case, @current_round),
+      local: true, 
+      class: "space-y-8" do |form| %>
+    
+    <% if @settlement_offer.errors.any? %>
+      <div class="rounded-md bg-red-50 p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">
+              There were errors with your submission:
+            </h3>
+            <div class="mt-2 text-sm text-red-700">
+              <ul role="list" class="list-disc list-inside space-y-1">
+                <% @settlement_offer.errors.full_messages.each do |error| %>
+                  <li><%= error %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Settlement Amount Section -->
+    <div class="bg-white shadow rounded-lg">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-medium text-gray-900">Settlement Amount</h2>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <%= form.label :amount, "Settlement Amount ($)", 
+                class: "block text-sm font-medium text-gray-700" %>
+            <div class="mt-1 relative rounded-md shadow-sm">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="text-gray-500 sm:text-sm">$</span>
+              </div>
+              <%= form.number_field :amount, 
+                  class: "focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md",
+                  placeholder: "300000",
+                  step: 1000,
+                  min: 0 %>
+            </div>
+            <p class="mt-2 text-sm text-gray-500">Enter the total monetary settlement amount</p>
+          </div>
+          
+          <div class="space-y-4">
+            <button type="button" 
+                    id="calculator-btn"
+                    class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+              </svg>
+              Open Calculator
+            </button>
+            
+            <button type="submit" 
+                    name="consult_client" 
+                    value="true"
+                    class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+              </svg>
+              Consult Client
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Justification Section -->
+    <div class="bg-white shadow rounded-lg">
+      <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <h2 class="text-lg font-medium text-gray-900">Justification</h2>
+        <button type="button" 
+                id="template-btn"
+                class="text-sm text-indigo-600 hover:text-indigo-500">
+          Use Template
+        </button>
+      </div>
+      <div class="p-6">
+        <%= form.label :justification, "Legal Justification for Settlement Amount", 
+            class: "block text-sm font-medium text-gray-700" %>
+        <%= form.text_area :justification, 
+            rows: 8,
+            class: "mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md",
+            placeholder: "Provide detailed legal reasoning for your settlement amount, including relevant case law, damages calculation, and strategic considerations..." %>
+        <div class="mt-2 flex items-center justify-between">
+          <p class="text-sm text-gray-500">Minimum 50 characters required</p>
+          <span id="char-count" class="text-sm text-gray-400">0 characters</span>
+        </div>
+        
+        <!-- Template Selection Modal -->
+        <div id="template-modal" class="hidden fixed inset-0 z-10 overflow-y-auto">
+          <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Choose Argument Template</h3>
+                <div class="space-y-3">
+                  <button type="button" data-template="legal_precedent" class="template-option w-full text-left p-3 border border-gray-200 rounded-md hover:bg-gray-50">
+                    <div class="font-medium">Legal Precedent Analysis</div>
+                    <div class="text-sm text-gray-500">Structure arguments around relevant case law</div>
+                  </button>
+                  <button type="button" data-template="economic_damages" class="template-option w-full text-left p-3 border border-gray-200 rounded-md hover:bg-gray-50">
+                    <div class="font-medium">Economic Damages Calculation</div>
+                    <div class="text-sm text-gray-500">Break down financial losses and compensation</div>
+                  </button>
+                  <button type="button" data-template="risk_assessment" class="template-option w-full text-left p-3 border border-gray-200 rounded-md hover:bg-gray-50">
+                    <div class="font-medium">Settlement Risk Assessment</div>
+                    <div class="text-sm text-gray-500">Analyze trial risks vs settlement benefits</div>
+                  </button>
+                  <button type="button" data-template="client_impact" class="template-option w-full text-left p-3 border border-gray-200 rounded-md hover:bg-gray-50">
+                    <div class="font-medium">Client Impact Statement</div>
+                    <div class="text-sm text-gray-500">Focus on personal and financial impact</div>
+                  </button>
+                </div>
+              </div>
+              <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" id="close-template-modal" class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Non-Monetary Terms Section -->
+    <div class="bg-white shadow rounded-lg">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-medium text-gray-900">Non-Monetary Terms</h2>
+        <p class="mt-1 text-sm text-gray-600">Select additional terms to include in your settlement offer</p>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Confidentiality Terms -->
+          <div>
+            <label class="text-sm font-medium text-gray-700">Confidentiality Agreement</label>
+            <div class="mt-2 space-y-2">
+              <% @non_monetary_options[:confidentiality].each do |option| %>
+                <label class="inline-flex items-center">
+                  <%= check_box_tag "settlement_offer[confidentiality_terms][]", option, false, 
+                      class: "rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
+                  <span class="ml-2 text-sm text-gray-600"><%= option %></span>
+                </label>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Admission Terms -->
+          <div>
+            <label class="text-sm font-medium text-gray-700">Admission of Wrongdoing</label>
+            <div class="mt-2 space-y-2">
+              <% @non_monetary_options[:admissions].each do |option| %>
+                <label class="inline-flex items-center">
+                  <%= radio_button_tag "settlement_offer[admission_terms]", option, false, 
+                      class: "border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
+                  <span class="ml-2 text-sm text-gray-600"><%= option %></span>
+                </label>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Reference Terms -->
+          <div>
+            <label class="text-sm font-medium text-gray-700">Employment References</label>
+            <div class="mt-2 space-y-2">
+              <% @non_monetary_options[:references].each do |option| %>
+                <label class="inline-flex items-center">
+                  <%= radio_button_tag "settlement_offer[reference_terms]", option, false, 
+                      class: "border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
+                  <span class="ml-2 text-sm text-gray-600"><%= option %></span>
+                </label>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Policy Changes -->
+          <div>
+            <label class="text-sm font-medium text-gray-700">Policy Requirements</label>
+            <div class="mt-2 space-y-2">
+              <% @non_monetary_options[:policy_changes].each do |option| %>
+                <label class="inline-flex items-center">
+                  <%= check_box_tag "settlement_offer[policy_terms][]", option, false, 
+                      class: "rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
+                  <span class="ml-2 text-sm text-gray-600"><%= option %></span>
+                </label>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Other Terms -->
+        <div class="mt-6">
+          <label class="text-sm font-medium text-gray-700">Additional Terms</label>
+          <div class="mt-2 space-y-2">
+            <% @non_monetary_options[:other_terms].each do |option| %>
+              <label class="inline-flex items-center">
+                <%= check_box_tag "settlement_offer[other_terms][]", option, false, 
+                    class: "rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
+                <span class="ml-2 text-sm text-gray-600"><%= option %></span>
+              </label>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Custom Terms -->
+        <div class="mt-6">
+          <%= form.label :non_monetary_terms, "Custom Non-Monetary Terms", 
+              class: "block text-sm font-medium text-gray-700" %>
+          <%= form.text_area :non_monetary_terms, 
+              rows: 3,
+              class: "mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md",
+              placeholder: "Describe any additional non-monetary terms or conditions..." %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Client Consultation Preview -->
+    <% if @client_consultation %>
+      <div class="bg-blue-50 border border-blue-200 rounded-lg">
+        <div class="px-6 py-4 border-b border-blue-200">
+          <h3 class="text-lg font-medium text-blue-900">Client Priorities</h3>
+        </div>
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <% @client_consultation[:priorities].each do |priority| %>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-blue-700"><%= priority[:name] %></span>
+                <span class="px-2 py-1 text-xs font-semibold rounded-full <%= 
+                  case priority[:importance]
+                  when 'High' then 'bg-red-100 text-red-800'
+                  when 'Medium' then 'bg-yellow-100 text-yellow-800'
+                  else 'bg-green-100 text-green-800'
+                  end
+                %>">
+                  <%= priority[:importance] %>
+                </span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+      <div class="flex items-center space-x-3">
+        <%= link_to "Save as Draft", "#", 
+            class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+        <%= button_tag "Consult Client First", 
+            type: "submit", 
+            name: "consult_client", 
+            value: "true",
+            class: "inline-flex items-center px-4 py-2 border border-indigo-300 shadow-sm text-sm font-medium rounded-md text-indigo-700 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+      </div>
+      
+      <div class="flex items-center space-x-3">
+        <%= link_to "Cancel", case_negotiations_path(@case), 
+            class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+        <%= form.submit "Submit Settlement Offer", 
+            class: "inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<!-- JavaScript for interactivity -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Character counter
+  const justificationField = document.querySelector('textarea[name="settlement_offer[justification]"]');
+  const charCount = document.getElementById('char-count');
+  
+  if (justificationField && charCount) {
+    justificationField.addEventListener('input', function() {
+      charCount.textContent = this.value.length + ' characters';
+    });
+  }
+  
+  // Template modal
+  const templateBtn = document.getElementById('template-btn');
+  const templateModal = document.getElementById('template-modal');
+  const closeModalBtn = document.getElementById('close-template-modal');
+  const templateOptions = document.querySelectorAll('.template-option');
+  
+  templateBtn?.addEventListener('click', function() {
+    templateModal.classList.remove('hidden');
+  });
+  
+  closeModalBtn?.addEventListener('click', function() {
+    templateModal.classList.add('hidden');
+  });
+  
+  templateOptions.forEach(option => {
+    option.addEventListener('click', function() {
+      const templateType = this.dataset.template;
+      loadTemplate(templateType);
+      templateModal.classList.add('hidden');
+    });
+  });
+  
+  // Calculator button
+  const calculatorBtn = document.getElementById('calculator-btn');
+  calculatorBtn?.addEventListener('click', function() {
+    // Open calculator in new window or modal
+    window.open('<%= calculator_case_negotiations_path(@case) %>', 'calculator', 'width=800,height=600');
+  });
+  
+  function loadTemplate(templateType) {
+    fetch('<%= templates_case_negotiations_path(@case) %>', {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data[templateType]) {
+        justificationField.value = data[templateType];
+        if (charCount) {
+          charCount.textContent = justificationField.value.length + ' characters';
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error loading template:', error);
+    });
+  }
+});
+</script>

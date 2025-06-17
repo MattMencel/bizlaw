@@ -7,9 +7,11 @@ Feature: Sexual Harassment Lawsuit Settlement Simulation
   So that students can learn settlement dynamics in a controlled environment
 
   Background:
-    Given the system has a sexual harassment case "Mitchell v. TechFlow Industries"
-    And the case has plaintiff team "Mitchell Legal Team"
-    And the case has defendant team "TechFlow Defense Team"
+    Given I belong to an organization "University of Business Law"
+    And I am enrolled in a course "Advanced Business Law"
+    And the system has a sexual harassment case "Mitchell v. TechFlow Industries" in this course
+    And the case has plaintiff team "Mitchell Legal Team" from this course
+    And the case has defendant team "TechFlow Defense Team" from this course
     And both teams have been assigned to the case
     And the simulation has 6 negotiation rounds configured
     And the case materials have been uploaded and categorized
@@ -22,7 +24,10 @@ Feature: Simulation Case Setup and Configuration
 
   Scenario: Create new sexual harassment simulation case
     Given I am logged in as an instructor
+    And I belong to an organization "University of Business Law"
+    And I have a course "Advanced Business Law" in my organization
     When I navigate to create a new case
+    And I select the course "Advanced Business Law"
     And I select "Sexual Harassment Lawsuit" as the case type
     And I enter case details:
       | Field | Value |
@@ -34,6 +39,7 @@ Feature: Simulation Case Setup and Configuration
       | Total Rounds | 6 |
     And I upload the case materials package
     Then the simulation case should be created successfully
+    And the case should be associated with the selected course
     And the case status should be "Setup Complete"
     And both teams should see "Case materials available for review"
 
@@ -63,8 +69,10 @@ Feature: Multi-Round Negotiation Process
   So that I can negotiate on behalf of my client
 
   Background:
-    Given I am a member of the "Mitchell Legal Team" (plaintiff)
-    And the opposing team is "TechFlow Defense Team" (defendant)
+    Given I belong to an organization "University of Business Law"
+    And I am enrolled in a course "Advanced Business Law"
+    And I am a member of the "Mitchell Legal Team" (plaintiff) in this course
+    And the opposing team is "TechFlow Defense Team" (defendant) in this course
     And we are in round 1 of 6
     And I have reviewed the case materials
 

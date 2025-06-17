@@ -55,6 +55,10 @@ gem "thruster", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
 
+# QR Code generation for invitations
+gem "rqrcode", "~> 2.2"
+gem "chunky_png", "~> 1.4"
+
 # Authentication & Authorization
 gem "devise", "~> 4.9"
 gem "devise-jwt", "~> 0.12"
@@ -94,6 +98,9 @@ group :development, :test do
 
   # Rswag for API documentation
   gem "rswag-specs", "~> 2.13"
+  
+  # Accessibility testing
+  gem "axe-core-rspec", "~> 4.10"
 end
 
 group :development do

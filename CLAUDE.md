@@ -12,9 +12,11 @@ bin/rails server          # Start Rails server only
 
 **Testing:**
 ```bash
-bin/rspec                  # Run RSpec unit/integration tests
-bin/cucumber               # Run Cucumber BDD tests
-bin/rails test:system     # Run system tests with Capybara + Playwright
+bundle exec rspec                  # Run RSpec unit/integration tests
+bundle exec cucumber               # Run Cucumber BDD tests
+bundle exec rails test:system     # Run system tests with Capybara + Playwright
+bundle exec rspec spec/system/    # Run accessibility & system tests
+bundle exec rspec --tag accessibility  # Run only accessibility tests
 ```
 
 **Code Quality:**
@@ -77,6 +79,7 @@ This is a **Legal Education Simulation Platform** built with Rails 8.0.2 for col
 - **BDD Tests**: Cucumber for user story validation
 - **API Tests**: Request specs for all endpoints
 - **System Tests**: Full E2E with Capybara + Playwright
+- **Accessibility Tests**: axe-core-rspec for WCAG 2.0/2.1 AA compliance
 - **Performance**: Custom `QueryCounter` for N+1 detection
 
 ### Rails Conventions

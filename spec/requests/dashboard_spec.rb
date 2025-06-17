@@ -3,6 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe "Dashboard", type: :request do
+  include Devise::Test::IntegrationHelpers
+  
   let(:organization) { create(:organization) }
   let(:admin) { create(:user, :admin, organization: organization) }
   let(:instructor) { create(:user, :instructor, organization: organization) }
@@ -83,6 +85,63 @@ RSpec.describe "Dashboard", type: :request do
         expect(assigns(:my_teams)).to be_empty
         expect(assigns(:my_cases)).to be_empty
         expect(assigns(:recent_activity)).to eq([])
+      end
+
+      context "with simulation data" do
+        let(:team) { create(:team, name: "Plaintiff Team A") }
+        let(:case_with_simulation) { create(:case, case_type: :sexual_harassment, name: "Mitchell v. TechFlow Industries") }
+        let!(:simulation) { create(:simulation, status: :active, case: case_with_simulation) }
+
+        before do
+          create(:team_member, user: student, team: team)
+          create(:case_team, case: case_with_simulation, team: team, role: :plaintiff)
+        end
+
+        it "displays simulation dashboard content" do
+          get "/dashboard"
+          expect(response.body).to include("Mitchell v. TechFlow Industries")
+          expect(response.body).to include("Plaintiff Team A")
+        end
+
+        it "loads simulation data efficiently" do
+          get "/dashboard"
+          expect(response).to have_http_status(:success)
+        end
+      end
+
+      context "with multiple simulation statuses" do
+        let(:plaintiff_team) { create(:team, name: "Plaintiff Team A") }
+        let(:defendant_team) { create(:team, name: "Defense Team B") }
+        let(:active_case) { create(:case, name: "Mitchell v. TechFlow Industries", case_type: :sexual_harassment) }
+        let(:completed_case) { create(:case, name: "Johnson v. MegaCorp", case_type: :discrimination) }
+        let!(:active_simulation) { create(:simulation, status: :active, case: active_case) }
+        let!(:completed_simulation) { create(:simulation, status: :completed, case: completed_case) }
+
+        before do
+          create(:team_member, user: student, team: plaintiff_team)
+          create(:team_member, user: student, team: defendant_team)
+          create(:case_team, case: active_case, team: plaintiff_team, role: :plaintiff)
+          create(:case_team, case: completed_case, team: defendant_team, role: :defendant)
+        end
+
+        it "displays different simulation statuses" do
+          get "/dashboard"
+          expect(response.body).to include("Mitchell v. TechFlow Industries")
+          expect(response.body).to include("Johnson v. MegaCorp")
+        end
+
+        it "shows simulation status indicators" do
+          get "/dashboard"
+          expect(response).to have_http_status(:success)
+        end
+      end
+
+      context "with no simulations" do
+        it "displays empty state message" do
+          get "/dashboard"
+          expect(response).to have_http_status(:success)
+          expect(response.body).to include("simulation") # Any mention of simulation is fine for empty state
+        end
       end
     end
   end

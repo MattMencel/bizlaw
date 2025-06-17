@@ -1,0 +1,57 @@
+<%# Navigation Item Component %>
+<%
+  # Set default values
+  size ||= 'md'
+  current_path = request.path
+  is_active = current_page?(path) rescue false
+  
+  # Size-based classes
+  item_classes = case size
+                 when 'sm'
+                   "flex items-center px-2 py-1.5 text-xs rounded-sm"
+                 when 'lg'
+                   "flex items-center px-4 py-3 text-base rounded-md"
+                 else # 'md'
+                   "flex items-center px-3 py-2 text-sm rounded-md"
+                 end
+  
+  # Active/inactive state classes
+  if is_active
+    state_classes = "bg-blue-600 text-white"
+    icon_classes = "text-white"
+  else
+    state_classes = "text-gray-300 hover:bg-gray-700 hover:text-white"
+    icon_classes = "text-gray-400"
+  end
+  
+  # Icon size based on item size
+  icon_size = case size
+              when 'sm'
+                "h-4 w-4"
+              when 'lg'
+                "h-6 w-6"
+              else
+                "h-5 w-5"
+              end
+%>
+
+<%= link_to path, 
+           class: "#{item_classes} #{state_classes} transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 group",
+           data: { turbo: true } do %>
+  
+  <%# Navigation Item Icon %>
+  <svg class="<%= icon_size %> mr-3 <%= icon_classes %> group-hover:text-white flex-shrink-0" 
+       fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <%= render "shared/icons/#{icon}" %>
+  </svg>
+  
+  <%# Navigation Item Title %>
+  <span class="font-medium truncate"><%= title %></span>
+  
+  <%# Optional Badge/Counter %>
+  <% if local_assigns[:badge].present? %>
+    <span class="ml-auto flex-shrink-0 bg-gray-600 text-white text-xs rounded-full px-2 py-0.5 group-hover:bg-gray-500">
+      <%= badge %>
+    </span>
+  <% end %>
+<% end %>

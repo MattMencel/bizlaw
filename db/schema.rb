@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_13_025902) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_17_031926) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -75,9 +75,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_13_025902) do
     t.string "role", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
     t.index ["case_id", "role"], name: "index_case_teams_on_case_id_and_role", unique: true
     t.index ["case_id", "team_id"], name: "index_case_teams_on_case_id_and_team_id", unique: true
     t.index ["case_id"], name: "index_case_teams_on_case_id"
+    t.index ["deleted_at"], name: "index_case_teams_on_deleted_at"
     t.index ["team_id"], name: "index_case_teams_on_team_id"
   end
 
@@ -101,14 +103,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_13_025902) do
     t.datetime "due_date"
     t.datetime "published_at"
     t.datetime "archived_at"
-    t.uuid "team_id", null: false
     t.uuid "created_by_id", null: false
     t.uuid "updated_by_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.uuid "course_id", null: false
     t.index "lower((title)::text)", name: "index_cases_on_lower_title"
     t.index ["case_type"], name: "index_cases_on_case_type"
+    t.index ["course_id"], name: "index_cases_on_course_id"
     t.index ["created_at"], name: "index_cases_on_created_at"
     t.index ["created_by_id"], name: "index_cases_on_created_by_id"
     t.index ["deleted_at", "created_at"], name: "index_cases_on_deleted_at_created_at"
@@ -117,7 +120,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_13_025902) do
     t.index ["reference_number"], name: "index_cases_on_reference_number", unique: true
     t.index ["status", "difficulty_level", "case_type"], name: "index_cases_on_status_difficulty_type"
     t.index ["status"], name: "index_cases_on_status"
-    t.index ["team_id"], name: "index_cases_on_team_id"
     t.index ["updated_by_id"], name: "index_cases_on_updated_by_id"
   end
 
@@ -277,6 +279,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_13_025902) do
     t.boolean "org_admin", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["deleted_at"], name: "index_invitations_on_deleted_at"
     t.index ["email", "organization_id"], name: "index_invitations_on_email_and_organization_id", unique: true, where: "((status)::text = 'pending'::text)"
     t.index ["email"], name: "index_invitations_on_email"
     t.index ["invited_by_type", "invited_by_id"], name: "index_invitations_on_invited_by"
@@ -313,6 +317,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_13_025902) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
     t.index ["active"], name: "index_licenses_on_active"
     t.index ["expires_at"], name: "index_licenses_on_expires_at"
     t.index ["license_key"], name: "index_licenses_on_license_key", unique: true
@@ -349,6 +354,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_13_025902) do
     t.integer "courses_count", default: 0, null: false
     t.integer "users_count", default: 0, null: false
     t.uuid "license_id"
+    t.boolean "direct_assignment_enabled"
     t.index ["active"], name: "index_organizations_on_active"
     t.index ["deleted_at"], name: "index_organizations_on_deleted_at"
     t.index ["domain"], name: "index_organizations_on_domain", unique: true
@@ -373,6 +379,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_13_025902) do
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "instructor_adjustment"
+    t.text "adjustment_reason"
+    t.uuid "adjusted_by_id"
+    t.datetime "adjusted_at"
+    t.index ["adjusted_by_id"], name: "index_performance_scores_on_adjusted_by_id"
     t.index ["deleted_at"], name: "index_performance_scores_on_deleted_at"
     t.index ["score_type"], name: "index_performance_scores_on_score_type"
     t.index ["simulation_id", "team_id", "user_id"], name: "idx_on_simulation_id_team_id_user_id_9f822f0236", unique: true, where: "(user_id IS NOT NULL)"
@@ -545,6 +556,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_13_025902) do
     t.boolean "active", default: true, null: false
     t.uuid "organization_id"
     t.boolean "org_admin", default: false, null: false
+    t.text "roles", default: [], array: true
     t.index "lower((first_name)::text), lower((last_name)::text)", name: "index_users_on_lower_names"
     t.index ["active"], name: "index_users_on_active"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
@@ -554,6 +566,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_13_025902) do
     t.index ["organization_id"], name: "index_users_on_organization_id"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true, where: "((provider IS NOT NULL) AND (uid IS NOT NULL))"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["roles"], name: "index_users_on_roles", using: :gin
   end
 
   add_foreign_key "arbitration_outcomes", "simulations"
@@ -561,7 +574,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_13_025902) do
   add_foreign_key "case_events", "users"
   add_foreign_key "case_teams", "cases"
   add_foreign_key "case_teams", "teams"
-  add_foreign_key "cases", "teams"
+  add_foreign_key "cases", "courses"
   add_foreign_key "cases", "users", column: "created_by_id"
   add_foreign_key "cases", "users", column: "updated_by_id"
   add_foreign_key "client_feedbacks", "settlement_offers"
@@ -583,6 +596,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_13_025902) do
   add_foreign_key "performance_scores", "simulations"
   add_foreign_key "performance_scores", "teams"
   add_foreign_key "performance_scores", "users"
+  add_foreign_key "performance_scores", "users", column: "adjusted_by_id"
   add_foreign_key "settlement_offers", "negotiation_rounds"
   add_foreign_key "settlement_offers", "teams"
   add_foreign_key "settlement_offers", "users", column: "scored_by_id"

@@ -2,11 +2,12 @@
 
 module CourseInvitationsHelper
   def qr_code_image_tag(invitation, size: 200, alt: "QR Code for course invitation")
-    data_uri = invitation.qr_code_data_uri(size: size)
-    image_tag data_uri,
-              alt: alt,
-              class: "qr-code border border-gray-200 rounded-lg",
-              style: "width: #{size}px; height: #{size}px;"
+    # Use SVG instead of PNG for better compatibility and visibility
+    content_tag :div, 
+                class: "qr-code-container border border-gray-200 rounded-lg inline-block p-4 bg-white",
+                style: "width: #{size + 32}px; height: #{size + 32}px;" do
+      qr_code_svg(invitation, size: size, css_class: "qr-code w-full h-full")
+    end
   end
 
   def qr_code_svg(invitation, size: 200, css_class: "qr-code")

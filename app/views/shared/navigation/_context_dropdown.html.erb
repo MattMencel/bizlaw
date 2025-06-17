@@ -1,0 +1,93 @@
+<%# Context Switcher Dropdown Content %>
+<div class="p-2">
+  <%# Current Selection Header %>
+  <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-600 mb-2">
+    Current Selection
+  </div>
+  
+  <%# Current Case Display %>
+  <div class="px-3 py-2 bg-gray-700 rounded-md mb-3">
+    <div class="flex items-center text-white font-medium">
+      <svg class="h-4 w-4 mr-2 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <%= current_user_case&.title || "No Active Case" %>
+    </div>
+    <div class="text-sm text-gray-300 mt-1">
+      <%= current_user_team&.name || "No Team Assignment" %>
+    </div>
+  </div>
+
+  <%# Switch Team Section (if multiple teams in current case) %>
+  <% if current_user_case&.teams&.count.to_i > 1 %>
+    <div class="mb-4">
+      <div class="px-3 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+        Switch Team (Current Case)
+      </div>
+      <% current_user_case.teams.where.not(id: current_user_team&.id).each do |team| %>
+        <button type="button"
+                class="flex items-center px-3 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded-md transition-colors duration-150 w-full text-left"
+                data-action="click->context-switcher#switchTeam"
+                data-team-id="<%= team.id %>"
+                data-team-name="<%= team.name %>">
+          <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <%= team.name %>
+        </button>
+      <% end %>
+    </div>
+  <% end %>
+
+  <%# Switch Case Section %>
+  <div class="border-t border-gray-600 pt-2 mb-2">
+    <div class="px-3 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+      Switch Case
+    </div>
+    
+    <%# Available Cases %>
+    <% current_user.available_cases.where.not(id: current_user_case&.id).limit(5).each do |case_option| %>
+      <button type="button"
+              class="block px-3 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded-md transition-colors duration-150 w-full text-left"
+              data-action="click->context-switcher#switchCase"
+              data-case-id="<%= case_option.id %>"
+              data-case-name="<%= case_option.title %>">
+        <div class="flex items-start justify-between">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center font-medium truncate">
+              <svg class="h-4 w-4 mr-2 text-blue-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <%= case_option.title %>
+            </div>
+            <div class="text-sm text-gray-400 mt-1 flex items-center justify-between">
+              <span><%= case_option.user_team_for(current_user)&.name || "No Team" %> • <%= current_user.role_in_case(case_option)&.humanize || "Student" %></span>
+              <span class="flex items-center">
+                <span class="h-2 w-2 rounded-full <%= case_status_dot_color(case_option.status_for_user(current_user)) %> mr-1"></span>
+                <%= case_option.current_phase || "Pending" %>
+              </span>
+            </div>
+          </div>
+        </div>
+      </button>
+    <% end %>
+  </div>
+
+  <%# Recently Viewed Section %>
+  <% if current_user.recently_viewed_cases.any? %>
+    <div class="border-t border-gray-600 pt-2">
+      <div class="px-3 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+        Recently Viewed
+      </div>
+      <% current_user.recently_viewed_cases.limit(3).each do |recent_case| %>
+        <%= link_to case_path(recent_case), 
+                    class: "flex items-center px-3 py-2 text-gray-400 hover:bg-gray-700 hover:text-gray-300 rounded-md transition-colors duration-150 text-sm" do %>
+          <svg class="h-3 w-3 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <%= recent_case.title.truncate(30) %>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

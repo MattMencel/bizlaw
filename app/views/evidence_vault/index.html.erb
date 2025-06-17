@@ -1,0 +1,377 @@
+<div class="min-h-screen bg-gray-100">
+  <div class="py-6">
+    <header>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-3xl font-bold leading-tight text-gray-900">Evidence Vault</h1>
+            <p class="mt-2 text-gray-600"><%= @case.title %></p>
+          </div>
+          <div class="flex items-center space-x-4">
+            <% if @current_team %>
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                <%= @current_team.name %>
+              </span>
+            <% end %>
+            <button id="uploadDocumentBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+              <svg class="-ml-1 mr-2 h-5 w-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              Upload Document
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <!-- Search and Filter Interface -->
+        <div class="mb-6">
+          <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+              <h3 class="text-lg font-medium text-gray-900">Search & Filter</h3>
+            </div>
+            <div class="px-6 py-4">
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <!-- Search Input -->
+                <div>
+                  <label for="searchInput" class="block text-sm font-medium text-gray-700">Search Documents</label>
+                  <input type="text" id="searchInput" 
+                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                         placeholder="Search by title, content, or tags...">
+                </div>
+
+                <!-- Category Filter -->
+                <div>
+                  <label for="categoryFilter" class="block text-sm font-medium text-gray-700">Category</label>
+                  <select id="categoryFilter" 
+                          class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All Categories</option>
+                    <option value="case_facts">Case Facts</option>
+                    <option value="legal_precedents">Legal Precedents</option>
+                    <option value="evidence_documents">Evidence Documents</option>
+                    <option value="witness_statements">Witness Statements</option>
+                    <option value="expert_reports">Expert Reports</option>
+                    <option value="company_policies">Company Policies</option>
+                    <option value="communications">Communications</option>
+                    <option value="financial_records">Financial Records</option>
+                  </select>
+                </div>
+
+                <!-- View Mode Toggle -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">View Mode</label>
+                  <div class="mt-1 flex rounded-md shadow-sm">
+                    <button id="listViewBtn" class="view-mode-btn active px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50">
+                      List
+                    </button>
+                    <button id="gridViewBtn" class="view-mode-btn px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 border-l-0 hover:bg-gray-50">
+                      Grid
+                    </button>
+                    <button id="timelineViewBtn" class="view-mode-btn px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 border-l-0 rounded-r-md hover:bg-gray-50">
+                      Timeline
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Bulk Actions -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Bulk Actions</label>
+                  <div class="mt-1 flex space-x-2">
+                    <button id="selectAllBtn" class="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                      Select All
+                    </button>
+                    <button id="createBundleBtn" class="px-3 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 disabled:opacity-50" disabled>
+                      Create Bundle
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tag Filter Section -->
+              <div class="mt-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Tags</label>
+                <div id="tagFilters" class="flex flex-wrap gap-2">
+                  <!-- Tag filter pills will be dynamically populated -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Document Statistics -->
+        <div class="mb-6">
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+              <div class="p-5">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt class="text-sm font-medium text-gray-500 truncate">Total Documents</dt>
+                      <dd id="totalDocuments" class="text-lg font-medium text-gray-900"><%= @total_documents %></dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+              <div class="p-5">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10m0 0V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2m0 0v10a2 2 0 002 2h8a2 2 0 002-2V8"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt class="text-sm font-medium text-gray-500 truncate">Categories</dt>
+                      <dd id="totalCategories" class="text-lg font-medium text-gray-900"><%= @document_categories.keys.count %></dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+              <div class="p-5">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt class="text-sm font-medium text-gray-500 truncate">Annotated</dt>
+                      <dd id="annotatedDocuments" class="text-lg font-medium text-gray-900">-</dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+              <div class="p-5">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt class="text-sm font-medium text-gray-500 truncate">Evidence Bundles</dt>
+                      <dd id="evidenceBundles" class="text-lg font-medium text-gray-900">0</dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Document Library -->
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-medium text-gray-900">Document Library</h3>
+              <div class="flex items-center space-x-4">
+                <span id="searchResults" class="text-sm text-gray-500"></span>
+                <div id="loadingIndicator" class="hidden">
+                  <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Document List/Grid Container -->
+          <div id="documentsContainer" class="p-6">
+            <!-- Documents will be dynamically loaded here -->
+            <div id="emptyState" class="text-center py-12">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No documents found</h3>
+              <p class="mt-1 text-sm text-gray-500">Try adjusting your search criteria or upload new documents.</p>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div id="pagination" class="hidden bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+            <div class="flex items-center justify-between">
+              <div class="flex-1 flex justify-between sm:hidden">
+                <button id="prevPageMobile" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                  Previous
+                </button>
+                <button id="nextPageMobile" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                  Next
+                </button>
+              </div>
+              <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p class="text-sm text-gray-700">
+                    Showing <span id="fromResult">0</span> to <span id="toResult">0</span> of <span id="totalResults">0</span> results
+                  </p>
+                </div>
+                <div>
+                  <nav id="paginationNav" class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <!-- Pagination buttons will be dynamically generated -->
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Document Preview Modal -->
+<div id="documentPreviewModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+    
+    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+      <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 id="previewTitle" class="text-lg leading-6 font-medium text-gray-900"></h3>
+          <button id="closePreviewBtn" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <div id="previewContent" class="mb-4">
+          <!-- Document preview content will be loaded here -->
+        </div>
+        
+        <div class="flex items-center justify-between">
+          <div class="flex space-x-4">
+            <button id="downloadBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+              Download
+            </button>
+            <button id="annotateBtn" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+              Annotate
+            </button>
+            <button id="addTagsBtn" class="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+              Add Tags
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Annotation Modal -->
+<div id="annotationModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+    
+    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+      <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Add Annotation</h3>
+          <button id="closeAnnotationBtn" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <form id="annotationForm">
+          <div class="mb-4">
+            <label for="annotationContent" class="block text-sm font-medium text-gray-700">Annotation</label>
+            <textarea id="annotationContent" rows="4" 
+                      class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter your annotation..."></textarea>
+          </div>
+          
+          <div class="mb-4">
+            <label for="annotationPage" class="block text-sm font-medium text-gray-700">Page Number</label>
+            <input type="number" id="annotationPage" min="1" value="1"
+                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+          </div>
+          
+          <div class="flex items-center justify-end space-x-4">
+            <button type="button" id="cancelAnnotationBtn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+              Cancel
+            </button>
+            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700">
+              Save Annotation
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bundle Creation Modal -->
+<div id="bundleModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+    
+    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+      <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Create Evidence Bundle</h3>
+          <button id="closeBundleBtn" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <form id="bundleForm">
+          <div class="mb-4">
+            <label for="bundleName" class="block text-sm font-medium text-gray-700">Bundle Name</label>
+            <input type="text" id="bundleName" 
+                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                   placeholder="e.g., Harassment Evidence Package">
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Selected Documents</label>
+            <div id="selectedDocuments" class="mt-2 max-h-40 overflow-y-auto border border-gray-200 rounded-md p-2">
+              <!-- Selected documents will be listed here -->
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-end space-x-4">
+            <button type="button" id="cancelBundleBtn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+              Cancel
+            </button>
+            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700">
+              Create Bundle
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%= content_for :javascript do %>
+  <script src="<%= asset_path('evidence_vault.js') %>"></script>
+<% end %>

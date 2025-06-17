@@ -1,0 +1,124 @@
+<div class="space-y-3" data-json-field="<%= field_name %>">
+  <label class="block text-sm font-medium text-gray-700"><%= label %></label>
+  
+  <div class="dynamic-fields-container space-y-2" data-field-container="<%= field_name %>">
+    <% 
+      # Parse existing JSON or start with empty hash
+      existing_data = {}
+      if form.object.send(field_name).present?
+        begin
+          existing_data = JSON.parse(form.object.send(field_name))
+        rescue JSON::ParserError
+          # If it's not valid JSON, treat as empty
+          existing_data = {}
+        end
+      end
+      
+      # Show existing fields or one empty field if no data
+      fields_to_show = existing_data.any? ? existing_data : { "" => "" }
+    %>
+    
+    <% fields_to_show.each_with_index do |(key, value), index| %>
+      <div class="dynamic-field-row flex items-center space-x-2">
+        <input type="text" 
+               name="<%= field_name %>_keys[]" 
+               value="<%= key %>" 
+               placeholder="Field name (e.g., name, position)" 
+               class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+        <input type="text" 
+               name="<%= field_name %>_values[]" 
+               value="<%= value %>" 
+               placeholder="Field value" 
+               class="flex-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+        <button type="button" 
+                class="remove-field-btn inline-flex items-center p-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                onclick="removeField(this)">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    <% end %>
+  </div>
+  
+  <button type="button" 
+          class="add-field-btn inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          onclick="addField('<%= field_name %>')">
+    <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+    </svg>
+    Add Field
+  </button>
+  
+  <!-- Hidden field to store the final JSON -->
+  <%= form.hidden_field field_name, class: "json-storage-field" %>
+</div>
+
+<script>
+function addField(fieldName) {
+  const container = document.querySelector(`[data-field-container="${fieldName}"]`);
+  const newRow = document.createElement('div');
+  newRow.className = 'dynamic-field-row flex items-center space-x-2';
+  newRow.innerHTML = `
+    <input type="text" 
+           name="${fieldName}_keys[]" 
+           value="" 
+           placeholder="Field name (e.g., name, position)" 
+           class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+    <input type="text" 
+           name="${fieldName}_values[]" 
+           value="" 
+           placeholder="Field value" 
+           class="flex-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+    <button type="button" 
+            class="remove-field-btn inline-flex items-center p-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            onclick="removeField(this)">
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+  `;
+  container.appendChild(newRow);
+  updateJsonField(fieldName);
+}
+
+function removeField(button) {
+  const row = button.closest('.dynamic-field-row');
+  const fieldName = row.closest('[data-json-field]').dataset.jsonField;
+  row.remove();
+  updateJsonField(fieldName);
+}
+
+function updateJsonField(fieldName) {
+  const container = document.querySelector(`[data-field-container="${fieldName}"]`);
+  const hiddenField = document.querySelector(`#case_${fieldName}`);
+  
+  const keys = container.querySelectorAll(`input[name="${fieldName}_keys[]"]`);
+  const values = container.querySelectorAll(`input[name="${fieldName}_values[]"]`);
+  
+  const jsonData = {};
+  keys.forEach((keyInput, index) => {
+    const key = keyInput.value.trim();
+    const value = values[index].value.trim();
+    if (key) { // Only include fields with non-empty keys
+      jsonData[key] = value;
+    }
+  });
+  
+  hiddenField.value = JSON.stringify(jsonData);
+}
+
+// Update JSON when form fields change
+document.addEventListener('DOMContentLoaded', function() {
+  const containers = document.querySelectorAll('[data-json-field]');
+  containers.forEach(container => {
+    const fieldName = container.dataset.jsonField;
+    const inputs = container.querySelectorAll('input[type="text"]');
+    inputs.forEach(input => {
+      input.addEventListener('input', () => updateJsonField(fieldName));
+    });
+    // Initialize the JSON field
+    updateJsonField(fieldName);
+  });
+});
+</script>

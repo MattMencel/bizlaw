@@ -112,6 +112,43 @@ class SettlementOffer < ApplicationRecord
     end
   end
 
+  # Enhanced validation using the new range validation service
+  def client_range_validation
+    @client_range_validation ||= begin
+      validation_service = ClientRangeValidationService.new(simulation)
+      validation_service.validate_offer(team, amount)
+    end
+  end
+
+  # Check if offer is within client's "satisfied" range
+  def within_satisfied_range?
+    client_range_validation.satisfaction_score >= 70
+  end
+
+  # Get client pressure level for this offer
+  def client_pressure_level
+    client_range_validation.pressure_level
+  end
+
+  # Get client mood for this offer
+  def client_mood
+    client_range_validation.mood
+  end
+
+  # Check if offer positioning is strong
+  def strong_positioning?
+    [:strong_position, :excellent_position, :ideal_amount].include?(
+      client_range_validation.positioning
+    )
+  end
+
+  # Check if offer is problematic for client
+  def problematic_positioning?
+    [:too_aggressive, :below_minimum, :exceeds_maximum, :unacceptable_exposure].include?(
+      client_range_validation.positioning
+    )
+  end
+
   def quality_assessment
     score = 0
     factors = {}
@@ -321,8 +358,12 @@ class SettlementOffer < ApplicationRecord
   end
 
   def trigger_client_feedback
-    # This will be implemented in a service class
-    # ClientFeedbackService.new(self).generate_feedback
+    # Generate client feedback using the enhanced service
+    feedback_service = ClientFeedbackService.new(simulation)
+    feedback_service.generate_feedback_for_offer!(self)
+  rescue => e
+    Rails.logger.error "Failed to generate client feedback for settlement offer #{id}: #{e.message}"
+    # Don't let feedback generation failure break offer creation
   end
 
   def update_round_status

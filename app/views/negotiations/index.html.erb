@@ -1,0 +1,328 @@
+<% content_for :title, "Negotiation Dashboard - #{@case.title}" %>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header Section -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900"><%= @case.title %></h1>
+        <p class="mt-2 text-sm text-gray-600">
+          <span class="font-medium">Your Team:</span> <%= current_user_team.name %>
+          <span class="ml-4 font-medium">Role:</span> 
+          <span class="px-2 py-1 text-xs font-semibold rounded-full <%= current_user_team == @simulation.plaintiff_team ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800' %>">
+            <%= current_user_team == @simulation.plaintiff_team ? 'Plaintiff' : 'Defendant' %>
+          </span>
+        </p>
+      </div>
+      <div class="text-right">
+        <div class="text-sm text-gray-600">
+          <div>Round <%= @simulation.current_round %> of <%= @simulation.total_rounds %></div>
+          <div class="mt-1">
+            <span class="font-medium">Status:</span>
+            <span class="px-2 py-1 text-xs font-semibold rounded-full <%= 
+              case @simulation.status
+              when 'active' then 'bg-green-100 text-green-800'
+              when 'completed' then 'bg-gray-100 text-gray-800'
+              when 'arbitration' then 'bg-red-100 text-red-800'
+              else 'bg-yellow-100 text-yellow-800'
+              end
+            %>">
+              <%= @simulation.status.humanize %>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Main Content Area -->
+    <div class="lg:col-span-2 space-y-8">
+      <!-- Current Round Status -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-medium text-gray-900">Current Round Status</h2>
+        </div>
+        <div class="p-6">
+          <% if @current_round %>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Round <%= @current_round.round_number %></h3>
+                <p class="mt-2 text-lg text-gray-900">
+                  Deadline: <%= @current_round.deadline.strftime("%B %d, %Y at %I:%M %p") %>
+                </p>
+                <p class="mt-1 text-sm text-gray-600">
+                  Time remaining: 
+                  <span class="<%= @current_round.time_remaining <= 24 ? 'text-red-600 font-semibold' : 'text-gray-600' %>">
+                    <%= pluralize(@current_round.time_remaining.to_i, 'hour') %>
+                  </span>
+                </p>
+              </div>
+              <div>
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Submission Status</h3>
+                <div class="mt-2 space-y-2">
+                  <div class="flex items-center">
+                    <% if @current_team_offer %>
+                      <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                      </svg>
+                      <span class="ml-2 text-sm text-gray-900">Your team has submitted</span>
+                    <% else %>
+                      <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                      </svg>
+                      <span class="ml-2 text-sm text-gray-900">Awaiting your team's offer</span>
+                    <% end %>
+                  </div>
+                  <div class="flex items-center">
+                    <% opposing_offer = @current_round ? opposing_offer_for_round(@current_round) : nil %>
+                    <% if opposing_offer %>
+                      <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                      </svg>
+                      <span class="ml-2 text-sm text-gray-900">Opposing team has submitted</span>
+                    <% else %>
+                      <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                      </svg>
+                      <span class="ml-2 text-sm text-gray-900">Awaiting opposing team's offer</span>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-6 flex flex-wrap gap-3">
+              <% unless @current_team_offer %>
+                <%= link_to "Submit Settlement Offer", 
+                    submit_offer_case_negotiation_path(@case, @current_round), 
+                    class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+              <% else %>
+                <%= link_to "View Your Offer", 
+                    case_negotiation_path(@case, @current_round), 
+                    class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+                <% if Time.current <= @current_round.deadline %>
+                  <%= link_to "Revise Offer", 
+                      submit_offer_case_negotiation_path(@case, @current_round), 
+                      class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500" %>
+                <% end %>
+              <% end %>
+              
+              <% if opposing_offer %>
+                <%= link_to "Respond to Offer", 
+                    counter_offer_case_negotiation_path(@case, @current_round), 
+                    class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+              <% end %>
+              
+              <%= link_to "Settlement Calculator", 
+                  calculator_case_negotiations_path(@case), 
+                  class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+            </div>
+          <% else %>
+            <div class="text-center py-12">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No Active Round</h3>
+              <p class="mt-1 text-sm text-gray-500">The simulation has not started yet or has been completed.</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Recent Negotiation History -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <h2 class="text-lg font-medium text-gray-900">Recent Negotiation Activity</h2>
+          <%= link_to "View Full History", 
+              history_case_negotiations_path(@case), 
+              class: "text-sm text-indigo-600 hover:text-indigo-500" %>
+        </div>
+        <div class="p-6">
+          <% if @negotiation_rounds.any? %>
+            <div class="flow-root">
+              <ul role="list" class="-mb-8">
+                <% @negotiation_rounds.last(3).reverse_each.with_index do |round, index| %>
+                  <li>
+                    <div class="relative pb-8">
+                      <% unless index == @negotiation_rounds.last(3).length - 1 %>
+                        <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                      <% end %>
+                      <div class="relative flex space-x-3">
+                        <div>
+                          <span class="h-8 w-8 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white">
+                            <span class="text-xs font-medium text-white"><%= round.round_number %></span>
+                          </span>
+                        </div>
+                        <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                          <div>
+                            <p class="text-sm text-gray-500">
+                              Round <%= round.round_number %> 
+                              <span class="font-medium text-gray-900"><%= round.status.humanize %></span>
+                            </p>
+                            <% if round.settlement_offers.any? %>
+                              <div class="mt-2 text-sm text-gray-700">
+                                <% round.settlement_offers.each do |offer| %>
+                                  <div class="flex items-center justify-between py-1">
+                                    <span><%= offer.team.name %>: $<%= number_with_delimiter(offer.amount) %></span>
+                                    <span class="text-xs text-gray-500"><%= offer.submitted_at.strftime("%m/%d %I:%M%p") %></span>
+                                  </div>
+                                <% end %>
+                              </div>
+                            <% end %>
+                          </div>
+                          <div class="text-right text-sm whitespace-nowrap text-gray-500">
+                            <%= round.deadline.strftime("%m/%d") %>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% else %>
+            <div class="text-center py-6">
+              <p class="text-sm text-gray-500">No negotiation activity yet.</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+      <!-- Client Mood Indicator -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-medium text-gray-900">Client Status</h3>
+        </div>
+        <div class="p-6">
+          <div class="text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full <%= 
+              case @client_mood[:mood]
+              when 'confident', 'pleased' then 'bg-green-100'
+              when 'anxious', 'concerned' then 'bg-yellow-100'
+              when 'desperate' then 'bg-red-100'
+              else 'bg-gray-100'
+              end
+            %>">
+              <% case @client_mood[:mood] %>
+              <% when 'confident', 'pleased' %>
+                <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              <% when 'anxious', 'concerned' %>
+                <svg class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              <% when 'desperate' %>
+                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.182 16.318A4.486 4.486 0 0012.016 15a4.486 4.486 0 00-3.198 1.318M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              <% else %>
+                <svg class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              <% end %>
+            </div>
+            <p class="mt-2 text-sm font-medium text-gray-900 capitalize"><%= @client_mood[:mood] %></p>
+            <div class="mt-3 space-y-2">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-500">Confidence</span>
+                <span class="font-medium"><%= @client_mood[:confidence] %>/10</span>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-500">Satisfaction</span>
+                <span class="font-medium"><%= @client_mood[:satisfaction] %>/10</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pressure Indicators -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-medium text-gray-900">Negotiation Pressure</h3>
+        </div>
+        <div class="p-6 space-y-4">
+          <div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-500">Timeline Pressure</span>
+              <span class="font-medium px-2 py-1 rounded-full text-xs <%= 
+                case @pressure_status[:timeline_pressure]
+                when 'Critical' then 'bg-red-100 text-red-800'
+                when 'High' then 'bg-orange-100 text-orange-800'
+                when 'Medium' then 'bg-yellow-100 text-yellow-800'
+                else 'bg-green-100 text-green-800'
+                end
+              %>">
+                <%= @pressure_status[:timeline_pressure] %>
+              </span>
+            </div>
+          </div>
+          
+          <div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-500">Trial Date</span>
+              <span class="font-medium"><%= @pressure_status[:trial_date].strftime("%b %d, %Y") %></span>
+            </div>
+          </div>
+          
+          <div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-500">Media Attention</span>
+              <span class="font-medium">
+                <%= @pressure_status[:media_pressure] > 0 ? "#{@pressure_status[:media_pressure]} incidents" : "None" %>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-medium text-gray-900">Quick Actions</h3>
+        </div>
+        <div class="p-6">
+          <nav class="space-y-3">
+            <%= link_to case_evidence_vault_index_path(@case), 
+                class: "flex items-center text-sm text-gray-700 hover:text-gray-900" do %>
+              <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              Evidence Vault
+            <% end %>
+            
+            <%= link_to templates_case_negotiations_path(@case), 
+                class: "flex items-center text-sm text-gray-700 hover:text-gray-900" do %>
+              <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              Argument Templates
+            <% end %>
+            
+            <%= link_to calculator_case_negotiations_path(@case), 
+                class: "flex items-center text-sm text-gray-700 hover:text-gray-900" do %>
+              <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+              </svg>
+              Settlement Calculator
+            <% end %>
+            
+            <%= link_to case_path(@case), 
+                class: "flex items-center text-sm text-gray-700 hover:text-gray-900" do %>
+              <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+              Back to Case
+            <% end %>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

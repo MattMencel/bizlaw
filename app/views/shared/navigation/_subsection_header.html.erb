@@ -1,0 +1,18 @@
+<%# Navigation Subsection Header Component %>
+<button type="button" 
+        class="w-full flex items-center justify-between px-2 py-1.5 text-left text-xs font-medium text-gray-400 hover:text-gray-300 hover:bg-gray-700 rounded-sm transition-colors duration-150 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        data-action="click->navigation-menu#toggleSubsection"
+        data-navigation-menu-subsection-param="<%= subsection_id %>"
+        data-navigation-menu-target="subsectionToggle"
+        aria-expanded="true"
+        aria-controls="<%= subsection_id %>-content">
+  
+  <span class="uppercase tracking-wider"><%= title %></span>
+  
+  <%# Expand/Collapse Arrow %>
+  <svg class="h-3 w-3 text-gray-500 transform transition-transform duration-200" 
+       data-navigation-menu-target="subsectionArrow"
+       fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+  </svg>
+</button>

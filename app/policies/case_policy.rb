@@ -13,6 +13,10 @@ class CasePolicy < ApplicationPolicy
     user.instructor? || user.admin?
   end
 
+  def edit?
+    user_can_manage_case?
+  end
+
   def update?
     user_can_manage_case?
   end
@@ -25,19 +29,29 @@ class CasePolicy < ApplicationPolicy
 
   def user_can_access_case?
     return true if user.admin?
-    return true if user.instructor?
+    return true if user.instructor? && user_can_access_course?
     return true if record.created_by_id == user.id
 
-    # Students can access cases their teams are assigned to
+    # Students can access cases if they're enrolled in the course and assigned to teams
+    return false unless user_can_access_course?
     user.teams.joins(:case_teams).exists?(case_teams: { case_id: record.id })
   end
 
   def user_can_manage_case?
     return true if user.admin?
     return true if record.created_by_id == user.id
-    return true if user.instructor?
+    return true if user.instructor? && user_can_access_course?
 
     false
+  end
+
+  def user_can_access_course?
+    return true unless record.course
+    return true if user.admin?
+    return true if record.course.instructor == user
+    
+    # Students must be enrolled in the course
+    record.course.enrolled?(user)
   end
 
   class Scope < Scope

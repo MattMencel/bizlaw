@@ -1,10 +1,10 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
   <div class="py-8">
     <div class="flex justify-between items-center">
-      <h1 class="text-3xl font-bold text-gray-900">Cases</h1>
-      <%= link_to "New Case", new_case_path,
-          class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
-          data: { turbo_frame: "_top" } %>
+      <h1 class="text-3xl font-bold text-gray-900">All Cases</h1>
+      <div class="text-sm text-gray-500">
+        Cases are created within courses. Go to a course to create new cases.
+      </div>
     </div>
 
     <div class="mt-8">
@@ -22,7 +22,7 @@
         </div>
         <div>
           <%= f.select :case_type,
-              (@case_types || []).map { |ct| [ct.title, ct.id] },
+              Case.case_types.keys.map { |ct| [ct.humanize, ct] },
               { include_blank: "All Types" },
               class: "mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" %>
         </div>
@@ -40,16 +40,19 @@
                     <div class="flex items-center justify-between">
                       <div class="flex-1 min-w-0">
                         <div class="flex items-center">
-                          <%= link_to case_path(kase), class: "hover:text-indigo-600", data: { turbo_frame: "_top" } do %>
+                          <%= link_to course_case_path(kase.course, kase), class: "hover:text-indigo-600", data: { turbo_frame: "_top" } do %>
                             <p class="text-sm font-medium text-indigo-600 truncate"><%= kase.title %></p>
                           <% end %>
                           <p class="ml-2 text-sm text-gray-500">
                             <%= kase.reference_number %>
                           </p>
                         </div>
-                        <div class="mt-2 flex">
+                        <div class="mt-2 flex items-center space-x-4">
                           <div class="flex items-center text-sm text-gray-500">
-                            <span class="truncate"><%= kase.case_type.title %></span>
+                            <span class="truncate"><%= kase.case_type&.humanize || 'Unknown Type' %></span>
+                          </div>
+                          <div class="flex items-center text-sm text-gray-500">
+                            <span class="truncate">Course: <%= kase.course.display_name %></span>
                           </div>
                         </div>
                       </div>

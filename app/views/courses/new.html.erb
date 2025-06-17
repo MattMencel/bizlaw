@@ -79,9 +79,9 @@
       <!-- Term Selection -->
       <div data-controller="term-dates">
         <%= form.label :term_id, "Academic Term", class: "block text-sm font-medium leading-6 text-gray-900" %>
-        <% if current_user.organization.terms.active.any? %>
+        <% if current_user.organization&.terms&.active&.any? %>
           <%= form.collection_select :term_id,
-              current_user.organization.terms.active.by_start_date,
+              current_user.organization&.terms&.active&.by_start_date || [],
               :id,
               :full_name,
               { prompt: "Select an academic term" },
@@ -144,14 +144,14 @@
         </div>
 
         <!-- Hidden data for JavaScript -->
-        <% if current_user.organization.terms.active.any? %>
+        <% if current_user.organization&.terms&.active&.any? %>
           <script type="application/json" data-term-dates-data>
             {
-              <% current_user.organization.terms.active.by_start_date.each_with_index do |term, index| %>
+              <% (current_user.organization&.terms&.active&.by_start_date || []).each_with_index do |term, index| %>
                 "<%= term.id %>": {
                   "start_date": "<%= term.start_date&.strftime('%Y-%m-%d') %>",
                   "end_date": "<%= term.end_date&.strftime('%Y-%m-%d') %>"
-                }<%= index < current_user.organization.terms.active.by_start_date.count - 1 ? ',' : '' %>
+                }<%= index < (current_user.organization&.terms&.active&.by_start_date&.count || 0) - 1 ? ',' : '' %>
               <% end %>
             }
           </script>

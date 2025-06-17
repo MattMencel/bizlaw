@@ -57,4 +57,7 @@ Rails.application.configure do
 
   # Skip license enforcement in tests
   config.skip_license_enforcement = true
+
+  # Configure logging level to reduce noise in tests
+  config.log_level = :warn
 end

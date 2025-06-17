@@ -44,9 +44,56 @@ class DashboardController < ApplicationController
   end
 
   def load_student_data
-    @my_teams = current_user.teams.includes(:cases)
-    @my_cases = current_user.cases.includes(:documents)
+    @my_teams = current_user.teams.includes(cases: [ :simulation, :documents ])
+    @my_cases = current_user.cases.includes(:documents, :simulation, :case_teams)
+
+    # Simulation-specific data for dashboard
+    @active_simulations = current_user.teams
+                                     .joins(cases: :simulation)
+                                     .where(simulations: { status: [ :active, :paused ] })
+                                     .includes(:simulation, :case)
+
+    @completed_simulations = current_user.teams
+                                        .joins(cases: :simulation)
+                                        .where(simulations: { status: [ :completed, :arbitration ] })
+                                        .includes(:simulation, :case)
+
+    @pending_simulations = current_user.teams
+                                      .joins(cases: :simulation)
+                                      .where(simulations: { status: :setup })
+                                      .includes(:simulation, :case)
+
+    # Calculate simulation statistics
+    @simulation_stats = calculate_simulation_stats
+
     # TODO: implement activity tracking
     @recent_activity = []
+  end
+
+  def calculate_simulation_stats
+    total_simulations = current_user.teams.joins(cases: :simulation).count
+    completed_count = current_user.teams
+                                 .joins(cases: :simulation)
+                                 .where(simulations: { status: [ :completed, :arbitration ] })
+                                 .count
+
+    active_count = current_user.teams
+                              .joins(cases: :simulation)
+                              .where(simulations: { status: [ :active, :paused ] })
+                              .count
+
+    settlement_count = current_user.teams
+                                  .joins(cases: :simulation)
+                                  .where(simulations: { status: :completed })
+                                  .count
+
+    settlement_rate = completed_count > 0 ? (settlement_count.to_f / completed_count * 100).round(1) : 0
+
+    {
+      total: total_simulations,
+      active: active_count,
+      completed: completed_count,
+      settlement_rate: settlement_rate
+    }
   end
 end

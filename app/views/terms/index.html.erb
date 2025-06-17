@@ -1,0 +1,211 @@
+<div class="min-h-screen bg-gray-100">
+  <div class="py-10">
+    <header>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center">
+          <div>
+            <h1 class="text-3xl font-bold leading-tight text-gray-900">Terms</h1>
+            <p class="mt-2 text-gray-600">Manage academic terms and semesters</p>
+          </div>
+          <%= link_to new_term_path, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700" do %>
+            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            New Term
+          <% end %>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <!-- Current Terms -->
+        <% if @current_terms.any? %>
+          <div class="mb-8">
+            <div class="bg-white shadow rounded-lg">
+              <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Current Terms</h3>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <% @current_terms.each do |term| %>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <h4 class="text-md font-medium text-green-900"><%= term.display_name %></h4>
+                          <p class="text-sm text-green-700"><%= term.academic_year %></p>
+                          <p class="text-xs text-green-600 mt-1">
+                            <%= term.start_date.strftime("%b %d") %> - <%= term.end_date.strftime("%b %d, %Y") %>
+                          </p>
+                          <p class="text-xs text-green-600">
+                            <%= pluralize(term.courses_count, 'course') %>
+                          </p>
+                        </div>
+                        <div class="flex space-x-2">
+                          <%= link_to term_path(term), class: "text-green-600 hover:text-green-900 text-sm font-medium" do %>
+                            View
+                          <% end %>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Upcoming Terms -->
+        <% if @upcoming_terms.any? %>
+          <div class="mb-8">
+            <div class="bg-white shadow rounded-lg">
+              <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Upcoming Terms</h3>
+                <div class="space-y-4">
+                  <% @upcoming_terms.each do |term| %>
+                    <div class="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <h4 class="text-md font-medium text-blue-900"><%= term.display_name %></h4>
+                          <p class="text-sm text-blue-700"><%= term.academic_year %></p>
+                          <p class="text-xs text-blue-600 mt-1">
+                            Starts <%= term.start_date.strftime("%B %d, %Y") %>
+                          </p>
+                        </div>
+                        <div class="flex space-x-2">
+                          <%= link_to term_path(term), class: "text-blue-600 hover:text-blue-900 text-sm font-medium" do %>
+                            View
+                          <% end %>
+                          <%= link_to edit_term_path(term), class: "text-gray-600 hover:text-gray-900 text-sm font-medium" do %>
+                            Edit
+                          <% end %>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- All Terms -->
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">All Terms</h3>
+            <% if @terms.any? %>
+              <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                <table class="min-w-full divide-y divide-gray-300">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Term
+                      </th>
+                      <% if current_user.admin? %>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Organization
+                        </th>
+                      <% end %>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Academic Year
+                      </th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Dates
+                      </th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Courses
+                      </th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th class="relative px-6 py-3">
+                        <span class="sr-only">Actions</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    <% @terms.each do |term| %>
+                      <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <div class="text-sm font-medium text-gray-900">
+                            <%= link_to term.display_name, term_path(term), class: "text-blue-600 hover:text-blue-900" %>
+                          </div>
+                        </td>
+                        <% if current_user.admin? %>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <%= term.organization.display_name %>
+                          </td>
+                        <% end %>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <%= term.academic_year %>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <%= term.start_date.strftime("%b %d") %> - <%= term.end_date.strftime("%b %d, %Y") %>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <%= pluralize(term.courses_count, 'course') %>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <% if term.current? %>
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                              Current
+                            </span>
+                          <% elsif term.upcoming? %>
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                              Upcoming
+                            </span>
+                          <% else %>
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                              Past
+                            </span>
+                          <% end %>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div class="flex space-x-2">
+                            <%= link_to term_path(term), class: "text-blue-600 hover:text-blue-900" do %>
+                              View
+                            <% end %>
+                            <%= link_to edit_term_path(term), class: "text-gray-600 hover:text-gray-900" do %>
+                              Edit
+                            <% end %>
+                            <% unless term.courses.exists? %>
+                              <%= link_to term_path(term), method: :delete, 
+                                    confirm: "Are you sure you want to delete this term?",
+                                    class: "text-red-600 hover:text-red-900" do %>
+                                Delete
+                              <% end %>
+                            <% end %>
+                          </div>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+              
+              <% if @terms.respond_to?(:total_pages) && @terms.total_pages > 1 %>
+                <div class="mt-4">
+                  <%= paginate @terms %>
+                </div>
+              <% end %>
+            <% else %>
+              <div class="text-center py-8">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a4 4 0 118 0v4m-4 8a4 4 0 118 0v4H8v-4a4 4 0 118 0"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No terms yet</h3>
+                <p class="mt-1 text-sm text-gray-500">Get started by creating your first term.</p>
+                <div class="mt-6">
+                  <%= link_to new_term_path, class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    New Term
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

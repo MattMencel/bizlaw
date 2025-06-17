@@ -1,20 +1,21 @@
 # frozen_string_literal: true
 
 class ClientFeedbackService
-  attr_reader :simulation, :dynamics_service
+  attr_reader :simulation, :dynamics_service, :range_validation_service
 
   def initialize(simulation)
     @simulation = simulation
     @dynamics_service = SimulationDynamicsService.new(simulation)
+    @range_validation_service = ClientRangeValidationService.new(simulation)
   end
 
   # Main entry point for generating feedback after settlement offer submission
   def generate_feedback_for_offer!(settlement_offer)
     team = settlement_offer.team
-    round_number = settlement_offer.round_number
+    round_number = settlement_offer.negotiation_round.round_number
 
-    # Generate immediate offer reaction feedback
-    offer_feedback = ClientFeedback.generate_offer_reaction(simulation, team, settlement_offer)
+    # Generate range-based feedback using the new validation service
+    range_feedback = generate_range_based_feedback(settlement_offer)
 
     # Generate round-specific strategic guidance if needed
     strategic_feedback = generate_strategic_guidance_if_needed(team, round_number)
@@ -22,7 +23,7 @@ class ClientFeedbackService
     # Generate pressure response feedback if events were triggered
     pressure_feedback = generate_pressure_response_if_needed(team, round_number)
 
-    [offer_feedback, strategic_feedback, pressure_feedback].compact
+    [range_feedback, strategic_feedback, pressure_feedback].compact
   end
 
   # Generate feedback when simulation events are triggered
@@ -559,5 +560,86 @@ class ClientFeedbackService
     when 0.0..0.09 then "very_unhappy"
     else "neutral"
     end
+  end
+
+  # New range-based feedback generation method
+  def generate_range_based_feedback(settlement_offer)
+    team = settlement_offer.team
+    amount = settlement_offer.amount
+    
+    # Use the range validation service to assess the offer
+    validation_result = range_validation_service.validate_offer(team, amount)
+    
+    # Generate appropriate feedback message based on validation result
+    feedback_text = generate_feedback_message(team, validation_result, amount)
+    
+    ClientFeedback.create!(
+      simulation: simulation,
+      team: team,
+      feedback_type: :offer_reaction,
+      mood_level: validation_result.mood,
+      satisfaction_score: validation_result.satisfaction_score,
+      feedback_text: feedback_text,
+      triggered_by_round: settlement_offer.negotiation_round.round_number,
+      settlement_offer: settlement_offer
+    )
+  end
+
+  private
+
+  def generate_feedback_message(team, validation_result, amount)
+    team_role = determine_team_role(team)
+    
+    case team_role
+    when "plaintiff"
+      generate_plaintiff_feedback_message(validation_result)
+    when "defendant"
+      generate_defendant_feedback_message(validation_result)
+    else
+      "Client reviewing the settlement offer."
+    end
+  end
+
+  def generate_plaintiff_feedback_message(result)
+    case result.feedback_theme
+    when :unrealistic_demand
+      "Client concerned that this demand may be too aggressive and could alienate the defendant. Consider a more strategic opening position."
+    when :excellent_positioning
+      "Client is pleased with this strong position. This demonstrates confidence while remaining within reasonable negotiation bounds."
+    when :strategic_positioning
+      "Client finds this positioning reasonable and strategic. Shows good balance between ambition and pragmatism."
+    when :conservative_approach
+      "Client accepts this conservative approach but hopes for more assertive positioning in future rounds."
+    when :unacceptable_amount
+      "Client is very disappointed with this amount. This falls well below expectations and may not be worth pursuing."
+    when :concerning_low
+      "Client is concerned this amount is too low. We should aim higher to properly reflect the value of our case."
+    else
+      "Client is reviewing the settlement position and will provide guidance on next steps."
+    end
+  end
+
+  def generate_defendant_feedback_message(result)
+    case result.feedback_theme
+    when :conservative_approach
+      "Client pleased with this conservative approach. This keeps exposure minimal while showing good faith."
+    when :target_achieved
+      "Client satisfied with reaching the target settlement range. This represents ideal resolution for the company."
+    when :reasonable_settlement
+      "Client views this as an acceptable compromise. While higher than preferred, it's within acceptable bounds."
+    when :financial_concern
+      "Client getting concerned about the financial impact. This amount is approaching uncomfortable territory."
+    when :unacceptable_exposure
+      "Client very worried about this exposure level. This exceeds acceptable limits and creates significant risk."
+    when :serious_concern
+      "Client expressing serious concerns about settlement cost. Approaching maximum acceptable levels."
+    else
+      "Client is evaluating the settlement offer and considering response options."
+    end
+  end
+
+  def determine_team_role(team)
+    case_team = simulation.case.case_teams.find_by(team: team)
+    case_team&.role
   end
 end

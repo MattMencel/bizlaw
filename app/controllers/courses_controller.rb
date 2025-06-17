@@ -1,15 +1,17 @@
 # frozen_string_literal: true
 
 class CoursesController < ApplicationController
+  include LicenseEnforcement
+  
   before_action :authenticate_user!
-  before_action :set_course, only: [ :show, :edit, :update, :destroy, :manage_invitations, :create_invitation ]
+  before_action :set_course, only: [ :show, :edit, :update, :destroy, :manage_invitations, :create_invitation, :assign_students, :assign_student, :remove_student ]
   before_action :require_instructor_or_admin, except: [ :index, :show ]
-  before_action :authorize_course_access, only: [ :show, :edit, :update, :destroy, :manage_invitations, :create_invitation ]
+  before_action :authorize_course_access, only: [ :show, :edit, :update, :destroy, :manage_invitations, :create_invitation, :assign_students, :assign_student, :remove_student ]
   before_action :check_course_creation_limit!, only: [ :create ]
 
   def index
     @courses = if current_user.instructor? || current_user.admin?
-                current_user.taught_courses.includes(:students, :course_invitations).active
+                current_user.taught_courses.includes(:instructor).active
     else
                 current_user.enrolled_courses.includes(:instructor).active
     end
@@ -21,6 +23,7 @@ class CoursesController < ApplicationController
     @course_invitation = @course.course_invitations.active.first
     @students = @course.students.includes(:course_enrollments)
     @teams = @course.teams.includes(:team_members, :owner)
+    @cases = @course.cases.includes(:assigned_teams).recent_first.limit(5)
     @recent_enrollments = @course.course_enrollments.recent.limit(10).includes(:user)
   end
 
@@ -34,6 +37,11 @@ class CoursesController < ApplicationController
     @course = Course.new(course_params)
     @course.instructor = current_user
     @course.organization = current_user.organization
+    
+    # Set year if not provided (either from term or default to current year)
+    if @course.year.blank?
+      @course.year = @course.term&.academic_year || Date.current.year
+    end
 
     if @course.save
       # Create a default invitation
@@ -79,6 +87,59 @@ class CoursesController < ApplicationController
       @invitations = @course.course_invitations.includes(:course).order(created_at: :desc)
       @new_invitation = @invitation
       render :manage_invitations, status: :unprocessable_entity
+    end
+  end
+
+  def assign_students
+    unless @course.can_assign_students_directly?(current_user)
+      redirect_to @course, alert: "Direct assignment is not enabled for this organization."
+      return
+    end
+
+    @available_students = @course.available_students_for_assignment
+    
+    @available_students = @available_students.where(
+      "LOWER(first_name) LIKE :query OR LOWER(last_name) LIKE :query OR LOWER(email) LIKE :query",
+      query: "%#{params[:search].downcase}%"
+    ) if params[:search].present?
+
+    # Apply pagination if Kaminari is available
+    @available_students = @available_students.page(params[:page]).per(20) if defined?(Kaminari)
+
+    @enrolled_students = @course.students.includes(:course_enrollments).order(:last_name, :first_name)
+  end
+
+  def assign_student
+    unless @course.can_assign_students_directly?(current_user)
+      redirect_to @course, alert: "Direct assignment is not enabled for this organization."
+      return
+    end
+
+    @student = User.find(params[:student_id])
+
+    if @course.assign_student_directly!(@student)
+      redirect_to assign_students_course_path(@course),
+                  notice: "#{@student.full_name} has been successfully assigned to the course."
+    else
+      redirect_to assign_students_course_path(@course),
+                  alert: "Failed to assign #{@student.full_name} to the course."
+    end
+  end
+
+  def remove_student
+    unless @course.can_assign_students_directly?(current_user)
+      redirect_to @course, alert: "Direct assignment is not enabled for this organization."
+      return
+    end
+
+    @student = User.find(params[:student_id])
+
+    if @course.remove_student_directly!(@student)
+      redirect_to assign_students_course_path(@course),
+                  notice: "#{@student.full_name} has been successfully removed from the course."
+    else
+      redirect_to assign_students_course_path(@course),
+                  alert: "Failed to remove #{@student.full_name} from the course."
     end
   end
 

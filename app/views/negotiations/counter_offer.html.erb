@@ -1,0 +1,329 @@
+<% content_for :title, "Respond to Settlement Offer - #{@case.title}" %>
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center space-x-4">
+      <%= link_to case_negotiations_path(@case), 
+          class: "text-gray-400 hover:text-gray-500" do %>
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+      <% end %>
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Respond to Settlement Offer</h1>
+        <p class="mt-2 text-sm text-gray-600">
+          Round <%= @current_round.round_number %> of <%= @simulation.total_rounds %> • 
+          Deadline: <%= @current_round.deadline.strftime("%B %d, %Y at %I:%M %p") %>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Original Offer Display -->
+  <div class="mb-8 bg-gray-50 border border-gray-200 rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-medium text-gray-900">Opposing Team's Offer</h2>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Settlement Amount</h3>
+          <p class="mt-1 text-2xl font-bold text-gray-900">$<%= number_with_delimiter(@original_offer.amount) %></p>
+          <p class="mt-1 text-sm text-gray-600">
+            Submitted <%= time_ago_in_words(@original_offer.submitted_at) %> ago
+          </p>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Offer Type</h3>
+          <p class="mt-1 text-lg text-gray-900 capitalize"><%= @original_offer.offer_type.humanize %></p>
+          <p class="mt-1 text-sm text-gray-600">Round <%= @original_offer.round_number %></p>
+        </div>
+      </div>
+      
+      <div class="mt-6">
+        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Their Justification</h3>
+        <div class="mt-2 prose prose-sm text-gray-700 max-w-none">
+          <p class="whitespace-pre-wrap"><%= @original_offer.justification %></p>
+        </div>
+      </div>
+      
+      <% if @original_offer.non_monetary_terms.present? %>
+        <div class="mt-6">
+          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Non-Monetary Terms</h3>
+          <div class="mt-2 prose prose-sm text-gray-700 max-w-none">
+            <p class="whitespace-pre-wrap"><%= @original_offer.non_monetary_terms %></p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <%= form_with model: [@case, @settlement_offer], 
+      url: submit_counter_offer_case_negotiation_path(@case, @current_round),
+      local: true, 
+      class: "space-y-8" do |form| %>
+    
+    <% if @settlement_offer.errors.any? %>
+      <div class="rounded-md bg-red-50 p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">
+              There were errors with your submission:
+            </h3>
+            <div class="mt-2 text-sm text-red-700">
+              <ul role="list" class="list-disc list-inside space-y-1">
+                <% @settlement_offer.errors.full_messages.each do |error| %>
+                  <li><%= error %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Quick Response Options -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg">
+      <div class="px-6 py-4 border-b border-blue-200">
+        <h2 class="text-lg font-medium text-blue-900">Quick Response Options</h2>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button type="button" 
+                  data-action="accept" 
+                  class="response-option p-4 border border-green-200 rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500">
+            <div class="text-center">
+              <svg class="mx-auto h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <div class="mt-2 font-medium text-green-900">Accept Offer</div>
+              <div class="mt-1 text-sm text-green-700">Agree to their terms</div>
+            </div>
+          </button>
+          
+          <button type="button" 
+                  data-action="counter" 
+                  class="response-option p-4 border border-yellow-200 rounded-lg hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+            <div class="text-center">
+              <svg class="mx-auto h-8 w-8 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+              </svg>
+              <div class="mt-2 font-medium text-yellow-900">Counter Offer</div>
+              <div class="mt-1 text-sm text-yellow-700">Propose different terms</div>
+            </div>
+          </button>
+          
+          <button type="button" 
+                  data-action="reject" 
+                  class="response-option p-4 border border-red-200 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500">
+            <div class="text-center">
+              <svg class="mx-auto h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+              <div class="mt-2 font-medium text-red-900">Reject Offer</div>
+              <div class="mt-1 text-sm text-red-700">Decline and explain why</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Counter Offer Form -->
+    <div id="counter-offer-form" class="space-y-8">
+      <!-- Settlement Amount Section -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-medium text-gray-900">Your Counter Offer</h2>
+        </div>
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <%= form.label :amount, "Counter Offer Amount ($)", 
+                  class: "block text-sm font-medium text-gray-700" %>
+              <div class="mt-1 relative rounded-md shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span class="text-gray-500 sm:text-sm">$</span>
+                </div>
+                <%= form.number_field :amount, 
+                    class: "focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md",
+                    placeholder: "225000",
+                    step: 1000,
+                    min: 0 %>
+              </div>
+              <div class="mt-2 text-sm text-gray-500">
+                <div class="flex items-center justify-between">
+                  <span>Gap from their offer:</span>
+                  <span id="gap-display" class="font-medium">$0</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="space-y-4">
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">Negotiation Tips</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                  <li>• Move closer to their offer to show good faith</li>
+                  <li>• Justify your position with legal reasoning</li>
+                  <li>• Consider non-monetary terms for value</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Response Justification -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <h2 class="text-lg font-medium text-gray-900">Response Justification</h2>
+          <button type="button" 
+                  id="template-btn"
+                  class="text-sm text-indigo-600 hover:text-indigo-500">
+            Use Template
+          </button>
+        </div>
+        <div class="p-6">
+          <%= form.label :justification, "Explain your response to their offer", 
+              class: "block text-sm font-medium text-gray-700" %>
+          <%= form.text_area :justification, 
+              rows: 8,
+              class: "mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md",
+              placeholder: "Respond to their justification and explain your counter position..." %>
+          <div class="mt-2 flex items-center justify-between">
+            <p class="text-sm text-gray-500">Address their key points and justify your counter position</p>
+            <span id="char-count" class="text-sm text-gray-400">0 characters</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Non-Monetary Counter Terms -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-medium text-gray-900">Modify Non-Monetary Terms</h2>
+          <p class="mt-1 text-sm text-gray-600">Adjust or propose alternative non-monetary terms</p>
+        </div>
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Confidentiality Terms -->
+            <div>
+              <label class="text-sm font-medium text-gray-700">Confidentiality Agreement</label>
+              <div class="mt-2 space-y-2">
+                <% @non_monetary_options[:confidentiality].each do |option| %>
+                  <label class="inline-flex items-center">
+                    <%= check_box_tag "settlement_offer[confidentiality_terms][]", option, false, 
+                        class: "rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
+                    <span class="ml-2 text-sm text-gray-600"><%= option %></span>
+                  </label>
+                <% end %>
+              </div>
+            </div>
+
+            <!-- Other terms sections similar to submit_offer.html.erb -->
+            <div>
+              <label class="text-sm font-medium text-gray-700">Admission of Wrongdoing</label>
+              <div class="mt-2 space-y-2">
+                <% @non_monetary_options[:admissions].each do |option| %>
+                  <label class="inline-flex items-center">
+                    <%= radio_button_tag "settlement_offer[admission_terms]", option, false, 
+                        class: "border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
+                    <span class="ml-2 text-sm text-gray-600"><%= option %></span>
+                  </label>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Custom Counter Terms -->
+          <div class="mt-6">
+            <%= form.label :non_monetary_terms, "Your Non-Monetary Counter Proposal", 
+                class: "block text-sm font-medium text-gray-700" %>
+            <%= form.text_area :non_monetary_terms, 
+                rows: 3,
+                class: "mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md",
+                placeholder: "Propose modifications to their non-monetary terms or suggest alternatives..." %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+      <div class="flex items-center space-x-3">
+        <%= link_to "Save as Draft", "#", 
+            class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+      </div>
+      
+      <div class="flex items-center space-x-3">
+        <%= link_to "Cancel", case_negotiations_path(@case), 
+            class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+        <%= form.submit "Submit Counter Offer", 
+            class: "inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const originalAmount = <%= @original_offer.amount %>;
+  const amountField = document.querySelector('input[name="settlement_offer[amount]"]');
+  const gapDisplay = document.getElementById('gap-display');
+  const responseOptions = document.querySelectorAll('.response-option');
+  const counterOfferForm = document.getElementById('counter-offer-form');
+  const justificationField = document.querySelector('textarea[name="settlement_offer[justification]"]');
+  
+  // Update gap calculation
+  function updateGap() {
+    if (amountField && gapDisplay) {
+      const currentAmount = parseFloat(amountField.value) || 0;
+      const gap = Math.abs(currentAmount - originalAmount);
+      gapDisplay.textContent = '$' + gap.toLocaleString();
+    }
+  }
+  
+  amountField?.addEventListener('input', updateGap);
+  
+  // Handle quick response options
+  responseOptions.forEach(option => {
+    option.addEventListener('click', function() {
+      const action = this.dataset.action;
+      
+      // Remove active state from all options
+      responseOptions.forEach(opt => opt.classList.remove('ring-2', 'ring-indigo-500'));
+      // Add active state to clicked option
+      this.classList.add('ring-2', 'ring-indigo-500');
+      
+      switch(action) {
+        case 'accept':
+          amountField.value = originalAmount;
+          justificationField.value = `We accept your offer of $${originalAmount.toLocaleString()}. This settlement represents a fair resolution that serves both parties' interests.`;
+          updateGap();
+          break;
+        case 'reject':
+          amountField.value = '';
+          justificationField.value = `We must respectfully decline your offer of $${originalAmount.toLocaleString()}. Here are our concerns with the proposed terms:\n\n[Explain specific objections]\n\nWe believe a more appropriate settlement would address [specific issues].`;
+          updateGap();
+          break;
+        case 'counter':
+          // Just focus on the form, let user fill it out
+          amountField.focus();
+          break;
+      }
+    });
+  });
+  
+  // Character counter
+  const charCount = document.getElementById('char-count');
+  if (justificationField && charCount) {
+    justificationField.addEventListener('input', function() {
+      charCount.textContent = this.value.length + ' characters';
+    });
+  }
+});
+</script>

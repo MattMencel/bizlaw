@@ -1,0 +1,116 @@
+<div class="min-h-screen bg-gray-100">
+  <div class="py-10">
+    <header>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center space-x-4">
+          <%= link_to terms_path, class: "text-blue-600 hover:text-blue-900" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+          <% end %>
+          <h1 class="text-3xl font-bold leading-tight text-gray-900">New Term</h1>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <%= form_with model: @term, local: true, class: "space-y-6" do |form| %>
+              <% if @term.errors.any? %>
+                <div class="rounded-md bg-red-50 p-4">
+                  <div class="flex">
+                    <div class="flex-shrink-0">
+                      <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                    </div>
+                    <div class="ml-3">
+                      <h3 class="text-sm font-medium text-red-800">
+                        <%= pluralize(@term.errors.count, "error") %> prohibited this term from being saved:
+                      </h3>
+                      <div class="mt-2 text-sm text-red-700">
+                        <ul class="list-disc pl-5 space-y-1">
+                          <% @term.errors.full_messages.each do |message| %>
+                            <li><%= message %></li>
+                          <% end %>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+
+              <% if current_user.admin? %>
+                <div>
+                  <%= form.label :organization_id, "Organization", class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.collection_select :organization_id, @organizations, :id, :display_name,
+                      { prompt: "Select Organization" },
+                      { class: "mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" } %>
+                  <p class="mt-1 text-sm text-gray-500">Organization this term belongs to</p>
+                </div>
+              <% end %>
+
+              <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                  <%= form.label :term_name, class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.text_field :term_name, 
+                      placeholder: "e.g., Fall Semester, Spring Quarter",
+                      class: "mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" %>
+                  <p class="mt-1 text-sm text-gray-500">Name of the academic term</p>
+                </div>
+
+                <div>
+                  <%= form.label :academic_year, class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.number_field :academic_year, 
+                      value: @term.academic_year || Date.current.year,
+                      min: Date.current.year - 5,
+                      max: Date.current.year + 10,
+                      class: "mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" %>
+                  <p class="mt-1 text-sm text-gray-500">Academic year (e.g., 2024)</p>
+                </div>
+
+                <div>
+                  <%= form.label :start_date, class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.date_field :start_date, 
+                      class: "mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" %>
+                  <p class="mt-1 text-sm text-gray-500">When the term begins</p>
+                </div>
+
+                <div>
+                  <%= form.label :end_date, class: "block text-sm font-medium text-gray-700" %>
+                  <%= form.date_field :end_date, 
+                      class: "mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" %>
+                  <p class="mt-1 text-sm text-gray-500">When the term ends</p>
+                </div>
+              </div>
+
+              <div>
+                <%= form.label :description, class: "block text-sm font-medium text-gray-700" %>
+                <%= form.text_area :description, 
+                    rows: 3,
+                    placeholder: "Optional description or notes about this term",
+                    class: "mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" %>
+                <p class="mt-1 text-sm text-gray-500">Optional description for this term</p>
+              </div>
+
+              <div class="flex items-center">
+                <%= form.check_box :active, class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" %>
+                <%= form.label :active, "Active", class: "ml-2 block text-sm text-gray-900" %>
+                <p class="ml-2 text-sm text-gray-500">Term is available for course creation</p>
+              </div>
+
+              <div class="flex justify-end space-x-3">
+                <%= link_to terms_path, class: "bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" do %>
+                  Cancel
+                <% end %>
+                <%= form.submit "Create Term", class: "inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

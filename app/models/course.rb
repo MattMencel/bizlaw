@@ -13,6 +13,7 @@ class Course < ApplicationRecord
   has_many :students, through: :course_enrollments, source: :user
   has_many :course_invitations, dependent: :destroy
   has_many :teams, dependent: :nullify
+  has_many :cases, dependent: :destroy
 
   # Validations
   validates :title, presence: true, length: { maximum: 255 }
@@ -125,6 +126,46 @@ class Course < ApplicationRecord
     return true if user.admin?
     return true if instructor == user
     false
+  end
+
+  # Direct assignment methods
+  def direct_assignment_enabled?
+    organization.direct_assignment_enabled?
+  end
+
+  def available_students_for_assignment
+    return User.none unless direct_assignment_enabled?
+    
+    # Get all students in the organization who are not already enrolled
+    organization.students
+                .active
+                .where.not(id: students.select(:id))
+                .order(:last_name, :first_name)
+  end
+
+  def assign_student_directly!(user)
+    return false unless direct_assignment_enabled?
+    return false unless user.student?
+    return false unless organization.user_belongs_to_organization?(user)
+    return false if enrolled?(user)
+
+    enroll_student(user)
+  end
+
+  def remove_student_directly!(user)
+    return false unless direct_assignment_enabled?
+    return false unless user.student?
+    return false unless enrolled?(user)
+
+    # Find and withdraw the enrollment
+    enrollment = course_enrollments.find_by(user: user, status: "active")
+    return false unless enrollment
+
+    enrollment.withdraw!
+  end
+
+  def can_assign_students_directly?(current_user)
+    direct_assignment_enabled? && can_be_managed_by?(current_user)
   end
 
   private

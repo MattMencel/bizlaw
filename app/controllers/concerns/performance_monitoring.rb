@@ -54,11 +54,13 @@ module PerformanceMonitoring
       query_duration: ActiveRecord::QueryCounter.query_duration
     )
 
-    # Track memory usage
-    MetricsService.track_memory_usage(
-      endpoint: endpoint,
-      version: version,
-      memory: GetProcessMem.new.mb
-    )
+    # Track memory usage (if GetProcessMem is available)
+    if defined?(GetProcessMem)
+      MetricsService.track_memory_usage(
+        endpoint: endpoint,
+        version: version,
+        memory: GetProcessMem.new.mb
+      )
+    end
   end
 end

@@ -150,6 +150,24 @@ RSpec.describe Organization, type: :model do
     end
   end
 
+  # Direct assignment functionality
+  describe 'direct assignment functionality' do
+    it 'has direct assignment enabled by default' do
+      expect(organization.direct_assignment_enabled?).to be true
+    end
+
+    it 'can disable direct assignment' do
+      organization.disable_direct_assignment!
+      expect(organization.direct_assignment_enabled?).to be false
+    end
+
+    it 'can enable direct assignment' do
+      organization.update!(direct_assignment_enabled: false)
+      organization.enable_direct_assignment!
+      expect(organization.direct_assignment_enabled?).to be true
+    end
+  end
+
   describe 'callbacks' do
     describe 'slug normalization' do
       it 'generates slug from name if blank' do
