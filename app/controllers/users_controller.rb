@@ -11,6 +11,9 @@ class UsersController < ApplicationController
     session[:impersonated_user_id] = user_to_impersonate.id
     session[:impersonation_full_permissions] = false
 
+    # Force session to be saved before redirect
+    session.commit!
+    
     flash[:notice] = "You are now impersonating #{user_to_impersonate.full_name} in read-only mode."
     redirect_to dashboard_path
   end

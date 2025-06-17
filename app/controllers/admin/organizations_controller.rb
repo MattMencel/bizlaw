@@ -107,6 +107,6 @@ class Admin::OrganizationsController < ApplicationController
   end
 
   def organization_params
-    params.require(:organization).permit(:name, :domain, :slug, :active, :license_id)
+    params.require(:organization).permit(:name, :domain, :slug, :active, :license_id, :direct_assignment_enabled)
   end
 end

@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory :case do
-    association :team
+    association :course
     association :created_by, factory: :user
     association :updated_by, factory: :user
 
@@ -16,13 +16,30 @@ FactoryBot.define do
     defendant_info { { "name" => "TechFlow Industries", "type" => "Corporation" } }
     legal_issues { ["Sexual harassment", "Hostile work environment", "Retaliation"] }
 
-    # Create case teams after the case is created
-    after(:create) do |case_instance|
-      plaintiff_team = create(:team, name: "#{case_instance.title} - Plaintiff Team")
-      defendant_team = create(:team, name: "#{case_instance.title} - Defendant Team")
+    trait :with_teams do
+      # Create case teams after the case is created
+      after(:create) do |case_instance|
+        # Create owners who are enrolled in the course
+        plaintiff_owner = create(:user)
+        defendant_owner = create(:user)
+        
+        create(:course_enrollment, user: plaintiff_owner, course: case_instance.course)
+        create(:course_enrollment, user: defendant_owner, course: case_instance.course)
+        
+        plaintiff_team = create(:team, 
+          name: "#{case_instance.title} - Plaintiff Team",
+          course: case_instance.course,
+          owner: plaintiff_owner
+        )
+        defendant_team = create(:team, 
+          name: "#{case_instance.title} - Defendant Team",
+          course: case_instance.course,
+          owner: defendant_owner
+        )
 
-      create(:case_team, case: case_instance, team: plaintiff_team, role: "plaintiff")
-      create(:case_team, case: case_instance, team: defendant_team, role: "defendant")
+        create(:case_team, case: case_instance, team: plaintiff_team, role: "plaintiff")
+        create(:case_team, case: case_instance, team: defendant_team, role: "defendant")
+      end
     end
 
     trait :with_documents do

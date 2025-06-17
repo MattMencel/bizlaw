@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "puppeteer": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-puppeteer"
+      ]
+    }
+  }
+}

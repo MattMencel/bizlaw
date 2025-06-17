@@ -2,6 +2,7 @@
 
 class License < ApplicationRecord
   include HasUuid
+  include SoftDeletable
 
   # Associations
   has_one :organization, dependent: :nullify

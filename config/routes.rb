@@ -1,12 +1,18 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
+  # Quick fix for favicon requests during testing
+  get '/favicon.ico', to: proc { [404, {}, []] }
   # Course management routes
   resources :courses do
     resources :teams, except: [:index]
+    resources :cases
     member do
       get :manage_invitations
       post :create_invitation
+      get :assign_students
+      post :assign_student
+      delete :remove_student
     end
   end
 
@@ -34,6 +40,15 @@ Rails.application.routes.draw do
 
       # Profile routes
       resource :profile, only: [ :show, :update ]
+
+      # Context switching routes
+      resource :context, only: [], controller: 'context' do
+        get :current
+        patch :switch_case
+        patch :switch_team
+        get :search
+        get :available
+      end
 
       # Document endpoints
       resources :documents do
@@ -127,7 +142,37 @@ Rails.application.routes.draw do
   root "home#index"
 
   # Main resources
-  resources :cases
+  resources :terms
+  resources :cases, only: [:index] do
+    # Evidence vault interface
+    resources :evidence_vault, only: [:index, :show] do
+      member do
+        post :annotate
+        put :update_tags
+      end
+      collection do
+        get :search
+        post :bundles, action: :create_bundle
+      end
+    end
+    
+    # Negotiation interface
+    resources :negotiations, only: [:index, :show, :new, :create, :edit, :update] do
+      member do
+        get :submit_offer
+        post :create_offer
+        get :counter_offer
+        post :submit_counter_offer
+        get :client_consultation
+        post :consult_client
+      end
+      collection do
+        get :history
+        get :templates
+        get :calculator
+      end
+    end
+  end
   resources :teams, only: [:index, :show]
 
   # Static pages
@@ -190,6 +235,18 @@ Rails.application.routes.draw do
       post :request_trial
     end
   end
+
+  # Scoring Dashboard routes
+  resource :scoring_dashboard, only: [:show] do
+    get :performance_data
+    get :trends
+    get :class_analytics
+    post :export_report
+    patch :update_score
+  end
+  
+  # Alias for instructor dashboard
+  get "instructor_scoring_dashboard", to: "scoring_dashboard#index"
 
   # Admin impersonation routes
   scope :admin do

@@ -19,9 +19,9 @@ Task list generated from [.prd/LEGAL_SIMULATION_PRD.md](../.prd/LEGAL_SIMULATION
 
 ## Negotiation Rounds
 - [x] As a team member, I can view the current case and its details. _(1 pt)_ - Completed: Case model with metadata storage, API endpoints, and basic web views
-- [ ] As a team, we can submit an offer or counteroffer for the current round. _(2 pts)_ - Partially implemented: Case model supports status workflow, needs negotiation round UI
-- [ ] As the system, I can track and store all offers and rounds for a case. _(2 pts)_ - Partially implemented: CaseEvent model for audit trails, needs specific offer tracking
-- [ ] As a team, I receive feedback after submitting an offer ("too high/low"). _(2 pts)_ - Not implemented: Needs negotiation logic and feedback system
+- [x] As a team, we can submit an offer or counteroffer for the current round. _(2 pts)_ - Completed: Full offer submission portal with counter-proposal system, client consultation, and argument templates
+- [x] As the system, I can track and store all offers and rounds for a case. _(2 pts)_ - Completed: NegotiationRound and SettlementOffer models with comprehensive tracking
+- [x] As a team, I receive feedback after submitting an offer ("too high/low"). _(2 pts)_ - Completed: Real-time client feedback system with mood indicators and strategic guidance
 
 ## Hidden Client Range
 - [ ] As the system, I maintain a hidden acceptable range for each team and use it to generate feedback. _(2 pts)_
@@ -53,15 +53,34 @@ Task list generated from [.prd/LEGAL_SIMULATION_PRD.md](../.prd/LEGAL_SIMULATION
   - Phase 4: Assessment and administration (scoring, instructor tools, security)
 
 ### Implementation References
-- [Detailed Implementation Tasks](.cursor/SEXUAL_HARASSMENT_SIMULATION_TASKS.md) - Complete task breakdown with 118 story points
-- [BDD Feature Stories](../features/sexual_harassment_simulation.feature) - Cucumber scenarios for acceptance testing
+- [Detailed Implementation Tasks](.cursor/SEXUAL_HARASSMENT_SIMULATION_TASKS.md) - Complete task breakdown with 126 story points (70 completed)
+- [BDD Feature Stories](../features/offer_submission_portal.feature) - Cucumber scenarios for offer submission portal
 - [Simulation PRD](../.prd/SCENARIO_SEXUAL_HARASSMENT_SIMULATION_PRD.md) - Complete product requirements document
 
-### Key Milestones
-- [ ] **Phase 1 Complete**: Core simulation infrastructure ready _(Weeks 1-2)_
-- [ ] **Phase 2 Complete**: Dynamic simulation logic implemented _(Weeks 3-4)_
-- [ ] **Phase 3 Complete**: Student-facing interface complete _(Weeks 5-6)_
-- [ ] **Phase 4 Complete**: Assessment and admin tools ready _(Weeks 7-8)_
+### Recently Completed: Navigation & Interface Improvements ✅
+- **Navigation System**: Fully hierarchical navigation with context switcher
+- **Routes**: Comprehensive routing system with `/cases/:id/negotiations`, `/cases/:id/evidence_vault`, API endpoints
+- **Controllers**: Complete suite including `NegotiationsController`, `EvidenceVaultController`, API controllers
+- **Views**: 12+ comprehensive views across evidence vault, negotiations, and dashboard interfaces
+- **Features**: Evidence vault with search/annotation, offer submission with templates, real-time feedback, mobile responsive
+- **Integration**: Full API integration with simulation models and business logic
+- **Testing**: Comprehensive Cucumber BDD feature coverage
+
+### Key Milestones - UPDATED STATUS (June 17, 2025)
+- [x] **Phase 1 Complete**: Core simulation infrastructure ready _(Weeks 1-2)_ ✅
+- [x] **Phase 2 Complete**: Dynamic simulation logic implemented _(Weeks 3-4)_ ✅
+- [x] **Phase 3 Complete**: Student-facing interfaces complete _(Weeks 5-6)_ ✅
+  - ✅ Evidence Vault Interface (Full search, annotation, document management)
+  - ✅ Offer Submission Portal (Templates, counter-offers, client consultation)
+  - ✅ Navigation System (Hierarchical sidebar with context switching)
+  - ✅ Dashboard Integration (Student/instructor/admin dashboards)
+  - 🔄 Strategy Planning Board (ON HOLD - not critical for launch)
+- [x] **Phase 4 Nearly Complete**: Assessment and admin tools _(Weeks 7-8)_ ✅
+  - ✅ Real-time scoring dashboard with comprehensive analytics
+  - ✅ Instructor monitoring dashboard with intervention tools
+  - ✅ Grading and feedback tools with manual adjustment capabilities
+  - ✅ Post-simulation analysis tools with PDF export
+  - 🔄 Minor remaining: scenario preview system, content handling
 - [ ] **Pilot Testing**: Instructor and student validation _(Week 9)_
 - [ ] **Production Launch**: First live simulation deployment _(Week 10)_
 

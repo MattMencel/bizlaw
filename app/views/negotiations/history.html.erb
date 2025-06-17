@@ -1,0 +1,194 @@
+<% content_for :title, "Negotiation History - #{@case.title}" %>
+
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center space-x-4">
+      <%= link_to case_negotiations_path(@case), 
+          class: "text-gray-400 hover:text-gray-500" do %>
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+      <% end %>
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Negotiation History</h1>
+        <p class="mt-2 text-sm text-gray-600">Complete timeline of all settlement offers and responses</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Timeline -->
+    <div class="lg:col-span-2">
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-medium text-gray-900">Negotiation Timeline</h2>
+        </div>
+        <div class="p-6">
+          <% if @negotiation_timeline.any? %>
+            <div class="flow-root">
+              <ul role="list" class="-mb-8">
+                <% @negotiation_timeline.each_with_index do |item, index| %>
+                  <li>
+                    <div class="relative pb-8">
+                      <% unless index == @negotiation_timeline.length - 1 %>
+                        <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                      <% end %>
+                      <div class="relative flex space-x-3">
+                        <div>
+                          <span class="h-8 w-8 rounded-full <%= 
+                            item[:team] == current_user_team.name ? 'bg-indigo-500' : 'bg-gray-400'
+                          %> flex items-center justify-center ring-8 ring-white">
+                            <span class="text-xs font-medium text-white"><%= item[:round] %></span>
+                          </span>
+                        </div>
+                        <div class="min-w-0 flex-1 pt-1.5">
+                          <div class="flex items-center justify-between">
+                            <div>
+                              <p class="text-sm text-gray-500">
+                                <span class="font-medium text-gray-900"><%= item[:team] %></span>
+                                submitted a <%= item[:offer_type].humanize.downcase %>
+                              </p>
+                              <p class="mt-1 text-lg font-semibold text-gray-900">
+                                $<%= number_with_delimiter(item[:amount]) %>
+                              </p>
+                            </div>
+                            <div class="text-right text-sm whitespace-nowrap text-gray-500">
+                              <time datetime="<%= item[:submitted_at].iso8601 %>">
+                                <%= item[:submitted_at].strftime("%m/%d/%Y %I:%M %p") %>
+                              </time>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% else %>
+            <div class="text-center py-12">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No negotiations yet</h3>
+              <p class="mt-1 text-sm text-gray-500">When offers are submitted, they'll appear here.</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analysis Sidebar -->
+    <div class="space-y-6">
+      <!-- Settlement Progress -->
+      <% if @settlement_analysis.any? %>
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Settlement Analysis</h3>
+          </div>
+          <div class="p-6">
+            <div class="space-y-4">
+              <div>
+                <h4 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Current Gap</h4>
+                <p class="mt-1 text-2xl font-bold text-gray-900">
+                  $<%= number_with_delimiter(@settlement_analysis[:current_gap]) %>
+                </p>
+                <p class="mt-1 text-sm text-gray-600">
+                  <%= @settlement_analysis[:gap_percentage] %>% difference
+                </p>
+              </div>
+              
+              <div>
+                <h4 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Movement Trend</h4>
+                <p class="mt-1 text-lg text-gray-900 capitalize">
+                  <%= @settlement_analysis[:movement_trend].humanize %>
+                </p>
+              </div>
+              
+              <div>
+                <h4 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Settlement Probability</h4>
+                <div class="mt-2">
+                  <div class="flex items-center justify-between text-sm">
+                    <span>Likelihood</span>
+                    <span class="font-medium"><%= @settlement_analysis[:settlement_probability] %>%</span>
+                  </div>
+                  <div class="mt-2 bg-gray-200 rounded-full h-2">
+                    <div class="bg-indigo-600 h-2 rounded-full" 
+                         style="width: <%= @settlement_analysis[:settlement_probability] %>%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Round Summary -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-medium text-gray-900">Round Summary</h3>
+        </div>
+        <div class="p-6">
+          <div class="space-y-4">
+            <% @all_rounds.each do |round| %>
+              <div class="border-l-4 <%= 
+                case round.status
+                when 'completed' then 'border-green-400 bg-green-50'
+                when 'active' then 'border-blue-400 bg-blue-50'
+                else 'border-gray-400 bg-gray-50'
+                end
+              %> pl-4 py-2">
+                <div class="flex items-center justify-between">
+                  <h4 class="text-sm font-medium text-gray-900">Round <%= round.round_number %></h4>
+                  <span class="text-xs text-gray-500 capitalize"><%= round.status %></span>
+                </div>
+                <div class="mt-1 text-sm text-gray-600">
+                  <% offers_count = round.settlement_offers.count %>
+                  <%= pluralize(offers_count, 'offer') %> submitted
+                  <% if round.deadline %>
+                    • Due <%= round.deadline.strftime("%m/%d") %>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-medium text-gray-900">Quick Actions</h3>
+        </div>
+        <div class="p-6">
+          <nav class="space-y-3">
+            <%= link_to case_negotiations_path(@case), 
+                class: "flex items-center text-sm text-gray-700 hover:text-gray-900" do %>
+              <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+              </svg>
+              Back to Dashboard
+            <% end %>
+            
+            <%= link_to calculator_case_negotiations_path(@case), 
+                class: "flex items-center text-sm text-gray-700 hover:text-gray-900" do %>
+              <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+              </svg>
+              Settlement Calculator
+            <% end %>
+            
+            <%= link_to templates_case_negotiations_path(@case), 
+                class: "flex items-center text-sm text-gray-700 hover:text-gray-900" do %>
+              <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              Argument Templates
+            <% end %>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

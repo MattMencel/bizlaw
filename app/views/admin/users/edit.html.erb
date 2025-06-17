@@ -65,16 +65,19 @@
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <%= form.label :role, class: "block text-sm font-medium text-gray-700" %>
-                  <%= form.select :role,
-                      options_for_select([
-                        ['Student', 'student'],
-                        ['Instructor', 'instructor'],
-                        ['Admin', 'admin']
-                      ], @user.role),
-                      {},
-                      { class: "mt-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" } %>
-                  <p class="mt-1 text-sm text-gray-500">Choose the user's role and access level</p>
+                  <%= form.label :roles, "User Roles", class: "block text-sm font-medium text-gray-700" %>
+                  <div class="mt-2 space-y-2">
+                    <% User::AVAILABLE_ROLES.each do |role| %>
+                      <div class="flex items-center">
+                        <%= check_box_tag "user[roles][]", role, @user.has_role?(role),
+                            class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded",
+                            id: "user_roles_#{role}" %>
+                        <%= label_tag "user_roles_#{role}", role.humanize, class: "ml-2 block text-sm text-gray-900" %>
+                      </div>
+                    <% end %>
+                    <%= hidden_field_tag "user[roles][]", "" %>
+                  </div>
+                  <p class="mt-1 text-sm text-gray-500">Select one or more roles for this user</p>
                 </div>
 
                 <div>

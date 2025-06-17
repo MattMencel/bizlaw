@@ -1,4 +1,312 @@
-<div>
-  <h1 class="font-bold text-4xl">Courses#edit</h1>
-  <p>Find me in app/views/courses/edit.html.erb</p>
+<% content_for :title, "Edit #{@course.display_name}" %>
+
+<div class="max-w-2xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+  <!-- Breadcrumb Navigation -->
+  <nav class="flex mb-8" aria-label="Breadcrumb">
+    <ol role="list" class="flex items-center space-x-4">
+      <li>
+        <div class="flex">
+          <%= link_to "Courses", courses_path, class: "text-sm font-medium text-gray-500 hover:text-gray-700" %>
+        </div>
+      </li>
+      <li>
+        <div class="flex items-center">
+          <svg class="flex-shrink-0 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+          </svg>
+          <%= link_to @course.display_name, course_path(@course), class: "ml-4 text-sm font-medium text-gray-500 hover:text-gray-700" %>
+        </div>
+      </li>
+      <li>
+        <div class="flex items-center">
+          <svg class="flex-shrink-0 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+          </svg>
+          <span class="ml-4 text-sm font-medium text-gray-500">Edit</span>
+        </div>
+      </li>
+    </ol>
+  </nav>
+
+  <!-- Header -->
+  <div class="md:flex md:items-center md:justify-between mb-8">
+    <div class="min-w-0 flex-1">
+      <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+        Edit Course
+      </h2>
+      <p class="mt-1 text-sm text-gray-500">
+        Update course information and settings for <%= @course.display_name %>.
+      </p>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg">
+    <%= form_with model: @course, local: true, class: "space-y-6 p-6" do |form| %>
+      <!-- Error Messages -->
+      <% if @course.errors.any? %>
+        <div class="rounded-md bg-red-50 p-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-red-800">
+                There <%= @course.errors.count == 1 ? 'was' : 'were' %> <%= pluralize(@course.errors.count, 'error') %> with your submission:
+              </h3>
+              <div class="mt-2 text-sm text-red-700">
+                <ul role="list" class="list-disc space-y-1 pl-5">
+                  <% @course.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Course Basic Information -->
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <!-- Course Title -->
+        <div class="sm:col-span-2">
+          <%= form.label :title, class: "block text-sm font-medium leading-6 text-gray-900" %>
+          <%= form.text_field :title,
+              placeholder: "e.g., Business Law Fundamentals",
+              class: "mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 #{'ring-red-300 focus:ring-red-600' if @course.errors[:title].any?}" %>
+          <% if @course.errors[:title].any? %>
+            <p class="mt-2 text-sm text-red-600"><%= @course.errors[:title].first %></p>
+          <% end %>
+        </div>
+
+        <!-- Course Code -->
+        <div class="sm:col-span-2">
+          <%= form.label :course_code, class: "block text-sm font-medium leading-6 text-gray-900" %>
+          <%= form.text_field :course_code,
+              placeholder: "e.g., BLAW-101",
+              class: "mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 #{'ring-red-300 focus:ring-red-600' if @course.errors[:course_code].any?}" %>
+          <% if @course.errors[:course_code].any? %>
+            <p class="mt-2 text-sm text-red-600"><%= @course.errors[:course_code].first %></p>
+          <% end %>
+          <p class="mt-2 text-sm text-gray-500">Course code must be unique within your organization.</p>
+        </div>
+      </div>
+
+      <!-- Course Description -->
+      <div>
+        <%= form.label :description, class: "block text-sm font-medium leading-6 text-gray-900" %>
+        <%= form.text_area :description,
+            rows: 4,
+            placeholder: "Describe what students will learn in this course...",
+            class: "mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6" %>
+        <p class="mt-2 text-sm text-gray-500">Brief description of the course content and objectives.</p>
+      </div>
+
+      <!-- Term Selection -->
+      <div data-controller="term-dates">
+        <%= form.label :term_id, "Academic Term", class: "block text-sm font-medium leading-6 text-gray-900" %>
+        <% if current_user.organization&.terms&.active&.any? %>
+          <%= form.collection_select :term_id,
+              current_user.organization&.terms&.active&.by_start_date || [],
+              :id,
+              :full_name,
+              { prompt: "Select an academic term", include_blank: "No term (manual dates)" },
+              {
+                class: "mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6",
+                data: {
+                  action: "change->term-dates#updateDates",
+                  term_dates_target: "termSelect"
+                }
+              } %>
+          <p class="mt-2 text-sm text-gray-500">
+            <% if @course.term_id.present? %>
+              Currently linked to <%= @course.term.full_name %>. You can change the term or remove it to set custom dates.
+            <% else %>
+              Select a term to auto-populate course dates, or leave blank to set custom dates.
+            <% end %>
+          </p>
+        <% else %>
+          <div class="mt-2 rounded-md bg-yellow-50 p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800">No Academic Terms Configured</h3>
+                <div class="mt-2 text-sm text-yellow-700">
+                  <p>Your organization hasn't set up academic terms yet. You can continue using custom course dates below.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <%= form.hidden_field :term_id, value: nil %>
+        <% end %>
+
+        <!-- Course Dates -->
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-6">
+          <div>
+            <%= form.label :start_date, class: "block text-sm font-medium leading-6 text-gray-900" %>
+            <%= form.date_field :start_date,
+                class: "mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6",
+                data: { term_dates_target: "startDate" } %>
+            <p class="mt-1 text-sm text-gray-500">
+              <% if @course.term_id.present? %>
+                Currently set from linked term, but can be customized
+              <% else %>
+                When the course begins
+              <% end %>
+            </p>
+          </div>
+
+          <div>
+            <%= form.label :end_date, class: "block text-sm font-medium leading-6 text-gray-900" %>
+            <%= form.date_field :end_date,
+                class: "mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6",
+                data: { term_dates_target: "endDate" } %>
+            <p class="mt-1 text-sm text-gray-500">
+              <% if @course.term_id.present? %>
+                Currently set from linked term, but can be customized
+              <% else %>
+                When the course ends
+              <% end %>
+            </p>
+          </div>
+        </div>
+
+        <!-- Hidden data for JavaScript -->
+        <% if current_user.organization&.terms&.active&.any? %>
+          <script type="application/json" data-term-dates-data>
+            {
+              <% (current_user.organization&.terms&.active&.by_start_date || []).each_with_index do |term, index| %>
+                "<%= term.id %>": {
+                  "start_date": "<%= term.start_date&.strftime('%Y-%m-%d') %>",
+                  "end_date": "<%= term.end_date&.strftime('%Y-%m-%d') %>"
+                }<%= index < (current_user.organization&.terms&.active&.by_start_date&.count || 0) - 1 ? ',' : '' %>
+              <% end %>
+            }
+          </script>
+        <% end %>
+      </div>
+
+      <!-- Course Status -->
+      <div class="flex items-center">
+        <%= form.check_box :active,
+            class: "h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600" %>
+        <%= form.label :active, "Course is active", class: "ml-3 block text-sm font-medium leading-6 text-gray-900" %>
+        <p class="ml-3 text-sm text-gray-500">(Students can enroll when active)</p>
+      </div>
+
+      <!-- Course Statistics (Read-only info) -->
+      <div class="border-t border-gray-200 pt-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Course Statistics</h3>
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <div class="bg-gray-50 overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                  </svg>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Enrolled Students</dt>
+                    <dd class="text-lg font-medium text-gray-900"><%= @course.student_count %></dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-gray-50 overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                  </svg>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Active Teams</dt>
+                    <dd class="text-lg font-medium text-gray-900"><%= @course.teams.count %></dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-gray-50 overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                  </svg>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Invitations</dt>
+                    <dd class="text-lg font-medium text-gray-900"><%= @course.course_invitations.count %></dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-gray-500">
+          Course created <%= time_ago_in_words(@course.created_at) %> ago. 
+          <%= link_to "Manage invitations", manage_invitations_course_path(@course), class: "text-blue-600 hover:text-blue-500" %> or 
+          <%= link_to "view course details", course_path(@course), class: "text-blue-600 hover:text-blue-500" %>.
+        </p>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex items-center justify-end gap-x-6 pt-6 border-t border-gray-900/10">
+        <%= link_to "Cancel", course_path(@course),
+            class: "text-sm font-semibold leading-6 text-gray-900 hover:text-gray-700" %>
+        <%= form.submit "Update Course",
+            class: "rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600" %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="mt-8 bg-red-50 rounded-lg p-6">
+    <div class="flex">
+      <div class="flex-shrink-0">
+        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+        </svg>
+      </div>
+      <div class="ml-3">
+        <h3 class="text-sm font-medium text-red-800">Danger Zone</h3>
+        <div class="mt-2 text-sm text-red-700">
+          <p>Deleting this course will permanently remove all associated data including:</p>
+          <ul class="mt-1 list-disc list-inside space-y-1">
+            <li>All student enrollments and course history</li>
+            <li>Associated teams and team memberships</li>
+            <li>All invitation codes and enrollment data</li>
+            <li>Course assignments and case relationships</li>
+          </ul>
+          <p class="mt-2 font-medium">This action cannot be undone.</p>
+        </div>
+        <div class="mt-4">
+          <%= link_to course_path(@course),
+              method: :delete,
+              confirm: "Are you absolutely sure you want to delete '#{@course.display_name}'? This action cannot be undone and will permanently remove all course data including student enrollments, teams, and invitations.",
+              class: "inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" do %>
+            <svg class="-ml-0.5 mr-2 h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            Delete Course
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

@@ -1,4 +1,86 @@
-<div class="max-w-2xl mx-auto py-8">
-  <h1 class="text-2xl font-bold mb-4">New Case</h1>
-  <!-- Add new case form here -->
+<div class="max-w-4xl mx-auto py-8">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Create New Case</h1>
+    <p class="mt-2 text-sm text-gray-600">
+      <% if @scenarios.present? %>
+        Choose a case scenario to create a new legal simulation for your course.
+      <% else %>
+        Create a new legal case simulation for your course.
+      <% end %>
+    </p>
+  </div>
+
+  <% if @scenarios.present? %>
+    <!-- Scenario Selection -->
+    <div class="space-y-4">
+      <% @scenarios.each do |scenario| %>
+        <div class="bg-white shadow rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
+          <div class="p-6">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <h3 class="text-lg font-semibold text-gray-900 mb-2"><%= scenario[:title] %></h3>
+                <p class="text-gray-600 mb-4"><%= scenario[:description] %></p>
+                
+                <div class="grid grid-cols-2 gap-4 text-sm text-gray-500 mb-4">
+                  <div>
+                    <span class="font-medium">Case Type:</span> 
+                    <%= scenario[:case_type].humanize %>
+                  </div>
+                  <div>
+                    <span class="font-medium">Difficulty:</span> 
+                    <%= scenario[:difficulty_level].humanize %>
+                  </div>
+                </div>
+
+                <div class="text-sm text-gray-500 mb-4">
+                  <span class="font-medium">Legal Issues:</span> 
+                  <%= scenario[:legal_issues] %>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                  <div class="bg-blue-50 p-3 rounded">
+                    <div class="font-medium text-blue-900">Plaintiff</div>
+                    <% plaintiff = JSON.parse(scenario[:plaintiff_info]) %>
+                    <%= plaintiff["name"] %> - <%= plaintiff["position"] %>
+                  </div>
+                  <div class="bg-red-50 p-3 rounded">
+                    <div class="font-medium text-red-900">Defendant</div>
+                    <% defendant = JSON.parse(scenario[:defendant_info]) %>
+                    <%= defendant["name"] %> (<%= defendant["type"] %>)
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end">
+              <%= link_to "Select This Scenario", 
+                  new_course_case_path(@course, scenario_id: scenario[:id]), 
+                  class: "bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors" %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <!-- Case Form -->
+    <div class="bg-white shadow rounded-lg p-6">
+      <% if @selected_scenario.present? %>
+        <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+          <div class="flex items-center">
+            <svg class="h-5 w-5 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-sm font-medium text-blue-800">
+              Creating case from scenario: <%= @selected_scenario[:title] %>
+            </span>
+          </div>
+          <p class="mt-1 text-sm text-blue-700">
+            You can modify the details below before creating the case.
+          </p>
+        </div>
+      <% end %>
+      
+      <%= render 'form' %>
+    </div>
+  <% end %>
 </div>

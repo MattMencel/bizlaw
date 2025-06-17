@@ -182,7 +182,7 @@ Given("I am signed out") do
 end
 
 Given("I am signed in as {string}") do |email|
-  @current_user = create(:user, email: email)
+  @current_user = User.find_by(email: email) || create(:user, email: email)
   sign_in_user(@current_user)
 end
 

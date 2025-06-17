@@ -1,4 +1,155 @@
-<div class="max-w-2xl mx-auto py-8">
-  <h1 class="text-2xl font-bold mb-4">Case Details</h1>
-  <!-- Add case details here -->
+<div class="max-w-6xl mx-auto py-8">
+  <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+    <!-- Header -->
+    <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900"><%= @case.title %></h1>
+          <p class="text-sm text-gray-600 mt-1">Reference: <%= @case.reference_number %></p>
+        </div>
+        <div class="flex items-center space-x-3">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+            <%= case @case.status
+                when 'not_started' then 'bg-gray-100 text-gray-800'
+                when 'in_progress' then 'bg-blue-100 text-blue-800'
+                when 'submitted' then 'bg-yellow-100 text-yellow-800'
+                when 'reviewed' then 'bg-purple-100 text-purple-800'
+                when 'completed' then 'bg-green-100 text-green-800'
+                else 'bg-gray-100 text-gray-800'
+                end %>">
+            <%= @case.status.humanize %>
+          </span>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+            <%= case @case.difficulty_level
+                when 'beginner' then 'bg-green-100 text-green-800'
+                when 'intermediate' then 'bg-yellow-100 text-yellow-800'
+                when 'advanced' then 'bg-red-100 text-red-800'
+                else 'bg-gray-100 text-gray-800'
+                end %>">
+            <%= @case.difficulty_level.humanize %>
+          </span>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+            <%= @case.case_type.humanize %>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="p-6">
+      <!-- Description -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-3">Case Description</h2>
+        <div class="prose max-w-none text-gray-700">
+          <%= simple_format(@case.description) %>
+        </div>
+      </div>
+
+      <!-- Legal Issues -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-3">Legal Issues</h2>
+        <div class="prose max-w-none text-gray-700">
+          <%= simple_format(@case.legal_issues) %>
+        </div>
+      </div>
+
+      <!-- Party Information -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Plaintiff Information -->
+        <div class="bg-blue-50 p-6 rounded-lg">
+          <h3 class="text-lg font-semibold text-blue-900 mb-4">Plaintiff Information</h3>
+          <% if @case.plaintiff_info.present? %>
+            <% begin %>
+              <% plaintiff_data = JSON.parse(@case.plaintiff_info) %>
+              <dl class="space-y-2">
+                <% plaintiff_data.each do |key, value| %>
+                  <div>
+                    <dt class="text-sm font-medium text-blue-800"><%= key.humanize %>:</dt>
+                    <dd class="text-sm text-blue-700 ml-4"><%= value %></dd>
+                  </div>
+                <% end %>
+              </dl>
+            <% rescue JSON::ParserError %>
+              <p class="text-sm text-blue-700"><%= @case.plaintiff_info %></p>
+            <% end %>
+          <% else %>
+            <p class="text-sm text-blue-600 italic">No plaintiff information available</p>
+          <% end %>
+        </div>
+
+        <!-- Defendant Information -->
+        <div class="bg-red-50 p-6 rounded-lg">
+          <h3 class="text-lg font-semibold text-red-900 mb-4">Defendant Information</h3>
+          <% if @case.defendant_info.present? %>
+            <% begin %>
+              <% defendant_data = JSON.parse(@case.defendant_info) %>
+              <dl class="space-y-2">
+                <% defendant_data.each do |key, value| %>
+                  <div>
+                    <dt class="text-sm font-medium text-red-800"><%= key.humanize %>:</dt>
+                    <dd class="text-sm text-red-700 ml-4"><%= value %></dd>
+                  </div>
+                <% end %>
+              </dl>
+            <% rescue JSON::ParserError %>
+              <p class="text-sm text-red-700"><%= @case.defendant_info %></p>
+            <% end %>
+          <% else %>
+            <p class="text-sm text-red-600 italic">No defendant information available</p>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Team Assignments -->
+      <% if @case.assigned_teams.any? %>
+        <div class="mb-8">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">Team Assignments</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <% @case.case_teams.includes(:team).each do |case_team| %>
+              <div class="border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="font-medium text-gray-900"><%= case_team.team.name %></h3>
+                  <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium
+                    <%= case_team.role == 'plaintiff' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800' %>">
+                    <%= case_team.role.humanize %>
+                  </span>
+                </div>
+                <% if case_team.team.users.any? %>
+                  <ul class="text-sm text-gray-600 space-y-1">
+                    <% case_team.team.users.each do |user| %>
+                      <li><%= user.full_name %></li>
+                    <% end %>
+                  </ul>
+                <% else %>
+                  <p class="text-sm text-gray-500 italic">No team members assigned</p>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Case Actions -->
+      <div class="border-t border-gray-200 pt-6">
+        <div class="flex justify-between items-center">
+          <div class="flex space-x-4">
+            <% if policy(@case).edit? %>
+              <%= link_to "Edit Case", edit_course_case_path(@case.course, @case), 
+                  class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+            <% end %>
+            <%= link_to "Evidence Vault", case_evidence_vault_index_path(@case), 
+                class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+            <%= link_to "Negotiations", case_negotiations_path(@case), 
+                class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" %>
+          </div>
+          <div class="text-sm text-gray-500">
+            Created <%= time_ago_in_words(@case.created_at) %> ago
+            <% if @case.updated_at != @case.created_at %>
+              • Updated <%= time_ago_in_words(@case.updated_at) %> ago
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

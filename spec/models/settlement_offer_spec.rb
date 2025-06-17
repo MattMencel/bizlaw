@@ -69,7 +69,14 @@ RSpec.describe SettlementOffer, type: :model do
   end
 
   describe 'instance methods' do
-    let(:simulation) { create(:simulation, :active) }
+    let(:simulation) do
+      create(:simulation, :active,
+        plaintiff_min_acceptable: 150_000,
+        plaintiff_ideal: 300_000,
+        defendant_ideal: 75_000,
+        defendant_max_acceptable: 250_000
+      )
+    end
     let(:plaintiff_team) { simulation.plaintiff_team }
     let(:defendant_team) { simulation.defendant_team }
     let(:round) { create(:negotiation_round, simulation: simulation, round_number: 2) }

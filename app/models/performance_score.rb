@@ -9,6 +9,7 @@ class PerformanceScore < ApplicationRecord
   belongs_to :simulation
   belongs_to :team
   belongs_to :user, optional: true # null for team scores
+  belongs_to :adjusted_by, class_name: "User", optional: true
 
   # Delegated associations
   delegate :case, to: :simulation
@@ -56,7 +57,10 @@ class PerformanceScore < ApplicationRecord
       creative_terms_score || 0
     ]
 
-    self.total_score = components.sum
+    base_total = components.sum
+    adjustment = instructor_adjustment || 0
+    
+    self.total_score = [base_total + adjustment, 0].max # Ensure non-negative
     self.score_breakdown = build_score_breakdown
     save!
   end
@@ -159,7 +163,7 @@ class PerformanceScore < ApplicationRecord
   private
 
   def build_score_breakdown
-    {
+    breakdown = {
       "settlement_quality" => {
         "score" => settlement_quality_score || 0,
         "max_points" => 40,
@@ -191,6 +195,20 @@ class PerformanceScore < ApplicationRecord
         "weight" => "Bonus"
       }
     }
+
+    # Add instructor adjustment if present
+    if instructor_adjustment && instructor_adjustment != 0
+      breakdown["instructor_adjustment"] = {
+        "score" => instructor_adjustment,
+        "max_points" => "Variable",
+        "weight" => "Manual",
+        "reason" => adjustment_reason,
+        "adjusted_by" => adjusted_by&.full_name,
+        "adjusted_at" => adjusted_at&.strftime("%Y-%m-%d")
+      }
+    end
+
+    breakdown
   end
 
   def identify_strengths

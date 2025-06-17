@@ -29,6 +29,9 @@ class User < ApplicationRecord
   # Invitation associations
   has_many :sent_invitations, class_name: "Invitation", as: :invited_by, dependent: :destroy
 
+  # Performance tracking associations
+  has_many :performance_scores, dependent: :destroy
+
   # Validations
   validates :email, presence: true, uniqueness: true, format: {
     with: /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/,
@@ -37,16 +40,21 @@ class User < ApplicationRecord
   validates :first_name, presence: true
   validates :last_name, presence: true
   validates :role, presence: true
+  validates :roles, presence: true
+  validate :roles_must_be_valid
 
-  # Enums - using PostgreSQL native enum type
+  # Multiple roles support
+  AVAILABLE_ROLES = %w[student instructor admin org_admin].freeze
+  
+  # Keep the enum for backward compatibility but add roles array support
   enum :role, { student: "student", instructor: "instructor", admin: "admin" }, prefix: true
 
-  # Scopes
-  scope :by_role, ->(role) { where(role: role) }
-  scope :instructors, -> { where(role: :instructor) }
-  scope :students, -> { where(role: :student) }
-  scope :admins, -> { where(role: :admin) }
-  scope :org_admins, -> { where(org_admin: true) }
+  # Scopes for multiple roles
+  scope :by_role, ->(role) { where("? = ANY(roles)", role) }
+  scope :instructors, -> { where("'instructor' = ANY(roles)") }
+  scope :students, -> { where("'student' = ANY(roles)") }
+  scope :admins, -> { where("'admin' = ANY(roles)") }
+  scope :org_admins, -> { where("'org_admin' = ANY(roles)") }
   scope :search_by_name, ->(query) {
     where("LOWER(first_name) LIKE :query OR LOWER(last_name) LIKE :query",
           query: "%#{query.downcase}%")
@@ -61,24 +69,97 @@ class User < ApplicationRecord
     full_name
   end
 
+  def initials
+    "#{first_name.first}#{last_name.first}".upcase
+  end
+
   def active_for_authentication?
     super && !deleted?
   end
 
   def student?
-    role_student?
+    has_role?('student')
   end
 
   def instructor?
-    role_instructor?
+    has_role?('instructor')
   end
 
   def admin?
-    role_admin?
+    has_role?('admin')
   end
 
   def org_admin?
-    org_admin
+    has_role?('org_admin')
+  end
+  
+  # Multiple roles methods
+  def has_role?(role_name)
+    roles.include?(role_name.to_s)
+  end
+  
+  def add_role(role_name)
+    return false unless AVAILABLE_ROLES.include?(role_name.to_s)
+    return true if has_role?(role_name)
+    
+    self.roles = (roles + [role_name.to_s]).uniq
+    save
+  end
+
+  # Navigation helper methods
+
+  def can_access_case?(case_obj)
+    return false unless case_obj
+    cases.include?(case_obj) || admin? || instructor?
+  end
+
+  def can_access_team?(team_obj)
+    return false unless team_obj
+    teams.include?(team_obj) || admin? || instructor?
+  end
+
+  def role_in_case(case_obj)
+    return 'admin' if admin?
+    return 'instructor' if instructor?
+    
+    team = case_obj.teams.joins(:users).where(users: { id: id }).first
+    return team&.team_type&.humanize || 'Student'
+  end
+
+  def role_in_team(team_obj)
+    return 'admin' if admin?
+    return 'instructor' if instructor?
+    
+    team_member = team_members.find_by(team: team_obj)
+    return team_member&.role&.humanize || 'Member'
+  end
+
+  # Available cases for navigation
+  def available_cases
+    cases.includes(:teams, :users)
+  end
+
+  # Recently viewed cases (placeholder for now)
+  def recently_viewed_cases
+    # This would typically be tracked in a separate table or cache
+    # For now, return empty relation
+    cases.none
+  end
+  
+  def remove_role(role_name)
+    return false unless has_role?(role_name)
+    
+    self.roles = roles - [role_name.to_s]
+    save
+  end
+  
+  def role_names
+    roles.join(', ').humanize
+  end
+  
+  def primary_role
+    # Return the first non-org_admin role, or 'student' as default
+    (roles - ['org_admin']).first || 'student'
   end
 
   def professional?
@@ -125,6 +206,8 @@ class User < ApplicationRecord
       user.password = Devise.friendly_token[0, 20]
       user.first_name = auth.info.first_name
       user.last_name = auth.info.last_name
+      user.role = 'student'
+      user.roles = ['student']
       # No avatar_url assignment
     end
   end
@@ -161,6 +244,21 @@ class User < ApplicationRecord
     return unless instructor? && organization
     return if organization.users.org_admins.exists?
 
-    update_column(:org_admin, true)
+    add_role('org_admin')
+  end
+  
+  def roles_must_be_valid
+    return if roles.blank?
+    
+    invalid_roles = roles - AVAILABLE_ROLES
+    if invalid_roles.any?
+      errors.add(:roles, "contains invalid roles: #{invalid_roles.join(', ')}")
+    end
+    
+    # Ensure at least one primary role (student, instructor, or admin)
+    primary_roles = roles & %w[student instructor admin]
+    if primary_roles.empty?
+      errors.add(:roles, "must include at least one primary role (student, instructor, or admin)")
+    end
   end
 end

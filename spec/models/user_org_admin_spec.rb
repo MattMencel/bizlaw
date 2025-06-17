@@ -15,7 +15,7 @@ RSpec.describe User, type: :model do
       end
 
       it 'returns true when org_admin is set' do
-        instructor.update!(org_admin: true)
+        instructor.add_role('org_admin')
         expect(instructor.org_admin?).to be true
       end
     end
@@ -30,7 +30,7 @@ RSpec.describe User, type: :model do
       end
 
       context 'when user is org_admin' do
-        before { instructor.update!(org_admin: true) }
+        before { instructor.add_role('org_admin') }
 
         it 'returns true for their organization' do
           expect(instructor.can_manage_organization?(organization)).to be true
@@ -59,7 +59,7 @@ RSpec.describe User, type: :model do
       end
 
       context 'when user is org_admin' do
-        before { instructor.update!(org_admin: true) }
+        before { instructor.add_role('org_admin') }
 
         it 'returns true' do
           expect(instructor.can_assign_org_admin?).to be true
@@ -84,7 +84,7 @@ RSpec.describe User, type: :model do
       end
 
       context 'when creating second instructor for organization' do
-        before { create(:user, :instructor, organization: organization, org_admin: true) }
+        before { create(:user, :instructor, organization: organization, roles: ['instructor', 'org_admin']) }
 
         it 'does not automatically assign as org_admin' do
           second_instructor = create(:user, :instructor, organization: organization)
@@ -102,8 +102,8 @@ RSpec.describe User, type: :model do
 
     describe 'scopes' do
       before do
-        instructor.update!(org_admin: true)
-        create(:user, :instructor, organization: organization, org_admin: false)
+        instructor.add_role('org_admin')
+        create(:user, :instructor, organization: organization, roles: ['instructor'])
       end
 
       describe '.org_admins' do

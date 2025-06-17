@@ -65,6 +65,7 @@
                       <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Users</th>
                       <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Courses</th>
                       <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Direct Assignment</th>
                       <th scope="col" class="px-6 py-3">
                         <%= sortable_column_header('created_at', 'Created', admin_organizations_path) %>
                       </th>
@@ -107,6 +108,23 @@
                           <% else %>
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                               Inactive
+                            </span>
+                          <% end %>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <% if organization.direct_assignment_enabled? %>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              <svg class="mr-1.5 h-2 w-2 fill-current" viewBox="0 0 8 8">
+                                <circle cx="4" cy="4" r="3" />
+                              </svg>
+                              Enabled
+                            </span>
+                          <% else %>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                              <svg class="mr-1.5 h-2 w-2 fill-current" viewBox="0 0 8 8">
+                                <circle cx="4" cy="4" r="3" />
+                              </svg>
+                              Disabled
                             </span>
                           <% end %>
                         </td>

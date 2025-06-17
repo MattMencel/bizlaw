@@ -142,6 +142,19 @@ class Organization < ApplicationRecord
     effective_license.feature_enabled?(feature_name)
   end
 
+  # Direct assignment methods
+  def direct_assignment_enabled?
+    direct_assignment_enabled
+  end
+
+  def enable_direct_assignment!
+    update!(direct_assignment_enabled: true)
+  end
+
+  def disable_direct_assignment!
+    update!(direct_assignment_enabled: false)
+  end
+
   def license_warnings
     warnings = []
 

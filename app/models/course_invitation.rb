@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require 'rqrcode'
+require 'chunky_png'
+require 'base64'
+
 class CourseInvitation < ApplicationRecord
   include HasUuid
   include HasTimestamps
@@ -97,7 +101,8 @@ class CourseInvitation < ApplicationRecord
   end
 
   def invitation_url
-    Rails.application.routes.url_helpers.course_invitation_url(token, host: Rails.application.config.action_mailer.default_url_options[:host])
+    host = Rails.application.config.action_mailer.default_url_options&.dig(:host) || 'localhost:3000'
+    Rails.application.routes.url_helpers.course_invitation_url(token, host: host)
   end
 
   def qr_code_svg(size: 200)
@@ -107,13 +112,13 @@ class CourseInvitation < ApplicationRecord
     @qr_code_svg = generate_qr_code_svg(size)
   end
 
-  def qr_code_png(size: 200, fill: "000", background: "FFF")
+  def qr_code_png(size: 200, fill: "000000", background: "FFFFFF")
     qrcode = RQRCode::QRCode.new(invitation_url)
     qrcode.as_png(
       resize_gte_to: false,
       resize_exactly_to: size,
-      fill: ChunkyPNG::Color(fill),
-      color: ChunkyPNG::Color(background),
+      fill: ChunkyPNG::Color(background),
+      color: ChunkyPNG::Color(fill),
       size: size,
       border_modules: 4,
       module_px_size: 4
@@ -154,16 +159,17 @@ class CourseInvitation < ApplicationRecord
     qrcode = RQRCode::QRCode.new(invitation_url)
     qrcode.as_svg(
       offset: 0,
-      color: "000",
+      color: "#000000",
       shape_rendering: "crispEdges",
-      module_size: 4,
+      module_size: 6,
       standalone: true,
       use_path: true,
       viewbox: true,
       svg_attributes: {
         width: size,
         height: size,
-        class: "qr-code"
+        class: "qr-code",
+        style: "background-color: white;"
       }
     )
   end

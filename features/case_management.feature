@@ -1,22 +1,26 @@
 Feature: Case Management
   As a student
-  I want to work on legal cases
+  I want to work on legal cases within my course
   So that I can practice and improve my legal skills
 
   Background:
     Given I am signed in
-    And I am a member of a team
+    And I belong to an organization "University of Business Law"
+    And I am enrolled in a course "Business Law 101"
+    And I am a member of a team in this course
 
   Scenario: Starting a new case
-    Given there is a case type "Contract Analysis"
+    Given there is a case type "Contract Analysis" in my course
     When I start a new case with the following details:
       | Case Type | Contract Analysis |
+      | Course    | Business Law 101  |
       | Team      | My Team          |
     Then I should see a success message "Case was successfully created"
     And the case should be in "not_started" status
+    And the case should be associated with my course
 
   Scenario: Viewing active cases
-    Given the following cases exist:
+    Given the following cases exist in my course:
       | Case Type         | Team     | Status      |
       | Contract Analysis | Team One | in_progress |
       | Tort Law         | Team Two | submitted   |
@@ -27,13 +31,13 @@ Feature: Case Management
       | Tort Law         | Team Two | Submitted   |
 
   Scenario: Updating case status
-    Given I have an active case "Contract Analysis"
+    Given I have an active case "Contract Analysis" in my course
     When I update the case status to "in_progress"
     Then I should see a success message "Case status was successfully updated"
     And the case status should be "In Progress"
 
   Scenario: Adding notes to case
-    Given I have an active case "Contract Analysis"
+    Given I have an active case "Contract Analysis" in my course
     When I add the following note to the case:
       """
       Identified key contract clauses that need analysis.
@@ -42,7 +46,7 @@ Feature: Case Management
     Then the note should be visible in the case timeline
 
   Scenario: Submitting case for review
-    Given I have an active case "Contract Analysis"
+    Given I have an active case "Contract Analysis" in my course
     And I have completed all required tasks
     When I submit the case for review
     Then I should see a success message "Case was submitted for review"
@@ -56,7 +60,7 @@ Feature: Case Management
     And the case should be in "completed" status
 
   Scenario: Filtering cases
-    Given the following cases exist:
+    Given the following cases exist in my course:
       | Case Type         | Team     | Status      |
       | Contract Analysis | Team One | in_progress |
       | Tort Law         | Team Two | completed   |

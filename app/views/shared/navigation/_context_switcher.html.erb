@@ -1,0 +1,65 @@
+<%# Context Switcher Component %>
+<div class="p-4 border-b border-gray-700 bg-gray-900" 
+     data-controller="context-switcher"
+     data-context-switcher-current-case-value="<%= current_user_case&.title || 'No Active Case' %>"
+     data-context-switcher-current-team-value="<%= current_user_team&.name || 'No Team Assignment' %>">
+  
+  <%# Current Context Display %>
+  <button type="button" 
+          class="w-full text-left p-3 rounded-lg hover:bg-gray-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          data-action="click->context-switcher#toggleDropdown"
+          data-context-switcher-target="trigger">
+    <div class="flex items-start justify-between">
+      <div class="flex-1 min-w-0">
+        <%# Case Name %>
+        <div class="flex items-center text-white font-medium truncate">
+          <svg class="h-4 w-4 mr-2 text-blue-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span data-context-switcher-target="caseName">
+            <%= current_user_case&.title || "Select a Case" %>
+          </span>
+        </div>
+        
+        <%# Team & Role Info %>
+        <div class="flex items-center text-sm text-gray-300 mt-1 truncate">
+          <svg class="h-3 w-3 mr-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <span data-context-switcher-target="teamInfo">
+            <%= current_user_team&.name || "No Team" %> • <%= current_user&.primary_role&.humanize || "Student" %>
+          </span>
+        </div>
+        
+        <%# Phase & Status Info %>
+        <% if current_user_case&.current_phase.present? %>
+          <div class="flex items-center justify-between text-xs text-gray-400 mt-2">
+            <span class="flex items-center">
+              <svg class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <%= current_user_case.current_phase %> • Round <%= current_user_case.current_round || 1 %> of <%= current_user_case.total_rounds || 6 %>
+            </span>
+            <span class="flex items-center <%= case_status_color(current_user_case&.team_status) %>">
+              <span class="h-2 w-2 rounded-full <%= case_status_dot_color(current_user_case&.team_status) %> mr-1"></span>
+              <%= current_user_case&.team_status&.humanize || "Active" %>
+            </span>
+          </div>
+        <% end %>
+      </div>
+      
+      <%# Dropdown Arrow %>
+      <svg class="h-4 w-4 text-gray-400 ml-2 transform transition-transform duration-200" 
+           data-context-switcher-target="arrow"
+           fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+    </div>
+  </button>
+
+  <%# Context Switcher Dropdown %>
+  <div class="hidden absolute top-full left-4 right-4 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-xl z-50"
+       data-context-switcher-target="dropdown">
+    <%= render 'shared/navigation/context_dropdown' %>
+  </div>
+</div>

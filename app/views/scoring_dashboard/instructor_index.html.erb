@@ -1,0 +1,578 @@
+<% content_for :title, "Class Performance Overview" %>
+
+<div class="instructor-dashboard responsive-layout" data-controller="instructor-scoring-dashboard">
+  <!-- Header Section -->
+  <div class="dashboard-header mb-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Class Performance Overview</h1>
+        <p class="text-gray-600">Monitor student progress and identify areas for support</p>
+      </div>
+      
+      <div class="mt-4 md:mt-0 flex space-x-3">
+        <% if @instructor_simulations.count > 1 %>
+          <%= form_with url: scoring_dashboard_path, method: :get, local: true, class: "flex items-center space-x-2" do |form| %>
+            <%= form.select :simulation_id, 
+                            options_from_collection_for_select(@instructor_simulations, :id, :case_title, @filtered_simulation&.id),
+                            { prompt: "All Simulations" },
+                            { class: "form-select rounded-md border-gray-300", 
+                              onchange: "this.form.submit();" } %>
+          <% end %>
+        <% end %>
+        
+        <button class="btn btn-primary" data-action="click->instructor-scoring-dashboard#exportClassData">
+          Export Class Data
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Statistics -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="ml-4">
+          <div class="text-2xl font-bold text-gray-900"><%= @class_averages[:total_score] %>/100</div>
+          <div class="text-sm text-gray-600">Average Class Score</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="ml-4">
+          <div class="text-2xl font-bold text-gray-900"><%= @top_performers.first&.dig(:total_score) || "N/A" %>/100</div>
+          <div class="text-sm text-gray-600">Top Performer</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+            <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="ml-4">
+          <div class="text-2xl font-bold text-gray-900"><%= @students_needing_help.count %></div>
+          <div class="text-sm text-gray-600">Students Needing Help</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+            <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="ml-4">
+          <div class="text-2xl font-bold text-gray-900">
+            <%= @class_performance_data.select { |student| student[:total_score] >= 85 }.count %>
+          </div>
+          <div class="text-sm text-gray-600">Teams at Risk</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-navigation mb-6">
+    <nav class="flex space-x-8 border-b border-gray-200">
+      <button class="tab-button active touch-friendly py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600" 
+              data-action="click->instructor-scoring-dashboard#switchTab" 
+              data-tab="students">
+        Student Performance
+      </button>
+      <button class="tab-button touch-friendly py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700" 
+              data-action="click->instructor-scoring-dashboard#switchTab" 
+              data-tab="analytics">
+        Analytics
+      </button>
+      <button class="tab-button touch-friendly py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700" 
+              data-action="click->instructor-scoring-dashboard#switchTab" 
+              data-tab="interventions">
+        Interventions
+      </button>
+    </nav>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    <!-- Student Performance Tab -->
+    <div class="tab-pane active" data-tab-content="students">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <!-- Filters -->
+        <div class="p-4 border-b border-gray-200">
+          <div class="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0">
+            <div class="flex-1">
+              <input type="text" 
+                     placeholder="Search students..." 
+                     class="form-input w-full rounded-md border-gray-300"
+                     data-action="input->instructor-scoring-dashboard#filterStudents">
+            </div>
+            
+            <div class="flex space-x-4">
+              <select name="team_filter" class="form-select rounded-md border-gray-300">
+                <option value="">All Teams</option>
+                <% @class_performance_data.map { |s| s[:team_name] }.uniq.each do |team| %>
+                  <option value="<%= team %>"><%= team %></option>
+                <% end %>
+              </select>
+              
+              <div class="flex items-center space-x-2">
+                <input type="number" 
+                       name="score_range_min" 
+                       placeholder="Min"
+                       class="form-input w-20 rounded-md border-gray-300">
+                <span class="text-gray-500">-</span>
+                <input type="number" 
+                       name="score_range_max" 
+                       placeholder="Max"
+                       class="form-input w-20 rounded-md border-gray-300">
+              </div>
+              
+              <select name="improvement_area_filter" class="form-select rounded-md border-gray-300">
+                <option value="">All Areas</option>
+                <option value="settlement">Settlement Strategy</option>
+                <option value="legal">Legal Reasoning</option>
+                <option value="collaboration">Team Collaboration</option>
+                <option value="efficiency">Process Efficiency</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Student Table -->
+        <div class="overflow-x-auto">
+          <table class="student-scores min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="sortable px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    data-action="click->instructor-scoring-dashboard#sortTable"
+                    data-column="name">
+                  Student Name
+                  <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                  </svg>
+                </th>
+                <th class="sortable px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    data-action="click->instructor-scoring-dashboard#sortTable"
+                    data-column="team">
+                  Team
+                </th>
+                <th class="sortable px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    data-action="click->instructor-scoring-dashboard#sortTable"
+                    data-column="score">
+                  Total Score
+                  <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                  </svg>
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <% @class_performance_data.each do |student| %>
+                <tr class="student-score <%= 'low-score' if student[:needs_help] %> hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900"><%= student[:user_name] %></div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900"><%= student[:team_name] %></div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="score-value text-sm font-medium <%= student[:needs_help] ? 'text-red-600' : 'text-gray-900' %>">
+                      <%= student[:total_score] %>/100
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                 <%= case student[:grade]
+                                     when 'A' then 'bg-green-100 text-green-800'
+                                     when 'B' then 'bg-blue-100 text-blue-800'  
+                                     when 'C' then 'bg-yellow-100 text-yellow-800'
+                                     when 'D' then 'bg-orange-100 text-orange-800'
+                                     when 'F' then 'bg-red-100 text-red-800'
+                                     else 'bg-gray-100 text-gray-800'
+                                     end %>">
+                      <%= student[:grade] %>
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <%= time_ago_in_words(student[:last_updated]) %> ago
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                    <button class="text-blue-600 hover:text-blue-900" 
+                            data-action="click->instructor-scoring-dashboard#messageStudent"
+                            data-user-id="<%= student[:user_id] %>">
+                      Message Student
+                    </button>
+                    <button class="text-green-600 hover:text-green-900"
+                            data-action="click->instructor-scoring-dashboard#scheduleStudent"
+                            data-user-id="<%= student[:user_id] %>">
+                      Schedule Meeting
+                    </button>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics Tab -->
+    <div class="tab-pane" data-tab-content="analytics" style="display: none;">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Class Distribution Chart -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Class Performance Distribution</h3>
+          <div class="distribution-chart">
+            <canvas id="distributionChart" data-testid="class-distribution-chart" width="400" height="300"></canvas>
+          </div>
+        </div>
+
+        <!-- Role Comparison -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Plaintiff vs Defendant Performance</h3>
+          <div class="role-comparison">
+            <canvas id="roleComparisonChart" data-testid="plaintiff-vs-defendant-chart" width="400" height="300"></canvas>
+          </div>
+        </div>
+
+        <!-- Metric Averages -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 lg:col-span-2">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Average Scores by Metric</h3>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <% {
+              "Total Score" => @class_averages[:total_score],
+              "Settlement Quality" => @class_averages[:settlement_quality],
+              "Legal Strategy" => @class_averages[:legal_strategy], 
+              "Team Collaboration" => @class_averages[:collaboration],
+              "Process Efficiency" => @class_averages[:efficiency]
+            }.each do |metric, average| %>
+              <div class="metric-average text-center" data-metric="<%= metric.downcase.gsub(' ', '-') %>">
+                <div class="text-2xl font-bold text-gray-900"><%= average %></div>
+                <div class="text-sm text-gray-600"><%= metric %></div>
+                <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                  <% percentage = metric == "Total Score" ? average : (average / (metric.include?("Quality") ? 40 : metric.include?("Strategy") ? 30 : 20)) * 100 %>
+                  <div class="bg-blue-600 h-2 rounded-full" style="width: <%= [percentage, 100].min %>%"></div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Insights Section -->
+      <div class="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Class Insights</h3>
+        <div class="space-y-3">
+          <div class="analytical-insight p-4 bg-blue-50 rounded-lg">
+            <div class="font-medium text-blue-900">Performance Trend</div>
+            <div class="text-blue-800">
+              <% if @class_averages[:total_score] >= 80 %>
+                Class is performing exceptionally well with strong scores across all metrics
+              <% elsif @class_averages[:total_score] >= 70 %>
+                Class shows solid performance with opportunities for targeted improvement
+              <% else %>
+                Class would benefit from additional support and focused interventions
+              <% end %>
+            </div>
+          </div>
+          
+          <% if @class_averages[:collaboration] < @class_averages[:settlement_quality] - 5 %>
+            <div class="analytical-insight p-4 bg-yellow-50 rounded-lg">
+              <div class="font-medium text-yellow-900">Collaboration Opportunity</div>
+              <div class="text-yellow-800">
+                Students show strong individual skills but could benefit from team collaboration workshops
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Curriculum Recommendations -->
+        <div class="mt-6">
+          <h4 class="text-md font-semibold text-gray-900 mb-3">🎯 Curriculum Recommendations</h4>
+          <div class="curriculum-recommendations space-y-2">
+            <% if @class_averages[:legal_strategy] < 20 %>
+              <div class="curriculum-recommendation-item p-3 bg-gray-50 rounded-lg">
+                <strong>Legal Research Workshop:</strong> Consider adding focused sessions on case law research and precedent analysis
+              </div>
+            <% end %>
+            
+            <% if @class_averages[:collaboration] < 15 %>
+              <div class="curriculum-recommendation-item p-3 bg-gray-50 rounded-lg">
+                <strong>Team Dynamics Training:</strong> Implement structured team collaboration exercises and communication protocols
+              </div>
+            <% end %>
+            
+            <% if @students_needing_help.count > @class_performance_data.count * 0.2 %>
+              <div class="curriculum-recommendation-item p-3 bg-gray-50 rounded-lg">
+                <strong>Additional Support Sessions:</strong> Consider offering optional review sessions for students scoring below 70
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interventions Tab -->
+    <div class="tab-pane" data-tab-content="interventions" style="display: none;">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Students Needing Help -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">🚨 Students Needing Immediate Attention</h3>
+          
+          <% if @students_needing_help.any? %>
+            <div class="space-y-3">
+              <% @students_needing_help.each do |student| %>
+                <div class="p-4 border border-red-200 rounded-lg bg-red-50">
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="font-medium text-red-900"><%= student[:user_name] %></div>
+                      <div class="text-sm text-red-700">Team: <%= student[:team_name] %></div>
+                      <div class="text-sm text-red-700">Score: <%= student[:total_score] %>/100</div>
+                      <div class="text-sm text-red-600 mt-1">
+                        Primary weakness: <%= student[:primary_weakness] %>
+                      </div>
+                    </div>
+                    <div class="flex space-x-2">
+                      <button class="btn btn-sm btn-outline-red"
+                              data-action="click->instructor-scoring-dashboard#scheduleStudent"
+                              data-user-id="<%= student[:user_id] %>">
+                        Schedule Meeting
+                      </button>
+                      <button class="btn btn-sm btn-outline-red"
+                              data-action="click->instructor-scoring-dashboard#messageStudent"
+                              data-user-id="<%= student[:user_id] %>">
+                        Send Message
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="text-center py-8">
+              <div class="text-green-400 text-6xl mb-4">✅</div>
+              <h4 class="text-lg font-medium text-green-900 mb-2">All Students On Track</h4>
+              <p class="text-green-700">No students currently need immediate intervention</p>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Top Performers -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">🌟 Top Performers</h3>
+          
+          <% if @top_performers.any? %>
+            <div class="space-y-3">
+              <% @top_performers.first(5).each_with_index do |student, index| %>
+                <div class="p-4 border border-green-200 rounded-lg bg-green-50">
+                  <div class="flex justify-between items-center">
+                    <div>
+                      <div class="font-medium text-green-900">
+                        #<%= index + 1 %> <%= student[:user_name] %>
+                      </div>
+                      <div class="text-sm text-green-700">Team: <%= student[:team_name] %></div>
+                      <div class="text-sm text-green-700">Score: <%= student[:total_score] %>/100 (<%= student[:grade] %>)</div>
+                    </div>
+                    <div>
+                      <button class="btn btn-sm btn-outline-green"
+                              data-action="click->instructor-scoring-dashboard#assignMentorRole"
+                              data-user-id="<%= student[:user_id] %>">
+                        Assign Mentor Role
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="text-center py-8">
+              <div class="text-gray-400 text-6xl mb-4">📊</div>
+              <p class="text-gray-600">Performance data is still being collected</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Intervention Tools -->
+      <div class="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">🛠 Intervention Tools</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+                  data-action="click->instructor-scoring-dashboard#bulkMessage">
+            <div class="font-medium text-gray-900 mb-2">Bulk Messaging</div>
+            <div class="text-sm text-gray-600">Send messages to students based on performance criteria</div>
+          </button>
+          
+          <button class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+                  data-action="click->instructor-scoring-dashboard#scheduleOfficeHours">
+            <div class="font-medium text-gray-900 mb-2">Office Hours</div>
+            <div class="text-sm text-gray-600">Schedule group office hours for struggling students</div>
+          </button>
+          
+          <button class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+                  data-action="click->instructor-scoring-dashboard#generateReports">
+            <div class="font-medium text-gray-900 mb-2">Progress Reports</div>
+            <div class="text-sm text-gray-600">Generate detailed progress reports for administration</div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    initializeClassCharts();
+  });
+
+  function initializeClassCharts() {
+    // Distribution Chart
+    const distributionCtx = document.getElementById('distributionChart');
+    if (distributionCtx) {
+      new Chart(distributionCtx, {
+        type: 'bar',
+        data: {
+          labels: ['0-59', '60-69', '70-79', '80-89', '90-100'],
+          datasets: [{
+            label: 'Number of Students',
+            data: [
+              <%= @class_performance_data.count { |s| s[:total_score] < 60 } %>,
+              <%= @class_performance_data.count { |s| s[:total_score].between?(60, 69) } %>,
+              <%= @class_performance_data.count { |s| s[:total_score].between?(70, 79) } %>,
+              <%= @class_performance_data.count { |s| s[:total_score].between?(80, 89) } %>,
+              <%= @class_performance_data.count { |s| s[:total_score] >= 90 } %>
+            ],
+            backgroundColor: ['#EF4444', '#F97316', '#EAB308', '#22C55E', '#059669'],
+            borderColor: ['#DC2626', '#EA580C', '#CA8A04', '#16A34A', '#047857'],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Role Comparison Chart - would be populated with actual plaintiff/defendant data
+    const roleCtx = document.getElementById('roleComparisonChart');
+    if (roleCtx) {
+      new Chart(roleCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Plaintiff Teams', 'Defendant Teams'],
+          datasets: [{
+            data: [75, 73], // These would be calculated from actual data
+            backgroundColor: ['#3B82F6', '#8B5CF6'],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
+  }
+</script>
+
+<style>
+  .low-score {
+    @apply bg-red-50;
+  }
+  
+  .low-score .score-value {
+    @apply text-red-600 font-bold;
+  }
+  
+  .tab-button.active {
+    @apply border-blue-500 text-blue-600;
+  }
+  
+  .tab-pane {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .touch-friendly {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .sortable:hover {
+    @apply bg-gray-100;
+  }
+  
+  .btn-outline-red {
+    @apply border-red-300 text-red-700 hover:bg-red-50;
+  }
+  
+  .btn-outline-green {
+    @apply border-green-300 text-green-700 hover:bg-green-50;
+  }
+  
+  @media (max-width: 768px) {
+    .responsive-layout .grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .overflow-x-auto {
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+</style>

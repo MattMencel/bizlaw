@@ -24,6 +24,7 @@ class TeamPolicy < ApplicationPolicy
   def join?
     return false unless user.student?
     return false if user.teams.include?(record)
+    return false unless user_can_access_course?
 
     # Students can join teams if there's space and they're not already in it
     record.team_members.count < record.max_members
@@ -39,20 +40,31 @@ class TeamPolicy < ApplicationPolicy
 
   def user_can_access_team?
     return true if user.admin?
-    return true if user.instructor?
+    return true if user.instructor? && user_can_access_course?
     return true if record.owner_id == user.id
 
-    # Users can access teams they're members of
+    # Users can access teams they're members of if they're in the same course
+    return false unless user_can_access_course?
     user.teams.include?(record)
   end
 
   def user_can_manage_team?
     return true if user.admin?
     return true if record.owner_id == user.id
-    return true if user.instructor?
+    return true if user.instructor? && user_can_access_course?
 
-    # Team managers can manage their teams
+    # Team managers can manage their teams if they're in the same course
+    return false unless user_can_access_course?
     user.team_members.exists?(team: record, role: :manager)
+  end
+
+  def user_can_access_course?
+    return true unless record.course
+    return true if user.admin?
+    return true if record.course.instructor == user
+    
+    # Students must be enrolled in the course
+    record.course.enrolled?(user)
   end
 
   class Scope < Scope

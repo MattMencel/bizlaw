@@ -8,10 +8,11 @@ class Case < ApplicationRecord
   # Associations
   belongs_to :created_by, class_name: "User"
   belongs_to :updated_by, class_name: "User"
-  belongs_to :course, optional: true
-  belongs_to :team
+  belongs_to :course
   has_many :case_teams, dependent: :destroy
   has_many :assigned_teams, through: :case_teams, source: :team
+  has_many :teams, through: :case_teams
+  has_many :users, through: :teams
   has_many :documents, as: :documentable, dependent: :destroy
   has_many :case_events, dependent: :destroy
   has_one :simulation, dependent: :destroy
@@ -37,8 +38,8 @@ class Case < ApplicationRecord
   validates :plaintiff_info, presence: true
   validates :defendant_info, presence: true
   validates :legal_issues, presence: true
-  validates :team_id, presence: true
-  validate :must_have_plaintiff_and_defendant_teams
+  validates :course_id, presence: true
+  # validate :must_have_plaintiff_and_defendant_teams
 
   # Enums
   enum :status, {
@@ -66,9 +67,10 @@ class Case < ApplicationRecord
   # Scopes
   scope :by_status, ->(status) { where(status: status) }
   scope :by_difficulty, ->(level) { where(difficulty_level: level) }
-  scope :published, -> { where(status: :published) }
-  scope :drafts, -> { where(status: :draft) }
-  scope :archived, -> { where(status: :archived) }
+  scope :in_progress_cases, -> { where(status: :in_progress) }
+  scope :submitted_cases, -> { where(status: :submitted) }
+  scope :completed_cases, -> { where(status: :completed) }
+  scope :active, -> { where.not(status: :completed) }
   scope :search_by_title, ->(query) {
     where("LOWER(title) LIKE :query", query: "%#{query.downcase}%")
   }
@@ -88,38 +90,45 @@ class Case < ApplicationRecord
   }
 
   # Methods
-  def publish!
-    return false unless status_draft?
+  def start!
+    return false unless status_not_started?
 
     update!(
-      status: :published,
+      status: :in_progress,
       published_at: Time.current
     )
   end
 
-  def archive!
-    return false unless status_published?
+  def submit!
+    return false unless status_in_progress?
 
     update!(
-      status: :archived,
-      archived_at: Time.current
+      status: :submitted
     )
   end
 
-  def draft?
-    status_draft?
+  def complete!
+    return false unless status_reviewed?
+
+    update!(
+      status: :completed
+    )
+  end
+
+  def archive!
+    update!(archived_at: Time.current)
   end
 
   def published?
-    status_published?
+    published_at.present?
   end
 
   def archived?
-    status_archived?
+    archived_at.present?
   end
 
   def editable?
-    draft? || (published? && !archived?)
+    !archived? && (status_not_started? || status_in_progress?)
   end
 
   def display_name
@@ -144,6 +153,44 @@ class Case < ApplicationRecord
 
   def can_review?
     status_submitted?
+  end
+
+  # Navigation helper methods
+  def user_team_for(user)
+    assigned_teams.joins(:users).where(users: { id: user.id }).first
+  end
+
+  def status_for_user(user)
+    # This could be more sophisticated based on the user's actual status in the case
+    # For now, return the case status
+    status
+  end
+
+  def current_phase
+    # This would come from the simulation or case state
+    simulation&.current_phase || "Preparation"
+  end
+
+  def current_round
+    # This would come from the simulation
+    simulation&.current_round || 1
+  end
+
+  def total_rounds
+    # This would come from the simulation configuration
+    simulation&.total_rounds || 6
+  end
+
+  def team_status_for_user(user)
+    # This would be more sophisticated in a real implementation
+    # For now, return a default status
+    "active"
+  end
+
+  def upcoming_deadlines
+    # This would return deadlines for the case
+    # For now, return empty array
+    []
   end
 
   private

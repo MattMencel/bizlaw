@@ -76,19 +76,22 @@ def create_demo_organizations
       name: "University of Forgottonia",
       domain: "forgottonia.edu",
       slug: "university-forgottonia",
-      active: true
+      active: true,
+      direct_assignment_enabled: true
     },
     {
       name: "Gotham Business College",
       domain: "gotham.edu",
       slug: "gotham-business",
-      active: true
+      active: true,
+      direct_assignment_enabled: true
     },
     {
       name: "Atlantis Law Institute",
       domain: "atlantis.edu",
       slug: "atlantis-law",
-      active: true
+      active: true,
+      direct_assignment_enabled: true
     }
   ]
 

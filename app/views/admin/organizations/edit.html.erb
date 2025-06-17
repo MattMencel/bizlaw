@@ -90,6 +90,12 @@
                   <%= form.label :active, "Active", class: "ml-2 block text-sm text-gray-900" %>
                   <p class="ml-2 text-sm text-gray-500">Organization is active and users can register</p>
                 </div>
+
+                <div class="flex items-center">
+                  <%= form.check_box :direct_assignment_enabled, class: "h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded" %>
+                  <%= form.label :direct_assignment_enabled, "Direct Assignment", class: "ml-2 block text-sm text-gray-900" %>
+                  <p class="ml-2 text-sm text-gray-500">Allow instructors to assign students directly without invitation codes</p>
+                </div>
               </div>
 
               <div class="flex justify-between">

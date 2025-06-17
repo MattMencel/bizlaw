@@ -71,9 +71,9 @@ RSpec.describe User, type: :model do
 
   # Scopes
   describe "scopes" do
-    let!(:student) { create(:user, role: :student) }
-    let!(:instructor) { create(:user, role: :instructor) }
-    let!(:admin) { create(:user, role: :admin) }
+    let!(:student) { create(:user, :student) }
+    let!(:instructor) { create(:user, :instructor) }
+    let!(:admin) { create(:user, :admin) }
 
     describe ".by_role" do
       it "returns users with specified role" do
@@ -160,6 +160,7 @@ RSpec.describe User, type: :model do
 
     it "correctly identifies instructor role" do
       user.role = :instructor
+      user.roles = ['instructor']
       expect(user).to be_instructor
       expect(user).not_to be_student
       expect(user).not_to be_admin
@@ -167,6 +168,7 @@ RSpec.describe User, type: :model do
 
     it "correctly identifies admin role" do
       user.role = :admin
+      user.roles = ['admin']
       expect(user).to be_admin
       expect(user).not_to be_student
       expect(user).not_to be_instructor
@@ -178,7 +180,7 @@ RSpec.describe User, type: :model do
     let(:user) { create(:user) }
 
     context "when user is admin" do
-      before { user.update(role: :admin) }
+      before { user.update(role: :admin, roles: ['admin']) }
 
       it "returns true" do
         expect(user.can_manage_team?(team)).to be true
