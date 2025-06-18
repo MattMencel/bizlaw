@@ -146,20 +146,20 @@ class NegotiationsController < ApplicationController
     @simulation = @case.simulation
     
     unless @simulation
-      redirect_to case_negotiations_path(@case), 
+      redirect_to cases_path, 
                   alert: "This case does not have an active simulation"
     end
   end
 
   def verify_team_participation
     unless current_user_team
-      redirect_to case_negotiations_path(@case), 
+      redirect_to cases_path, 
                   alert: "You are not assigned to a team for this case"
       return
     end
 
     unless [@simulation.plaintiff_team, @simulation.defendant_team].include?(current_user_team)
-      redirect_to case_negotiations_path(@case), 
+      redirect_to cases_path, 
                   alert: "Your team is not participating in this simulation"
     end
   end

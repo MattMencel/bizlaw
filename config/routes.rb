@@ -32,7 +32,7 @@ Rails.application.routes.draw do
   # API routes
   namespace :api, defaults: { format: :json } do
     # Version 1 routes (current)
-    scope module: :v1, constraints: ApiVersionConstraint.new(version: 1, default: true) do
+    namespace :v1, constraints: ApiVersionConstraint.new(version: 1, default: true) do
       # Authentication routes
       post "/login", to: "sessions#create"
       delete "/logout", to: "sessions#destroy"
@@ -116,7 +116,7 @@ Rails.application.routes.draw do
     end
 
     # Version 2 routes (future)
-    scope module: :v2, constraints: ApiVersionConstraint.new(version: 2) do
+    namespace :v2, constraints: ApiVersionConstraint.new(version: 2) do
       # Add v2 routes here when needed
     end
   end
@@ -173,7 +173,9 @@ Rails.application.routes.draw do
       end
     end
   end
-  resources :teams, only: [:index, :show]
+  resources :teams, only: [:index, :show] do
+    resources :team_members, path: 'members'
+  end
 
   # Static pages
   get "about", to: "pages#about"
@@ -203,6 +205,10 @@ Rails.application.routes.draw do
 
   # Admin routes
   namespace :admin do
+    get :dashboard, to: 'dashboard#index'
+    
+    resources :settings, only: [:index, :show, :update]
+    
     resources :licenses do
       member do
         patch :activate

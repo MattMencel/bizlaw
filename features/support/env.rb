@@ -13,9 +13,11 @@ require 'email_spec'
 require 'email_spec/cucumber'
 require 'timecop'
 require 'factory_bot'
+require 'rspec/mocks'
 
 World(Rack::Test::Methods)
 World(FactoryBot::Syntax::Methods)
+World(RSpec::Mocks::ExampleMethods)
 
 # Capybara defaults to CSS3 selectors rather than XPath.
 # If you'd prefer to use XPath, just uncomment this line and adjust any
@@ -106,6 +108,16 @@ end
 # Reset Timecop after each scenario
 After do
   Timecop.return
+end
+
+# Setup and teardown RSpec mocks
+Before do
+  RSpec::Mocks.setup
+end
+
+After do
+  RSpec::Mocks.verify
+  RSpec::Mocks.teardown
 end
 
 Before('@oauth_failure') do

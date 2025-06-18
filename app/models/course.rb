@@ -97,7 +97,13 @@ class Course < ApplicationRecord
   end
 
   def enrolled?(user)
-    course_enrollments.exists?(user: user, status: "active")
+    # Students must be enrolled through course_enrollments
+    return course_enrollments.exists?(user: user, status: "active") if user.student?
+    
+    # Instructors and admins are considered "enrolled" if they can manage the course
+    return true if can_be_managed_by?(user)
+    
+    false
   end
 
   def enroll_student(user, invitation = nil)

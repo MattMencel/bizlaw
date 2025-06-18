@@ -1,0 +1,84 @@
+<div class="max-w-2xl mx-auto">
+  <div class="bg-white overflow-hidden shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Edit Team Member</h3>
+      </div>
+
+      <%= form_with model: [@team, @team_member], local: true do |form| %>
+        <% if @team_member.errors.any? %>
+          <div class="rounded-md bg-red-50 p-4 mb-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">
+                  There <%= @team_member.errors.count == 1 ? 'was' : 'were' %> <%= pluralize(@team_member.errors.count, 'error') %> with your submission:
+                </h3>
+                <div class="mt-2 text-sm text-red-700">
+                  <ul role="list" class="list-disc pl-5 space-y-1">
+                    <% @team_member.errors.full_messages.each do |message| %>
+                      <li><%= message %></li>
+                    <% end %>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="space-y-4">
+          <div>
+            <%= form.label :user_id, "Student", class: "block text-sm font-medium text-gray-700" %>
+            <div class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-900 sm:text-sm">
+              <%= @team_member.user.full_name %>
+            </div>
+            <p class="mt-1 text-sm text-gray-500">Team member cannot be changed after creation</p>
+          </div>
+
+          <div>
+            <%= form.label :role, "Role", class: "block text-sm font-medium text-gray-700" %>
+            <% if @team_member.user_id == @team.owner_id %>
+              <div class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-900 sm:text-sm">
+                <%= @team_member.role.humanize %>
+              </div>
+              <p class="mt-1 text-sm text-gray-500">Team owner role cannot be changed</p>
+            <% else %>
+              <%= form.select :role, 
+                  options_for_select([['Member', 'member'], ['Manager', 'manager']], @team_member.role),
+                  {},
+                  { class: "mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" } %>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-end space-x-3">
+          <%= link_to "Cancel", @team,
+              class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+          <%= form.submit "Update Member",
+              class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+        </div>
+      <% end %>
+
+      <% if @team_member.user_id != @team.owner_id %>
+        <div class="mt-8 pt-6 border-t border-gray-200">
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="text-sm font-medium text-gray-900">Remove Member</h4>
+              <p class="text-sm text-gray-500">Remove this member from the team</p>
+            </div>
+            <%= link_to "Remove Member", team_team_member_path(@team, @team_member),
+                method: :delete,
+                data: { 
+                  confirm: "Are you sure you want to remove #{@team_member.user.full_name} from this team?" 
+                },
+                class: "inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

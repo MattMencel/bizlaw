@@ -366,8 +366,8 @@
                         class: "text-blue-600 hover:text-blue-900 text-xs font-medium" do %>
                       View
                     <% end %>
-                    <% if team.can_be_managed_by?(current_user) %>
-                      <%= link_to edit_team_path(team),
+                    <% if policy(team).update? %>
+                      <%= link_to edit_course_team_path(@course, team),
                           class: "text-gray-600 hover:text-gray-900 text-xs font-medium" do %>
                         Edit
                       <% end %>

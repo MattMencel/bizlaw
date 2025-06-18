@@ -37,7 +37,7 @@ class DashboardController < ApplicationController
   end
 
   def load_instructor_data
-    @my_courses = current_user.taught_courses.includes(:students)
+    @my_courses = current_user.taught_courses
     @my_teams = Team.joins(:members).where(team_members: { user: current_user })
     # TODO: implement activity tracking
     @recent_activity = []

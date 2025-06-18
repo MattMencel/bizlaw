@@ -3,7 +3,27 @@
   # Set default values
   size ||= 'md'
   current_path = request.path
-  is_active = current_page?(path) rescue false
+  
+  # Improved active state detection
+  is_active = begin
+    # Try exact current_page? match first
+    if current_page?(path)
+      true
+    # For admin routes, also check if we're in the same admin section
+    elsif path.include?('/admin/') && current_path.include?('/admin/')
+      # Extract the admin section (e.g., /admin/settings, /admin/users)
+      admin_section = path.split('/')[1..2].join('/')
+      current_section = current_path.split('/')[1..2].join('/')
+      admin_section == current_section
+    # For main sections, check if current path starts with the base path
+    elsif path != '#' && current_path.start_with?(path.split('?').first)
+      true
+    else
+      false
+    end
+  rescue
+    false
+  end
   
   # Size-based classes
   item_classes = case size

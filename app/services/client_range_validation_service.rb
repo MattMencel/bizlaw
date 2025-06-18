@@ -31,25 +31,35 @@ class ClientRangeValidationService
     
     team_role = determine_team_role(team)
     
-    case team_role
-    when "plaintiff"
-      validate_plaintiff_offer(offer_amount)
-    when "defendant"
-      validate_defendant_offer(offer_amount)
-    else
-      raise ArgumentError, "Unknown team role: #{team_role}"
-    end
+    # Get base validation result
+    base_result = case team_role
+                 when "plaintiff"
+                   validate_plaintiff_offer(offer_amount)
+                 when "defendant"
+                   validate_defendant_offer(offer_amount)
+                 else
+                   raise ArgumentError, "Unknown team role: #{team_role}"
+                 end
+    
+    # Try to enhance with AI insights
+    ai_enhanced_result = enhance_validation_with_ai(team, offer_amount, base_result)
+    ai_enhanced_result || base_result
   end
 
   def analyze_settlement_gap(plaintiff_offer, defendant_offer)
     gap_size = plaintiff_offer - defendant_offer
     
-    GapAnalysis.new(
+    # Get base gap analysis
+    base_analysis = GapAnalysis.new(
       gap_size: gap_size,
       gap_category: categorize_gap(gap_size),
       settlement_likelihood: assess_settlement_likelihood(gap_size),
       strategic_guidance: generate_gap_guidance(gap_size)
     )
+    
+    # Try to enhance with AI insights
+    ai_enhanced_analysis = enhance_gap_analysis_with_ai(plaintiff_offer, defendant_offer, base_analysis)
+    ai_enhanced_analysis || base_analysis
   end
 
   def calculate_pressure_level(team, offer_amount)
@@ -330,5 +340,192 @@ class ClientRangeValidationService
     
     simulation.plaintiff_min_acceptable += min_increase
     simulation.plaintiff_ideal += ideal_increase
+  end
+
+  # AI Enhancement Methods
+
+  def enhance_validation_with_ai(team, offer_amount, base_result)
+    return nil unless ai_service_available?
+    
+    begin
+      # Create a mock settlement offer for AI context
+      mock_offer = build_validation_context_offer(team, offer_amount)
+      
+      ai_service = GoogleAiService.new
+      ai_response = ai_service.generate_settlement_feedback(mock_offer)
+      
+      # Create enhanced validation result
+      ValidationResult.new(
+        positioning: base_result.positioning,
+        satisfaction_score: ai_response[:satisfaction_score] || base_result.satisfaction_score,
+        mood: ai_response[:mood_level] || base_result.mood,
+        feedback_theme: infer_feedback_theme_from_ai(ai_response, base_result),
+        pressure_level: calculate_ai_enhanced_pressure(ai_response, base_result),
+        within_acceptable_range: base_result.within_acceptable_range
+      )
+    rescue StandardError => e
+      Rails.logger.warn "AI validation enhancement failed: #{e.message}"
+      nil
+    end
+  end
+
+  def enhance_gap_analysis_with_ai(plaintiff_offer, defendant_offer, base_analysis)
+    return nil unless ai_service_available?
+    
+    begin
+      # Create mock offers for AI context
+      mock_plaintiff_offer = build_gap_context_offer("plaintiff", plaintiff_offer)
+      mock_defendant_offer = build_gap_context_offer("defendant", defendant_offer)
+      
+      ai_service = GoogleAiService.new
+      ai_analysis = ai_service.analyze_settlement_options(mock_plaintiff_offer, mock_defendant_offer)
+      
+      if ai_analysis && ai_analysis[:creative_options]
+        # Enhance base analysis with AI insights
+        enhanced_guidance = combine_gap_guidance(base_analysis.strategic_guidance, ai_analysis)
+        
+        GapAnalysis.new(
+          gap_size: base_analysis.gap_size,
+          gap_category: base_analysis.gap_category,
+          settlement_likelihood: refine_settlement_likelihood(base_analysis, ai_analysis),
+          strategic_guidance: enhanced_guidance
+        )
+      end
+    rescue StandardError => e
+      Rails.logger.warn "AI gap analysis enhancement failed: #{e.message}"
+      nil
+    end
+  end
+
+  def ai_service_available?
+    GoogleAI.enabled?
+  rescue StandardError
+    false
+  end
+
+  def build_validation_context_offer(team, amount)
+    # Create a mock negotiation round for context
+    recent_round = simulation.negotiation_rounds.order(:round_number).last
+    recent_round ||= simulation.negotiation_rounds.build(round_number: 1)
+    
+    OpenStruct.new(
+      team: team,
+      negotiation_round: recent_round,
+      amount: amount,
+      justification: "Validation context for #{determine_team_role(team)} offer"
+    )
+  end
+
+  def build_gap_context_offer(role, amount)
+    # Create mock team for gap analysis
+    mock_team = OpenStruct.new(
+      case_teams: [OpenStruct.new(role: role)]
+    )
+    
+    # Create mock negotiation round
+    recent_round = simulation.negotiation_rounds.order(:round_number).last
+    recent_round ||= simulation.negotiation_rounds.build(round_number: 1)
+    
+    OpenStruct.new(
+      team: mock_team,
+      negotiation_round: recent_round,
+      amount: amount,
+      justification: "Gap analysis context for #{role}"
+    )
+  end
+
+  def infer_feedback_theme_from_ai(ai_response, base_result)
+    # Use AI sentiment to potentially refine feedback theme
+    if ai_response[:satisfaction_score]
+      ai_satisfaction = ai_response[:satisfaction_score]
+      
+      # Adjust theme based on AI satisfaction score
+      if ai_satisfaction >= 85 && base_result.feedback_theme != :excellent_positioning
+        case base_result.feedback_theme
+        when :strategic_positioning
+          :excellent_positioning
+        when :reasonable_settlement
+          :target_achieved
+        else
+          base_result.feedback_theme
+        end
+      elsif ai_satisfaction <= 30 && base_result.feedback_theme != :unacceptable_amount
+        case base_result.feedback_theme
+        when :strategic_positioning
+          :concerning_low
+        when :reasonable_settlement
+          :financial_concern
+        else
+          base_result.feedback_theme
+        end
+      else
+        base_result.feedback_theme
+      end
+    else
+      base_result.feedback_theme
+    end
+  end
+
+  def calculate_ai_enhanced_pressure(ai_response, base_result)
+    # Use AI mood to potentially adjust pressure level
+    ai_mood = ai_response[:mood_level]
+    
+    case ai_mood
+    when "very_unhappy"
+      :extreme
+    when "unhappy"
+      base_result.pressure_level == :low ? :moderate : :high
+    when "very_satisfied"
+      :low
+    when "satisfied"
+      base_result.pressure_level == :extreme ? :high : base_result.pressure_level
+    else
+      base_result.pressure_level
+    end
+  end
+
+  def combine_gap_guidance(base_guidance, ai_analysis)
+    if ai_analysis[:creative_options] && ai_analysis[:creative_options].any?
+      # Extract top creative options from AI
+      top_options = ai_analysis[:creative_options].first(2)
+      creative_text = top_options.join("; ")
+      
+      "#{base_guidance} Consider: #{creative_text}."
+    else
+      base_guidance
+    end
+  end
+
+  def refine_settlement_likelihood(base_analysis, ai_analysis)
+    # Use AI risk assessment to potentially adjust likelihood
+    if ai_analysis[:risk_assessment]
+      risk_text = ai_analysis[:risk_assessment].downcase
+      
+      if risk_text.include?("achievable") || risk_text.include?("possible")
+        # AI suggests more optimism
+        case base_analysis.settlement_likelihood
+        when :unlikely
+          :challenging
+        when :challenging
+          :possible
+        else
+          base_analysis.settlement_likelihood
+        end
+      elsif risk_text.include?("difficult") || risk_text.include?("challenging")
+        # AI suggests more caution
+        case base_analysis.settlement_likelihood
+        when :likely
+          :possible
+        when :possible
+          :challenging
+        else
+          base_analysis.settlement_likelihood
+        end
+      else
+        base_analysis.settlement_likelihood
+      end
+    else
+      base_analysis.settlement_likelihood
+    end
   end
 end

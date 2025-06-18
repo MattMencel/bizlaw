@@ -32,6 +32,9 @@ gem "rack-attack", "~> 6.7" # Rate limiting
 gem "statsd-instrument", "~> 3.5" # StatsD client for metrics
 gem "dogstatsd-ruby", "~> 5.6" # Enhanced StatsD client with tagging support
 
+# AI Integration
+gem "gemini-ai", "~> 4.2" # Google Gemini AI client
+
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 

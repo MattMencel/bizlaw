@@ -30,143 +30,19 @@
       <%= render "shared/impersonation_banner" %>
     <% end %>
 
-    <div class="flex h-full">
-      <!-- New Hierarchical Navigation -->
+    <!-- New Responsive Navigation -->
+    <% if user_signed_in? %>
+      <%= render 'shared/navigation' %>
+    <% end %>
+
+    <!-- Main content wrapper with responsive margin -->
+    <div class="<%= user_signed_in? ? 'lg:ml-80 pt-16 lg:pt-0' : '' %>">
+      <!-- Top bar - only show when signed in -->
       <% if user_signed_in? %>
-        <%= render 'shared/navigation' %>
-      <% else %>
-        <!-- Simple navigation for non-authenticated users -->
-        <div class="hidden lg:flex lg:w-64 lg:flex-col">
-          <div class="flex min-h-0 flex-1 flex-col bg-gray-800">
-            <div class="flex h-16 flex-shrink-0 items-center bg-gray-900 px-4">
-              <%= link_to root_path, class: "text-xl font-bold text-white" do %>
-                Business Law
-              <% end %>
-            </div>
-          </div>
-        </div>
-      <% end %>
-
-      <!-- Mobile menu -->
-      <div class="lg:hidden">
-        <!-- Mobile top bar -->
-        <div class="flex h-16 items-center justify-between bg-gray-800 px-4">
-          <div class="flex items-center">
-            <button type="button"
-                    class="rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
-                    data-controller="mobile-menu"
-                    data-action="click->mobile-menu#toggle">
-              <span class="sr-only">Open sidebar</span>
-              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-              </svg>
-            </button>
-            <%= link_to root_path, class: "ml-4 text-xl font-bold text-white" do %>
-              Business Law
-            <% end %>
-          </div>
-
-          <% if user_signed_in? %>
-            <div class="flex items-center">
-              <% if current_user.avatar_url.present? %>
-                <%= image_tag current_user.avatar_url, class: "h-8 w-8 rounded-full" %>
-              <% else %>
-                <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
-                  <span class="text-sm font-medium text-white">
-                    <%= current_user.first_name.first %>
-                  </span>
-                </div>
-              <% end %>
-            </div>
-          <% else %>
-            <%= link_to "Sign in", new_user_session_path,
-                class: "rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500" %>
-          <% end %>
-        </div>
-
-        <!-- Mobile sidebar -->
-        <div class="hidden fixed inset-0 z-40 flex lg:hidden" data-mobile-menu-target="menu">
-          <div class="fixed inset-0 bg-gray-600 bg-opacity-75"></div>
-          <div class="relative flex w-full max-w-xs flex-1 flex-col bg-gray-800">
-            <div class="absolute top-0 right-0 -mr-12 pt-2">
-              <button type="button"
-                      class="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-                      data-action="click->mobile-menu#toggle">
-                <span class="sr-only">Close sidebar</span>
-                <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div class="h-0 flex-1 overflow-y-auto pt-5 pb-4">
-              <nav class="mt-5 space-y-1 px-2">
-                <% if user_signed_in? %>
-                  <%= link_to dashboard_path,
-                      class: "group flex items-center px-2 py-2 text-base font-medium rounded-md #{current_page?(dashboard_path) ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}" do %>
-                    Dashboard
-                  <% end %>
-                <% end %>
-
-                <%= link_to cases_path,
-                    class: "group flex items-center px-2 py-2 text-base font-medium rounded-md #{current_page?(cases_path) ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}" do %>
-                  Cases
-                <% end %>
-
-                <%= link_to teams_path,
-                    class: "group flex items-center px-2 py-2 text-base font-medium rounded-md #{current_page?(teams_path) ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}" do %>
-                  Teams
-                <% end %>
-
-                <%= link_to about_path,
-                    class: "group flex items-center px-2 py-2 text-base font-medium rounded-md #{current_page?(about_path) ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}" do %>
-                  About
-                <% end %>
-              </nav>
-            </div>
-
-            <% if user_signed_in? %>
-              <div class="flex flex-shrink-0 bg-gray-700 p-4">
-                <div class="flex items-center">
-                  <div>
-                    <% if current_user.avatar_url.present? %>
-                      <%= image_tag current_user.avatar_url, class: "inline-block h-10 w-10 rounded-full" %>
-                    <% else %>
-                      <div class="inline-block h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
-                        <span class="text-sm font-medium text-white">
-                          <%= current_user.first_name.first %>
-                        </span>
-                      </div>
-                    <% end %>
-                  </div>
-                  <div class="ml-3">
-                    <p class="text-base font-medium text-white"><%= current_user.full_name %></p>
-                    <div class="mt-1 space-y-1">
-                      <%= link_to profile_path, class: "block text-sm text-gray-300 hover:text-white" do %>
-                        Your Profile
-                      <% end %>
-                      <%= link_to settings_path, class: "block text-sm text-gray-300 hover:text-white" do %>
-                        Settings
-                      <% end %>
-                      <%= button_to destroy_user_session_path, method: :delete, class: "block text-left text-sm text-gray-300 hover:text-white" do %>
-                        Sign out
-                      <% end %>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            <% end %>
-          </div>
-        </div>
-      </div>
-
-      <!-- Main content -->
-      <div class="flex flex-1 flex-col <%= user_signed_in? ? 'lg:pl-80' : 'lg:pl-64' %>">
-        <!-- Top bar -->
         <div class="flex h-16 flex-shrink-0 bg-white shadow lg:border-none">
           <div class="flex flex-1 justify-between px-4 sm:px-6 lg:mx-auto lg:max-w-6xl lg:px-8">
             <div class="flex flex-1">
-              <!-- Search bar placeholder - similar to screenshot -->
+              <!-- Search bar placeholder -->
               <div class="flex w-full md:ml-0">
                 <label for="search-field" class="sr-only">Search</label>
                 <div class="relative w-full text-gray-400 focus-within:text-gray-600">
@@ -181,87 +57,86 @@
             </div>
 
             <div class="ml-4 flex items-center md:ml-6">
-              <% if user_signed_in? %>
-                <!-- Notifications -->
-                <button type="button" class="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                  <span class="sr-only">View notifications</span>
-                  <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                  </svg>
-                </button>
+              <!-- Notifications -->
+              <button type="button" class="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                <span class="sr-only">View notifications</span>
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                </svg>
+              </button>
 
-                <!-- Profile dropdown -->
-                <div class="relative ml-3" data-controller="dropdown">
-                  <div>
-                    <button type="button" class="flex max-w-xs items-center rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 lg:rounded-md lg:p-2 lg:hover:bg-gray-50" data-action="click->dropdown#toggle">
-                      <% if current_user.avatar_url.present? %>
-                        <%= image_tag current_user.avatar_url, class: "h-8 w-8 rounded-full" %>
-                      <% else %>
-                        <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
-                          <span class="text-sm font-medium text-white">
-                            <%= current_user.first_name.first %>
-                          </span>
-                        </div>
-                      <% end %>
-                      <span class="hidden ml-3 text-gray-700 text-sm font-medium lg:block">
-                        <span class="sr-only">Open user menu for </span>
-                        <%= current_user.full_name %>
-                      </span>
-                      <svg class="hidden ml-1 h-5 w-5 text-gray-400 lg:block" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                      </svg>
-                    </button>
-                  </div>
-
-                  <div class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" data-dropdown-target="menu" role="menu">
-                    <div class="px-4 py-2 border-b border-gray-100">
-                      <p class="text-sm font-medium text-gray-900"><%= current_user.full_name %></p>
-                      <p class="text-sm text-gray-500"><%= current_user.email %></p>
-                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium <%= current_user.role == 'admin' ? 'bg-red-100 text-red-800' : current_user.role == 'instructor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' %> mt-1">
-                        <%= current_user.role.capitalize %>
-                      </span>
-                    </div>
-
-                    <%= link_to profile_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100", role: "menuitem" do %>
-                      <svg class="mr-3 h-5 w-5 text-gray-400 inline" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                      </svg>
-                      Your Profile
+              <!-- Profile dropdown -->
+              <div class="relative ml-3" data-controller="dropdown">
+                <div>
+                  <button type="button" class="flex max-w-xs items-center rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 lg:rounded-md lg:p-2 lg:hover:bg-gray-50" data-action="click->dropdown#toggle">
+                    <% if current_user.avatar_url.present? %>
+                      <%= image_tag current_user.avatar_url, class: "h-8 w-8 rounded-full" %>
+                    <% else %>
+                      <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
+                        <span class="text-sm font-medium text-white">
+                          <%= current_user.first_name.first %>
+                        </span>
+                      </div>
                     <% end %>
-
-                    <%= link_to settings_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100", role: "menuitem" do %>
-                      <svg class="mr-3 h-5 w-5 text-gray-400 inline" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      Settings
-                    <% end %>
-
-                    <%= button_to destroy_user_session_path, method: :delete, class: "block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100", role: "menuitem" do %>
-                      <svg class="mr-3 h-5 w-5 text-gray-400 inline" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                      </svg>
-                      Sign out
-                    <% end %>
-                  </div>
+                    <span class="hidden ml-3 text-gray-700 text-sm font-medium lg:block">
+                      <span class="sr-only">Open user menu for </span>
+                      <%= current_user.full_name %>
+                    </span>
+                    <svg class="hidden ml-1 h-5 w-5 text-gray-400 lg:block" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                    </svg>
+                  </button>
                 </div>
-              <% else %>
-                <%= link_to "Sign in", new_user_session_path,
-                    class: "rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500" %>
-              <% end %>
+
+                <div class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" data-dropdown-target="menu" role="menu">
+                  <div class="px-4 py-2 border-b border-gray-100">
+                    <p class="text-sm font-medium text-gray-900"><%= current_user.full_name %></p>
+                    <p class="text-sm text-gray-500"><%= current_user.email %></p>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium <%= current_user.role == 'admin' ? 'bg-red-100 text-red-800' : current_user.role == 'instructor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' %> mt-1">
+                      <%= current_user.role.capitalize %>
+                    </span>
+                  </div>
+
+                  <%= link_to profile_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100", role: "menuitem" do %>
+                    <svg class="mr-3 h-5 w-5 text-gray-400 inline" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                    Your Profile
+                  <% end %>
+
+                  <%= link_to settings_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100", role: "menuitem" do %>
+                    <svg class="mr-3 h-5 w-5 text-gray-400 inline" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Settings
+                  <% end %>
+
+                  <%= button_to destroy_user_session_path, method: :delete, class: "block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100", role: "menuitem" do %>
+                    <svg class="mr-3 h-5 w-5 text-gray-400 inline" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                    </svg>
+                    Sign out
+                  <% end %>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+      <% end %>
 
-        <!-- Page content -->
-        <main class="flex-1 pb-8">
+      <!-- Page content -->
+      <main class="flex-1 <%= user_signed_in? ? 'pb-8' : 'h-full' %>">
+        <% if user_signed_in? %>
           <div class="bg-white py-6">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <%= yield %>
             </div>
           </div>
-        </main>
-      </div>
+        <% else %>
+          <%= yield %>
+        <% end %>
+      </main>
     </div>
   </body>
 </html>

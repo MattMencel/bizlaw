@@ -457,3 +457,65 @@ Then('the navigation should remain scrollable if needed') do
   nav_container = find('[data-controller="navigation-menu"]')
   expect(nav_container[:class]).to include('overflow-y-auto')
 end
+
+# New steps for admin navigation functionality
+When('I click on {string} in the Administration section') do |link_text|
+  within('.navigation-section', text: 'Administration') do
+    click_on link_text
+  end
+end
+
+Then('I should be redirected to the organizations management page') do
+  expect(page).to have_current_path(admin_organizations_path)
+end
+
+Then('I should be redirected to the admin settings page') do
+  expect(page).to have_current_path(admin_settings_path)
+end
+
+Then('I should be redirected to the admin dashboard page') do
+  expect(page).to have_current_path(admin_dashboard_path)
+end
+
+Then('I should be redirected to the license management page') do
+  expect(page).to have_current_path(admin_licenses_path)
+end
+
+# Mobile navigation responsiveness steps
+When('I resize the browser to mobile width {int}px') do |width|
+  page.driver.browser.manage.window.resize_to(width, 667)
+end
+
+Then('the navigation should automatically switch to mobile mode') do
+  expect(page).to have_css('[data-mobile-navigation-target="toggle"]', visible: true)
+end
+
+Then('the hamburger menu should be visible') do
+  expect(page).to have_css('[data-mobile-navigation-target="toggle"]', visible: true)
+end
+
+Then('the main content should be fully accessible') do
+  # Ensure navigation doesn't occupy too much space
+  nav_width = page.evaluate_script("document.querySelector('nav').offsetWidth")
+  viewport_width = page.evaluate_script("window.innerWidth")
+  expect(nav_width.to_f / viewport_width.to_f).to be < 0.5 # Less than 50% of viewport
+end
+
+When('I resize back to desktop width') do
+  page.driver.browser.manage.window.resize_to(1200, 800)
+end
+
+Then('the navigation should return to desktop mode') do
+  expect(page).to have_css('[data-mobile-navigation-target="toggle"]', visible: false)
+end
+
+Then('the hamburger menu should be hidden') do
+  expect(page).to have_css('[data-mobile-navigation-target="toggle"]', visible: false)
+end
+
+Then('the navigation should not occupy more than {int}% of the screen width') do |percentage|
+  nav_width = page.evaluate_script("document.querySelector('nav').offsetWidth")
+  viewport_width = page.evaluate_script("window.innerWidth")
+  actual_percentage = (nav_width.to_f / viewport_width.to_f) * 100
+  expect(actual_percentage).to be <= percentage
+end

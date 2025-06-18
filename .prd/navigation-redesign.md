@@ -286,3 +286,123 @@ The navigation redesign project has been **100% successfully completed**, delive
 - **✅ Production-ready navigation system delivered**
 
 The new hierarchical navigation system with context switching capabilities is now live and provides users with intuitive, efficient access to all legal simulation features while maintaining appropriate security and permissions for different user roles.
+
+## 11. Critical Issue Resolution (Phase 5) - June 18, 2025
+
+### 🚨 POST-LAUNCH ISSUES DISCOVERED
+
+Following Puppeteer review of the navigation system, several critical issues were identified that require immediate resolution:
+
+#### **Critical Mobile Responsiveness Issue**
+- **Problem**: Navigation sidebar occupies 85% of mobile screen width (375px), rendering the application unusable on mobile devices
+- **Impact**: **SEVERE** - Complete mobile user experience failure
+- **Root Cause**: Navigation width (280px) not properly adjusted for mobile viewports
+- **Priority**: **CRITICAL - IMMEDIATE FIX REQUIRED**
+
+#### **Missing Admin Navigation Routes**
+- **Problem**: Four navigation links reference non-existent routes or incorrect paths:
+  1. `admin_settings_path` - Route doesn't exist, causing broken admin navigation
+  2. `admin_organization_path` - Should be `admin_organizations_path` (plural)
+  3. Missing direct link to admin dashboard 
+  4. Missing direct link to license management
+- **Impact**: **HIGH** - Broken admin user experience, failing BDD tests
+- **Priority**: **HIGH - FIX WITHIN 24 HOURS**
+
+#### **User Experience Deficiencies**
+- **Problem**: No active state indicators for current page/section in navigation
+- **Impact**: **MEDIUM** - Users cannot identify their current location
+- **Priority**: **MEDIUM - FIX WITHIN 48 HOURS**
+
+### 🎯 PHASE 5 REQUIREMENTS
+
+#### **11.1 Mobile Responsiveness Requirements**
+```css
+/* Mobile Navigation Requirements (≤ 768px) */
+- Navigation width: Maximum 100% viewport with overlay behavior
+- Hamburger toggle button: Visible and functional
+- Backdrop/overlay: Dismiss navigation when clicking outside
+- Animation: Smooth slide-in/slide-out transitions (300ms)
+- Z-index: Navigation above all other content (z-index: 1000+)
+```
+
+#### **11.2 Admin Route Requirements**
+```ruby
+# Required Admin Routes
+resources :admin do
+  resources :organizations
+  resources :users  
+  resources :licenses
+  resources :settings, only: [:index, :show, :update]
+  get :dashboard
+end
+
+# Navigation Path Requirements
+- admin_organizations_path (plural, not singular)
+- admin_settings_path (new route to be created)
+- admin_dashboard_path (direct access to admin dashboard)
+- admin_licenses_path (direct access to license management)
+```
+
+#### **11.3 Active State Requirements**
+```css
+/* Active State Specifications */
+- Current page: Background highlight (bg-blue-100 dark:bg-blue-900)
+- Current section: Bold text weight (font-semibold)
+- Hover states: Subtle background change (bg-gray-50 dark:bg-gray-800)
+- Focus states: Proper keyboard navigation indicators
+```
+
+### 🏗️ IMPLEMENTATION PLAN
+
+#### **Phase 5.1: Critical Mobile Fix (Day 1)**
+1. Implement mobile navigation overlay pattern
+2. Add hamburger menu toggle functionality
+3. Create responsive breakpoints for navigation width
+4. Test mobile navigation on various devices (375px, 414px, 768px)
+
+#### **Phase 5.2: Admin Route Fixes (Day 1-2)**
+1. Create Admin::SettingsController and views
+2. Fix organization route reference in navigation
+3. Add admin dashboard and license management links
+4. Update route tests and navigation tests
+
+#### **Phase 5.3: UX Improvements (Day 2-3)**
+1. Implement active state indicators
+2. Improve keyboard navigation accessibility
+3. Add loading states for navigation interactions
+4. Update visual design for better usability
+
+### 🧪 TESTING REQUIREMENTS
+
+#### **Mobile Testing**
+- [ ] Navigation usable on 375px width devices
+- [ ] Hamburger menu toggles navigation overlay
+- [ ] Content area fully accessible when navigation is closed
+- [ ] Touch interactions work properly on mobile
+
+#### **Admin Functionality Testing**
+- [ ] All admin navigation links functional (no 404 errors)
+- [ ] Admin settings controller responds correctly
+- [ ] Role-based visibility working for all admin features
+- [ ] BDD tests passing for admin navigation scenarios
+
+#### **UX Testing**
+- [ ] Current page clearly indicated in navigation
+- [ ] Keyboard navigation works throughout navigation
+- [ ] Focus indicators visible and properly styled
+- [ ] Hover states provide clear feedback
+
+### 📋 SUCCESS CRITERIA
+
+- ✅ **Mobile Usability**: Navigation works seamlessly on all mobile devices
+- ✅ **Admin Functionality**: All admin navigation links functional and tested
+- ✅ **User Experience**: Clear visual indicators for navigation state
+- ✅ **Test Coverage**: All new functionality covered by automated tests
+- ✅ **Accessibility**: WCAG 2.1 AA compliance maintained
+
+### ⚠️ RISK MITIGATION
+
+- **Mobile Testing**: Use device simulation and real device testing
+- **Route Changes**: Careful migration to avoid breaking existing functionality
+- **User Impact**: Implement fixes in non-breaking, backward-compatible way
+- **Testing**: Comprehensive test coverage before deploying fixes

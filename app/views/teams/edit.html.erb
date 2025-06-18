@@ -64,7 +64,7 @@
             </div>
             <div class="ml-3">
               <p class="text-sm text-gray-600">
-                Team owner: <strong><%= @team.owner.name %></strong><br>
+                Team owner: <strong><%= @team.owner.full_name %></strong><br>
                 Created: <%= @team.created_at.strftime("%B %d, %Y") %>
               </p>
             </div>
@@ -79,7 +79,7 @@
                        class: "inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
           </div>
 
-          <% if can_delete_team?(@team) %>
+          <% if policy(@team).destroy? %>
             <%= link_to "Delete Team", @team,
                        method: :delete,
                        data: {
