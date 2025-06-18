@@ -34,7 +34,7 @@ RSpec.describe Organization, type: :model do
 
     describe 'domain format' do
       it 'accepts valid domain formats' do
-        valid_domains = ['university.edu', 'college.org', 'school.ac.uk']
+        valid_domains = [ 'university.edu', 'college.org', 'school.ac.uk' ]
         valid_domains.each do |domain|
           organization.domain = domain
           expect(organization).to be_valid
@@ -42,7 +42,7 @@ RSpec.describe Organization, type: :model do
       end
 
       it 'rejects invalid domain formats' do
-        invalid_domains = ['invalid', 'no-dot', 'invalid.', 'domain.c']
+        invalid_domains = [ 'invalid', 'no-dot', 'invalid.', 'domain.c' ]
         invalid_domains.each do |domain|
           organization.domain = domain
           expect(organization).not_to be_valid
@@ -52,7 +52,7 @@ RSpec.describe Organization, type: :model do
 
     describe 'slug format' do
       it 'accepts valid slug formats' do
-        valid_slugs = ['test-university', 'school123', 'college-name']
+        valid_slugs = [ 'test-university', 'school123', 'college-name' ]
         valid_slugs.each do |slug|
           organization.slug = slug
           expect(organization).to be_valid

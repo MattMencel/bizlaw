@@ -3,7 +3,7 @@
 module CourseInvitationsHelper
   def qr_code_image_tag(invitation, size: 200, alt: "QR Code for course invitation")
     # Use SVG instead of PNG for better compatibility and visibility
-    content_tag :div, 
+    content_tag :div,
                 class: "qr-code-container border border-gray-200 rounded-lg inline-block p-4 bg-white",
                 style: "width: #{size + 32}px; height: #{size + 32}px;" do
       qr_code_svg(invitation, size: size, css_class: "qr-code w-full h-full")

@@ -2,18 +2,18 @@
 
 class TermsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_term, only: [:show, :edit, :update, :destroy]
+  before_action :set_term, only: [ :show, :edit, :update, :destroy ]
   before_action :ensure_authorized_user
-  before_action :ensure_can_modify_term, only: [:edit, :update, :destroy]
+  before_action :ensure_can_modify_term, only: [ :edit, :update, :destroy ]
 
   def index
     @terms = current_user_terms.includes(:courses)
                               .order(:academic_year, :start_date)
                               .page(params[:page]).per(20)
-    
+
     @current_terms = @terms.current
     @upcoming_terms = @terms.upcoming.limit(5)
-    
+
     respond_to do |format|
       format.html
       format.json { render json: @terms }
@@ -22,7 +22,7 @@ class TermsController < ApplicationController
 
   def show
     @courses = @term.courses.includes(:instructor, :students)
-    
+
     respond_to do |format|
       format.html
       format.json { render json: @term }
@@ -34,21 +34,21 @@ class TermsController < ApplicationController
     organization = current_user.admin? ? Organization.new : current_user_organization
     @term = organization.terms.build
     set_default_dates
-    
+
     # For admins, provide organization options
-    @organizations = current_user.admin? ? Organization.all : [current_user_organization]
+    @organizations = current_user.admin? ? Organization.includes(:courses).all : [ current_user_organization ]
   end
 
   def create
     # Determine which organization to create the term for
-    organization = current_user.admin? && params[:term][:organization_id].present? ? 
-                     Organization.find(params[:term][:organization_id]) : 
+    organization = current_user.admin? && params[:term][:organization_id].present? ?
+                     Organization.find(params[:term][:organization_id]) :
                      current_user_organization
-    
+
     @term = organization.terms.build(term_params)
-    
+
     if @term.save
-      redirect_to @term, notice: 'Term was successfully created.'
+      redirect_to @term, notice: "Term was successfully created."
     else
       render :new, status: :unprocessable_entity
     end
@@ -59,7 +59,7 @@ class TermsController < ApplicationController
 
   def update
     if @term.update(term_params)
-      redirect_to @term, notice: 'Term was successfully updated.'
+      redirect_to @term, notice: "Term was successfully updated."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -67,10 +67,10 @@ class TermsController < ApplicationController
 
   def destroy
     if @term.courses.exists?
-      redirect_to terms_path, alert: 'Cannot delete term with existing courses.'
+      redirect_to terms_path, alert: "Cannot delete term with existing courses."
     else
       @term.soft_delete
-      redirect_to terms_path, notice: 'Term was successfully deleted.'
+      redirect_to terms_path, notice: "Term was successfully deleted."
     end
   end
 
@@ -94,13 +94,13 @@ class TermsController < ApplicationController
   end
 
   def current_user_organization
-    @current_user_organization ||= current_user.organization || 
-                                   Organization.find_by(domain: current_user.email.split('@').last)
+    @current_user_organization ||= current_user.organization ||
+                                   Organization.find_by(domain: current_user.email.split("@").last)
   end
 
   def ensure_authorized_user
     unless current_user.instructor? || current_user.org_admin? || current_user.admin?
-      redirect_to root_path, alert: 'Access denied. You must be an instructor, organization admin, or system admin to manage terms.'
+      redirect_to root_path, alert: "Access denied. You must be an instructor, organization admin, or system admin to manage terms."
     end
   end
 
@@ -113,7 +113,7 @@ class TermsController < ApplicationController
 
   def ensure_can_modify_term
     unless can_modify_term?(@term)
-      redirect_to terms_path, alert: 'You are not authorized to modify this term.'
+      redirect_to terms_path, alert: "You are not authorized to modify this term."
     end
   end
 
@@ -126,7 +126,7 @@ class TermsController < ApplicationController
   end
 
   def term_params
-    permitted_params = [:term_name, :academic_year, :start_date, :end_date, :description, :active]
+    permitted_params = [ :term_name, :academic_year, :start_date, :end_date, :description, :active ]
     permitted_params << :organization_id if current_user.admin?
     params.require(:term).permit(permitted_params)
   end

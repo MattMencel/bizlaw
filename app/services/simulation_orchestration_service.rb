@@ -123,7 +123,7 @@ class SimulationOrchestrationService
 
     # Generate event-specific feedback
     feedback_service = ClientFeedbackService.new(simulation)
-    affected_teams = [simulation.plaintiff_team, simulation.defendant_team].compact
+    affected_teams = [ simulation.plaintiff_team, simulation.defendant_team ].compact
     feedbacks = feedback_service.generate_event_feedback!(event, affected_teams)
     results[:feedbacks_generated] = feedbacks
 
@@ -169,7 +169,7 @@ class SimulationOrchestrationService
     errors << "Both plaintiff and defendant teams must be assigned" unless simulation.plaintiff_team && simulation.defendant_team
 
     # Check logical consistency
-    if simulation.plaintiff_min_acceptable && simulation.plaintiff_ideal && 
+    if simulation.plaintiff_min_acceptable && simulation.plaintiff_ideal &&
        simulation.plaintiff_min_acceptable > simulation.plaintiff_ideal
       errors << "Plaintiff minimum cannot exceed ideal amount"
     end
@@ -291,14 +291,14 @@ class SimulationOrchestrationService
 
     case_team = team.case_teams.find_by(case: simulation.case)
     current_round = simulation.current_negotiation_round
-    
+
     team_offer = nil
     if current_round && case_team
       team_offer = if case_team.role == "plaintiff"
                      current_round.plaintiff_offer
-                   else
+      else
                      current_round.defendant_offer
-                   end
+      end
     end
 
     {
@@ -326,7 +326,7 @@ class SimulationOrchestrationService
 
   def get_negotiation_progress_summary
     completed_rounds = simulation.negotiation_rounds.completed.count
-    
+
     {
       rounds_completed: completed_rounds,
       total_rounds: simulation.total_rounds,

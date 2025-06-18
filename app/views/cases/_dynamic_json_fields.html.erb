@@ -3,15 +3,11 @@
   
   <div class="dynamic-fields-container space-y-2" data-field-container="<%= field_name %>">
     <% 
-      # Parse existing JSON or start with empty hash
+      # Get existing hash data or start with empty hash
       existing_data = {}
       if form.object.send(field_name).present?
-        begin
-          existing_data = JSON.parse(form.object.send(field_name))
-        rescue JSON::ParserError
-          # If it's not valid JSON, treat as empty
-          existing_data = {}
-        end
+        field_value = form.object.send(field_name)
+        existing_data = field_value.is_a?(Hash) ? field_value : JSON.parse(field_value) rescue {}
       end
       
       # Show existing fields or one empty field if no data

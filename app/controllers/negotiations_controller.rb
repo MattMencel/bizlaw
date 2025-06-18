@@ -2,18 +2,19 @@
 
 class NegotiationsController < ApplicationController
   include ImpersonationReadOnly
-  
+
   before_action :authenticate_user!
   before_action :set_case
   before_action :set_simulation
   before_action :verify_team_participation
-  before_action :set_current_round, except: [:history, :templates, :calculator]
-  
+  before_action :set_current_round, except: [ :history, :templates, :calculator ]
+
   def index
     @negotiation_rounds = @simulation.negotiation_rounds
                                     .includes(:settlement_offers)
                                     .by_round_number
     @current_team_offer = current_team_offer_for_round(@current_round)
+    @current_opposing_offer = opposing_offer_for_round(@current_round) if @current_round
     @opposing_team_offers = opposing_team_offers
     @client_mood = fetch_client_mood
     @pressure_status = fetch_pressure_status
@@ -35,14 +36,14 @@ class NegotiationsController < ApplicationController
 
   def create_offer
     @settlement_offer = build_new_settlement_offer
-    
+
     if params[:consult_client]
       redirect_to client_consultation_case_negotiation_path(@case, @current_round)
       return
     end
 
     if submit_offer_via_api
-      redirect_to case_negotiations_path(@case), 
+      redirect_to case_negotiations_path(@case),
                   notice: "Settlement offer submitted successfully!"
     else
       @argument_templates = load_argument_templates
@@ -55,11 +56,11 @@ class NegotiationsController < ApplicationController
   def counter_offer
     @original_offer = find_opposing_team_latest_offer
     unless @original_offer
-      redirect_to case_negotiations_path(@case), 
+      redirect_to case_negotiations_path(@case),
                   alert: "No opposing offer found to respond to"
       return
     end
-    
+
     @settlement_offer = build_counter_offer_response
     @argument_templates = load_argument_templates
     @non_monetary_options = load_non_monetary_options
@@ -70,7 +71,7 @@ class NegotiationsController < ApplicationController
     @settlement_offer = build_counter_offer_response
 
     if submit_offer_via_api
-      redirect_to case_negotiations_path(@case), 
+      redirect_to case_negotiations_path(@case),
                   notice: "Counter-offer submitted successfully!"
     else
       @argument_templates = load_argument_templates
@@ -88,10 +89,10 @@ class NegotiationsController < ApplicationController
 
   def consult_client
     @client_feedback = perform_client_consultation
-    
+
     if params[:proceed_with_offer]
       if submit_offer_via_api
-        redirect_to case_negotiations_path(@case), 
+        redirect_to case_negotiations_path(@case),
                     notice: "Offer submitted after client consultation!"
       else
         @settlement_offer = build_new_settlement_offer
@@ -100,14 +101,14 @@ class NegotiationsController < ApplicationController
         render :client_consultation, status: :unprocessable_entity
       end
     else
-      redirect_to submit_offer_case_negotiation_path(@case, @current_round), 
+      redirect_to submit_offer_case_negotiation_path(@case, @current_round),
                   notice: "Client consultation completed. You can modify your offer."
     end
   end
 
   def history
     @all_rounds = @simulation.negotiation_rounds
-                            .includes(:settlement_offers => [:team, :submitted_by])
+                            .includes(settlement_offers: [ :team, :submitted_by ])
                             .by_round_number
     @negotiation_timeline = build_negotiation_timeline
     @settlement_analysis = analyze_settlement_progress
@@ -120,14 +121,14 @@ class NegotiationsController < ApplicationController
       risk_assessment: load_risk_assessment_template,
       client_impact: load_client_impact_template
     }
-    
+
     render json: @templates if request.xhr?
   end
 
   def calculator
     @damage_categories = load_damage_calculation_categories
     @case_specific_data = load_case_calculation_data
-    
+
     if request.post?
       @calculation_results = perform_damage_calculation
       render json: @calculation_results if request.xhr?
@@ -144,22 +145,22 @@ class NegotiationsController < ApplicationController
 
   def set_simulation
     @simulation = @case.simulation
-    
+
     unless @simulation
-      redirect_to cases_path, 
+      redirect_to cases_path,
                   alert: "This case does not have an active simulation"
     end
   end
 
   def verify_team_participation
     unless current_user_team
-      redirect_to cases_path, 
+      redirect_to cases_path,
                   alert: "You are not assigned to a team for this case"
       return
     end
 
-    unless [@simulation.plaintiff_team, @simulation.defendant_team].include?(current_user_team)
-      redirect_to cases_path, 
+    unless [ @simulation.plaintiff_team, @simulation.defendant_team ].include?(current_user_team)
+      redirect_to cases_path,
                   alert: "Your team is not participating in this simulation"
     end
   end
@@ -179,7 +180,7 @@ class NegotiationsController < ApplicationController
 
   def create_current_round
     deadline = Time.current + 48.hours # Default 48 hours
-    
+
     @simulation.negotiation_rounds.create!(
       round_number: @simulation.current_round,
       deadline: deadline,
@@ -189,14 +190,14 @@ class NegotiationsController < ApplicationController
 
   def current_team_offer_for_round(round)
     return nil unless round
-    
+
     round.settlement_offers.find_by(team: current_user_team)
   end
 
   def opposing_team_offers
-    opposing_team = current_user_team == @simulation.plaintiff_team ? 
+    opposing_team = current_user_team == @simulation.plaintiff_team ?
                    @simulation.defendant_team : @simulation.plaintiff_team
-    
+
     @simulation.negotiation_rounds
               .joins(:settlement_offers)
               .where(settlement_offers: { team: opposing_team })
@@ -205,16 +206,16 @@ class NegotiationsController < ApplicationController
   end
 
   def opposing_offer_for_round(round)
-    opposing_team = current_user_team == @simulation.plaintiff_team ? 
+    opposing_team = current_user_team == @simulation.plaintiff_team ?
                    @simulation.defendant_team : @simulation.plaintiff_team
-    
+
     round.settlement_offers.find_by(team: opposing_team)
   end
 
   def find_opposing_team_latest_offer
-    opposing_team = current_user_team == @simulation.plaintiff_team ? 
+    opposing_team = current_user_team == @simulation.plaintiff_team ?
                    @simulation.defendant_team : @simulation.plaintiff_team
-    
+
     SettlementOffer.joins(:negotiation_round)
                    .where(team: opposing_team)
                    .where(negotiation_rounds: { simulation: @simulation })
@@ -246,7 +247,7 @@ class NegotiationsController < ApplicationController
 
     begin
       response = make_api_request
-      
+
       if response.success?
         @settlement_offer = parse_api_response(response)
         true
@@ -262,14 +263,14 @@ class NegotiationsController < ApplicationController
 
   def make_api_request
     uri = URI("#{request.base_url}/api/cases/#{@case.id}/negotiation_rounds")
-    
+
     http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = uri.scheme == 'https'
-    
+    http.use_ssl = uri.scheme == "https"
+
     request = Net::HTTP::Post.new(uri)
-    request['Content-Type'] = 'application/json'
-    request['Authorization'] = "Bearer #{current_user.jwt_token}" if current_user.respond_to?(:jwt_token)
-    
+    request["Content-Type"] = "application/json"
+    request["Authorization"] = "Bearer #{current_user.jwt_token}" if current_user.respond_to?(:jwt_token)
+
     request.body = {
       settlement_offer: {
         amount: @settlement_offer.amount,
@@ -278,7 +279,7 @@ class NegotiationsController < ApplicationController
         offer_type: @settlement_offer.offer_type
       }
     }.to_json
-    
+
     http.request(request)
   end
 
@@ -291,8 +292,8 @@ class NegotiationsController < ApplicationController
 
   def parse_api_errors(response)
     data = JSON.parse(response.body)
-    errors = data["errors"] || ["Unknown error occurred"]
-    
+    errors = data["errors"] || [ "Unknown error occurred" ]
+
     errors.each do |error|
       @settlement_offer.errors.add(:base, error)
     end
@@ -360,9 +361,9 @@ class NegotiationsController < ApplicationController
 
   def load_client_concerns
     if current_user_team == @simulation.plaintiff_team
-      ["Insufficient compensation", "Lengthy trial process", "Public exposure", "Career impact"]
+      [ "Insufficient compensation", "Lengthy trial process", "Public exposure", "Career impact" ]
     else
-      ["Excessive settlement demand", "Precedent setting", "Media attention", "Business disruption"]
+      [ "Excessive settlement demand", "Precedent setting", "Media attention", "Business disruption" ]
     end
   end
 
@@ -384,20 +385,20 @@ class NegotiationsController < ApplicationController
 
   def fetch_current_mood_factors
     pressure_level = calculate_timeline_pressure
-    
+
     factors = []
-    factors << "Time pressure increasing" if pressure_level.in?(["High", "Critical"])
+    factors << "Time pressure increasing" if pressure_level.in?([ "High", "Critical" ])
     factors << "Media attention growing" if @simulation.simulation_events.where(event_type: "media_attention").exists?
     factors << "Financial pressures mounting" if @simulation.current_round >= 3
     factors << "Trial date approaching" if @simulation.current_round >= 4
-    
+
     factors
   end
 
   def perform_client_consultation
     # Simulate client consultation based on proposed offer
     proposed_amount = offer_params[:amount].to_f
-    
+
     if current_user_team == @simulation.plaintiff_team
       if proposed_amount >= @simulation.plaintiff_ideal
         { reaction: "pleased", message: "Client is satisfied with this aggressive position" }
@@ -419,8 +420,8 @@ class NegotiationsController < ApplicationController
 
   def build_negotiation_timeline
     timeline = []
-    
-    @simulation.negotiation_rounds.includes(:settlement_offers => :team).each do |round|
+
+    @simulation.negotiation_rounds.includes(settlement_offers: :team).each do |round|
       round.settlement_offers.each do |offer|
         timeline << {
           round: round.round_number,
@@ -431,8 +432,8 @@ class NegotiationsController < ApplicationController
         }
       end
     end
-    
-    timeline.sort_by { |item| [item[:round], item[:submitted_at]] }
+
+    timeline.sort_by { |item| [ item[:round], item[:submitted_at] ] }
   end
 
   def analyze_settlement_progress
@@ -441,12 +442,12 @@ class NegotiationsController < ApplicationController
     latest_round = @simulation.negotiation_rounds.order(:round_number).last
     plaintiff_offer = latest_round.plaintiff_offer
     defendant_offer = latest_round.defendant_offer
-    
+
     return {} unless plaintiff_offer && defendant_offer
 
     gap = (plaintiff_offer.amount - defendant_offer.amount).abs
     movement_trend = calculate_movement_trend
-    
+
     {
       current_gap: gap,
       gap_percentage: (gap / plaintiff_offer.amount * 100).round(1),
@@ -463,7 +464,7 @@ class NegotiationsController < ApplicationController
 
     old_gap = recent_rounds.first.settlement_gap
     new_gap = recent_rounds.last.settlement_gap
-    
+
     return "converging" if new_gap < old_gap
     return "stable" if new_gap == old_gap
     "diverging"
@@ -471,12 +472,12 @@ class NegotiationsController < ApplicationController
 
   def calculate_settlement_probability(gap, trend)
     base_probability = case trend
-                      when "converging" then 60
-                      when "stable" then 30
-                      when "diverging" then 10
-                      else 25
-                      end
-    
+    when "converging" then 60
+    when "stable" then 30
+    when "diverging" then 10
+    else 25
+    end
+
     # Adjust based on gap size
     if gap < 25000
       base_probability += 30
@@ -485,11 +486,11 @@ class NegotiationsController < ApplicationController
     elsif gap > 200000
       base_probability -= 20
     end
-    
+
     # Adjust based on round number
     pressure_bonus = (@simulation.current_round - 1) * 5
-    
-    [[base_probability + pressure_bonus, 95].min, 5].max
+
+    [ [ base_probability + pressure_bonus, 95 ].min, 5 ].max
   end
 
   def load_argument_templates
@@ -551,22 +552,22 @@ class NegotiationsController < ApplicationController
     [
       {
         category: "Lost Wages",
-        fields: ["monthly_salary", "unemployment_months", "benefits_value"],
+        fields: [ "monthly_salary", "unemployment_months", "benefits_value" ],
         calculation: "monthly_salary * unemployment_months + benefits_value"
       },
       {
         category: "Future Earnings",
-        fields: ["annual_salary", "years_impacted", "career_advancement_loss"],
+        fields: [ "annual_salary", "years_impacted", "career_advancement_loss" ],
         calculation: "annual_salary * years_impacted * career_advancement_loss"
       },
       {
         category: "Medical Costs",
-        fields: ["therapy_sessions", "cost_per_session", "medication_costs"],
+        fields: [ "therapy_sessions", "cost_per_session", "medication_costs" ],
         calculation: "therapy_sessions * cost_per_session + medication_costs"
       },
       {
         category: "Pain and Suffering",
-        fields: ["severity_rating", "duration_months", "impact_multiplier"],
+        fields: [ "severity_rating", "duration_months", "impact_multiplier" ],
         calculation: "severity_rating * duration_months * impact_multiplier * 1000"
       }
     ]

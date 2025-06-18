@@ -11,7 +11,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
   let!(:student2) { create(:user, :student, organization: organization) }
   let!(:team) { create(:team, name: "Plaintiff Team A") }
   let!(:defendant_team) { create(:team, name: "Defendant Team B") }
-  
+
   let!(:case_instance) do
     # Create case without validation to avoid the team requirement issue
     case_obj = Case.new(
@@ -23,45 +23,45 @@ RSpec.describe EvidenceVaultController, type: :controller do
       difficulty_level: :intermediate,
       plaintiff_info: { "name" => "Sarah Mitchell", "position" => "Software Engineer" },
       defendant_info: { "name" => "TechFlow Industries", "type" => "Corporation" },
-      legal_issues: ["Sexual harassment", "Hostile work environment", "Retaliation"],
+      legal_issues: [ "Sexual harassment", "Hostile work environment", "Retaliation" ],
       team: team,
       created_by: instructor,
       updated_by: instructor
     )
     case_obj.save!(validate: false)
-    
+
     # Now create the required case teams manually
     CaseTeam.create!(case: case_obj, team: team, role: :plaintiff)
     CaseTeam.create!(case: case_obj, team: defendant_team, role: :defendant)
-    
+
     case_obj
   end
 
   let!(:public_document) do
-    create(:document, 
+    create(:document,
            title: "Employee Handbook",
            category: "company_policies",
            access_level: "case_teams",
-           tags: ["harassment", "policy"],
+           tags: [ "harassment", "policy" ],
            documentable: case_instance)
   end
 
   let!(:team_restricted_document) do
     create(:document,
-           title: "Expert Damages Assessment", 
+           title: "Expert Damages Assessment",
            category: "expert_reports",
            access_level: "team_restricted",
-           team_restrictions: { "allowed_teams" => [team.id] },
-           tags: ["damages", "economics", "expert"],
+           team_restrictions: { "allowed_teams" => [ team.id ] },
+           tags: [ "damages", "economics", "expert" ],
            documentable: case_instance)
   end
 
   let!(:instructor_only_document) do
     create(:document,
            title: "TechFlow Financial Records",
-           category: "financial_records", 
+           category: "financial_records",
            access_level: "instructor_only",
-           tags: ["financials", "confidential"],
+           tags: [ "financials", "confidential" ],
            documentable: case_instance)
   end
 
@@ -89,7 +89,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
 
       it "loads documents accessible to the student's team" do
         get :index, params: { case_id: case_instance.id }
-        
+
         documents = assigns(:documents)
         expect(documents).to include(public_document)
         expect(documents).to include(team_restricted_document)
@@ -98,7 +98,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
 
       it "groups documents by category" do
         get :index, params: { case_id: case_instance.id }
-        
+
         categories = assigns(:document_categories)
         expect(categories).to include("company_policies")
         expect(categories).to include("expert_reports")
@@ -107,7 +107,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
 
       it "includes document metadata for frontend" do
         get :index, params: { case_id: case_instance.id }
-        
+
         expect(assigns(:case)).to eq(case_instance)
         expect(assigns(:current_team)).to eq(team)
         expect(assigns(:total_documents)).to eq(2) # Excludes instructor-only
@@ -119,7 +119,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
 
       it "loads all documents including instructor-only" do
         get :index, params: { case_id: case_instance.id }
-        
+
         documents = assigns(:documents)
         expect(documents).to include(public_document)
         expect(documents).to include(team_restricted_document)
@@ -129,7 +129,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
 
     context "when student is not member of case team" do
       let(:other_student) { create(:user, :student) }
-      
+
       before { sign_in other_student }
 
       it "returns forbidden status" do
@@ -143,14 +143,14 @@ RSpec.describe EvidenceVaultController, type: :controller do
     before { sign_in student1 }
 
     it "searches documents by query term" do
-      get :search, params: { 
-        case_id: case_instance.id, 
+      get :search, params: {
+        case_id: case_instance.id,
         q: "harassment",
         format: :json
       }
 
       expect(response).to have_http_status(:success)
-      
+
       results = JSON.parse(response.body)
       expect(results["documents"]).to be_an(Array)
       expect(results["documents"].size).to eq(1)
@@ -165,7 +165,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
       }
 
       expect(response).to have_http_status(:success)
-      
+
       results = JSON.parse(response.body)
       expect(results["documents"].size).to eq(1)
       expect(results["documents"].first["title"]).to eq("Expert Damages Assessment")
@@ -174,12 +174,12 @@ RSpec.describe EvidenceVaultController, type: :controller do
     it "filters by tags" do
       get :search, params: {
         case_id: case_instance.id,
-        tags: ["economics"],
+        tags: [ "economics" ],
         format: :json
       }
 
       expect(response).to have_http_status(:success)
-      
+
       results = JSON.parse(response.body)
       expect(results["documents"].size).to eq(1)
       expect(results["documents"].first["title"]).to eq("Expert Damages Assessment")
@@ -222,7 +222,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
       }
 
       expect(response).to have_http_status(:success)
-      
+
       document = JSON.parse(response.body)
       expect(document["title"]).to eq("Employee Handbook")
       expect(document["category"]).to eq("company_policies")
@@ -281,7 +281,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
       }
 
       expect(response).to have_http_status(:success)
-      
+
       public_document.reload
       annotations = public_document.annotations
       expect(annotations).to be_an(Array)
@@ -302,7 +302,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
       }
 
       expect(response).to have_http_status(:unprocessable_entity)
-      
+
       error = JSON.parse(response.body)
       expect(error["errors"]).to include("Content cannot be blank")
     end
@@ -329,12 +329,12 @@ RSpec.describe EvidenceVaultController, type: :controller do
       put :update_tags, params: {
         case_id: case_instance.id,
         id: public_document.id,
-        tags: ["harassment", "policy", "new-tag"],
+        tags: [ "harassment", "policy", "new-tag" ],
         format: :json
       }
 
       expect(response).to have_http_status(:success)
-      
+
       public_document.reload
       expect(public_document.tags).to include("new-tag")
     end
@@ -343,7 +343,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
       put :update_tags, params: {
         case_id: case_instance.id,
         id: public_document.id,
-        tags: ["valid-tag", "", "  "], # Invalid tags
+        tags: [ "valid-tag", "", "  " ], # Invalid tags
         format: :json
       }
 
@@ -359,13 +359,13 @@ RSpec.describe EvidenceVaultController, type: :controller do
         case_id: case_instance.id,
         bundle: {
           name: "Harassment Evidence Package",
-          document_ids: [public_document.id, team_restricted_document.id]
+          document_ids: [ public_document.id, team_restricted_document.id ]
         },
         format: :json
       }
 
       expect(response).to have_http_status(:created)
-      
+
       bundle = JSON.parse(response.body)
       expect(bundle["name"]).to eq("Harassment Evidence Package")
       expect(bundle["document_count"]).to eq(2)
@@ -399,7 +399,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
 
     it "sanitizes search input to prevent injection" do
       malicious_query = "'; DROP TABLE documents; --"
-      
+
       get :search, params: {
         case_id: case_instance.id,
         q: malicious_query,

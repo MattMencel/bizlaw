@@ -1,10 +1,10 @@
 class CasesController < ApplicationController
   include ImpersonationReadOnly
-  
-  before_action :set_course, only: [:new, :create, :edit, :update, :destroy]
-  before_action :set_case, only: [:show, :edit, :update, :destroy]
-  before_action :authorize_case, only: [:show, :edit, :update, :destroy]
-  
+
+  before_action :set_course, only: [ :new, :create, :edit, :update, :destroy ]
+  before_action :set_case, only: [ :show, :edit, :update, :destroy ]
+  before_action :authorize_case, only: [ :show, :edit, :update, :destroy ]
+
   def index
     if params[:course_id]
       @course = Course.find(params[:course_id])
@@ -24,8 +24,8 @@ class CasesController < ApplicationController
   def new
     if params[:scenario_id].present?
       @case = CaseScenarioService.build_case_from_scenario(
-        params[:scenario_id], 
-        course: @course, 
+        params[:scenario_id],
+        course: @course,
         created_by: current_user
       )
       @teams = @course.teams
@@ -94,12 +94,12 @@ class CasesController < ApplicationController
   end
 
   def case_params
-    permitted_params = params.require(:case).permit(:title, :description, :case_type, :difficulty_level, 
-                                                    :plaintiff_info, :defendant_info, :legal_issues, 
+    permitted_params = params.require(:case).permit(:title, :description, :case_type, :difficulty_level,
+                                                    :plaintiff_info, :defendant_info, :legal_issues,
                                                     :reference_number, team_ids: [],
                                                     plaintiff_info_keys: [], plaintiff_info_values: [],
                                                     defendant_info_keys: [], defendant_info_values: [])
-    
+
     # Convert key-value arrays to JSON if they exist
     if permitted_params[:plaintiff_info_keys].present? && permitted_params[:plaintiff_info_values].present?
       plaintiff_data = {}
@@ -107,22 +107,22 @@ class CasesController < ApplicationController
         next if key.blank?
         plaintiff_data[key] = permitted_params[:plaintiff_info_values][index] || ""
       end
-      permitted_params[:plaintiff_info] = plaintiff_data.to_json
+      permitted_params[:plaintiff_info] = plaintiff_data
       permitted_params.delete(:plaintiff_info_keys)
       permitted_params.delete(:plaintiff_info_values)
     end
-    
+
     if permitted_params[:defendant_info_keys].present? && permitted_params[:defendant_info_values].present?
       defendant_data = {}
       permitted_params[:defendant_info_keys].each_with_index do |key, index|
         next if key.blank?
         defendant_data[key] = permitted_params[:defendant_info_values][index] || ""
       end
-      permitted_params[:defendant_info] = defendant_data.to_json
+      permitted_params[:defendant_info] = defendant_data
       permitted_params.delete(:defendant_info_keys)
       permitted_params.delete(:defendant_info_values)
     end
-    
+
     permitted_params
   end
 

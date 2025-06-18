@@ -10,14 +10,14 @@ class PersonalityConsistencyTracker < ApplicationRecord
   # Validations
   validates :personality_type, presence: true
   validates :response_history, presence: true
-  validates :consistency_score, presence: true, 
+  validates :consistency_score, presence: true,
                                 numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
 
   # Scopes
   scope :by_personality, ->(personality_type) { where(personality_type: personality_type) }
   scope :by_case, ->(case_id) { where(case_id: case_id) }
-  scope :high_consistency, -> { where('consistency_score >= ?', 70) }
-  scope :low_consistency, -> { where('consistency_score < ?', 50) }
+  scope :high_consistency, -> { where("consistency_score >= ?", 70) }
+  scope :low_consistency, -> { where("consistency_score < ?", 50) }
   scope :recent, -> { order(created_at: :desc) }
 
   def consistent?

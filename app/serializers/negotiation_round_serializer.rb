@@ -76,9 +76,9 @@ class NegotiationRoundSerializer
 
     opposing_offer = if team_role == "plaintiff"
                       round.defendant_offer
-                    elsif team_role == "defendant"
+    elsif team_role == "defendant"
                       round.plaintiff_offer
-                    end
+    end
 
     next nil unless opposing_offer
 

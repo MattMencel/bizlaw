@@ -4,7 +4,7 @@ FactoryBot.define do
   factory :personality_consistency_tracker do
     association :case
     personality_type { 'aggressive' }
-    response_history { ['Response 1', 'Response 2'] }
+    response_history { [ 'Response 1', 'Response 2' ] }
     consistency_score { 75 }
 
     trait :high_consistency do

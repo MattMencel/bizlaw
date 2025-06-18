@@ -30,8 +30,8 @@ class ArbitrationOutcome < ApplicationRecord
   # Scopes
   scope :recent_outcomes, -> { order(calculated_at: :desc) }
   scope :by_award_amount, -> { order(:award_amount) }
-  scope :plaintiff_wins, -> { where(outcome_type: [:plaintiff_victory, :split_decision]) }
-  scope :defendant_wins, -> { where(outcome_type: [:defendant_victory, :no_award]) }
+  scope :plaintiff_wins, -> { where(outcome_type: [ :plaintiff_victory, :split_decision ]) }
+  scope :defendant_wins, -> { where(outcome_type: [ :defendant_victory, :no_award ]) }
 
   # Instance methods
   def plaintiff_won?
@@ -138,7 +138,7 @@ class ArbitrationOutcome < ApplicationRecord
       lessons << "More reasonable negotiation positions might have led to better settlement opportunities"
     end
 
-    lessons.presence || ["This case demonstrates the unpredictability of arbitration outcomes"]
+    lessons.presence || [ "This case demonstrates the unpredictability of arbitration outcomes" ]
   end
 end
 
@@ -232,7 +232,7 @@ class ArbitrationCalculator
     negotiation_adjustment = base_award * 0.15 * (negotiation_history_factor - 0.5)
 
     adjusted = base_award + evidence_adjustment + argument_adjustment + negotiation_adjustment
-    [adjusted, 0].max # Ensure non-negative
+    [ adjusted, 0 ].max # Ensure non-negative
   end
 
   def apply_variance(adjusted_award)

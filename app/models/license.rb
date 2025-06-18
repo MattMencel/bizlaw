@@ -68,7 +68,8 @@ class License < ApplicationRecord
       :max_instructors, :max_students, :max_courses,
       :expires_at, :notes, :features, :active
     )
-    license = new(permitted_attrs)
+    license = new
+    permitted_attrs.each { |key, value| license.send("#{key}=", value) }
     license.signature = sign_license_data(license.attributes_for_signing)
     license
   end

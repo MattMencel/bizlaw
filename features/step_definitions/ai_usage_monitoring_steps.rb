@@ -11,11 +11,11 @@ When('a client feedback is generated using AI') do
   @simulation = FactoryBot.create(:simulation, case: @case)
   @round = FactoryBot.create(:negotiation_round, simulation: @simulation)
   @settlement_offer = FactoryBot.create(:settlement_offer, negotiation_round: @round)
-  
+
   # Mock AI service to track the request
   allow_any_instance_of(GoogleAiService).to receive(:generate_settlement_feedback).and_wrap_original do |method, *args|
     result = method.call(*args)
-    
+
     @monitoring_service.track_request(
       model: 'gemini-2.0-flash-lite',
       cost: 0.001,
@@ -23,10 +23,10 @@ When('a client feedback is generated using AI') do
       tokens_used: 150,
       request_type: 'settlement_feedback'
     )
-    
+
     result
   end
-  
+
   service = ClientFeedbackService.new(@simulation)
   @feedback = service.generate_feedback_for_offer!(@settlement_offer)
 end
@@ -55,7 +55,7 @@ end
 
 Given('there have been multiple AI requests today') do
   5.times do |i|
-    FactoryBot.create(:ai_usage_log, 
+    FactoryBot.create(:ai_usage_log,
       cost: 0.001,
       response_time_ms: 200 + i * 10,
       created_at: Time.current - i.hours
@@ -85,7 +85,7 @@ end
 
 When('I make {int} requests within an hour') do |request_count|
   @requests_made = request_count
-  
+
   request_count.times do |i|
     if i < 100 # First 100 should succeed
       FactoryBot.create(:ai_usage_log, created_at: 30.minutes.ago)
@@ -146,7 +146,7 @@ Given('there is usage data for the past {int} days') do |days|
   days.times do |i|
     day = i.days.ago
     rand(1..5).times do
-      FactoryBot.create(:ai_usage_log, 
+      FactoryBot.create(:ai_usage_log,
         cost: rand(0.001..0.005),
         response_time_ms: rand(100..500),
         created_at: day

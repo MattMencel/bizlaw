@@ -39,7 +39,7 @@ module Api
         authorize @simulation, :show?
 
         dynamics_service = SimulationDynamicsService.new(@simulation)
-        
+
         render json: {
           pressure_level: dynamics_service.current_pressure_level,
           pressure_sources: analyze_pressure_sources,
@@ -86,9 +86,9 @@ module Api
 
       def set_simulation
         @simulation = @case.simulation
-        
+
         unless @simulation
-          return api_error(
+          api_error(
             message: "This case does not have an active simulation",
             status: :not_found
           )
@@ -97,7 +97,7 @@ module Api
 
       def verify_team_participation
         unless current_user_team
-          return api_error(
+          api_error(
             message: "You are not assigned to a team for this case",
             status: :forbidden
           )
@@ -147,13 +147,13 @@ module Api
 
         current_round = @simulation.current_negotiation_round
         team_offer = nil
-        
+
         if current_round && team_role
           team_offer = if team_role == "plaintiff"
                         current_round.plaintiff_offer
-                      else
+          else
                         current_round.defendant_offer
-                      end
+          end
         end
 
         {
@@ -173,7 +173,7 @@ module Api
 
       def pressure_indicators_data
         dynamics_service = SimulationDynamicsService.new(@simulation)
-        
+
         {
           overall_pressure: dynamics_service.current_pressure_level,
           pressure_description: describe_pressure_level(dynamics_service.current_pressure_level),
@@ -194,7 +194,7 @@ module Api
       def negotiation_progress_data
         completed_rounds = @simulation.negotiation_rounds.completed.count
         total_rounds = @simulation.total_rounds
-        
+
         {
           rounds_completed: completed_rounds,
           total_rounds: total_rounds,
@@ -229,7 +229,7 @@ module Api
 
       def get_strategic_guidance
         dynamics_service = SimulationDynamicsService.new(@simulation)
-        
+
         dynamics_service.generate_round_feedback(
           @simulation.current_round,
           current_user_team
@@ -238,7 +238,7 @@ module Api
 
       def analyze_pressure_sources
         sources = []
-        
+
         # Time pressure
         round_progress = @simulation.current_round.to_f / @simulation.total_rounds
         if round_progress > 0.7
@@ -253,7 +253,7 @@ module Api
         recent_events = @simulation.simulation_events
                                   .triggered
                                   .where("triggered_at >= ?", 48.hours.ago)
-        
+
         if recent_events.any?
           sources << {
             type: "external_events",
@@ -299,7 +299,7 @@ module Api
       def get_market_conditions
         # Abstract representation of current negotiation climate
         pressure_level = SimulationDynamicsService.new(@simulation).current_pressure_level
-        
+
         {
           climate: describe_negotiation_climate(pressure_level),
           settlement_likelihood: calculate_settlement_likelihood,
@@ -399,7 +399,7 @@ module Api
 
       def get_event_impact_summary
         triggered_events = @simulation.simulation_events.triggered
-        
+
         {
           total_events: triggered_events.count,
           pressure_increase: calculate_total_pressure_increase(triggered_events),
@@ -429,18 +429,18 @@ module Api
 
         remaining_rounds = @simulation.total_rounds - @simulation.current_round + 1
         hours_per_round = @simulation.simulation_config.dig("hours_per_round") || 48
-        
+
         Time.current + (remaining_rounds * hours_per_round).hours
       end
 
       def calculate_negotiation_pace
         elapsed_time = Time.current - @simulation.start_date
         completed_rounds = @simulation.current_round - 1
-        
+
         return "unknown" if completed_rounds.zero?
 
         hours_per_round = elapsed_time / completed_rounds / 1.hour
-        
+
         case hours_per_round
         when 0..24 then "fast"
         when 24..48 then "normal"
@@ -466,14 +466,14 @@ module Api
         return "high" if gap && gap < 50000
         return "moderate" if gap && gap < 150000
         return "low" if gap && gap > 300000
-        
+
         "moderate"
       end
 
       def get_strategy_recommendation
         pressure_level = SimulationDynamicsService.new(@simulation).current_pressure_level
         round_number = @simulation.current_round
-        
+
         if round_number <= 2
           "Focus on establishing strong legal foundation"
         elsif round_number <= 4
@@ -493,7 +493,7 @@ module Api
 
         initial_gap = gaps.first
         latest_gap = gaps.last
-        
+
         return 0 if initial_gap.zero?
 
         ((initial_gap - latest_gap) / initial_gap.to_f * 100).round(1)
@@ -505,7 +505,7 @@ module Api
         plaintiff_amount = round.plaintiff_offer&.amount || 0
         defendant_amount = round.defendant_offer&.amount || 0
         average = (plaintiff_amount + defendant_amount) / 2.0
-        
+
         return 0 if average.zero?
 
         (round.settlement_gap / average * 100).round(1)
@@ -514,13 +514,13 @@ module Api
       def calculate_gap_closing_rate
         rounds = negotiation_rounds_summary
         gaps = rounds.map { |r| r[:settlement_gap] }.compact
-        
+
         return 0 if gaps.length < 2
 
         # Calculate average reduction per round
         total_reduction = gaps.first - gaps.last
         rounds_elapsed = gaps.length - 1
-        
+
         return 0 if rounds_elapsed.zero?
 
         (total_reduction / rounds_elapsed).round
@@ -529,12 +529,12 @@ module Api
       def project_settlement_round
         closing_rate = calculate_gap_closing_rate
         current_gap = @simulation.current_negotiation_round&.settlement_gap
-        
+
         return nil unless closing_rate > 0 && current_gap
 
         rounds_needed = (current_gap / closing_rate).ceil
         projected_round = @simulation.current_round + rounds_needed
-        
+
         projected_round <= @simulation.total_rounds ? projected_round : nil
       end
 

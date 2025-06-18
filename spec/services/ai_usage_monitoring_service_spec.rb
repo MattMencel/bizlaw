@@ -52,7 +52,7 @@ RSpec.describe AiUsageMonitoringService, type: :service do
       # Create some test logs for today
       create(:ai_usage_log, created_at: Time.current)
       create(:ai_usage_log, created_at: Time.current)
-      
+
       # Create logs for yesterday (should not be counted)
       create(:ai_usage_log, created_at: 1.day.ago)
     end
@@ -180,7 +180,7 @@ RSpec.describe AiUsageMonitoringService, type: :service do
 
     it 'stores alert details' do
       alert = service.send_usage_alert(alert_data)
-      
+
       expect(alert.alert_type).to eq('budget_warning')
       expect(alert.threshold_value).to eq(90)
       expect(alert.current_value).to eq(4.50)
@@ -193,7 +193,7 @@ RSpec.describe AiUsageMonitoringService, type: :service do
 
     it 'does not send duplicate alerts within time window' do
       service.send_usage_alert(alert_data)
-      
+
       expect {
         service.send_usage_alert(alert_data)
       }.not_to change(AiUsageAlert, :count)
@@ -203,14 +203,14 @@ RSpec.describe AiUsageMonitoringService, type: :service do
   describe '#queue_request' do
     it 'adds request to processing queue' do
       request_data = { model: 'test', prompt: 'test prompt' }
-      
+
       expect(AiRequestProcessingJob).to receive(:perform_later).with(request_data)
       service.queue_request(request_data)
     end
 
     it 'returns queue position' do
       allow(AiRequestProcessingJob).to receive(:queue_size).and_return(5)
-      
+
       result = service.queue_request({ model: 'test' })
       expect(result[:queued]).to be_truthy
       expect(result[:position]).to eq(6)
@@ -227,7 +227,7 @@ RSpec.describe AiUsageMonitoringService, type: :service do
 
     it 'returns usage data for specified period' do
       analytics = service.get_usage_analytics(days: 3)
-      
+
       expect(analytics[:total_requests]).to eq(6)
       expect(analytics[:total_cost]).to eq(0.009)
       expect(analytics[:daily_breakdown]).to be_an(Array)
@@ -236,7 +236,7 @@ RSpec.describe AiUsageMonitoringService, type: :service do
 
     it 'includes daily breakdown with correct data' do
       analytics = service.get_usage_analytics(days: 2)
-      
+
       today_data = analytics[:daily_breakdown].find { |d| d[:date] == Date.current }
       expect(today_data[:requests]).to eq(3)
       expect(today_data[:cost]).to eq(0.003)
@@ -245,7 +245,7 @@ RSpec.describe AiUsageMonitoringService, type: :service do
     it 'calculates average response time' do
       create(:ai_usage_log, response_time_ms: 200, created_at: Time.current)
       create(:ai_usage_log, response_time_ms: 400, created_at: Time.current)
-      
+
       analytics = service.get_usage_analytics(days: 1)
       expect(analytics[:avg_response_time]).to eq(300)
     end
@@ -254,7 +254,7 @@ RSpec.describe AiUsageMonitoringService, type: :service do
   describe '#disable_ai_services' do
     it 'sets AI services to disabled state' do
       service.disable_ai_services(reason: 'Budget exceeded')
-      
+
       expect(Rails.cache.read('ai_services_disabled')).to be_truthy
       expect(Rails.cache.read('ai_services_disable_reason')).to eq('Budget exceeded')
     end
@@ -273,7 +273,7 @@ RSpec.describe AiUsageMonitoringService, type: :service do
 
     it 'enables AI services' do
       service.enable_ai_services
-      
+
       expect(Rails.cache.read('ai_services_disabled')).to be_falsy
       expect(Rails.cache.read('ai_services_disable_reason')).to be_nil
     end

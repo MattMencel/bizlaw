@@ -63,7 +63,8 @@ class Term < ApplicationRecord
   end
 
   def courses_count
-    courses.count
+    # Use counter cache column if available, fallback to SQL count
+    read_attribute(:courses_count) || courses.count
   end
 
   def to_param

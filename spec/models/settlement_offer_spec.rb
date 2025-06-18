@@ -61,7 +61,7 @@ RSpec.describe SettlementOffer, type: :model do
   end
 
   describe 'enums' do
-    it { is_expected.to define_enum_for(:offer_type).with_values(
+    it { expect(subject).to define_enum_for(:offer_type).with_values(
       initial_demand: "initial_demand",
       counteroffer: "counteroffer",
       final_offer: "final_offer"

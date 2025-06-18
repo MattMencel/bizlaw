@@ -3,8 +3,8 @@
 # Navigation feature step definitions
 
 Given('an organization exists') do
-  @organization = FactoryBot.create(:organization, 
-    name: "Test University", 
+  @organization = FactoryBot.create(:organization,
+    name: "Test University",
     domain: "example.com",
     slug: "test-university"
   )
@@ -14,7 +14,7 @@ Given('a user {string} exists with role {string} in the organization') do |email
   @current_user = FactoryBot.create(:user,
     email: email,
     role: role,
-    roles: [role],
+    roles: [ role ],
     organization: @organization,
     password: 'password123',
     password_confirmation: 'password123'
@@ -28,7 +28,7 @@ end
 Given('a case {string} exists') do |case_title|
   # Create a course with an instructor
   course = FactoryBot.create(:course, organization: @organization)
-  
+
   # Create the case with the course (skip automatic team creation)
   @case = Case.create!(
     title: case_title,
@@ -39,7 +39,7 @@ Given('a case {string} exists') do |case_title|
     case_type: 'sexual_harassment',
     plaintiff_info: { "name" => "Test Plaintiff" },
     defendant_info: { "name" => "Test Defendant" },
-    legal_issues: ["Test issue"],
+    legal_issues: [ "Test issue" ],
     course: course,
     created_by: course.instructor,
     updated_by: course.instructor
@@ -49,10 +49,10 @@ end
 Given('another case {string} exists') do |case_title|
   # Create a course with an instructor (the factory will create a proper instructor)
   course = FactoryBot.create(:course, organization: @organization)
-  
+
   # Create the second case with the course
-  @second_case = FactoryBot.create(:case, 
-    title: case_title, 
+  @second_case = FactoryBot.create(:case,
+    title: case_title,
     course: course,
     created_by: course.instructor,
     updated_by: course.instructor
@@ -61,48 +61,48 @@ end
 
 Given('a team {string} exists for the case') do |team_name|
   course = @case.course
-  
+
   # Create a student to be the team owner
-  team_owner = FactoryBot.create(:user, 
-    role: 'student', 
-    roles: ['student'], 
+  team_owner = FactoryBot.create(:user,
+    role: 'student',
+    roles: [ 'student' ],
     organization: @organization
   )
-  
+
   # Enroll the student in the course
   FactoryBot.create(:course_enrollment, user: team_owner, course: course, status: 'active')
-  
+
   # Create the team with the enrolled student as owner
-  @team = FactoryBot.create(:team, 
-    name: team_name, 
-    course: course, 
+  @team = FactoryBot.create(:team,
+    name: team_name,
+    course: course,
     owner: team_owner
   )
-  
+
   # Associate the team with the case through case_teams
   FactoryBot.create(:case_team, case: @case, team: @team, role: 'plaintiff')
 end
 
 Given('another team {string} exists for the second case') do |team_name|
   course = @second_case.course
-  
+
   # Create a student to be the team owner
-  team_owner = FactoryBot.create(:user, 
-    role: 'student', 
-    roles: ['student'], 
+  team_owner = FactoryBot.create(:user,
+    role: 'student',
+    roles: [ 'student' ],
     organization: @organization
   )
-  
+
   # Enroll the student in the course
   FactoryBot.create(:course_enrollment, user: team_owner, course: course, status: 'active')
-  
+
   # Create the team with the enrolled student as owner
-  @second_team = FactoryBot.create(:team, 
-    name: team_name, 
-    course: course, 
+  @second_team = FactoryBot.create(:team,
+    name: team_name,
+    course: course,
     owner: team_owner
   )
-  
+
   # Associate the team with the case through case_teams
   FactoryBot.create(:case_team, case: @second_case, team: @second_team, role: 'defendant')
 end
@@ -110,10 +110,10 @@ end
 Given('the user is a member of the team') do
   user = User.find_by(email: 'john@example.com') || @current_user
   course = @team.course
-  
+
   # Enroll the student in the course so they can join the team
   FactoryBot.create(:course_enrollment, user: user, course: course, status: 'active')
-  
+
   # Add the user to the team as a member
   FactoryBot.create(:team_member, user: user, team: @team, role: 'member')
 end
@@ -121,38 +121,38 @@ end
 Given('the user is a member of the second team') do
   user = User.find_by(email: 'john@example.com') || @current_user
   course = @second_team.course
-  
+
   # Enroll the student in the course so they can join the team
   FactoryBot.create(:course_enrollment, user: user, course: course, status: 'active')
-  
+
   # Add the user to the team as a member
   FactoryBot.create(:team_member, user: user, team: @second_team, role: 'member')
 end
 
 Given('multiple cases exist for the user') do
   user = User.find_by(email: 'john@example.com') || @current_user
-  
+
   3.times do |i|
     course = FactoryBot.create(:course, organization: @organization)
-    case_obj = FactoryBot.create(:case, 
+    case_obj = FactoryBot.create(:case,
       title: "Test Case #{i + 1}",
       course: course,
       created_by: course.instructor,
       updated_by: course.instructor
     )
-    
+
     # Create a student team owner and enroll both users in course
-    team_owner = FactoryBot.create(:user, role: 'student', roles: ['student'], organization: @organization)
+    team_owner = FactoryBot.create(:user, role: 'student', roles: [ 'student' ], organization: @organization)
     FactoryBot.create(:course_enrollment, user: team_owner, course: course, status: 'active')
     FactoryBot.create(:course_enrollment, user: user, course: course, status: 'active')
-    
+
     # Create team with enrolled student as owner
-    team = FactoryBot.create(:team, 
-      name: "Team #{i + 1}", 
-      course: course, 
+    team = FactoryBot.create(:team,
+      name: "Team #{i + 1}",
+      course: course,
       owner: team_owner
     )
-    
+
     # Associate team with case and add user as member
     FactoryBot.create(:case_team, case: case_obj, team: team, role: 'plaintiff')
     FactoryBot.create(:team_member, user: user, team: team, role: 'member')
@@ -161,28 +161,28 @@ end
 
 Given('the user has access to {int} cases') do |count|
   user = User.find_by(email: 'john@example.com') || @current_user
-  
+
   count.times do |i|
     course = FactoryBot.create(:course, organization: @organization)
-    case_obj = FactoryBot.create(:case, 
+    case_obj = FactoryBot.create(:case,
       title: "Case #{i + 1}",
       course: course,
       created_by: course.instructor,
       updated_by: course.instructor
     )
-    
+
     # Create a student team owner and enroll both users in course
-    team_owner = FactoryBot.create(:user, role: 'student', roles: ['student'], organization: @organization)
+    team_owner = FactoryBot.create(:user, role: 'student', roles: [ 'student' ], organization: @organization)
     FactoryBot.create(:course_enrollment, user: team_owner, course: course, status: 'active')
     FactoryBot.create(:course_enrollment, user: user, course: course, status: 'active')
-    
+
     # Create team with enrolled student as owner
-    team = FactoryBot.create(:team, 
-      name: "Case #{i + 1} Team", 
-      course: course, 
+    team = FactoryBot.create(:team,
+      name: "Case #{i + 1} Team",
+      course: course,
       owner: team_owner
     )
-    
+
     # Associate team with case and add user as member
     FactoryBot.create(:case_team, case: case_obj, team: team, role: 'plaintiff')
     FactoryBot.create(:team_member, user: user, team: team, role: 'member')
@@ -214,7 +214,7 @@ Then('I should see the hierarchical navigation') do
   puts "DEBUG: User found: #{user.present?}"
   puts "DEBUG: User cases count: #{user&.cases&.count || 0}"
   puts "DEBUG: User teams count: #{user&.teams&.count || 0}"
-  
+
   expect(page).to have_css('[data-controller="navigation-menu"]', wait: 10)
 end
 
@@ -302,7 +302,7 @@ Then('I should be able to navigate through all navigation items') do
   # Check that navigation items are focusable
   navigation_items = all('nav a, nav button')
   expect(navigation_items.count).to be > 0
-  
+
   navigation_items.each do |item|
     expect(item[:tabindex]).not_to eq('-1')
   end

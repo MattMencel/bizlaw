@@ -10,7 +10,7 @@ class AiUsageMonitoringService
     @redis = RedisService.new if defined?(RedisService)
   end
 
-  def track_request(model:, cost:, response_time:, tokens_used: 0, request_type: 'unknown', error_occurred: false)
+  def track_request(model:, cost:, response_time:, tokens_used: 0, request_type: "unknown", error_occurred: false)
     log = AiUsageLog.create!(
       model: model,
       cost: cost,
@@ -42,7 +42,7 @@ class AiUsageMonitoringService
   def check_rate_limit
     current_count = hourly_request_count
     limit = rate_limit_per_hour
-    
+
     if current_count >= limit
       {
         allowed: false,
@@ -63,10 +63,10 @@ class AiUsageMonitoringService
     current_cost = daily_cost
     limit = daily_budget_limit
     percentage_used = (current_cost / limit * 100).round(2)
-    
+
     result = {
       allowed: current_cost < limit,
-      remaining_budget: [limit - current_cost, 0].max,
+      remaining_budget: [ limit - current_cost, 0 ].max,
       percentage_used: percentage_used,
       daily_cost: current_cost,
       daily_limit: limit
@@ -112,9 +112,9 @@ class AiUsageMonitoringService
   def queue_request(request_data)
     # Queue the request for processing
     AiRequestProcessingJob.perform_later(request_data) if defined?(AiRequestProcessingJob)
-    
+
     queue_position = (defined?(AiRequestProcessingJob) ? AiRequestProcessingJob.queue_size : 0) + 1
-    
+
     {
       queued: true,
       position: queue_position,
@@ -126,12 +126,12 @@ class AiUsageMonitoringService
   def get_usage_analytics(days: 30)
     end_date = Date.current
     start_date = end_date - days.days
-    
+
     logs = AiUsageLog.where(created_at: start_date.beginning_of_day..end_date.end_of_day)
-    
+
     daily_breakdown = (start_date..end_date).map do |date|
       day_logs = logs.where(created_at: date.beginning_of_day..date.end_of_day)
-      
+
       {
         date: date,
         requests: day_logs.count,
@@ -155,52 +155,52 @@ class AiUsageMonitoringService
   end
 
   def disable_ai_services(reason:)
-    Rails.cache.write('ai_services_disabled', true, expires_in: 1.day)
-    Rails.cache.write('ai_services_disable_reason', reason, expires_in: 1.day)
-    
+    Rails.cache.write("ai_services_disabled", true, expires_in: 1.day)
+    Rails.cache.write("ai_services_disable_reason", reason, expires_in: 1.day)
+
     # Send notification
     AdminNotificationService.send_ai_service_disabled_alert if defined?(AdminNotificationService)
-    
+
     Rails.logger.warn "AI services disabled: #{reason}"
   end
 
   def enable_ai_services
-    Rails.cache.delete('ai_services_disabled')
-    Rails.cache.delete('ai_services_disable_reason')
-    
+    Rails.cache.delete("ai_services_disabled")
+    Rails.cache.delete("ai_services_disable_reason")
+
     Rails.logger.info "AI services re-enabled"
   end
 
   def ai_services_enabled?
-    !Rails.cache.read('ai_services_disabled')
+    !Rails.cache.read("ai_services_disabled")
   end
 
   def rate_limit_per_hour
-    ENV.fetch('AI_HOURLY_RATE_LIMIT', DEFAULT_HOURLY_RATE_LIMIT).to_i
+    ENV.fetch("AI_HOURLY_RATE_LIMIT", DEFAULT_HOURLY_RATE_LIMIT).to_i
   end
 
   def daily_budget_limit
-    ENV.fetch('AI_DAILY_BUDGET_LIMIT', DEFAULT_DAILY_BUDGET_LIMIT).to_f
+    ENV.fetch("AI_DAILY_BUDGET_LIMIT", DEFAULT_DAILY_BUDGET_LIMIT).to_f
   end
 
   private
 
   def check_budget_alerts
     budget_status = check_budget_limit
-    
+
     if budget_status[:exceeded]
       send_usage_alert(
-        type: 'budget_exceeded',
+        type: "budget_exceeded",
         daily_cost: budget_status[:daily_cost],
         daily_limit: budget_status[:daily_limit],
         percentage_used: budget_status[:percentage_used],
         message: budget_status[:message]
       )
-      
-      disable_ai_services(reason: 'Daily budget exceeded')
+
+      disable_ai_services(reason: "Daily budget exceeded")
     elsif budget_status[:warning]
       send_usage_alert(
-        type: 'budget_warning',
+        type: "budget_warning",
         daily_cost: budget_status[:daily_cost],
         daily_limit: budget_status[:daily_limit],
         percentage_used: budget_status[:percentage_used],
@@ -211,10 +211,10 @@ class AiUsageMonitoringService
 
   def check_rate_limit_alerts
     rate_status = check_rate_limit
-    
+
     unless rate_status[:allowed]
       send_usage_alert(
-        type: 'rate_limit_exceeded',
+        type: "rate_limit_exceeded",
         hourly_count: hourly_request_count,
         hourly_limit: rate_limit_per_hour,
         retry_after: rate_status[:retry_after],
@@ -232,9 +232,9 @@ class AiUsageMonitoringService
 
   def extract_threshold_value(alert_data)
     case alert_data[:type]
-    when 'budget_warning', 'budget_exceeded'
+    when "budget_warning", "budget_exceeded"
       alert_data[:daily_limit] || daily_budget_limit
-    when 'rate_limit_warning', 'rate_limit_exceeded'
+    when "rate_limit_warning", "rate_limit_exceeded"
       alert_data[:hourly_limit] || rate_limit_per_hour
     else
       alert_data[:threshold] || 0
@@ -243,9 +243,9 @@ class AiUsageMonitoringService
 
   def extract_current_value(alert_data)
     case alert_data[:type]
-    when 'budget_warning', 'budget_exceeded'
+    when "budget_warning", "budget_exceeded"
       alert_data[:daily_cost] || daily_cost
-    when 'rate_limit_warning', 'rate_limit_exceeded'
+    when "rate_limit_warning", "rate_limit_exceeded"
       alert_data[:hourly_count] || hourly_request_count
     else
       alert_data[:current_value] || 0
@@ -254,14 +254,14 @@ class AiUsageMonitoringService
 
   def build_alert_message(alert_data)
     case alert_data[:type]
-    when 'budget_warning'
+    when "budget_warning"
       "Daily budget at #{alert_data[:percentage_used]}% ($#{alert_data[:daily_cost]} / $#{alert_data[:daily_limit]})"
-    when 'budget_exceeded'
+    when "budget_exceeded"
       "Daily budget exceeded: $#{alert_data[:daily_cost]} / $#{alert_data[:daily_limit]}"
-    when 'rate_limit_exceeded'
+    when "rate_limit_exceeded"
       "Hourly rate limit exceeded: #{alert_data[:hourly_count]} / #{alert_data[:hourly_limit]} requests"
     else
-      'AI usage alert triggered'
+      "AI usage alert triggered"
     end
   end
 

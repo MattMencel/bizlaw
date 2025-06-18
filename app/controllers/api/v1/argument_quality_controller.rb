@@ -3,7 +3,7 @@
 class Api::V1::ArgumentQualityController < Api::V1::BaseController
   before_action :authenticate_user!
   before_action :set_case
-  before_action :set_settlement_offer, only: [:show, :update]
+  before_action :set_settlement_offer, only: [ :show, :update ]
   before_action :ensure_instructor_or_admin
 
   # GET /api/v1/cases/:case_id/argument_quality
@@ -79,8 +79,8 @@ class Api::V1::ArgumentQualityController < Api::V1::BaseController
     %w[legal_reasoning factual_analysis strategic_thinking professionalism creativity].each do |category|
       score = scoring_params["instructor_#{category}_score"]
       if score.present? && (score < 0 || score > 25)
-        return render json: { 
-          error: "#{category.humanize} score must be between 0 and 25" 
+        return render json: {
+          error: "#{category.humanize} score must be between 0 and 25"
         }, status: :unprocessable_entity
       end
     end
@@ -104,7 +104,7 @@ class Api::V1::ArgumentQualityController < Api::V1::BaseController
 
         # Update simulation dynamics based on new quality scores
         update_simulation_dynamics!
-        
+
         render json: {
           data: {
             id: @settlement_offer.id,
@@ -226,7 +226,7 @@ class Api::V1::ArgumentQualityController < Api::V1::BaseController
     return {} unless @settlement_offer.instructor_quality_score.present?
 
     dynamics_service = SimulationDynamicsService.new(@case.simulation)
-    
+
     {
       current_ranges: {
         plaintiff_range: {

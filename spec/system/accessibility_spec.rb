@@ -3,7 +3,7 @@
 require 'rails_helper'
 require 'axe-rspec'
 
-RSpec.describe 'Application Accessibility', type: :system, accessibility: true do
+RSpec.describe 'Application Accessibility', :accessibility, type: :system do
   let(:organization) { create(:organization) }
   let(:user) { create(:user, organization: organization) }
   let(:instructor) { create(:user, :instructor, organization: organization) }
@@ -38,7 +38,7 @@ RSpec.describe 'Application Accessibility', type: :system, accessibility: true d
       create(:case_team, case: case_obj, team: team)
       create(:team_member, user: user, team: team, role: 'member')
       create(:course_enrollment, user: user, course: course, status: 'active')
-      
+
       sign_in user
     end
 
@@ -114,7 +114,7 @@ RSpec.describe 'Application Accessibility', type: :system, accessibility: true d
     it 'case creation form is accessible' do
       course = create(:course, instructor: instructor, organization: organization)
       create(:course_enrollment, user: user, course: course, status: 'active')
-      
+
       visit new_case_path(course_id: course.id)
       expect_accessible_form
     end
@@ -122,7 +122,7 @@ RSpec.describe 'Application Accessibility', type: :system, accessibility: true d
     it 'team creation form is accessible' do
       course = create(:course, instructor: instructor, organization: organization)
       create(:course_enrollment, user: user, course: course, status: 'active')
-      
+
       visit new_team_path(course_id: course.id)
       expect_accessible_form
     end

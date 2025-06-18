@@ -45,7 +45,7 @@ class User < ApplicationRecord
 
   # Multiple roles support
   AVAILABLE_ROLES = %w[student instructor admin org_admin].freeze
-  
+
   # Keep the enum for backward compatibility but add roles array support
   enum :role, { student: "student", instructor: "instructor", admin: "admin" }, prefix: true
 
@@ -78,31 +78,31 @@ class User < ApplicationRecord
   end
 
   def student?
-    has_role?('student')
+    has_role?("student")
   end
 
   def instructor?
-    has_role?('instructor')
+    has_role?("instructor")
   end
 
   def admin?
-    has_role?('admin')
+    has_role?("admin")
   end
 
   def org_admin?
-    has_role?('org_admin')
+    has_role?("org_admin")
   end
-  
+
   # Multiple roles methods
   def has_role?(role_name)
     roles.include?(role_name.to_s)
   end
-  
+
   def add_role(role_name)
     return false unless AVAILABLE_ROLES.include?(role_name.to_s)
     return true if has_role?(role_name)
-    
-    self.roles = (roles + [role_name.to_s]).uniq
+
+    self.roles = (roles + [ role_name.to_s ]).uniq
     save
   end
 
@@ -119,19 +119,19 @@ class User < ApplicationRecord
   end
 
   def role_in_case(case_obj)
-    return 'admin' if admin?
-    return 'instructor' if instructor?
-    
+    return "admin" if admin?
+    return "instructor" if instructor?
+
     team = case_obj.teams.joins(:users).where(users: { id: id }).first
-    return team&.team_type&.humanize || 'Student'
+    team&.team_type&.humanize || "Student"
   end
 
   def role_in_team(team_obj)
-    return 'admin' if admin?
-    return 'instructor' if instructor?
-    
+    return "admin" if admin?
+    return "instructor" if instructor?
+
     team_member = team_members.find_by(team: team_obj)
-    return team_member&.role&.humanize || 'Member'
+    team_member&.role&.humanize || "Member"
   end
 
   # Available cases for navigation
@@ -145,21 +145,21 @@ class User < ApplicationRecord
     # For now, return empty relation
     cases.none
   end
-  
+
   def remove_role(role_name)
     return false unless has_role?(role_name)
-    
-    self.roles = roles - [role_name.to_s]
+
+    self.roles = roles - [ role_name.to_s ]
     save
   end
-  
+
   def role_names
-    roles.join(', ').humanize
+    roles.join(", ").humanize
   end
-  
+
   def primary_role
     # Return the first non-org_admin role, or 'student' as default
-    (roles - ['org_admin']).first || 'student'
+    (roles - [ "org_admin" ]).first || "student"
   end
 
   def professional?
@@ -206,8 +206,8 @@ class User < ApplicationRecord
       user.password = Devise.friendly_token[0, 20]
       user.first_name = auth.info.first_name
       user.last_name = auth.info.last_name
-      user.role = 'student'
-      user.roles = ['student']
+      user.role = "student"
+      user.roles = [ "student" ]
       # No avatar_url assignment
     end
   end
@@ -244,17 +244,17 @@ class User < ApplicationRecord
     return unless instructor? && organization
     return if organization.users.org_admins.exists?
 
-    add_role('org_admin')
+    add_role("org_admin")
   end
-  
+
   def roles_must_be_valid
     return if roles.blank?
-    
+
     invalid_roles = roles - AVAILABLE_ROLES
     if invalid_roles.any?
       errors.add(:roles, "contains invalid roles: #{invalid_roles.join(', ')}")
     end
-    
+
     # Ensure at least one primary role (student, instructor, or admin)
     primary_roles = roles & %w[student instructor admin]
     if primary_roles.empty?

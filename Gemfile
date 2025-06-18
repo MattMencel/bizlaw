@@ -101,7 +101,7 @@ group :development, :test do
 
   # Rswag for API documentation
   gem "rswag-specs", "~> 2.13"
-  
+
   # Accessibility testing
   gem "axe-core-rspec", "~> 4.10"
 end

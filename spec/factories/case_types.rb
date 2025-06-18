@@ -24,6 +24,5 @@ FactoryBot.define do
         create_list(:case, evaluator.cases_count, case_type: case_type)
       end
     end
-
   end
 end

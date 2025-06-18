@@ -11,7 +11,7 @@ module Api
 
       def index
         authorize @simulation, :show?
-        
+
         @rounds = @simulation.negotiation_rounds
                             .includes(:settlement_offers)
                             .by_round_number
@@ -25,7 +25,7 @@ module Api
 
       def show
         authorize @simulation, :show?
-        
+
         render json: NegotiationRoundSerializer.new(
           @negotiation_round,
           include: %i[settlement_offers],
@@ -37,14 +37,14 @@ module Api
         authorize @simulation, :participate?
 
         @negotiation_round = find_or_create_current_round
-        
+
         # Create settlement offer for the team
         @settlement_offer = build_settlement_offer
 
         if @settlement_offer.save
           # Trigger simulation dynamics
           handle_offer_submission
-          
+
           render json: SettlementOfferSerializer.new(
             @settlement_offer,
             include: %i[negotiation_round team]
@@ -79,7 +79,7 @@ module Api
         if @settlement_offer.update(settlement_offer_params)
           # Re-trigger simulation dynamics for updated offer
           handle_offer_update
-          
+
           render json: SettlementOfferSerializer.new(
             @settlement_offer,
             include: %i[negotiation_round team]
@@ -99,9 +99,9 @@ module Api
 
       def set_simulation
         @simulation = @case.simulation
-        
+
         unless @simulation
-          return api_error(
+          api_error(
             message: "This case does not have an active simulation",
             status: :not_found
           )
@@ -123,8 +123,8 @@ module Api
           )
         end
 
-        unless [@simulation.plaintiff_team, @simulation.defendant_team].include?(current_user_team)
-          return api_error(
+        unless [ @simulation.plaintiff_team, @simulation.defendant_team ].include?(current_user_team)
+          api_error(
             message: "Your team is not participating in this simulation",
             status: :forbidden
           )
@@ -147,7 +147,7 @@ module Api
 
         # Create new round with appropriate deadline
         deadline = calculate_round_deadline
-        
+
         @simulation.negotiation_rounds.create!(
           round_number: @simulation.current_round,
           deadline: deadline,
@@ -185,7 +185,7 @@ module Api
       def handle_offer_submission
         # Apply simulation dynamics
         dynamics_service = SimulationDynamicsService.new(@simulation)
-        
+
         # Generate client feedback
         feedback_service = ClientFeedbackService.new(@simulation)
         feedback_service.generate_feedback_for_offer!(@settlement_offer)
@@ -220,14 +220,14 @@ module Api
           if @negotiation_round.settlement_reached?
             # Settlement reached - complete simulation
             @simulation.complete!
-            
+
             # Generate settlement feedback
             feedback_service = ClientFeedbackService.new(@simulation)
             feedback_service.generate_settlement_feedback!(@negotiation_round)
           elsif @simulation.current_round >= @simulation.total_rounds
             # Final round completed without settlement - trigger arbitration
             @simulation.trigger_arbitration!
-            
+
             # Generate arbitration feedback
             feedback_service = ClientFeedbackService.new(@simulation)
             feedback_service.generate_arbitration_feedback!

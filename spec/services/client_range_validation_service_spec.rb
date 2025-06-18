@@ -9,9 +9,9 @@ RSpec.describe ClientRangeValidationService do
     ideal = min_acceptable * 2
     defendant_ideal = min_acceptable * 0.5
     defendant_max = min_acceptable + rand(50_000..150_000)
-    
+
     case_instance = create(:case, :with_teams)
-    create(:simulation, 
+    create(:simulation,
       case: case_instance,
       plaintiff_min_acceptable: min_acceptable,
       plaintiff_ideal: ideal,
@@ -19,10 +19,10 @@ RSpec.describe ClientRangeValidationService do
       defendant_max_acceptable: defendant_max
     )
   end
-  
+
   let(:plaintiff_team) { simulation.case.plaintiff_team }
   let(:defendant_team) { simulation.case.defendant_team }
-  
+
   describe "#initialize" do
     it "creates service with simulation" do
       service = described_class.new(simulation)
@@ -41,7 +41,7 @@ RSpec.describe ClientRangeValidationService do
 
         it "returns aggressive positioning result" do
           result = service.validate_offer(team, offer_amount)
-          
+
           expect(result.positioning).to eq(:too_aggressive)
           expect(result.satisfaction_score).to be_between(20, 40)
           expect(result.mood).to eq("unhappy")
@@ -54,7 +54,7 @@ RSpec.describe ClientRangeValidationService do
 
         it "returns strong positioning result" do
           result = service.validate_offer(team, offer_amount)
-          
+
           expect(result.positioning).to eq(:strong_position)
           expect(result.satisfaction_score).to be_between(80, 90)
           expect(result.mood).to eq("satisfied")
@@ -67,7 +67,7 @@ RSpec.describe ClientRangeValidationService do
 
         it "returns reasonable positioning result" do
           result = service.validate_offer(team, offer_amount)
-          
+
           expect(result.positioning).to eq(:reasonable_opening)
           expect(result.satisfaction_score).to be_between(70, 85)
           expect(result.mood).to eq("satisfied")
@@ -80,7 +80,7 @@ RSpec.describe ClientRangeValidationService do
 
         it "returns below minimum result" do
           result = service.validate_offer(team, offer_amount)
-          
+
           expect(result.positioning).to eq(:below_minimum)
           expect(result.satisfaction_score).to be_between(10, 25)
           expect(result.mood).to eq("very_unhappy")
@@ -97,7 +97,7 @@ RSpec.describe ClientRangeValidationService do
 
         it "returns excellent positioning result" do
           result = service.validate_offer(team, offer_amount)
-          
+
           expect(result.positioning).to eq(:excellent_position)
           expect(result.satisfaction_score).to be_between(85, 95)
           expect(result.mood).to eq("very_satisfied")
@@ -110,7 +110,7 @@ RSpec.describe ClientRangeValidationService do
 
         it "returns ideal positioning result" do
           result = service.validate_offer(team, offer_amount)
-          
+
           expect(result.positioning).to eq(:ideal_amount)
           expect(result.satisfaction_score).to be_between(80, 90)
           expect(result.mood).to eq("satisfied")
@@ -123,7 +123,7 @@ RSpec.describe ClientRangeValidationService do
 
         it "returns acceptable compromise result" do
           result = service.validate_offer(team, offer_amount)
-          
+
           expect(result.positioning).to eq(:acceptable_compromise)
           expect(result.satisfaction_score).to be_between(60, 75)
           expect(result.mood).to eq("neutral")
@@ -136,7 +136,7 @@ RSpec.describe ClientRangeValidationService do
 
         it "returns concerning amount result" do
           result = service.validate_offer(team, offer_amount)
-          
+
           expect(result.positioning).to eq(:concerning_amount)
           expect(result.satisfaction_score).to be_between(35, 50)
           expect(result.mood).to eq("unhappy")
@@ -149,7 +149,7 @@ RSpec.describe ClientRangeValidationService do
 
         it "returns exceeds maximum result" do
           result = service.validate_offer(team, offer_amount)
-          
+
           expect(result.positioning).to eq(:exceeds_maximum)
           expect(result.satisfaction_score).to be_between(10, 25)
           expect(result.mood).to eq("very_unhappy")
@@ -168,7 +168,7 @@ RSpec.describe ClientRangeValidationService do
 
       it "identifies large settlement gap" do
         result = service.analyze_settlement_gap(plaintiff_offer, defendant_offer)
-        
+
         expect(result.gap_size).to eq(plaintiff_offer - defendant_offer)
         expect(result.gap_category).to eq(:large_gap)
         expect(result.settlement_likelihood).to eq(:unlikely)
@@ -182,7 +182,7 @@ RSpec.describe ClientRangeValidationService do
 
       it "identifies settlement zone overlap" do
         result = service.analyze_settlement_gap(plaintiff_offer, defendant_offer)
-        
+
         expect(result.gap_size).to eq(plaintiff_offer - defendant_offer)
         expect(result.gap_category).to eq(:negotiable_gap)
         expect(result.settlement_likelihood).to eq(:possible)
@@ -196,7 +196,7 @@ RSpec.describe ClientRangeValidationService do
 
       it "identifies immediate settlement potential" do
         result = service.analyze_settlement_gap(plaintiff_offer, defendant_offer)
-        
+
         expect(result.gap_size).to eq(plaintiff_offer - defendant_offer) # Negative indicates overlap
         expect(result.gap_category).to eq(:settlement_zone)
         expect(result.settlement_likelihood).to eq(:likely)
@@ -270,7 +270,7 @@ RSpec.describe ClientRangeValidationService do
     context "when ranges don't overlap" do
       let(:simulation) do
         base_amount = rand(100_000..150_000)
-        create(:simulation, 
+        create(:simulation,
           plaintiff_min_acceptable: base_amount * 3,
           plaintiff_ideal: base_amount * 4,
           defendant_ideal: base_amount * 0.5,
@@ -316,9 +316,9 @@ RSpec.describe ClientRangeValidationService do
       it "increases plaintiff ranges" do
         original_min = simulation.plaintiff_min_acceptable
         original_ideal = simulation.plaintiff_ideal
-        
+
         service.adjust_ranges_for_event!(:media_attention, :moderate)
-        
+
         simulation.reload
         expect(simulation.plaintiff_min_acceptable).to be > original_min
         expect(simulation.plaintiff_ideal).to be > original_ideal
@@ -328,9 +328,9 @@ RSpec.describe ClientRangeValidationService do
     context "for additional evidence event" do
       it "adjusts ranges based on evidence strength" do
         original_min = simulation.plaintiff_min_acceptable
-        
+
         service.adjust_ranges_for_event!(:additional_evidence, :high)
-        
+
         simulation.reload
         expect(simulation.plaintiff_min_acceptable).to be > original_min
       end
@@ -340,9 +340,9 @@ RSpec.describe ClientRangeValidationService do
       it "increases defendant maximum acceptable" do
         original_max = simulation.defendant_max_acceptable
         original_ideal = simulation.defendant_ideal
-        
+
         service.adjust_ranges_for_event!(:ipo_delay, :high)
-        
+
         simulation.reload
         expect(simulation.defendant_max_acceptable).to be > original_max
         expect(simulation.defendant_ideal).to be > original_ideal
@@ -353,9 +353,9 @@ RSpec.describe ClientRangeValidationService do
       it "increases urgency for both sides" do
         original_plaintiff_min = simulation.plaintiff_min_acceptable
         original_defendant_max = simulation.defendant_max_acceptable
-        
+
         service.adjust_ranges_for_event!(:court_deadline, :high)
-        
+
         simulation.reload
         expect(simulation.plaintiff_min_acceptable).to be < original_plaintiff_min
         expect(simulation.defendant_max_acceptable).to be > original_defendant_max
@@ -410,7 +410,7 @@ RSpec.describe ClientRangeValidationService do
       # Create a team that's not assigned to this simulation
       other_case = create(:case, :with_teams)
       invalid_team = other_case.plaintiff_team
-      
+
       expect {
         service.validate_offer(invalid_team, 100_000)
       }.to raise_error(ArgumentError, "Team is not assigned to this simulation")

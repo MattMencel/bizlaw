@@ -7,7 +7,7 @@ FactoryBot.define do
     max_members { 5 }
     association :owner, factory: :user
     association :course
-    
+
     after(:build) do |team|
       # Ensure the owner is enrolled in the course
       create(:course_enrollment, user: team.owner, course: team.course, status: 'active')

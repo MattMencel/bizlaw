@@ -47,8 +47,8 @@ class SimulationPolicy < ApplicationPolicy
     return false unless record&.case
 
     user_teams = user.teams.joins(:case_teams).where(case_teams: { case: record.case })
-    assigned_teams = [record.plaintiff_team, record.defendant_team].compact
-    
+    assigned_teams = [ record.plaintiff_team, record.defendant_team ].compact
+
     (user_teams & assigned_teams).any?
   end
 

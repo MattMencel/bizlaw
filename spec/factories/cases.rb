@@ -14,7 +14,7 @@ FactoryBot.define do
     case_type { :sexual_harassment }
     plaintiff_info { { "name" => "Sarah Mitchell", "position" => "Software Engineer" } }
     defendant_info { { "name" => "TechFlow Industries", "type" => "Corporation" } }
-    legal_issues { ["Sexual harassment", "Hostile work environment", "Retaliation"] }
+    legal_issues { [ "Sexual harassment", "Hostile work environment", "Retaliation" ] }
 
     trait :with_teams do
       # Create case teams after the case is created
@@ -22,16 +22,16 @@ FactoryBot.define do
         # Create owners who are enrolled in the course
         plaintiff_owner = create(:user)
         defendant_owner = create(:user)
-        
+
         create(:course_enrollment, user: plaintiff_owner, course: case_instance.course)
         create(:course_enrollment, user: defendant_owner, course: case_instance.course)
-        
-        plaintiff_team = create(:team, 
+
+        plaintiff_team = create(:team,
           name: "#{case_instance.title} - Plaintiff Team",
           course: case_instance.course,
           owner: plaintiff_owner
         )
-        defendant_team = create(:team, 
+        defendant_team = create(:team,
           name: "#{case_instance.title} - Defendant Team",
           course: case_instance.course,
           owner: defendant_owner

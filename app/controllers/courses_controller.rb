@@ -2,7 +2,7 @@
 
 class CoursesController < ApplicationController
   include LicenseEnforcement
-  
+
   before_action :authenticate_user!
   before_action :set_course, only: [ :show, :edit, :update, :destroy, :manage_invitations, :create_invitation, :assign_students, :assign_student, :remove_student ]
   before_action :require_instructor_or_admin, except: [ :index, :show ]
@@ -37,7 +37,7 @@ class CoursesController < ApplicationController
     @course = Course.new(course_params)
     @course.instructor = current_user
     @course.organization = current_user.organization
-    
+
     # Set year if not provided (either from term or default to current year)
     if @course.year.blank?
       @course.year = @course.term&.academic_year || Date.current.year
@@ -97,7 +97,7 @@ class CoursesController < ApplicationController
     end
 
     @available_students = @course.available_students_for_assignment
-    
+
     @available_students = @available_students.where(
       "LOWER(first_name) LIKE :query OR LOWER(last_name) LIKE :query OR LOWER(email) LIKE :query",
       query: "%#{params[:search].downcase}%"

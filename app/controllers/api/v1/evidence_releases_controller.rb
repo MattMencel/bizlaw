@@ -3,7 +3,7 @@
 class Api::V1::EvidenceReleasesController < Api::V1::BaseController
   before_action :authenticate_user!
   before_action :set_case
-  before_action :set_evidence_release, only: [:show, :approve, :deny]
+  before_action :set_evidence_release, only: [ :show, :approve, :deny ]
   before_action :ensure_case_access
 
   # GET /api/v1/cases/:case_id/evidence_releases
@@ -136,7 +136,7 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
     ensure_instructor!
 
     denial_reason = params[:reason] || "Request denied by instructor"
-    
+
     if @evidence_release.deny_team_request!(current_user, denial_reason)
       render json: {
         data: {
@@ -174,7 +174,7 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
     ensure_instructor!
 
     document = @case.documents.find(params[:document_id])
-    
+
     @evidence_release = EvidenceRelease.schedule_automatic_release(
       @case.simulation,
       document,
@@ -263,8 +263,8 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
   end
 
   def can_approve_release?
-    (current_user.role_instructor? || current_user.role_admin?) && 
-    @evidence_release.team_requested? && 
+    (current_user.role_instructor? || current_user.role_admin?) &&
+    @evidence_release.team_requested? &&
     !@evidence_release.released? &&
     @evidence_release.release_conditions["denied_by"].blank?
   end
@@ -312,7 +312,7 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
   def notify_instructors_of_request(evidence_release)
     # Find all instructors associated with this case
     case_instructors = @case.course&.instructors || []
-    
+
     case_instructors.each do |instructor|
       # In a real app, you'd use a proper notification system
       Rails.logger.info "Evidence request notification sent to #{instructor.email}"
@@ -345,16 +345,16 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
 
   def build_release_calendar(all_releases)
     calendar = {}
-    
+
     all_releases.each do |release|
       date_key = if release.released?
                    release.released_at.to_date.to_s
-                 elsif release.scheduled_release_at
+      elsif release.scheduled_release_at
                    release.scheduled_release_at.to_date.to_s
-                 else
+      else
                    "unscheduled"
-                 end
-      
+      end
+
       calendar[date_key] ||= []
       calendar[date_key] << {
         id: release.id,
@@ -363,7 +363,7 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
         status: determine_release_status(release)
       }
     end
-    
+
     calendar
   end
 end

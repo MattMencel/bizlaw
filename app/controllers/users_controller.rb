@@ -13,7 +13,7 @@ class UsersController < ApplicationController
 
     # Force session to be saved before redirect
     session.commit!
-    
+
     flash[:notice] = "You are now impersonating #{user_to_impersonate.full_name} in read-only mode."
     redirect_to dashboard_path
   end

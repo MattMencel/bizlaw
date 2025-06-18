@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'rqrcode'
-require 'chunky_png'
-require 'base64'
+require "rqrcode"
+require "chunky_png"
+require "base64"
 
 class CourseInvitation < ApplicationRecord
   include HasUuid
@@ -101,7 +101,7 @@ class CourseInvitation < ApplicationRecord
   end
 
   def invitation_url
-    host = Rails.application.config.action_mailer.default_url_options&.dig(:host) || 'localhost:3000'
+    host = Rails.application.config.action_mailer.default_url_options&.dig(:host) || "localhost:3000"
     Rails.application.routes.url_helpers.course_invitation_url(token, host: host)
   end
 

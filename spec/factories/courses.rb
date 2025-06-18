@@ -2,7 +2,7 @@ FactoryBot.define do
   factory :course do
     title { "Business Law 101" }
     description { "Introduction to Business Law" }
-    association :instructor, factory: [:user, :instructor]
+    association :instructor, factory: [ :user, :instructor ]
     association :organization
     course_code { "BL101" }
     semester { "Fall" }

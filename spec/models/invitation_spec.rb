@@ -11,6 +11,7 @@ RSpec.describe Invitation, type: :model do
 
     context 'for admin role' do
       subject { build(:invitation, role: 'admin', organization: nil, invited_by: admin_user) }
+
       it { is_expected.to belong_to(:organization).optional }
     end
   end

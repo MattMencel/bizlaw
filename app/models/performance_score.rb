@@ -59,8 +59,8 @@ class PerformanceScore < ApplicationRecord
 
     base_total = components.sum
     adjustment = instructor_adjustment || 0
-    
-    self.total_score = [base_total + adjustment, 0].max # Ensure non-negative
+
+    self.total_score = [ base_total + adjustment, 0 ].max # Ensure non-negative
     self.score_breakdown = build_score_breakdown
     save!
   end

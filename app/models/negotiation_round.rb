@@ -33,7 +33,7 @@ class NegotiationRound < ApplicationRecord
   }, prefix: :status
 
   # Scopes
-  scope :active_rounds, -> { where(status: [:active, :plaintiff_submitted, :defendant_submitted, :both_submitted]) }
+  scope :active_rounds, -> { where(status: [ :active, :plaintiff_submitted, :defendant_submitted, :both_submitted ]) }
   scope :overdue, -> { where("deadline < ?", Time.current) }
   scope :by_round_number, -> { order(:round_number) }
 

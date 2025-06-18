@@ -11,26 +11,26 @@ RSpec.describe PerformanceScore, type: :model do
   let(:user) { create(:user, :student, organization: organization) }
 
   describe "associations" do
-    it { should belong_to(:simulation) }
-    it { should belong_to(:team) }
-    it { should belong_to(:user).optional }
+    it { is_expected.to belong_to(:simulation) }
+    it { is_expected.to belong_to(:team) }
+    it { is_expected.to belong_to(:user).optional }
   end
 
   describe "validations" do
     subject { build(:performance_score, simulation: simulation, team: team, user: user) }
 
-    it { should validate_presence_of(:total_score) }
-    it { should validate_presence_of(:scored_at) }
-    it { should validate_presence_of(:score_type) }
-    it { should validate_presence_of(:score_breakdown) }
+    it { is_expected.to validate_presence_of(:total_score) }
+    it { is_expected.to validate_presence_of(:scored_at) }
+    it { is_expected.to validate_presence_of(:score_type) }
+    it { is_expected.to validate_presence_of(:score_breakdown) }
 
-    it { should validate_numericality_of(:total_score).is_greater_than_or_equal_to(0).is_less_than_or_equal_to(100) }
-    it { should validate_inclusion_of(:score_type).in_array(%w[individual team]) }
+    it { is_expected.to validate_numericality_of(:total_score).is_greater_than_or_equal_to(0).is_less_than_or_equal_to(100) }
+    it { is_expected.to validate_inclusion_of(:score_type).in_array(%w[individual team]) }
 
-    it { should validate_numericality_of(:settlement_quality_score).is_greater_than_or_equal_to(0).is_less_than_or_equal_to(40).allow_nil }
-    it { should validate_numericality_of(:legal_strategy_score).is_greater_than_or_equal_to(0).is_less_than_or_equal_to(30).allow_nil }
-    it { should validate_numericality_of(:collaboration_score).is_greater_than_or_equal_to(0).is_less_than_or_equal_to(20).allow_nil }
-    it { should validate_numericality_of(:efficiency_score).is_greater_than_or_equal_to(0).is_less_than_or_equal_to(10).allow_nil }
+    it { is_expected.to validate_numericality_of(:settlement_quality_score).is_greater_than_or_equal_to(0).is_less_than_or_equal_to(40).allow_nil }
+    it { is_expected.to validate_numericality_of(:legal_strategy_score).is_greater_than_or_equal_to(0).is_less_than_or_equal_to(30).allow_nil }
+    it { is_expected.to validate_numericality_of(:collaboration_score).is_greater_than_or_equal_to(0).is_less_than_or_equal_to(20).allow_nil }
+    it { is_expected.to validate_numericality_of(:efficiency_score).is_greater_than_or_equal_to(0).is_less_than_or_equal_to(10).allow_nil }
 
     describe "score type validations" do
       context "for individual scores" do
@@ -53,7 +53,7 @@ RSpec.describe PerformanceScore, type: :model do
       context "for team scores" do
         subject { build(:performance_score, :team_score, simulation: simulation, team: team) }
 
-        it "should not have a user" do
+        it "does not have a user" do
           subject.user = user
           expect(subject).not_to be_valid
           expect(subject.errors[:user]).to include("must be absent for team scores")
@@ -141,7 +141,7 @@ RSpec.describe PerformanceScore, type: :model do
     describe "#calculate_total_score!" do
       it "calculates total from component scores" do
         performance_score.calculate_total_score!
-        
+
         expected_total = 32 + 24 + 16 + 8 + 5 + 3
         expect(performance_score.total_score).to eq(expected_total)
       end
@@ -149,14 +149,14 @@ RSpec.describe PerformanceScore, type: :model do
       it "handles nil component scores" do
         performance_score.update(settlement_quality_score: nil, legal_strategy_score: nil)
         performance_score.calculate_total_score!
-        
+
         expected_total = 0 + 0 + 16 + 8 + 5 + 3
         expect(performance_score.total_score).to eq(expected_total)
       end
 
       it "builds score breakdown" do
         performance_score.calculate_total_score!
-        
+
         expect(performance_score.score_breakdown).to include(
           "settlement_quality" => hash_including("score" => 32, "max_points" => 40),
           "legal_strategy" => hash_including("score" => 24, "max_points" => 30),
@@ -197,7 +197,7 @@ RSpec.describe PerformanceScore, type: :model do
 
       it "includes all summary components" do
         summary = performance_score.performance_summary
-        
+
         expect(summary).to include(
           :grade,
           :total_score,
@@ -209,7 +209,7 @@ RSpec.describe PerformanceScore, type: :model do
 
       it "identifies strengths correctly" do
         summary = performance_score.performance_summary
-        
+
         # Settlement Quality: 32/40 = 80% (strength threshold)
         # Legal Strategy: 24/30 = 80% (strength threshold)
         expect(summary[:strengths]).to include("Settlement Strategy", "Legal Reasoning")
@@ -219,7 +219,7 @@ RSpec.describe PerformanceScore, type: :model do
         performance_score.update(collaboration_score: 10, efficiency_score: 4)
         performance_score.calculate_total_score!
         summary = performance_score.performance_summary
-        
+
         # Collaboration: 10/20 = 50% (below 60% threshold)
         # Efficiency: 4/10 = 40% (below 60% threshold)
         expect(summary[:improvement_areas]).to include("Team Collaboration", "Process Efficiency")
@@ -239,9 +239,9 @@ RSpec.describe PerformanceScore, type: :model do
         end
       end
 
-      before { create(:team_member, team: team, user: other_users.first) }
-      before { create(:team_member, team: team, user: other_users.second) }
-      before { create(:team_member, team: team, user: other_users.third) }
+      before { create(:team_member, team: team, user: other_users.first)
+create(:team_member, team: team, user: other_users.second)
+create(:team_member, team: team, user: other_users.third)  }
 
       it "calculates rank correctly" do
         performance_score.update(total_score: 85)
@@ -305,7 +305,7 @@ RSpec.describe PerformanceScore, type: :model do
 
       it "calculates team score from individual averages" do
         team_score = PerformanceScore.calculate_team_score!(simulation, team)
-        
+
         expect(team_score.settlement_quality_score).to eq(30.0) # (25 + 30 + 35) / 3
         expect(team_score.legal_strategy_score).to eq(23.0) # (20 + 23 + 26) / 3
         expect(team_score.collaboration_score).to eq(17.0) # (15 + 17 + 19) / 3
@@ -316,7 +316,7 @@ RSpec.describe PerformanceScore, type: :model do
         expect {
           PerformanceScore.calculate_team_score!(simulation, team)
         }.to change(PerformanceScore, :count).by(1)
-        
+
         team_score = PerformanceScore.team_scores.last
         expect(team_score.simulation).to eq(simulation)
         expect(team_score.team).to eq(team)
@@ -325,13 +325,13 @@ RSpec.describe PerformanceScore, type: :model do
       end
 
       it "updates existing team score" do
-        existing_team_score = create(:performance_score, :team_score, 
+        existing_team_score = create(:performance_score, :team_score,
           simulation: simulation, team: team, total_score: 50)
-        
+
         expect {
           PerformanceScore.calculate_team_score!(simulation, team)
         }.not_to change(PerformanceScore, :count)
-        
+
         existing_team_score.reload
         expect(existing_team_score.total_score).not_to eq(50)
       end
@@ -348,7 +348,7 @@ RSpec.describe PerformanceScore, type: :model do
       it "calculates individual score using PerformanceCalculator" do
         calculator_double = instance_double(PerformanceCalculator)
         allow(PerformanceCalculator).to receive(:new).with(simulation, team, user).and_return(calculator_double)
-        
+
         allow(calculator_double).to receive(:settlement_quality_score).and_return(32)
         allow(calculator_double).to receive(:legal_strategy_score).and_return(24)
         allow(calculator_double).to receive(:collaboration_score).and_return(16)
@@ -357,7 +357,7 @@ RSpec.describe PerformanceScore, type: :model do
         allow(calculator_double).to receive(:creative_terms_score).and_return(3)
 
         score = PerformanceScore.calculate_individual_score!(simulation, team, user)
-        
+
         expect(score.settlement_quality_score).to eq(32)
         expect(score.legal_strategy_score).to eq(24)
         expect(score.collaboration_score).to eq(16)
@@ -377,7 +377,7 @@ RSpec.describe PerformanceScore, type: :model do
         expect {
           PerformanceScore.calculate_individual_score!(simulation, team, user)
         }.to change(PerformanceScore, :count).by(1)
-        
+
         score = PerformanceScore.individual_scores.last
         expect(score.simulation).to eq(simulation)
         expect(score.team).to eq(team)
@@ -399,7 +399,7 @@ RSpec.describe PerformanceScore, type: :model do
         expect {
           PerformanceScore.calculate_individual_score!(simulation, team, user)
         }.not_to change(PerformanceScore, :count)
-        
+
         existing_score.reload
         expect(existing_score.settlement_quality_score).to eq(35)
         expect(existing_score.total_score).not_to eq(50)
