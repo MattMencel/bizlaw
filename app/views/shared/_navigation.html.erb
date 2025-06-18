@@ -1,17 +1,68 @@
-<%# New Hierarchical Navigation Partial %>
-<nav class="bg-gray-800 text-white flex flex-col h-screen w-80 fixed left-0 top-0 z-50">
-  <%= render 'shared/navigation/context_switcher' %>
-  <%= render 'shared/navigation/menu_sections' %>
-</nav>
+<%# Mobile Navigation Container %>
+<div data-controller="mobile-navigation" 
+     data-mobile-navigation-menu-target="nav" 
+     data-mobile-navigation-overlay-target="overlay">
+  
+  <%# Mobile Navigation Toggle Button %>
+  <div class="lg:hidden fixed top-0 left-0 right-0 bg-gray-800 text-white p-4 z-40 border-b border-gray-700">
+    <div class="flex items-center justify-between">
+      <button type="button" 
+              class="text-white hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-white rounded-md p-1"
+              data-mobile-navigation-target="toggle"
+              data-action="click->mobile-navigation#toggle"
+              aria-label="Open navigation menu"
+              aria-expanded="false">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+      
+      <%# Mobile Context Switcher (simplified) %>
+      <div class="flex-1 mx-4">
+        <%= render 'shared/navigation/mobile_context_display' %>
+      </div>
+    </div>
+  </div>
 
-<%# Mobile Navigation Toggle %>
-<div class="lg:hidden fixed top-0 left-0 right-0 bg-gray-800 text-white p-4 z-40">
-  <button type="button" 
-          class="text-white hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-white"
-          data-controller="mobile-navigation"
-          data-action="click->mobile-navigation#toggle">
-    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-    </svg>
-  </button>
+  <%# Mobile Navigation Overlay (backdrop) %>
+  <div class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 hidden"
+       data-mobile-navigation-target="overlay"
+       data-action="click->mobile-navigation#clickOutside">
+  </div>
+
+  <%# Main Navigation - Desktop: Fixed sidebar, Mobile: Overlay menu %>
+  <nav class="bg-gray-800 text-white flex flex-col h-screen fixed left-0 top-0 z-50 
+             w-80 lg:block 
+             hidden lg:flex
+             transform -translate-x-full lg:translate-x-0 
+             transition-transform duration-300 ease-in-out"
+       data-mobile-navigation-target="menu">
+    
+    <%# Desktop Context Switcher (hidden on mobile) %>
+    <div class="hidden lg:block">
+      <%= render 'shared/navigation/context_switcher' %>
+    </div>
+    
+    <%# Mobile Navigation Header %>
+    <div class="lg:hidden flex items-center justify-between p-4 border-b border-gray-700">
+      <h2 class="text-lg font-semibold">Navigation</h2>
+      <button type="button" 
+              class="text-white hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-white rounded-md p-1"
+              data-action="click->mobile-navigation#close"
+              aria-label="Close navigation menu">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    
+    <%# Navigation Menu Sections %>
+    <div class="flex-1 overflow-y-auto">
+      <%= render 'shared/navigation/menu_sections' %>
+    </div>
+  </nav>
 </div>
+
+<%# Responsive Content Wrapper - Add proper spacing for mobile header %>
+<div class="lg:ml-80 lg:pt-0 pt-16">
+  <!-- Main content goes here -->

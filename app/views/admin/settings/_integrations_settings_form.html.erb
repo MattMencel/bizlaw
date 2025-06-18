@@ -1,0 +1,54 @@
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+  <div class="sm:col-span-2">
+    <h3 class="text-lg font-medium text-gray-900">Authentication Integrations</h3>
+    <p class="mt-1 text-sm text-gray-500">Configure external authentication providers.</p>
+  </div>
+
+  <div class="space-y-4">
+    <div class="flex items-center">
+      <%= form.check_box "settings[google_oauth_enabled]", 
+          { checked: settings[:google_oauth_enabled], class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" }, 
+          "true", "false" %>
+      <%= form.label :google_oauth_enabled, "Google OAuth", class: "ml-2 block text-sm text-gray-900" %>
+    </div>
+    <p class="text-sm text-gray-500">Allow users to sign in with their Google accounts.</p>
+  </div>
+
+  <div class="sm:col-span-2 border-t border-gray-200 pt-6">
+    <h3 class="text-lg font-medium text-gray-900">Notification Integrations</h3>
+    <p class="mt-1 text-sm text-gray-500">Configure external notification services.</p>
+  </div>
+
+  <div class="space-y-4">
+    <div class="flex items-center">
+      <%= form.check_box "settings[slack_notifications]", 
+          { checked: settings[:slack_notifications], class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" }, 
+          "true", "false" %>
+      <%= form.label :slack_notifications, "Slack Notifications", class: "ml-2 block text-sm text-gray-900" %>
+    </div>
+    <p class="text-sm text-gray-500">Send notifications to Slack channels.</p>
+  </div>
+
+  <div>
+    <%= form.label :webhook_url, "Webhook URL", class: "block text-sm font-medium text-gray-700" %>
+    <%= form.url_field "settings[webhook_url]", 
+        value: settings[:webhook_url],
+        class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm",
+        placeholder: "https://hooks.slack.com/..." %>
+    <p class="mt-2 text-sm text-gray-500">Webhook URL for external notifications.</p>
+  </div>
+
+  <div class="sm:col-span-2 border-t border-gray-200 pt-6">
+    <h3 class="text-lg font-medium text-gray-900">API Configuration</h3>
+    <p class="mt-1 text-sm text-gray-500">Configure API access and limits.</p>
+  </div>
+
+  <div>
+    <%= form.label :api_rate_limit, "API Rate Limit (requests/hour)", class: "block text-sm font-medium text-gray-700" %>
+    <%= form.number_field "settings[api_rate_limit]", 
+        value: settings[:api_rate_limit],
+        min: 100, max: 10000,
+        class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+    <p class="mt-2 text-sm text-gray-500">Maximum API requests per hour per user.</p>
+  </div>
+</div>

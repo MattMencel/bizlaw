@@ -22,6 +22,9 @@ module ErrorHandler
   private
 
   def respond_to_error(error, status)
+    # Prevent double render errors
+    return if performed?
+
     error_response = {
       status: Rack::Utils::SYMBOL_TO_STATUS_CODE[status],
       error: status.to_s.titleize,

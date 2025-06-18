@@ -1,0 +1,45 @@
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+  <div>
+    <%= form.label :smtp_host, "SMTP Host", class: "block text-sm font-medium text-gray-700" %>
+    <%= form.text_field "settings[smtp_host]", 
+        value: settings[:smtp_host],
+        class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm",
+        placeholder: "smtp.example.com" %>
+    <p class="mt-2 text-sm text-gray-500">SMTP server hostname for sending emails.</p>
+  </div>
+
+  <div>
+    <%= form.label :smtp_port, "SMTP Port", class: "block text-sm font-medium text-gray-700" %>
+    <%= form.number_field "settings[smtp_port]", 
+        value: settings[:smtp_port],
+        min: 1, max: 65535,
+        class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+    <p class="mt-2 text-sm text-gray-500">SMTP server port (usually 587 or 465).</p>
+  </div>
+
+  <div>
+    <%= form.label :smtp_username, "SMTP Username", class: "block text-sm font-medium text-gray-700" %>
+    <%= form.text_field "settings[smtp_username]", 
+        value: settings[:smtp_username],
+        class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+    <p class="mt-2 text-sm text-gray-500">Username for SMTP authentication.</p>
+  </div>
+
+  <div>
+    <%= form.label :from_email, "From Email Address", class: "block text-sm font-medium text-gray-700" %>
+    <%= form.email_field "settings[from_email]", 
+        value: settings[:from_email],
+        class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+    <p class="mt-2 text-sm text-gray-500">Default from email address for system emails.</p>
+  </div>
+
+  <div class="sm:col-span-2">
+    <div class="flex items-center">
+      <%= form.check_box "settings[smtp_use_tls]", 
+          { checked: settings[:smtp_use_tls], class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" }, 
+          "true", "false" %>
+      <%= form.label :smtp_use_tls, "Use TLS/SSL", class: "ml-2 block text-sm text-gray-900" %>
+    </div>
+    <p class="mt-2 text-sm text-gray-500">Enable TLS/SSL encryption for SMTP connections.</p>
+  </div>
+</div>

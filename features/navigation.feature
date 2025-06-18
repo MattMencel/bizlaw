@@ -91,6 +91,22 @@ Feature: Hierarchical Navigation System
     And I should see "Academic Structure" in the Administration section
     And I should see "User Management" in the Administration section
     And I should see "System Settings" in the Administration section
+    And I should see "Admin Dashboard" in the Administration section
+    And I should see "License Management" in the Administration section
+
+  @javascript
+  Scenario: Admin navigation links are functional
+    Given a user "admin@example.com" exists with role "admin" in the organization
+    And I am signed in as "admin@example.com"
+    When I visit the dashboard
+    And I click on "Organization" in the Administration section
+    Then I should be redirected to the organizations management page
+    When I click on "System Settings" in the Administration section
+    Then I should be redirected to the admin settings page
+    When I click on "Admin Dashboard" in the Administration section
+    Then I should be redirected to the admin dashboard page
+    When I click on "License Management" in the Administration section
+    Then I should be redirected to the license management page
 
   @javascript
   Scenario: Mobile navigation behavior
@@ -100,8 +116,21 @@ Feature: Hierarchical Navigation System
     And the main navigation should be hidden
     When I click the mobile navigation toggle
     Then the mobile navigation menu should slide out
+    And the navigation should not occupy more than 100% of the screen width
     When I click outside the mobile menu
     Then the mobile navigation menu should close
+
+  @javascript
+  Scenario: Mobile navigation responsiveness
+    Given I am signed in as "john@example.com"
+    When I visit the dashboard
+    And I resize the browser to mobile width (375px)
+    Then the navigation should automatically switch to mobile mode
+    And the hamburger menu should be visible
+    And the main content should be fully accessible
+    When I resize back to desktop width
+    Then the navigation should return to desktop mode
+    And the hamburger menu should be hidden
 
   @javascript
   Scenario: Context switcher search functionality

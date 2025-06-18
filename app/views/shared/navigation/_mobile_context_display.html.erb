@@ -1,0 +1,17 @@
+<%# Mobile Context Display - Simplified context info for mobile header %>
+<% if user_signed_in? && current_user_case %>
+  <div class="text-sm text-center">
+    <div class="font-medium text-white truncate">
+      <%= current_user_case.title %>
+    </div>
+    <% if current_user_team %>
+      <div class="text-xs text-gray-300 truncate">
+        <%= current_user_team.name %> • <%= current_user.role.humanize %>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="text-sm text-center text-gray-300">
+    Select a Case
+  </div>
+<% end %>

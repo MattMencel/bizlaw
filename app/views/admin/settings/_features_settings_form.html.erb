@@ -1,0 +1,63 @@
+<div class="space-y-6">
+  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+    <div class="sm:col-span-2">
+      <h3 class="text-lg font-medium text-gray-900">Core Features</h3>
+      <p class="mt-1 text-sm text-gray-500">Enable or disable major platform features.</p>
+    </div>
+
+    <div class="space-y-4">
+      <div class="flex items-center">
+        <%= form.check_box "settings[evidence_vault_enabled]", 
+            { checked: settings[:evidence_vault_enabled], class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" }, 
+            "true", "false" %>
+        <%= form.label :evidence_vault_enabled, "Evidence Vault", class: "ml-2 block text-sm text-gray-900" %>
+      </div>
+      <p class="text-sm text-gray-500">Allow users to manage and share case evidence.</p>
+
+      <div class="flex items-center">
+        <%= form.check_box "settings[negotiations_enabled]", 
+            { checked: settings[:negotiations_enabled], class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" }, 
+            "true", "false" %>
+        <%= form.label :negotiations_enabled, "Negotiations Module", class: "ml-2 block text-sm text-gray-900" %>
+      </div>
+      <p class="text-sm text-gray-500">Enable settlement negotiations and offer management.</p>
+    </div>
+
+    <div class="space-y-4">
+      <div class="flex items-center">
+        <%= form.check_box "settings[file_upload_enabled]", 
+            { checked: settings[:file_upload_enabled], class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" }, 
+            "true", "false" %>
+        <%= form.label :file_upload_enabled, "File Uploads", class: "ml-2 block text-sm text-gray-900" %>
+      </div>
+      <p class="text-sm text-gray-500">Allow users to upload documents and files.</p>
+
+      <div class="flex items-center">
+        <%= form.check_box "settings[real_time_updates]", 
+            { checked: settings[:real_time_updates], class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" }, 
+            "true", "false" %>
+        <%= form.label :real_time_updates, "Real-time Updates", class: "ml-2 block text-sm text-gray-900" %>
+      </div>
+      <p class="text-sm text-gray-500">Enable live updates using WebSockets.</p>
+    </div>
+  </div>
+
+  <div class="border-t border-gray-200 pt-6">
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div class="sm:col-span-2">
+        <h3 class="text-lg font-medium text-gray-900">Advanced Features</h3>
+        <p class="mt-1 text-sm text-gray-500">Additional features that may require special configuration.</p>
+      </div>
+
+      <div class="space-y-4">
+        <div class="flex items-center">
+          <%= form.check_box "settings[advanced_analytics]", 
+              { checked: settings[:advanced_analytics], class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" }, 
+              "true", "false" %>
+          <%= form.label :advanced_analytics, "Advanced Analytics", class: "ml-2 block text-sm text-gray-900" %>
+        </div>
+        <p class="text-sm text-gray-500">Enable detailed analytics and reporting features.</p>
+      </div>
+    </div>
+  </div>
+</div>

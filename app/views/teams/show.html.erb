@@ -25,7 +25,7 @@
         <% end %>
       </div>
       <div class="mt-4 flex md:ml-4 md:mt-0">
-        <%= link_to edit_team_path(@team),
+        <%= link_to edit_course_team_path(@team.course, @team),
             class: "ml-3 inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
             data: { turbo_frame: "_top" } do %>
           <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
@@ -41,7 +41,7 @@
       <div>
         <%= real_time_frame(
               id: "team-members",
-              url: team_path(@team),
+              url: team_path(@team, section: 'members'),
               interval: 5000,
               title: "Team Members"
             ) do %>
@@ -53,7 +53,7 @@
       <div>
         <%= real_time_frame(
               id: "team-activity",
-              url: team_path(@team),
+              url: team_path(@team, section: 'activity'),
               interval: 10000,
               title: "Recent Activity"
             ) do %>

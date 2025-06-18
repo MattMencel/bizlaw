@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_17_031926) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_18_130233) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -32,6 +32,46 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_17_031926) do
   create_enum "simulation_status", ["setup", "active", "paused", "completed", "arbitration"]
   create_enum "team_member_role", ["member", "manager"]
   create_enum "user_role", ["student", "instructor", "admin"]
+
+  create_table "ai_usage_alerts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "alert_type", null: false
+    t.decimal "threshold_value", precision: 10, scale: 6, null: false
+    t.decimal "current_value", precision: 10, scale: 6, null: false
+    t.string "status", default: "active", null: false
+    t.text "message"
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "acknowledged_at"
+    t.string "acknowledged_by"
+    t.datetime "resolved_at"
+    t.string "resolved_by"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["alert_type", "status"], name: "index_ai_usage_alerts_on_type_and_status"
+    t.index ["alert_type"], name: "index_ai_usage_alerts_on_alert_type"
+    t.index ["created_at"], name: "index_ai_usage_alerts_on_created_at"
+    t.index ["deleted_at"], name: "index_ai_usage_alerts_on_deleted_at"
+    t.index ["status"], name: "index_ai_usage_alerts_on_status"
+  end
+
+  create_table "ai_usage_logs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "model", null: false
+    t.decimal "cost", precision: 10, scale: 6, default: "0.0", null: false
+    t.integer "response_time_ms", null: false
+    t.integer "tokens_used", default: 0
+    t.string "request_type", null: false
+    t.boolean "error_occurred", default: false, null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at", "cost"], name: "index_ai_usage_logs_on_created_at_and_cost"
+    t.index ["created_at"], name: "index_ai_usage_logs_on_created_at"
+    t.index ["deleted_at"], name: "index_ai_usage_logs_on_deleted_at"
+    t.index ["error_occurred"], name: "index_ai_usage_logs_on_error_occurred"
+    t.index ["model"], name: "index_ai_usage_logs_on_model"
+    t.index ["request_type"], name: "index_ai_usage_logs_on_request_type"
+  end
 
   create_table "arbitration_outcomes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "simulation_id", null: false
@@ -394,6 +434,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_17_031926) do
     t.index ["user_id"], name: "index_performance_scores_on_user_id"
   end
 
+  create_table "personality_consistency_trackers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "case_id", null: false
+    t.string "personality_type", null: false
+    t.jsonb "response_history", default: [], null: false
+    t.integer "consistency_score", null: false
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["case_id", "personality_type"], name: "index_personality_trackers_on_case_and_type"
+    t.index ["case_id"], name: "index_personality_consistency_trackers_on_case_id"
+    t.index ["consistency_score"], name: "index_personality_consistency_trackers_on_consistency_score"
+    t.index ["deleted_at"], name: "index_personality_consistency_trackers_on_deleted_at"
+    t.index ["personality_type"], name: "index_personality_consistency_trackers_on_personality_type"
+  end
+
   create_table "settlement_offers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "negotiation_round_id", null: false
     t.uuid "team_id", null: false
@@ -597,6 +652,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_17_031926) do
   add_foreign_key "performance_scores", "teams"
   add_foreign_key "performance_scores", "users"
   add_foreign_key "performance_scores", "users", column: "adjusted_by_id"
+  add_foreign_key "personality_consistency_trackers", "cases"
   add_foreign_key "settlement_offers", "negotiation_rounds"
   add_foreign_key "settlement_offers", "teams"
   add_foreign_key "settlement_offers", "users", column: "scored_by_id"

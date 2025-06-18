@@ -1,0 +1,42 @@
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+  <div>
+    <%= form.label :session_timeout, "Session Timeout (minutes)", class: "block text-sm font-medium text-gray-700" %>
+    <%= form.number_field "settings[session_timeout]", 
+        value: settings[:session_timeout],
+        min: 5, max: 1440,
+        class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+    <p class="mt-2 text-sm text-gray-500">Automatically log out users after this period of inactivity.</p>
+  </div>
+
+  <div>
+    <%= form.label :login_attempts_limit, "Login Attempts Limit", class: "block text-sm font-medium text-gray-700" %>
+    <%= form.number_field "settings[login_attempts_limit]", 
+        value: settings[:login_attempts_limit],
+        min: 1, max: 20,
+        class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+    <p class="mt-2 text-sm text-gray-500">Number of failed login attempts before account lockout.</p>
+  </div>
+
+  <div>
+    <%= form.label :password_complexity, "Password Complexity", class: "block text-sm font-medium text-gray-700" %>
+    <%= form.select "settings[password_complexity]", 
+        options_for_select([
+          ['Low (8+ characters)', 'low'],
+          ['Medium (8+ chars, mixed case)', 'medium'],
+          ['High (12+ chars, mixed case, numbers, symbols)', 'high']
+        ], settings[:password_complexity]),
+        {},
+        class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" %>
+    <p class="mt-2 text-sm text-gray-500">Required password complexity for new accounts.</p>
+  </div>
+
+  <div class="sm:col-span-2">
+    <div class="flex items-center">
+      <%= form.check_box "settings[two_factor_required]", 
+          { checked: settings[:two_factor_required], class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" }, 
+          "true", "false" %>
+      <%= form.label :two_factor_required, "Require Two-Factor Authentication", class: "ml-2 block text-sm text-gray-900" %>
+    </div>
+    <p class="mt-2 text-sm text-gray-500">Require all users to enable two-factor authentication.</p>
+  </div>
+</div>

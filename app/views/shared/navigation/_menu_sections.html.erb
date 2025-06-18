@@ -152,11 +152,26 @@
                  section_id: 'administration' %>
       
       <div class="ml-6 space-y-1" data-navigation-menu-target="sectionContent" id="administration-content">
-        <% if current_user&.admin? || current_user&.org_admin? %>
+        <% if current_user&.admin? %>
+          <%= render 'shared/navigation/nav_item', 
+                     title: 'Admin Dashboard', 
+                     path: admin_dashboard_path, 
+                     icon: 'view-grid' %>
           <%= render 'shared/navigation/nav_item', 
                      title: 'Organization', 
-                     path: safe_nav_path('admin_organization_path'), 
+                     path: admin_organizations_path, 
                      icon: 'office-building' %>
+          <%= render 'shared/navigation/nav_item', 
+                     title: 'License Management', 
+                     path: admin_licenses_path, 
+                     icon: 'key' %>
+          <%= render 'shared/navigation/nav_item', 
+                     title: 'System Settings', 
+                     path: admin_settings_path, 
+                     icon: 'adjustments' %>
+        <% end %>
+        
+        <% if current_user&.admin? || current_user&.org_admin? %>
           <%= render 'shared/navigation/nav_item', 
                      title: 'Academic Structure', 
                      path: courses_path, 
@@ -165,13 +180,6 @@
                      title: 'User Management', 
                      path: admin_users_path, 
                      icon: 'users' %>
-        <% end %>
-        
-        <% if current_user&.admin? %>
-          <%= render 'shared/navigation/nav_item', 
-                     title: 'System Settings', 
-                     path: safe_nav_path('admin_settings_path'), 
-                     icon: 'adjustments' %>
         <% end %>
       </div>
     </div>

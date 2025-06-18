@@ -26,7 +26,7 @@ class ClientFeedbackService
     [range_feedback, strategic_feedback, pressure_feedback].compact
   end
 
-  # Generate feedback when simulation events are triggered
+  # Generate AI-enhanced feedback when simulation events are triggered
   def generate_event_feedback!(event, affected_teams = nil)
     affected_teams ||= [simulation.plaintiff_team, simulation.defendant_team].compact
 
@@ -35,12 +35,28 @@ class ClientFeedbackService
     affected_teams.each do |team|
       next unless team
 
-      feedback = ClientFeedback.generate_pressure_response(
-        simulation, 
-        team, 
-        simulation.current_round, 
-        event.event_type
-      )
+      # Try AI-enhanced event feedback first
+      ai_feedback = generate_ai_enhanced_event_feedback(event, team)
+      
+      if ai_feedback && ai_feedback[:source] == "ai"
+        feedback = ClientFeedback.create!(
+          simulation: simulation,
+          team: team,
+          feedback_type: :pressure_response,
+          mood_level: ai_feedback[:mood_level],
+          satisfaction_score: ai_feedback[:satisfaction_score],
+          feedback_text: ai_feedback[:feedback_text],
+          triggered_by_round: simulation.current_round
+        )
+      else
+        # Fallback to existing rule-based feedback
+        feedback = ClientFeedback.generate_pressure_response(
+          simulation, 
+          team, 
+          simulation.current_round, 
+          event.event_type
+        )
+      end
       
       feedbacks << feedback if feedback
     end
@@ -176,19 +192,35 @@ class ClientFeedbackService
     # Analyze the completed round for feedback themes
     feedback_themes = analyze_round_performance(team, completed_round)
     
-    mood, satisfaction, message = calculate_transition_feedback(
-      role, from_round, to_round, feedback_themes
-    )
+    # Try AI-enhanced transition feedback
+    ai_feedback = generate_ai_enhanced_transition_feedback(team, from_round, to_round, feedback_themes)
+    
+    if ai_feedback && ai_feedback[:source] == "ai"
+      ClientFeedback.create!(
+        simulation: simulation,
+        team: team,
+        feedback_type: :strategy_guidance,
+        mood_level: ai_feedback[:mood_level],
+        satisfaction_score: ai_feedback[:satisfaction_score],
+        feedback_text: ai_feedback[:feedback_text],
+        triggered_by_round: to_round
+      )
+    else
+      # Fallback to rule-based transition feedback
+      mood, satisfaction, message = calculate_transition_feedback(
+        role, from_round, to_round, feedback_themes
+      )
 
-    ClientFeedback.create!(
-      simulation: simulation,
-      team: team,
-      feedback_type: :strategy_guidance,
-      mood_level: mood,
-      satisfaction_score: satisfaction,
-      feedback_text: message,
-      triggered_by_round: to_round
-    )
+      ClientFeedback.create!(
+        simulation: simulation,
+        team: team,
+        feedback_type: :strategy_guidance,
+        mood_level: mood,
+        satisfaction_score: satisfaction,
+        feedback_text: message,
+        triggered_by_round: to_round
+      )
+    end
   end
 
   def generate_settlement_satisfaction_feedback(team, final_round)
@@ -212,17 +244,34 @@ class ClientFeedbackService
     return nil unless team_offer && opposing_offer
 
     settlement_amount = (team_offer.amount + opposing_offer.amount) / 2.0
-    mood, satisfaction, message = calculate_settlement_satisfaction(role, settlement_amount)
+    
+    # Try AI-enhanced settlement satisfaction feedback
+    ai_feedback = generate_ai_enhanced_settlement_feedback(team_offer, settlement_amount, role)
+    
+    if ai_feedback && ai_feedback[:source] == "ai"
+      ClientFeedback.create!(
+        simulation: simulation,
+        team: team,
+        feedback_type: :settlement_satisfaction,
+        mood_level: ai_feedback[:mood_level],
+        satisfaction_score: ai_feedback[:satisfaction_score],
+        feedback_text: ai_feedback[:feedback_text],
+        triggered_by_round: final_round.round_number
+      )
+    else
+      # Fallback to rule-based settlement satisfaction
+      mood, satisfaction, message = calculate_settlement_satisfaction(role, settlement_amount)
 
-    ClientFeedback.create!(
-      simulation: simulation,
-      team: team,
-      feedback_type: :settlement_satisfaction,
-      mood_level: mood,
-      satisfaction_score: satisfaction,
-      feedback_text: message,
-      triggered_by_round: final_round.round_number
-    )
+      ClientFeedback.create!(
+        simulation: simulation,
+        team: team,
+        feedback_type: :settlement_satisfaction,
+        mood_level: mood,
+        satisfaction_score: satisfaction,
+        feedback_text: message,
+        triggered_by_round: final_round.round_number
+      )
+    end
   end
 
   def generate_arbitration_warning_feedback(team)
@@ -562,7 +611,7 @@ class ClientFeedbackService
     end
   end
 
-  # New range-based feedback generation method
+  # AI-enhanced range-based feedback generation method
   def generate_range_based_feedback(settlement_offer)
     team = settlement_offer.team
     amount = settlement_offer.amount
@@ -570,19 +619,36 @@ class ClientFeedbackService
     # Use the range validation service to assess the offer
     validation_result = range_validation_service.validate_offer(team, amount)
     
-    # Generate appropriate feedback message based on validation result
-    feedback_text = generate_feedback_message(team, validation_result, amount)
+    # Try to generate AI-enhanced feedback
+    ai_feedback = generate_ai_enhanced_feedback(settlement_offer, validation_result)
     
-    ClientFeedback.create!(
-      simulation: simulation,
-      team: team,
-      feedback_type: :offer_reaction,
-      mood_level: validation_result.mood,
-      satisfaction_score: validation_result.satisfaction_score,
-      feedback_text: feedback_text,
-      triggered_by_round: settlement_offer.negotiation_round.round_number,
-      settlement_offer: settlement_offer
-    )
+    if ai_feedback && ai_feedback[:source] == "ai"
+      # Use AI-enhanced feedback
+      ClientFeedback.create!(
+        simulation: simulation,
+        team: team,
+        feedback_type: :offer_reaction,
+        mood_level: ai_feedback[:mood_level] || validation_result.mood,
+        satisfaction_score: ai_feedback[:satisfaction_score] || validation_result.satisfaction_score,
+        feedback_text: ai_feedback[:feedback_text],
+        triggered_by_round: settlement_offer.negotiation_round.round_number,
+        settlement_offer: settlement_offer
+      )
+    else
+      # Fallback to rule-based feedback
+      feedback_text = generate_feedback_message(team, validation_result, amount)
+      
+      ClientFeedback.create!(
+        simulation: simulation,
+        team: team,
+        feedback_type: :offer_reaction,
+        mood_level: validation_result.mood,
+        satisfaction_score: validation_result.satisfaction_score,
+        feedback_text: feedback_text,
+        triggered_by_round: settlement_offer.negotiation_round.round_number,
+        settlement_offer: settlement_offer
+      )
+    end
   end
 
   private
@@ -641,5 +707,229 @@ class ClientFeedbackService
   def determine_team_role(team)
     case_team = simulation.case.case_teams.find_by(team: team)
     case_team&.role
+  end
+
+  # AI Enhancement Methods
+  
+  def generate_ai_enhanced_feedback(settlement_offer, validation_result)
+    return nil unless ai_service_available?
+    
+    begin
+      ai_service = GoogleAiService.new
+      ai_response = ai_service.generate_settlement_feedback(settlement_offer)
+      
+      # Merge AI insights with validation result
+      {
+        feedback_text: ai_response[:feedback_text],
+        mood_level: ai_response[:mood_level] || validation_result.mood,
+        satisfaction_score: ai_response[:satisfaction_score] || validation_result.satisfaction_score,
+        strategic_guidance: ai_response[:strategic_guidance],
+        source: ai_response[:source] || "ai"
+      }
+    rescue StandardError => e
+      Rails.logger.warn "AI feedback generation failed: #{e.message}"
+      nil
+    end
+  end
+
+  def generate_ai_enhanced_event_feedback(event, team)
+    return nil unless ai_service_available?
+    
+    begin
+      ai_service = GoogleAiService.new
+      
+      # Create a mock settlement offer for AI context
+      mock_offer = build_event_context_offer(team, event)
+      ai_response = ai_service.generate_settlement_feedback(mock_offer)
+      
+      {
+        feedback_text: adapt_event_feedback(ai_response[:feedback_text], event),
+        mood_level: ai_response[:mood_level],
+        satisfaction_score: ai_response[:satisfaction_score],
+        source: "ai"
+      }
+    rescue StandardError => e
+      Rails.logger.warn "AI event feedback generation failed: #{e.message}"
+      nil
+    end
+  end
+
+  def generate_ai_enhanced_transition_feedback(team, from_round, to_round, themes)
+    return nil unless ai_service_available?
+    
+    begin
+      ai_service = GoogleAiService.new
+      analysis = ai_service.analyze_negotiation_state(simulation, to_round)
+      
+      if analysis && analysis[:advice]
+        {
+          feedback_text: adapt_transition_feedback(analysis[:advice], themes, team),
+          mood_level: infer_mood_from_themes(themes),
+          satisfaction_score: calculate_satisfaction_from_themes(themes),
+          source: "ai"
+        }
+      end
+    rescue StandardError => e
+      Rails.logger.warn "AI transition feedback generation failed: #{e.message}"
+      nil
+    end
+  end
+
+  def ai_service_available?
+    GoogleAI.enabled?
+  rescue StandardError
+    false
+  end
+
+  def build_event_context_offer(team, event)
+    # Create a contextual offer for AI processing
+    recent_round = simulation.negotiation_rounds.order(:round_number).last
+    recent_round ||= simulation.negotiation_rounds.build(round_number: 1)
+    
+    # Estimate an amount based on team role and event
+    estimated_amount = estimate_contextual_amount(team, event)
+    
+    OpenStruct.new(
+      team: team,
+      negotiation_round: recent_round,
+      amount: estimated_amount,
+      justification: "Event-driven context for #{event.event_type}"
+    )
+  end
+
+  def estimate_contextual_amount(team, event)
+    team_role = determine_team_role(team)
+    
+    case team_role
+    when "plaintiff"
+      base_amount = (simulation.plaintiff_min_acceptable + simulation.plaintiff_ideal) / 2
+      adjust_amount_for_event(base_amount, event, team_role)
+    when "defendant"
+      base_amount = (simulation.defendant_ideal + simulation.defendant_max_acceptable) / 2
+      adjust_amount_for_event(base_amount, event, team_role)
+    else
+      200_000 # Default fallback
+    end
+  end
+
+  def adjust_amount_for_event(base_amount, event, team_role)
+    case event.event_type
+    when "media_attention"
+      team_role == "plaintiff" ? base_amount * 1.1 : base_amount * 1.05
+    when "additional_evidence"
+      team_role == "plaintiff" ? base_amount * 1.15 : base_amount * 1.1
+    when "ipo_delay"
+      team_role == "defendant" ? base_amount * 1.2 : base_amount
+    else
+      base_amount
+    end
+  end
+
+  def adapt_event_feedback(ai_text, event)
+    # Inject event context into AI response
+    event_context = case event.event_type
+                   when "media_attention"
+                     "recent media developments"
+                   when "additional_evidence"
+                     "new evidence emergence"
+                   when "ipo_delay"
+                     "market timing considerations"
+                   else
+                     "recent developments"
+                   end
+    
+    # Prepend context if not already present
+    if ai_text.downcase.include?(event_context.split.first)
+      ai_text
+    else
+      "Given #{event_context}, #{ai_text.downcase}"
+    end
+  end
+
+  def adapt_transition_feedback(ai_advice, themes, team)
+    team_role = determine_team_role(team)
+    
+    # Customize AI advice for specific team role and themes
+    role_context = team_role == "plaintiff" ? "client's position" : "company's exposure"
+    
+    if themes.include?(:close_to_settlement)
+      "#{ai_advice} The #{role_context} suggests we're approaching a viable resolution."
+    elsif themes.include?(:far_from_settlement)
+      "#{ai_advice} Significant gaps remain in the #{role_context} that require strategic attention."
+    else
+      ai_advice
+    end
+  end
+
+  def infer_mood_from_themes(themes)
+    if themes.include?(:settlement_reached)
+      "very_satisfied"
+    elsif themes.include?(:close_to_settlement) || themes.include?(:high_quality_arguments)
+      "satisfied"
+    elsif themes.include?(:far_from_settlement) || themes.include?(:low_quality_arguments)
+      "unhappy"
+    else
+      "neutral"
+    end
+  end
+
+  def calculate_satisfaction_from_themes(themes)
+    base_score = 60
+    
+    if themes.include?(:settlement_reached)
+      base_score = 95
+    elsif themes.include?(:high_quality_arguments)
+      base_score += 15
+    elsif themes.include?(:good_positioning)
+      base_score += 10
+    elsif themes.include?(:close_to_settlement)
+      base_score += 20
+    elsif themes.include?(:low_quality_arguments)
+      base_score -= 15
+    elsif themes.include?(:poor_positioning)
+      base_score -= 10
+    elsif themes.include?(:far_from_settlement)
+      base_score -= 20
+    end
+    
+    [[base_score, 100].min, 0].max
+  end
+
+  def generate_ai_enhanced_settlement_feedback(team_offer, settlement_amount, role)
+    return nil unless ai_service_available?
+    
+    begin
+      ai_service = GoogleAiService.new
+      ai_response = ai_service.generate_settlement_feedback(team_offer)
+      
+      # Enhance response with settlement context
+      enhanced_text = adapt_settlement_feedback(ai_response[:feedback_text], settlement_amount, role)
+      
+      {
+        feedback_text: enhanced_text,
+        mood_level: ai_response[:mood_level],
+        satisfaction_score: ai_response[:satisfaction_score],
+        source: "ai"
+      }
+    rescue StandardError => e
+      Rails.logger.warn "AI settlement satisfaction feedback generation failed: #{e.message}"
+      nil
+    end
+  end
+
+  def adapt_settlement_feedback(ai_text, settlement_amount, role)
+    # Add settlement completion context to AI response
+    settlement_context = if role == "plaintiff"
+                          "With the settlement reached at #{ActionView::Helpers::NumberHelper.number_to_currency(settlement_amount)}, #{ai_text.downcase}"
+                        else
+                          "The settlement resolution at #{ActionView::Helpers::NumberHelper.number_to_currency(settlement_amount)} represents #{ai_text.downcase}"
+                        end
+    
+    # Ensure settlement context is added appropriately
+    if ai_text.downcase.include?("settlement")
+      ai_text
+    else
+      settlement_context
+    end
   end
 end
