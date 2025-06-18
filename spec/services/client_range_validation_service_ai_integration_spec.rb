@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe ClientRangeValidationService do
   let(:simulation) do
     case_instance = create(:case, :with_teams)
-    create(:simulation, 
+    create(:simulation,
       case: case_instance,
       plaintiff_min_acceptable: 150_000,
       plaintiff_ideal: 300_000,
@@ -13,11 +13,11 @@ RSpec.describe ClientRangeValidationService do
       defendant_max_acceptable: 250_000
     )
   end
-  
+
   let(:plaintiff_team) { simulation.case.plaintiff_team }
   let(:defendant_team) { simulation.case.defendant_team }
   let(:service) { described_class.new(simulation) }
-  
+
   let(:mock_ai_service) { instance_double(GoogleAiService) }
 
   before do
@@ -37,7 +37,7 @@ RSpec.describe ClientRangeValidationService do
             satisfaction_score: 82,
             strategic_guidance: "Continue with confident approach while remaining open to creative settlement structures.",
             source: "ai",
-            contextual_factors: ["strong_legal_position", "market_timing", "negotiation_dynamics"]
+            contextual_factors: [ "strong_legal_position", "market_timing", "negotiation_dynamics" ]
           }
         end
 
@@ -48,17 +48,17 @@ RSpec.describe ClientRangeValidationService do
 
         it "integrates AI enhancement into plaintiff offer validation" do
           result = service.validate_offer(plaintiff_team, plaintiff_offer_amount)
-          
+
           expect(result).to be_a(described_class::ValidationResult)
           expect(result.positioning).to be_present
           expect(result.satisfaction_score).to be_between(70, 95)
-          expect(result.mood).to be_in(["satisfied", "very_satisfied"])
+          expect(result.mood).to be_in([ "satisfied", "very_satisfied" ])
           expect(result.feedback_theme).to be_present
         end
 
         it "provides contextually enhanced feedback themes" do
           result = service.validate_offer(plaintiff_team, plaintiff_offer_amount)
-          
+
           # AI should enhance the basic validation with contextual understanding
           expect(result.feedback_theme).to be_in([
             :excellent_positioning, :strategic_positioning, :reasonable_opening
@@ -68,8 +68,8 @@ RSpec.describe ClientRangeValidationService do
 
         it "maintains pressure level assessment with AI context" do
           result = service.validate_offer(plaintiff_team, plaintiff_offer_amount)
-          
-          expect(result.pressure_level).to be_in([:low, :moderate])
+
+          expect(result.pressure_level).to be_in([ :low, :moderate ])
           expect(result.positioning).to be_in([
             :strategic_positioning, :reasonable_opening, :strong_position
           ])
@@ -78,7 +78,7 @@ RSpec.describe ClientRangeValidationService do
 
       context "when offer is below minimum acceptable" do
         let(:low_plaintiff_offer) { 120_000 }  # Below 150k minimum
-        
+
         let(:ai_concern_feedback) do
           {
             feedback_text: "Client expressing significant concern about this positioning. Amount falls below expectations and may signal weak case perception.",
@@ -96,7 +96,7 @@ RSpec.describe ClientRangeValidationService do
 
         it "provides AI-enhanced feedback for concerning offers" do
           result = service.validate_offer(plaintiff_team, low_plaintiff_offer)
-          
+
           expect(result.positioning).to eq(:below_minimum)
           expect(result.satisfaction_score).to be_between(10, 30)
           expect(result.mood).to eq("very_unhappy")
@@ -106,7 +106,7 @@ RSpec.describe ClientRangeValidationService do
 
         it "maintains educational messaging in AI responses" do
           result = service.validate_offer(plaintiff_team, low_plaintiff_offer)
-          
+
           expect(result.within_acceptable_range).to be false
           # Should provide learning opportunity without revealing exact ranges
           expect(result.feedback_theme).to be_present
@@ -115,7 +115,7 @@ RSpec.describe ClientRangeValidationService do
 
       context "when offer is aggressive but not unrealistic" do
         let(:aggressive_plaintiff_offer) { 350_000 }  # Above ideal but not absurd
-        
+
         let(:ai_aggressive_feedback) do
           {
             feedback_text: "Client acknowledges ambitious positioning but concerned about potential negotiation impact. May benefit from strategic moderation.",
@@ -133,7 +133,7 @@ RSpec.describe ClientRangeValidationService do
 
         it "provides nuanced AI feedback for aggressive positioning" do
           result = service.validate_offer(plaintiff_team, aggressive_plaintiff_offer)
-          
+
           expect(result.positioning).to eq(:too_aggressive)
           expect(result.satisfaction_score).to be_between(20, 45)
           expect(result.mood).to eq("unhappy")
@@ -164,7 +164,7 @@ RSpec.describe ClientRangeValidationService do
 
         it "integrates AI enhancement into defendant offer validation" do
           result = service.validate_offer(defendant_team, defendant_offer_amount)
-          
+
           expect(result).to be_a(described_class::ValidationResult)
           expect(result.positioning).to eq(:acceptable_compromise)
           expect(result.satisfaction_score).to be_between(60, 75)
@@ -174,7 +174,7 @@ RSpec.describe ClientRangeValidationService do
 
         it "reflects defendant perspective in AI-enhanced feedback" do
           result = service.validate_offer(defendant_team, defendant_offer_amount)
-          
+
           expect(result.pressure_level).to eq(:moderate)
           expect(result.within_acceptable_range).to be true
           # Should consider business impact and cost concerns
@@ -183,7 +183,7 @@ RSpec.describe ClientRangeValidationService do
 
       context "when defendant offer exceeds maximum acceptable" do
         let(:high_defendant_offer) { 275_000 }  # Above 250k maximum
-        
+
         let(:ai_excessive_feedback) do
           {
             feedback_text: "Client expressing serious concern about exposure level. This amount exceeds comfortable resolution parameters and creates significant financial risk.",
@@ -201,7 +201,7 @@ RSpec.describe ClientRangeValidationService do
 
         it "provides AI-enhanced feedback for excessive offers" do
           result = service.validate_offer(defendant_team, high_defendant_offer)
-          
+
           expect(result.positioning).to eq(:exceeds_maximum)
           expect(result.satisfaction_score).to be_between(10, 25)
           expect(result.mood).to eq("very_unhappy")
@@ -211,7 +211,7 @@ RSpec.describe ClientRangeValidationService do
 
         it "maintains business perspective in excessive offer feedback" do
           result = service.validate_offer(defendant_team, high_defendant_offer)
-          
+
           expect(result.within_acceptable_range).to be false
           # Should emphasize business risk and financial concerns
         end
@@ -219,7 +219,7 @@ RSpec.describe ClientRangeValidationService do
 
       context "when defendant offer is at ideal level" do
         let(:ideal_defendant_offer) { 75_000 }  # At defendant ideal
-        
+
         let(:ai_ideal_feedback) do
           {
             feedback_text: "Client very pleased with this resolution level. Represents excellent outcome balancing cost control with dispute resolution.",
@@ -237,7 +237,7 @@ RSpec.describe ClientRangeValidationService do
 
         it "provides AI-enhanced feedback for ideal offers" do
           result = service.validate_offer(defendant_team, ideal_defendant_offer)
-          
+
           expect(result.positioning).to eq(:ideal_amount)
           expect(result.satisfaction_score).to be_between(80, 95)
           expect(result.mood).to eq("satisfied")
@@ -255,7 +255,7 @@ RSpec.describe ClientRangeValidationService do
 
       it "falls back to standard range validation logic" do
         result = service.validate_offer(plaintiff_team, 275_000)
-        
+
         expect(result).to be_a(described_class::ValidationResult)
         expect(result.positioning).to be_present
         expect(result.satisfaction_score).to be_between(1, 100)
@@ -268,7 +268,7 @@ RSpec.describe ClientRangeValidationService do
         low_result = service.validate_offer(plaintiff_team, 100_000)
         ideal_result = service.validate_offer(plaintiff_team, 300_000)
         high_result = service.validate_offer(plaintiff_team, 400_000)
-        
+
         expect(low_result.within_acceptable_range).to be false
         expect(ideal_result.within_acceptable_range).to be true
         expect(high_result.satisfaction_score).to be < ideal_result.satisfaction_score
@@ -276,7 +276,7 @@ RSpec.describe ClientRangeValidationService do
 
       it "does not call AI service when disabled" do
         service.validate_offer(plaintiff_team, 200_000)
-        
+
         expect(mock_ai_service).not_to have_received(:generate_settlement_feedback)
       end
     end
@@ -313,18 +313,18 @@ RSpec.describe ClientRangeValidationService do
 
       it "provides AI-enhanced gap analysis with creative solutions" do
         result = service.analyze_settlement_gap(plaintiff_offer_amount, defendant_offer_amount)
-        
+
         expect(result).to be_a(described_class::GapAnalysis)
         expect(result.gap_size).to eq(gap_size)
-        expect(result.gap_category).to be_in([:negotiable_gap, :moderate_gap])
-        expect(result.settlement_likelihood).to be_in([:possible, :challenging])
+        expect(result.gap_category).to be_in([ :negotiable_gap, :moderate_gap ])
+        expect(result.settlement_likelihood).to be_in([ :possible, :challenging ])
       end
 
       it "incorporates AI creative solutions into guidance" do
         allow(mock_ai_service).to receive(:analyze_settlement_options).and_return(ai_gap_analysis)
-        
+
         result = service.analyze_settlement_gap(plaintiff_offer_amount, defendant_offer_amount)
-        
+
         expect(result.strategic_guidance).to be_present
         expect(result.strategic_guidance.length).to be > 30
       end
@@ -333,25 +333,25 @@ RSpec.describe ClientRangeValidationService do
         # Create mock settlement offers for the AI service call
         plaintiff_offer = double("SettlementOffer", amount: plaintiff_offer_amount)
         defendant_offer = double("SettlementOffer", amount: defendant_offer_amount)
-        
+
         allow(mock_ai_service).to receive(:analyze_settlement_options)
           .with(plaintiff_offer, defendant_offer)
           .and_return(ai_gap_analysis)
-        
+
         # For this test, we'll mock the internal behavior since the actual method
         # doesn't take offer objects, just amounts
         result = service.analyze_settlement_gap(plaintiff_offer_amount, defendant_offer_amount)
-        
+
         expect(result.gap_size).to eq(gap_size)
       end
     end
 
     context "when gap is small (settlement zone)" do
-      let(:small_gap_amounts) { [175_000, 170_000] }  # 5k gap
-      
+      let(:small_gap_amounts) { [ 175_000, 170_000 ] }  # 5k gap
+
       it "recognizes settlement zone with AI insights" do
         result = service.analyze_settlement_gap(small_gap_amounts[0], small_gap_amounts[1])
-        
+
         expect(result.gap_category).to eq(:settlement_zone)
         expect(result.settlement_likelihood).to eq(:likely)
         expect(result.strategic_guidance).to include("within reach")
@@ -359,11 +359,11 @@ RSpec.describe ClientRangeValidationService do
     end
 
     context "when gap is large" do
-      let(:large_gap_amounts) { [400_000, 100_000] }  # 300k gap
-      
+      let(:large_gap_amounts) { [ 400_000, 100_000 ] }  # 300k gap
+
       it "identifies large gap requiring significant work" do
         result = service.analyze_settlement_gap(large_gap_amounts[0], large_gap_amounts[1])
-        
+
         expect(result.gap_category).to eq(:large_gap)
         expect(result.settlement_likelihood).to eq(:unlikely)
         expect(result.strategic_guidance).to include("repositioning required")
@@ -376,7 +376,7 @@ RSpec.describe ClientRangeValidationService do
       let(:personality_factors) do
         {
           risk_tolerance: "low",
-          decision_style: "analytical", 
+          decision_style: "analytical",
           time_pressure_sensitivity: "high"
         }
       end
@@ -388,14 +388,14 @@ RSpec.describe ClientRangeValidationService do
 
       it "incorporates personality factors into pressure calculation" do
         pressure_level = service.calculate_pressure_level(plaintiff_team, 200_000)
-        
-        expect(pressure_level).to be_in([:low, :moderate, :high, :extreme])
+
+        expect(pressure_level).to be_in([ :low, :moderate, :high, :extreme ])
       end
 
       it "adjusts pressure based on team role and amount" do
         plaintiff_pressure = service.calculate_pressure_level(plaintiff_team, 200_000)
         defendant_pressure = service.calculate_pressure_level(defendant_team, 200_000)
-        
+
         # Same amount should create different pressures for different roles
         expect(plaintiff_pressure).to be_present
         expect(defendant_pressure).to be_present
@@ -427,7 +427,7 @@ RSpec.describe ClientRangeValidationService do
       it "validates offers considering event-adjusted ranges" do
         # Amount that was acceptable before event might be less acceptable now
         result = service.validate_offer(plaintiff_team, 200_000)
-        
+
         expect(result).to be_a(described_class::ValidationResult)
         # Expectations should be higher after media attention
         expect(simulation.plaintiff_min_acceptable).to be > 150_000
@@ -440,14 +440,14 @@ RSpec.describe ClientRangeValidationService do
           satisfaction_score: 85,
           source: "ai"
         }
-        
+
         allow(mock_ai_service).to receive(:enabled?).and_return(true)
         allow(mock_ai_service).to receive(:generate_settlement_feedback).and_return(ai_event_feedback)
-        
+
         result = service.validate_offer(plaintiff_team, 250_000)
-        
+
         expect(result.satisfaction_score).to be > 70
-        expect(result.mood).to be_in(["satisfied", "very_satisfied"])
+        expect(result.mood).to be_in([ "satisfied", "very_satisfied" ])
       end
     end
 
@@ -458,7 +458,7 @@ RSpec.describe ClientRangeValidationService do
 
       it "reflects increased defendant willingness to settle" do
         result = service.validate_offer(defendant_team, 200_000)
-        
+
         # Amount that was concerning before might be more acceptable after IPO delay
         expect(simulation.defendant_max_acceptable).to be > 250_000
         expect(result.within_acceptable_range).to be true
@@ -468,8 +468,8 @@ RSpec.describe ClientRangeValidationService do
 
   describe "AI consistency and personality maintenance" do
     context "when validating multiple offers from same team" do
-      let(:offer_sequence) { [200_000, 225_000, 210_000] }  # Some back and forth
-      
+      let(:offer_sequence) { [ 200_000, 225_000, 210_000 ] }  # Some back and forth
+
       before do
         allow(mock_ai_service).to receive(:enabled?).and_return(true)
       end
@@ -484,14 +484,14 @@ RSpec.describe ClientRangeValidationService do
             source: "ai"
           }
           allow(mock_ai_service).to receive(:generate_settlement_feedback).and_return(ai_response)
-          
+
           service.validate_offer(plaintiff_team, amount)
         end
-        
+
         # Satisfaction scores should be relatively consistent
         scores = results.map(&:satisfaction_score)
         expect(scores.max - scores.min).to be < 30
-        
+
         # Moods should be consistent
         moods = results.map(&:mood)
         expect(moods.uniq.length).to be <= 2  # At most 2 different moods
@@ -499,7 +499,7 @@ RSpec.describe ClientRangeValidationService do
 
       it "shows logical progression in client responses" do
         results = []
-        
+
         offer_sequence.each_with_index do |amount, index|
           # Mock progressive AI responses
           satisfaction_trend = 65 + (index * 5)  # Gradual improvement
@@ -510,10 +510,10 @@ RSpec.describe ClientRangeValidationService do
             source: "ai"
           }
           allow(mock_ai_service).to receive(:generate_settlement_feedback).and_return(ai_response)
-          
+
           results << service.validate_offer(plaintiff_team, amount)
         end
-        
+
         # Should show some logical progression
         expect(results.last.satisfaction_score).to be >= results.first.satisfaction_score
       end
@@ -530,7 +530,7 @@ RSpec.describe ClientRangeValidationService do
 
       it "gracefully falls back to standard validation" do
         result = service.validate_offer(plaintiff_team, 250_000)
-        
+
         expect(result).to be_a(described_class::ValidationResult)
         expect(result.positioning).to be_present
         expect(result.satisfaction_score).to be_between(1, 100)
@@ -540,7 +540,7 @@ RSpec.describe ClientRangeValidationService do
       it "maintains validation accuracy during AI failures" do
         low_result = service.validate_offer(plaintiff_team, 100_000)
         high_result = service.validate_offer(plaintiff_team, 300_000)
-        
+
         expect(low_result.within_acceptable_range).to be false
         expect(high_result.within_acceptable_range).to be true
         expect(high_result.satisfaction_score).to be > low_result.satisfaction_score
@@ -556,7 +556,7 @@ RSpec.describe ClientRangeValidationService do
 
       it "handles timeouts gracefully without disrupting validation" do
         result = service.validate_offer(defendant_team, 175_000)
-        
+
         expect(result).to be_a(described_class::ValidationResult)
         expect(result.positioning).to be_present
         expect(result.feedback_theme).to be_present
@@ -567,7 +567,7 @@ RSpec.describe ClientRangeValidationService do
   describe "AI validation performance and monitoring" do
     context "when tracking AI usage for validation" do
       let(:concurrent_validations) { 5 }
-      
+
       before do
         allow(mock_ai_service).to receive(:enabled?).and_return(true)
         allow(mock_ai_service).to receive(:generate_settlement_feedback).and_return({
@@ -581,16 +581,16 @@ RSpec.describe ClientRangeValidationService do
 
       it "handles multiple concurrent validations efficiently" do
         start_time = Time.current
-        
+
         results = concurrent_validations.times.map do |i|
           service.validate_offer(plaintiff_team, 200_000 + (i * 10_000))
         end
-        
+
         end_time = Time.current
-        
+
         expect(results.length).to eq(concurrent_validations)
         expect(end_time - start_time).to be < 2.0  # Should complete quickly
-        
+
         results.each do |result|
           expect(result).to be_a(described_class::ValidationResult)
         end

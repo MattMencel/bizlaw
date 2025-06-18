@@ -9,9 +9,9 @@ RSpec.describe ClientFeedbackService do
     ideal = min_acceptable * 2
     defendant_ideal = min_acceptable * 0.5
     defendant_max = min_acceptable + rand(50_000..150_000)
-    
+
     case_instance = create(:case, :with_teams)
-    create(:simulation, 
+    create(:simulation,
       case: case_instance,
       plaintiff_min_acceptable: min_acceptable,
       plaintiff_ideal: ideal,
@@ -19,7 +19,7 @@ RSpec.describe ClientFeedbackService do
       defendant_max_acceptable: defendant_max
     )
   end
-  
+
   let(:plaintiff_team) { simulation.case.plaintiff_team }
   let(:defendant_team) { simulation.case.defendant_team }
   let(:service) { described_class.new(simulation) }
@@ -34,7 +34,7 @@ RSpec.describe ClientFeedbackService do
   describe "#generate_feedback_for_offer!" do
     let(:negotiation_round) { create(:negotiation_round, simulation: simulation) }
     let(:settlement_offer) do
-      create(:settlement_offer, 
+      create(:settlement_offer,
         negotiation_round: negotiation_round,
         team: plaintiff_team,
         amount: simulation.plaintiff_ideal * 0.92,
@@ -44,7 +44,7 @@ RSpec.describe ClientFeedbackService do
 
     it "generates range-based feedback for offer" do
       feedbacks = service.generate_feedback_for_offer!(settlement_offer)
-      
+
       expect(feedbacks).to be_an(Array)
       expect(feedbacks.compact).not_to be_empty
       expect(feedbacks.first).to be_a(ClientFeedback) if feedbacks.first
@@ -52,7 +52,7 @@ RSpec.describe ClientFeedbackService do
 
     context "when offer is below minimum" do
       let(:settlement_offer) do
-        create(:settlement_offer, 
+        create(:settlement_offer,
           negotiation_round: negotiation_round,
           team: plaintiff_team,
           amount: simulation.plaintiff_min_acceptable * 0.83 # Below minimum acceptable
@@ -61,7 +61,7 @@ RSpec.describe ClientFeedbackService do
 
       it "generates unhappy feedback" do
         feedbacks = service.generate_feedback_for_offer!(settlement_offer)
-        
+
         expect(feedbacks).to be_an(Array)
         feedback = feedbacks.first
         expect(feedback.mood_level).to eq("very_unhappy") if feedback
@@ -73,7 +73,7 @@ RSpec.describe ClientFeedbackService do
     context "when no feedback exists" do
       it "returns default mood indicator" do
         indicator = service.get_client_mood_indicator(plaintiff_team)
-        
+
         expect(indicator[:mood_emoji]).to eq("😐")
         expect(indicator[:mood_description]).to eq("Neutral")
         expect(indicator[:satisfaction_level]).to eq("Moderate")
@@ -94,7 +94,7 @@ RSpec.describe ClientFeedbackService do
 
       it "returns current mood indicator based on latest feedback" do
         indicator = service.get_client_mood_indicator(plaintiff_team)
-        
+
         expect(indicator[:mood_description]).to match(/Satisfied|Pleased/)
         expect(indicator[:satisfaction_level]).to eq("High")
         expect(indicator[:last_updated]).to be_within(1.minute).of(feedback.created_at)
@@ -108,7 +108,7 @@ RSpec.describe ClientFeedbackService do
 
       context "when offer is in strong position (near ideal)" do
         let(:settlement_offer) do
-          create(:settlement_offer, 
+          create(:settlement_offer,
             negotiation_round: negotiation_round,
             team: plaintiff_team,
             amount: simulation.plaintiff_ideal * 1.08
@@ -117,7 +117,7 @@ RSpec.describe ClientFeedbackService do
 
         it "generates satisfied client feedback" do
           feedback = service.send(:generate_range_based_feedback, settlement_offer)
-          
+
           expect(feedback.mood_level).to eq("satisfied")
           expect(feedback.satisfaction_score).to be_between(80, 90)
           expect(feedback.feedback_text).to include("strong position")
@@ -126,7 +126,7 @@ RSpec.describe ClientFeedbackService do
 
       context "when offer is below minimum acceptable" do
         let(:settlement_offer) do
-          create(:settlement_offer, 
+          create(:settlement_offer,
             negotiation_round: negotiation_round,
             team: plaintiff_team,
             amount: simulation.plaintiff_min_acceptable * 0.83
@@ -135,7 +135,7 @@ RSpec.describe ClientFeedbackService do
 
         it "generates very unhappy client feedback" do
           feedback = service.send(:generate_range_based_feedback, settlement_offer)
-          
+
           expect(feedback.mood_level).to eq("very_unhappy")
           expect(feedback.satisfaction_score).to be_between(10, 25)
           expect(feedback.feedback_text).to include("below expectations")
@@ -148,7 +148,7 @@ RSpec.describe ClientFeedbackService do
 
       context "when offer is at ideal amount" do
         let(:settlement_offer) do
-          create(:settlement_offer, 
+          create(:settlement_offer,
             negotiation_round: negotiation_round,
             team: defendant_team,
             amount: simulation.defendant_ideal
@@ -157,7 +157,7 @@ RSpec.describe ClientFeedbackService do
 
         it "generates satisfied client feedback" do
           feedback = service.send(:generate_range_based_feedback, settlement_offer)
-          
+
           expect(feedback.mood_level).to eq("satisfied")
           expect(feedback.satisfaction_score).to be_between(80, 90)
           expect(feedback.feedback_text).to include("ideal resolution")
@@ -166,7 +166,7 @@ RSpec.describe ClientFeedbackService do
 
       context "when offer exceeds maximum acceptable" do
         let(:settlement_offer) do
-          create(:settlement_offer, 
+          create(:settlement_offer,
             negotiation_round: negotiation_round,
             team: defendant_team,
             amount: simulation.defendant_max_acceptable * 1.2
@@ -175,7 +175,7 @@ RSpec.describe ClientFeedbackService do
 
         it "generates very unhappy client feedback" do
           feedback = service.send(:generate_range_based_feedback, settlement_offer)
-          
+
           expect(feedback.mood_level).to eq("very_unhappy")
           expect(feedback.satisfaction_score).to be_between(10, 25)
           expect(feedback.feedback_text).to include("exceeds acceptable limits")
@@ -219,7 +219,7 @@ RSpec.describe ClientFeedbackService do
   describe "integration with ClientRangeValidationService" do
     let(:negotiation_round) { create(:negotiation_round, simulation: simulation) }
     let(:settlement_offer) do
-      create(:settlement_offer, 
+      create(:settlement_offer,
         negotiation_round: negotiation_round,
         team: plaintiff_team,
         amount: simulation.plaintiff_ideal * 0.92

@@ -75,8 +75,7 @@
                     <% end %>
                   </div>
                   <div class="flex items-center">
-                    <% opposing_offer = @current_round ? opposing_offer_for_round(@current_round) : nil %>
-                    <% if opposing_offer %>
+                    <% if @current_opposing_offer %>
                       <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                       </svg>
@@ -109,7 +108,7 @@
                 <% end %>
               <% end %>
               
-              <% if opposing_offer %>
+              <% if @current_opposing_offer %>
                 <%= link_to "Respond to Offer", 
                     counter_offer_case_negotiation_path(@case, @current_round), 
                     class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
@@ -313,7 +312,7 @@
               Settlement Calculator
             <% end %>
             
-            <%= link_to case_path(@case), 
+            <%= link_to course_case_path(@case.course, @case), 
                 class: "flex items-center text-sm text-gray-700 hover:text-gray-900" do %>
               <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>

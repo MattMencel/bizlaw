@@ -49,7 +49,7 @@ class CasePolicy < ApplicationPolicy
     return true unless record.course
     return true if user.admin?
     return true if record.course.instructor == user
-    
+
     # Students must be enrolled in the course
     record.course.enrolled?(user)
   end

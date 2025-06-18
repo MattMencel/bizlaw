@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'prawn'
-require 'prawn/table'
+require "prawn"
+require "prawn/table"
 
 class PerformanceReportGenerator
   attr_reader :user, :options
@@ -37,11 +37,11 @@ class PerformanceReportGenerator
   def current_performance_score
     @current_performance_score ||= begin
       return nil unless current_simulation
-      
+
       user_team = user.teams.joins(:case_teams)
                            .where(case_teams: { case: current_simulation.case })
                            .first
-      
+
       PerformanceScore.find_by(
         simulation: current_simulation,
         team: user_team,
@@ -54,16 +54,16 @@ class PerformanceReportGenerator
   def add_header(pdf)
     pdf.font "Helvetica", size: 20, style: :bold
     pdf.text "Performance Report", align: :center
-    
+
     pdf.move_down 10
     pdf.font "Helvetica", size: 14
     pdf.text "Student: #{user.full_name}", align: :center
     pdf.text "Generated: #{Date.current.strftime('%B %d, %Y')}", align: :center
-    
+
     if current_simulation
       pdf.text "Simulation: #{current_simulation.case.title}", align: :center
     end
-    
+
     pdf.move_down 20
     pdf.stroke_horizontal_rule
     pdf.move_down 20
@@ -76,21 +76,21 @@ class PerformanceReportGenerator
 
     if current_performance_score
       summary_data = [
-        ["Total Score", "#{current_performance_score.total_score}/100"],
-        ["Grade", current_performance_score.performance_grade],
-        ["Class Rank", "#{current_performance_score.rank_in_simulation}"],
-        ["Percentile", "#{current_performance_score.percentile_in_simulation}th"],
-        ["Last Updated", current_performance_score.scored_at.strftime('%B %d, %Y')]
+        [ "Total Score", "#{current_performance_score.total_score}/100" ],
+        [ "Grade", current_performance_score.performance_grade ],
+        [ "Class Rank", "#{current_performance_score.rank_in_simulation}" ],
+        [ "Percentile", "#{current_performance_score.percentile_in_simulation}th" ],
+        [ "Last Updated", current_performance_score.scored_at.strftime("%B %d, %Y") ]
       ]
 
-      pdf.table(summary_data, 
+      pdf.table(summary_data,
         header: false,
-        cell_style: { 
-          borders: [:top, :bottom], 
-          padding: [8, 12],
+        cell_style: {
+          borders: [ :top, :bottom ],
+          padding: [ 8, 12 ],
           size: 12
         },
-        column_widths: [200, 200]
+        column_widths: [ 200, 200 ]
       )
     else
       pdf.font "Helvetica", size: 12
@@ -108,13 +108,13 @@ class PerformanceReportGenerator
     pdf.move_down 10
 
     breakdown_data = [
-      ["Component", "Score", "Max Points", "Percentage", "Weight"]
+      [ "Component", "Score", "Max Points", "Percentage", "Weight" ]
     ]
 
     current_performance_score.score_breakdown.each do |component, details|
-      percentage = details["max_points"] > 0 ? 
+      percentage = details["max_points"] > 0 ?
         ((details["score"].to_f / details["max_points"]) * 100).round(1) : 0
-      
+
       breakdown_data << [
         component.humanize,
         details["score"].to_s,
@@ -126,9 +126,9 @@ class PerformanceReportGenerator
 
     pdf.table(breakdown_data,
       header: true,
-      cell_style: { 
-        borders: [:top, :bottom],
-        padding: [6, 8],
+      cell_style: {
+        borders: [ :top, :bottom ],
+        padding: [ 6, 8 ],
         size: 10
       },
       header_color: "E8E8E8"
@@ -155,11 +155,11 @@ class PerformanceReportGenerator
     ).order(:scored_at).limit(10)
 
     if trend_scores.any?
-      trend_data = [["Date", "Total Score", "Settlement", "Strategy", "Collaboration"]]
-      
+      trend_data = [ [ "Date", "Total Score", "Settlement", "Strategy", "Collaboration" ] ]
+
       trend_scores.each do |score|
         trend_data << [
-          score.scored_at.strftime('%m/%d/%Y'),
+          score.scored_at.strftime("%m/%d/%Y"),
           score.total_score.to_s,
           (score.settlement_quality_score || 0).to_s,
           (score.legal_strategy_score || 0).to_s,
@@ -169,9 +169,9 @@ class PerformanceReportGenerator
 
       pdf.table(trend_data,
         header: true,
-        cell_style: { 
-          borders: [:top, :bottom],
-          padding: [6, 8],
+        cell_style: {
+          borders: [ :top, :bottom ],
+          padding: [ 6, 8 ],
           size: 9
         },
         header_color: "E8E8E8"
@@ -185,15 +185,15 @@ class PerformanceReportGenerator
 
         pdf.move_down 10
         pdf.font "Helvetica", size: 12
-        
+
         trend_text = if improvement > 5
                       "📈 Your performance shows consistent improvement (+#{improvement} points)"
-                    elsif improvement < -5
+        elsif improvement < -5
                       "📉 Your performance shows a decline (#{improvement} points)"
-                    else
+        else
                       "📊 Your performance has remained stable"
-                    end
-        
+        end
+
         pdf.text trend_text
       end
     else
@@ -218,7 +218,7 @@ class PerformanceReportGenerator
       pdf.font "Helvetica", size: 14, style: :bold
       pdf.text "🌟 Strengths"
       pdf.move_down 5
-      
+
       pdf.font "Helvetica", size: 12
       strengths.each do |strength|
         pdf.text "• #{strength}", indent_paragraphs: 20
@@ -230,7 +230,7 @@ class PerformanceReportGenerator
       pdf.font "Helvetica", size: 14, style: :bold
       pdf.text "🎯 Areas for Improvement"
       pdf.move_down 5
-      
+
       pdf.font "Helvetica", size: 12
       improvement_areas.each do |area|
         recommendation = get_recommendation_for_area(area)
@@ -244,7 +244,7 @@ class PerformanceReportGenerator
     pdf.font "Helvetica", size: 14, style: :bold
     pdf.text "💡 General Recommendations"
     pdf.move_down 5
-    
+
     pdf.font "Helvetica", size: 12
     general_recommendations.each do |recommendation|
       pdf.text "• #{recommendation}", indent_paragraphs: 20
@@ -255,14 +255,14 @@ class PerformanceReportGenerator
   end
 
   def add_footer(pdf)
-    pdf.number_pages "<page> of <total>", 
-                     at: [0, 0], 
-                     align: :center, 
+    pdf.number_pages "<page> of <total>",
+                     at: [ 0, 0 ],
+                     align: :center,
                      size: 10
 
     pdf.stroke_horizontal_rule
     pdf.move_down 10
-    
+
     pdf.font "Helvetica", size: 10
     pdf.text "This report was generated by the Legal Simulation Platform", align: :center
     pdf.text "For questions about your performance, contact your instructor", align: :center
@@ -275,7 +275,7 @@ class PerformanceReportGenerator
       "Team Collaboration" => "Increase participation in team discussions. Share research findings and actively contribute to strategy development. Practice active listening and constructive feedback.",
       "Process Efficiency" => "Develop better time management skills. Create templates for common tasks and establish clear decision-making processes with your team."
     }
-    
+
     recommendations[area] || "Continue developing your skills in this area through practice and feedback."
   end
 

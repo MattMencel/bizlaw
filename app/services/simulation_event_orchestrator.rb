@@ -34,7 +34,7 @@ class SimulationEventOrchestrator
   # Check for events that should trigger based on simulation state
   def orchestrate_state_based_events!
     events_triggered = []
-    
+
     # Check for settlement gap triggers
     gap_events = check_settlement_gap_triggers
     events_triggered.concat(gap_events)
@@ -480,8 +480,8 @@ class SimulationEventOrchestrator
   def generate_event_notifications!(event)
     # Generate client feedback for affected teams
     feedback_service = ClientFeedbackService.new(simulation)
-    
-    affected_teams = [simulation.plaintiff_team, simulation.defendant_team].compact
+
+    affected_teams = [ simulation.plaintiff_team, simulation.defendant_team ].compact
     feedback_service.generate_event_feedback!(event, affected_teams)
   end
 

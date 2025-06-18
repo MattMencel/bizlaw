@@ -5,27 +5,27 @@ Given("I have the following performance scores for the simulation:") do |table|
   simulation = Simulation.joins(case: :course).find_by(
     cases: { courses: { name: "Advanced Business Law" } }
   )
-  
+
   user = User.find_by(email: @current_user_email)
   team = user.teams.joins(:case_teams).where(case_teams: { case: simulation.case }).first
-  
+
   scores = {}
   table.hashes.each do |row|
     scores[row["metric"]] = row["score"].to_i
   end
-  
+
   @performance_score = create(:performance_score,
     simulation: simulation,
     team: team,
     user: user,
     settlement_quality_score: scores["settlement_quality_score"],
-    legal_strategy_score: scores["legal_strategy_score"], 
+    legal_strategy_score: scores["legal_strategy_score"],
     collaboration_score: scores["collaboration_score"],
     efficiency_score: scores["efficiency_score"],
     speed_bonus: scores["speed_bonus"],
     creative_terms_score: scores["creative_terms_score"]
   )
-  
+
   @performance_score.calculate_total_score!
 end
 
@@ -38,7 +38,7 @@ Given("my team {string} has a team score of {int} out of {int}") do |team_name, 
   simulation = Simulation.joins(case: :course).find_by(
     cases: { courses: { name: "Advanced Business Law" } }
   )
-  
+
   @team_score = create(:performance_score, :team_score,
     simulation: simulation,
     team: team,
@@ -51,7 +51,7 @@ Given("the opposing team {string} has a team score of {int} out of {int}") do |t
   simulation = Simulation.joins(case: :course).find_by(
     cases: { courses: { name: "Advanced Business Law" } }
   )
-  
+
   create(:performance_score, :team_score,
     simulation: simulation,
     team: team,
@@ -63,11 +63,11 @@ Given("there are {int} other teams in the simulation with scores ranging from {i
   simulation = Simulation.joins(case: :course).find_by(
     cases: { courses: { name: "Advanced Business Law" } }
   )
-  
+
   team_count.times do |i|
     team = create(:team, course: simulation.case.course)
     create(:case_team, case: simulation.case, team: team, role: i.even? ? "plaintiff" : "defendant")
-    
+
     score = rand(min_score..max_score)
     create(:performance_score, :team_score,
       simulation: simulation,
@@ -81,10 +81,10 @@ Given("I have score history over {int} simulation rounds:") do |round_count, tab
   simulation = Simulation.joins(case: :course).find_by(
     cases: { courses: { name: "Advanced Business Law" } }
   )
-  
+
   user = User.find_by(email: @current_user_email)
   team = user.teams.joins(:case_teams).where(case_teams: { case: simulation.case }).first
-  
+
   table.hashes.each_with_index do |row, index|
     create(:performance_score,
       simulation: simulation,
@@ -103,13 +103,13 @@ Given("I have earned the following bonus points:") do |table|
   simulation = Simulation.joins(case: :course).find_by(
     cases: { courses: { name: "Advanced Business Law" } }
   )
-  
+
   user = User.find_by(email: @current_user_email)
   team = user.teams.joins(:case_teams).where(case_teams: { case: simulation.case }).first
-  
+
   total_bonus = 0
   bonus_details = {}
-  
+
   table.hashes.each do |row|
     bonus_points = row["points"].to_i
     total_bonus += bonus_points
@@ -118,7 +118,7 @@ Given("I have earned the following bonus points:") do |table|
       "description" => row["description"]
     }
   end
-  
+
   if @performance_score
     @performance_score.update!(
       speed_bonus: bonus_details["early_settlement"]&.dig("points") || 0,
@@ -132,7 +132,7 @@ Given("I have earned the following bonus points:") do |table|
       team: team,
       user: user,
       speed_bonus: bonus_details["early_settlement"]&.dig("points") || 0,
-      creative_terms_score: (bonus_details["creative_solution"]&.dig("points") || 0) + 
+      creative_terms_score: (bonus_details["creative_solution"]&.dig("points") || 0) +
                            (bonus_details["legal_research"]&.dig("points") || 0),
       bonus_details: bonus_details
     )
@@ -143,13 +143,13 @@ end
 Given("my course has {int} students across {int} teams") do |student_count, team_count|
   course = Course.find_by(name: "Advanced Business Law")
   simulation = Simulation.joins(:case).find_by(cases: { course: course })
-  
+
   # Create teams
   team_count.times do |i|
     team = create(:team, course: course, name: "Team #{i + 1}")
     create(:case_team, case: simulation.case, team: team, role: i.even? ? "plaintiff" : "defendant")
   end
-  
+
   # Create students and assign to teams
   teams = Team.where(course: course).to_a
   student_count.times do |i|
@@ -162,10 +162,10 @@ end
 Given("all students have performance scores recorded") do
   course = Course.find_by(name: "Advanced Business Law")
   simulation = Simulation.joins(:case).find_by(cases: { course: course })
-  
+
   User.joins(:teams).where(teams: { course: course }).find_each do |student|
     team = student.teams.where(course: course).first
-    
+
     create(:performance_score,
       simulation: simulation,
       team: team,
@@ -202,18 +202,18 @@ When("a teammate submits a high-quality settlement offer") do
   simulation = Simulation.joins(case: :course).find_by(
     cases: { courses: { name: "Advanced Business Law" } }
   )
-  
+
   user = User.find_by(email: @current_user_email)
   team = user.teams.joins(:case_teams).where(case_teams: { case: simulation.case }).first
-  
+
   # Create a high-quality offer that would boost collaboration scores
-  teammate = team.team_members.where.not(user: user).first&.user || 
+  teammate = team.team_members.where.not(user: user).first&.user ||
              create(:user, :student, organization: user.organization)
-  
+
   unless team.team_members.exists?(user: teammate)
     create(:team_member, team: team, user: teammate)
   end
-  
+
   offer = create(:settlement_offer,
     simulation: simulation,
     team: team,
@@ -222,7 +222,7 @@ When("a teammate submits a high-quality settlement offer") do
     quality_score: 85,
     justification: "Well-researched offer with strong legal precedent"
   )
-  
+
   # This would trigger real-time updates in the actual application
   @new_collaboration_score = (@performance_score.collaboration_score || 0) + 3
 end
@@ -230,7 +230,7 @@ end
 When("the system processes the new collaboration metrics") do
   # Simulate background processing that updates scores
   sleep 0.1 # Brief pause to simulate processing
-  
+
   @performance_score.update!(
     collaboration_score: @new_collaboration_score
   )
@@ -285,7 +285,7 @@ end
 Then("I should see my collaboration score increase without page refresh") do
   # Verify real-time update functionality
   expect(page).to have_css("[data-testid='collaboration-score']")
-  
+
   # In a real implementation, this would use WebSockets or polling
   # For testing, we simulate the behavior
   collaboration_element = find("[data-testid='collaboration-score']")
@@ -338,7 +338,7 @@ end
 
 Then("I should see a {string} section containing:") do |section_name, table|
   section = find(".#{section_name.downcase.gsub(' ', '-')}-section")
-  
+
   table.hashes.each do |row|
     within(section) do
       expect(page).to have_content(row["strength"] || row["improvement_area"])
@@ -398,7 +398,7 @@ end
 
 Then("I should see students with scores below {int} highlighted in red") do |threshold|
   expect(page).to have_css(".student-score.low-score")
-  
+
   # Verify that low scores are actually highlighted
   low_score_elements = all(".student-score.low-score .score-value")
   low_score_elements.each do |element|
@@ -422,7 +422,7 @@ Then("I should see average scores by metric:") do |table|
   table.hashes.each do |row|
     metric = row["metric"]
     average = row["class_average"]
-    
+
     expect(page).to have_content(metric)
     expect(page).to have_content(average)
     expect(page).to have_css(".metric-average[data-metric='#{metric.downcase.gsub(' ', '-')}']")
@@ -447,10 +447,10 @@ end
 # Export and accessibility steps
 Then("I should be able to download a PDF report containing:") do |table|
   click_button "Export Report"
-  
+
   # Verify download initiated
   expect(page.response_headers["Content-Type"]).to eq("application/pdf")
-  
+
   # In a real test, you'd verify PDF content
   table.hashes.each do |row|
     # PDF content verification would go here
@@ -489,7 +489,7 @@ Then("the page should meet WCAG 2.1 AA accessibility standards") do
   # Basic accessibility checks
   expect(page).to have_css("h1") # Page should have heading structure
   expect(page).to have_css("[aria-label], [aria-labelledby], [aria-describedby]") # ARIA labels present
-  
+
   # Verify focus management
   focusable_elements = all("button, a, input, select, textarea, [tabindex='0']")
   expect(focusable_elements).not_to be_empty

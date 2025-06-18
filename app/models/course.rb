@@ -8,7 +8,7 @@ class Course < ApplicationRecord
   # Associations
   belongs_to :organization, counter_cache: true
   belongs_to :instructor, class_name: "User"
-  belongs_to :term, optional: true
+  belongs_to :term, optional: true, counter_cache: true
   has_many :course_enrollments, dependent: :destroy
   has_many :students, through: :course_enrollments, source: :user
   has_many :course_invitations, dependent: :destroy
@@ -99,10 +99,10 @@ class Course < ApplicationRecord
   def enrolled?(user)
     # Students must be enrolled through course_enrollments
     return course_enrollments.exists?(user: user, status: "active") if user.student?
-    
+
     # Instructors and admins are considered "enrolled" if they can manage the course
     return true if can_be_managed_by?(user)
-    
+
     false
   end
 
@@ -141,7 +141,7 @@ class Course < ApplicationRecord
 
   def available_students_for_assignment
     return User.none unless direct_assignment_enabled?
-    
+
     # Get all students in the organization who are not already enrolled
     organization.students
                 .active

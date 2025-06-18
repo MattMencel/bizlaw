@@ -260,7 +260,7 @@ RSpec.describe NavigationHelper, type: :helper do
 
     it 'returns complete context data hash' do
       data = helper.context_switcher_data
-      
+
       expect(data).to include(
         current_case: case_obj,
         current_team: team,

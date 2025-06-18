@@ -6,18 +6,18 @@ class AiUsageAlert < ApplicationRecord
 
   # Enums
   enum :alert_type, {
-    budget_warning: 'budget_warning',
-    budget_exceeded: 'budget_exceeded',
-    rate_limit_warning: 'rate_limit_warning',
-    rate_limit_exceeded: 'rate_limit_exceeded',
-    service_error: 'service_error',
-    high_latency: 'high_latency'
+    budget_warning: "budget_warning",
+    budget_exceeded: "budget_exceeded",
+    rate_limit_warning: "rate_limit_warning",
+    rate_limit_exceeded: "rate_limit_exceeded",
+    service_error: "service_error",
+    high_latency: "high_latency"
   }, prefix: :alert_type
 
   enum :status, {
-    active: 'active',
-    acknowledged: 'acknowledged',
-    resolved: 'resolved'
+    active: "active",
+    acknowledged: "acknowledged",
+    resolved: "resolved"
   }, prefix: :status
 
   # Validations
@@ -50,12 +50,12 @@ class AiUsageAlert < ApplicationRecord
 
   def severity
     case alert_type
-    when 'budget_exceeded', 'rate_limit_exceeded', 'service_error'
-      'high'
-    when 'budget_warning', 'rate_limit_warning', 'high_latency'
-      'medium'
+    when "budget_exceeded", "rate_limit_exceeded", "service_error"
+      "high"
+    when "budget_warning", "rate_limit_warning", "high_latency"
+      "medium"
     else
-      'low'
+      "low"
     end
   end
 

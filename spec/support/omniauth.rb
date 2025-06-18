@@ -28,5 +28,5 @@ end
 OmniAuth.configure do |config|
   config.test_mode = true
   config.logger = Logger.new('/dev/null') # Suppress OmniAuth log messages
-  config.on_failure = proc { |env| [401, {}, ['Authentication failed']] }
+  config.on_failure = proc { |env| [ 401, {}, [ 'Authentication failed' ] ] }
 end

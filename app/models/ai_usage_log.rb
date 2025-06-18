@@ -22,7 +22,7 @@ class AiUsageLog < ApplicationRecord
 
   def self.daily_stats(date = Date.current)
     logs = where(created_at: date.beginning_of_day..date.end_of_day)
-    
+
     {
       total_requests: logs.count,
       total_cost: logs.sum(:cost),
@@ -41,10 +41,10 @@ class AiUsageLog < ApplicationRecord
 
   def self.hourly_breakdown(date = Date.current)
     logs = where(created_at: date.beginning_of_day..date.end_of_day)
-    
+
     (0..23).map do |hour|
       hour_logs = logs.where(created_at: date.beginning_of_day + hour.hours..date.beginning_of_day + (hour + 1).hours)
-      
+
       {
         hour: hour,
         requests: hour_logs.count,

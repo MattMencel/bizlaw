@@ -66,7 +66,7 @@ module ActivityHelper
     if activity.respond_to?(:user) && activity.respond_to?(:event_type)
       # CaseEvent object
       actor = activity.user&.full_name || "System"
-      
+
       case activity.event_type.to_sym
       when :created
         "#{actor} created the case"

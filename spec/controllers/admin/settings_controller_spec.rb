@@ -3,8 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe Admin::SettingsController, type: :controller do
-  let(:admin_user) { create(:user, role: 'admin', roles: ['admin']) }
-  let(:regular_user) { create(:user, role: 'student', roles: ['student']) }
+  let(:admin_user) { create(:user, role: 'admin', roles: [ 'admin' ]) }
+  let(:regular_user) { create(:user, role: 'student', roles: [ 'student' ]) }
 
   describe 'Admin access control' do
     context 'when user is admin' do
@@ -26,12 +26,12 @@ RSpec.describe Admin::SettingsController, type: :controller do
 
       describe 'PATCH #update' do
         it 'allows updating settings' do
-          patch :update, params: { 
-            id: 'general', 
-            settings: { 
+          patch :update, params: {
+            id: 'general',
+            settings: {
               application_name: 'Updated App Name',
-              maintenance_mode: false 
-            } 
+              maintenance_mode: false
+            }
           }
           expect(response).to redirect_to(admin_settings_path)
         end
@@ -57,9 +57,9 @@ RSpec.describe Admin::SettingsController, type: :controller do
 
       describe 'PATCH #update' do
         it 'denies access' do
-          patch :update, params: { 
-            id: 'general', 
-            settings: { application_name: 'Hacked' } 
+          patch :update, params: {
+            id: 'general',
+            settings: { application_name: 'Hacked' }
           }
           expect(response).to have_http_status(:forbidden)
         end
@@ -124,7 +124,7 @@ RSpec.describe Admin::SettingsController, type: :controller do
         invalid_params = valid_params.deep_merge(
           settings: { application_name: '' }
         )
-        
+
         patch :update, params: invalid_params
         expect(flash[:alert]).to be_present
         expect(response).to render_template(:show)

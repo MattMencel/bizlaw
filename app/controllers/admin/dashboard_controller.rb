@@ -26,15 +26,15 @@ class Admin::DashboardController < ApplicationController
       total_teams: Team.count,
       active_users_today: User.where("last_sign_in_at >= ?", 1.day.ago).count,
       new_users_this_week: User.where("created_at >= ?", 1.week.ago).count,
-      active_cases: Case.where(status: [ "in_progress", "active" ]).count,
-      licenses_active: License.where(status: "active").count
+      active_cases: Case.active.count,
+      licenses_active: License.where(active: true).count
     }
   end
 
   def gather_recent_activity
     # Get recent user registrations and case creations
     recent_users = User.order(created_at: :desc).limit(5).pluck(:email, :created_at, :role)
-    recent_cases = Case.order(created_at: :desc).limit(5).includes(:course).pluck(:title, :created_at, :'courses.name')
+    recent_cases = Case.order(created_at: :desc).limit(5).includes(:course).pluck(:title, :created_at, :'courses.title')
 
     {
       recent_users: recent_users.map { |email, created_at, role|

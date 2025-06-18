@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe "Dashboard", type: :request do
   include Devise::Test::IntegrationHelpers
-  
+
   let(:organization) { create(:organization) }
   let(:admin) { create(:user, :admin, organization: organization) }
   let(:instructor) { create(:user, :instructor, organization: organization) }

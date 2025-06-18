@@ -54,9 +54,9 @@ class Simulation < ApplicationRecord
   }, prefix: :pressure
 
   # Scopes
-  scope :active_simulations, -> { where(status: [:active, :paused]) }
-  scope :completed_simulations, -> { where(status: [:completed, :arbitration]) }
-  scope :ready_for_next_round, -> { where.not(status: [:setup, :completed, :arbitration]) }
+  scope :active_simulations, -> { where(status: [ :active, :paused ]) }
+  scope :completed_simulations, -> { where(status: [ :completed, :arbitration ]) }
+  scope :ready_for_next_round, -> { where.not(status: [ :setup, :completed, :arbitration ]) }
 
   # Instance methods
   def active?
@@ -97,6 +97,23 @@ class Simulation < ApplicationRecord
 
   def should_trigger_events?
     auto_events_enabled? && active?
+  end
+
+  def current_phase
+    case status
+    when "setup"
+      "Preparation"
+    when "active"
+      "Negotiation"
+    when "paused"
+      "Paused"
+    when "completed"
+      "Completed"
+    when "arbitration"
+      "Arbitration"
+    else
+      "Unknown"
+    end
   end
 
   private

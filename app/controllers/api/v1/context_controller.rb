@@ -1,9 +1,9 @@
 # API Controller for context switching functionality
 class Api::V1::ContextController < Api::V1::BaseController
   before_action :authenticate_user!
-  before_action :find_case, only: [:switch_case]
-  before_action :find_team, only: [:switch_team]
-  
+  before_action :find_case, only: [ :switch_case ]
+  before_action :find_team, only: [ :switch_team ]
+
   # GET /api/v1/context/current
   def current
     context_data = {
@@ -12,75 +12,75 @@ class Api::V1::ContextController < Api::V1::BaseController
       user_role: current_user.primary_role,
       permissions: user_permissions
     }
-    
+
     render json: context_data
   end
 
   # PATCH /api/v1/context/switch_case
   def switch_case
     if @case.nil?
-      render json: { error: 'Case not found' }, status: :not_found
+      render json: { error: "Case not found" }, status: :not_found
       return
     end
 
     unless current_user.can_access_case?(@case)
-      render json: { error: 'Access denied' }, status: :forbidden
+      render json: { error: "Access denied" }, status: :forbidden
       return
     end
 
     # Update session
     session[:active_case_id] = @case.id
-    
+
     # Find appropriate team for user in this case
     new_team = @case.teams.joins(:users).where(users: { id: current_user.id }).first
     session[:active_team_id] = new_team&.id
-    
+
     # Track context switch
-    track_context_switch('case', @case.id)
-    
+    track_context_switch("case", @case.id)
+
     context_data = {
       case: serialize_case(@case),
       team: serialize_team(new_team),
       user_role: current_user.role_in_case(@case),
       success: true
     }
-    
+
     render json: context_data
   end
 
   # PATCH /api/v1/context/switch_team
   def switch_team
     if @team.nil?
-      render json: { error: 'Team not found' }, status: :not_found
+      render json: { error: "Team not found" }, status: :not_found
       return
     end
 
     unless current_user.can_access_team?(@team)
-      render json: { error: 'Access denied' }, status: :forbidden
+      render json: { error: "Access denied" }, status: :forbidden
       return
     end
 
     # Update session
     session[:active_team_id] = @team.id
     session[:active_case_id] = @team.case_id
-    
+
     # Track context switch
-    track_context_switch('team', @team.id)
-    
+    track_context_switch("team", @team.id)
+
     context_data = {
       case: serialize_case(@team.case),
       team: serialize_team(@team),
       user_role: current_user.role_in_team(@team),
       success: true
     }
-    
+
     render json: context_data
   end
 
   # GET /api/v1/context/search
   def search
     query = params[:q]&.strip
-    
+
     if query.blank? || query.length < 2
       render json: { cases: [], teams: [] }
       return
@@ -103,7 +103,7 @@ class Api::V1::ContextController < Api::V1::BaseController
       cases: cases.map { |c| serialize_case(c) },
       teams: teams.map { |t| serialize_team(t) }
     }
-    
+
     render json: results
   end
 
@@ -113,7 +113,7 @@ class Api::V1::ContextController < Api::V1::BaseController
       cases: current_user.cases.active.limit(10).map { |c| serialize_case(c) },
       teams: current_user.teams.includes(:case).limit(10).map { |t| serialize_team(t) }
     }
-    
+
     render json: available_data
   end
 
@@ -129,7 +129,7 @@ class Api::V1::ContextController < Api::V1::BaseController
 
   def serialize_case(case_obj)
     return nil unless case_obj
-    
+
     {
       id: case_obj.id,
       title: case_obj.title,
@@ -147,7 +147,7 @@ class Api::V1::ContextController < Api::V1::BaseController
 
   def serialize_team(team_obj)
     return nil unless team_obj
-    
+
     {
       id: team_obj.id,
       name: team_obj.name,
@@ -176,12 +176,12 @@ class Api::V1::ContextController < Api::V1::BaseController
     # Track context switching for analytics
     # Could be implemented with a dedicated tracking service
     Rails.logger.info "User #{current_user.id} switched #{switch_type} to #{entity_id}"
-    
+
     # Update last_accessed timestamps (if columns exist)
     case switch_type
-    when 'case'
+    when "case"
       # Case.where(id: entity_id).update_all(last_accessed_at: Time.current) if Case.column_names.include?('last_accessed_at')
-    when 'team'
+    when "team"
       # Team.where(id: entity_id).update_all(last_accessed_at: Time.current) if Team.column_names.include?('last_accessed_at')
     end
   end
@@ -199,7 +199,7 @@ class Api::V1::ContextController < Api::V1::BaseController
   def current_user_team
     @current_user_team ||= begin
       return nil unless current_user_case
-      
+
       if session[:active_team_id].present?
         current_user_case.teams.joins(:users).where(users: { id: current_user.id }).find_by(id: session[:active_team_id])
       else

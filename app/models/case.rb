@@ -187,6 +187,11 @@ class Case < ApplicationRecord
     "active"
   end
 
+  def team_status(team = nil)
+    # Return the status of a specific team in this case
+    "active"
+  end
+
   def upcoming_deadlines
     # This would return deadlines for the case
     # For now, return empty array

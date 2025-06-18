@@ -49,7 +49,15 @@
       <div class="mb-8">
         <h2 class="text-lg font-semibold text-gray-900 mb-3">Legal Issues</h2>
         <div class="prose max-w-none text-gray-700">
-          <%= simple_format(@case.legal_issues) %>
+          <% if @case.legal_issues.is_a?(Array) %>
+            <ul class="list-disc list-inside">
+              <% @case.legal_issues.each do |issue| %>
+                <li><%= issue %></li>
+              <% end %>
+            </ul>
+          <% else %>
+            <%= simple_format(@case.legal_issues.to_s) %>
+          <% end %>
         </div>
       </div>
 
@@ -59,8 +67,8 @@
         <div class="bg-blue-50 p-6 rounded-lg">
           <h3 class="text-lg font-semibold text-blue-900 mb-4">Plaintiff Information</h3>
           <% if @case.plaintiff_info.present? %>
-            <% begin %>
-              <% plaintiff_data = JSON.parse(@case.plaintiff_info) %>
+            <% plaintiff_data = @case.plaintiff_info.is_a?(Hash) ? @case.plaintiff_info : JSON.parse(@case.plaintiff_info) rescue {} %>
+            <% if plaintiff_data.any? %>
               <dl class="space-y-2">
                 <% plaintiff_data.each do |key, value| %>
                   <div>
@@ -69,7 +77,7 @@
                   </div>
                 <% end %>
               </dl>
-            <% rescue JSON::ParserError %>
+            <% else %>
               <p class="text-sm text-blue-700"><%= @case.plaintiff_info %></p>
             <% end %>
           <% else %>
@@ -81,8 +89,8 @@
         <div class="bg-red-50 p-6 rounded-lg">
           <h3 class="text-lg font-semibold text-red-900 mb-4">Defendant Information</h3>
           <% if @case.defendant_info.present? %>
-            <% begin %>
-              <% defendant_data = JSON.parse(@case.defendant_info) %>
+            <% defendant_data = @case.defendant_info.is_a?(Hash) ? @case.defendant_info : JSON.parse(@case.defendant_info) rescue {} %>
+            <% if defendant_data.any? %>
               <dl class="space-y-2">
                 <% defendant_data.each do |key, value| %>
                   <div>
@@ -91,7 +99,7 @@
                   </div>
                 <% end %>
               </dl>
-            <% rescue JSON::ParserError %>
+            <% else %>
               <p class="text-sm text-red-700"><%= @case.defendant_info %></p>
             <% end %>
           <% else %>

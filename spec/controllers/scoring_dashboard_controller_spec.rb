@@ -24,9 +24,9 @@ RSpec.describe ScoringDashboardController, type: :controller do
       end
 
       it "loads student's performance data" do
-        performance_score = create(:performance_score, 
-          simulation: simulation, 
-          team: team, 
+        performance_score = create(:performance_score,
+          simulation: simulation,
+          team: team,
           user: student,
           total_score: 85,
           settlement_quality_score: 32,
@@ -46,16 +46,16 @@ RSpec.describe ScoringDashboardController, type: :controller do
 
       it "handles student with no scores gracefully" do
         get :index
-        
+
         expect(assigns(:my_scores)).to be_empty
         expect(assigns(:current_simulation_score)).to be_nil
         expect(response).to have_http_status(:success)
       end
 
       it "calculates correct performance metrics" do
-        create(:performance_score, 
-          simulation: simulation, 
-          team: team, 
+        create(:performance_score,
+          simulation: simulation,
+          team: team,
           user: student,
           total_score: 88,
           settlement_quality_score: 35,
@@ -92,9 +92,9 @@ RSpec.describe ScoringDashboardController, type: :controller do
           team = create(:team, course: course)
           create(:team_member, team: team, user: student)
           create(:case_team, case: case_record, team: team, role: index.even? ? "plaintiff" : "defendant")
-          create(:performance_score, 
-            simulation: simulation, 
-            team: team, 
+          create(:performance_score,
+            simulation: simulation,
+            team: team,
             user: student,
             total_score: 70 + (index * 5)
           )
@@ -114,7 +114,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
 
       it "filters performance data by simulation" do
         simulation2 = create(:simulation, case: create(:case, course: course))
-        
+
         # Create scores for different simulations
         create(:performance_score, simulation: simulation, team: team, user: student, total_score: 85)
         create(:performance_score, simulation: simulation2, team: team, user: student, total_score: 90)
@@ -138,9 +138,9 @@ RSpec.describe ScoringDashboardController, type: :controller do
     before { sign_in student }
 
     it "returns JSON performance data for student" do
-      performance_score = create(:performance_score, 
-        simulation: simulation, 
-        team: team, 
+      performance_score = create(:performance_score,
+        simulation: simulation,
+        team: team,
         user: student,
         total_score: 85,
         settlement_quality_score: 32,
@@ -153,7 +153,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
 
       expect(response).to have_http_status(:success)
       json_response = JSON.parse(response.body)
-      
+
       expect(json_response).to include(
         "total_score" => 85,
         "grade" => "B",
@@ -171,7 +171,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
 
       expect(response).to have_http_status(:success)
       json_response = JSON.parse(response.body)
-      
+
       expect(json_response).to include(
         "total_score" => 0,
         "grade" => "Not Yet Scored",
@@ -183,7 +183,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
       # Create teammate scores
       teammate = create(:user, :student, organization: organization)
       create(:team_member, team: team, user: teammate)
-      
+
       create(:performance_score, simulation: simulation, team: team, user: student, total_score: 85)
       create(:performance_score, simulation: simulation, team: team, user: teammate, total_score: 78)
 
@@ -205,9 +205,9 @@ RSpec.describe ScoringDashboardController, type: :controller do
     it "returns trend data over multiple rounds" do
       # Create performance scores for different rounds
       6.times do |round|
-        create(:performance_score, 
-          simulation: simulation, 
-          team: team, 
+        create(:performance_score,
+          simulation: simulation,
+          team: team,
           user: student,
           total_score: 60 + (round * 5),
           settlement_quality_score: 20 + (round * 2),
@@ -219,11 +219,11 @@ RSpec.describe ScoringDashboardController, type: :controller do
 
       expect(response).to have_http_status(:success)
       json_response = JSON.parse(response.body)
-      
+
       expect(json_response).to include("trend_data")
       expect(json_response["trend_data"]).to be_an(Array)
       expect(json_response["trend_data"].length).to eq(6)
-      
+
       first_point = json_response["trend_data"].first
       expect(first_point).to include(
         "date" => be_a(String),
@@ -234,11 +234,11 @@ RSpec.describe ScoringDashboardController, type: :controller do
 
     it "includes improvement analysis" do
       # Create improving scores
-      create(:performance_score, simulation: simulation, team: team, user: student, 
+      create(:performance_score, simulation: simulation, team: team, user: student,
              total_score: 65, scored_at: 5.days.ago)
-      create(:performance_score, simulation: simulation, team: team, user: student, 
+      create(:performance_score, simulation: simulation, team: team, user: student,
              total_score: 75, scored_at: 3.days.ago)
-      create(:performance_score, simulation: simulation, team: team, user: student, 
+      create(:performance_score, simulation: simulation, team: team, user: student,
              total_score: 85, scored_at: 1.day.ago)
 
       get :trends, format: :json
@@ -263,9 +263,9 @@ RSpec.describe ScoringDashboardController, type: :controller do
         team = create(:team, course: course)
         create(:team_member, team: team, user: student)
         create(:case_team, case: case_record, team: team, role: i.even? ? "plaintiff" : "defendant")
-        create(:performance_score, 
-          simulation: simulation, 
-          team: team, 
+        create(:performance_score,
+          simulation: simulation,
+          team: team,
           user: student,
           total_score: 70 + (i * 4),
           settlement_quality_score: 25 + i,
@@ -278,7 +278,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
 
       expect(response).to have_http_status(:success)
       json_response = JSON.parse(response.body)
-      
+
       expect(json_response).to include(
         "class_averages" => hash_including(
           "total_score" => be_a(Numeric),
@@ -296,19 +296,19 @@ RSpec.describe ScoringDashboardController, type: :controller do
       # Create plaintiff and defendant teams with different performance
       plaintiff_student = create(:user, :student, organization: organization)
       defendant_student = create(:user, :student, organization: organization)
-      
+
       plaintiff_team = create(:team, course: course)
       defendant_team = create(:team, course: course)
-      
+
       create(:team_member, team: plaintiff_team, user: plaintiff_student)
       create(:team_member, team: defendant_team, user: defendant_student)
-      
+
       create(:case_team, case: case_record, team: plaintiff_team, role: "plaintiff")
       create(:case_team, case: case_record, team: defendant_team, role: "defendant")
-      
-      create(:performance_score, simulation: simulation, team: plaintiff_team, 
+
+      create(:performance_score, simulation: simulation, team: plaintiff_team,
              user: plaintiff_student, total_score: 85, legal_strategy_score: 28)
-      create(:performance_score, simulation: simulation, team: defendant_team, 
+      create(:performance_score, simulation: simulation, team: defendant_team,
              user: defendant_student, total_score: 80, legal_strategy_score: 25)
 
       get :class_analytics, format: :json
@@ -336,9 +336,9 @@ RSpec.describe ScoringDashboardController, type: :controller do
     before { sign_in student }
 
     it "generates and returns PDF performance report" do
-      create(:performance_score, 
-        simulation: simulation, 
-        team: team, 
+      create(:performance_score,
+        simulation: simulation,
+        team: team,
         user: student,
         total_score: 85,
         settlement_quality_score: 32,
@@ -356,15 +356,15 @@ RSpec.describe ScoringDashboardController, type: :controller do
     end
 
     it "includes comprehensive performance data in PDF" do
-      create(:performance_score, 
-        simulation: simulation, 
-        team: team, 
+      create(:performance_score,
+        simulation: simulation,
+        team: team,
         user: student,
         total_score: 85
       )
 
       allow(PerformanceReportGenerator).to receive(:new).and_call_original
-      
+
       post :export_report, format: :pdf
 
       expect(response).to have_http_status(:success)
@@ -381,9 +381,9 @@ RSpec.describe ScoringDashboardController, type: :controller do
       before { sign_in instructor }
 
       it "allows instructor to manually adjust scores" do
-        performance_score = create(:performance_score, 
-          simulation: simulation, 
-          team: team, 
+        performance_score = create(:performance_score,
+          simulation: simulation,
+          team: team,
           user: student,
           total_score: 80,
           settlement_quality_score: 30

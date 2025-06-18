@@ -47,27 +47,27 @@ class SimulationDynamicsService
 
     # Get round-specific event configuration
     round_events = get_round_event_configuration(round_number)
-    
+
     round_events.each do |event_type, should_check|
       next unless should_check
-      
+
       case event_type
-      when 'media_attention'
+      when "media_attention"
         if should_trigger_media_attention?
           event = SimulationEvent.create_media_attention_event(simulation, round_number)
           events_triggered << event
         end
-      when 'witness_change'
+      when "witness_change"
         if should_trigger_witness_change?
           event = SimulationEvent.create_witness_change_event(simulation, round_number)
           events_triggered << event
         end
-      when 'ipo_delay'
+      when "ipo_delay"
         if should_trigger_ipo_delay?
           event = SimulationEvent.create_ipo_delay_event(simulation, round_number)
           events_triggered << event
         end
-      when 'court_deadline'
+      when "court_deadline"
         if should_trigger_court_deadline?
           event = SimulationEvent.create_court_deadline_event(simulation, round_number)
           events_triggered << event
@@ -134,14 +134,14 @@ class SimulationDynamicsService
   def calculate_time_pressure_adjustments(round_number)
     adjustments = {}
     pressure_rate = simulation.pressure_escalation_rate
-    
+
     # Base adjustment percentage per round based on escalation rate
     base_adjustment = case pressure_rate
-                     when "low" then 0.02      # 2% per round
-                     when "moderate" then 0.035 # 3.5% per round  
-                     when "high" then 0.05     # 5% per round
-                     else 0.035
-                     end
+    when "low" then 0.02      # 2% per round
+    when "moderate" then 0.035 # 3.5% per round
+    when "high" then 0.05     # 5% per round
+    else 0.035
+    end
 
     # Progressive increase based on round number
     round_multiplier = round_number - 1
@@ -180,7 +180,7 @@ class SimulationDynamicsService
 
   def calculate_argument_quality_adjustments(round_number)
     adjustments = {}
-    
+
     # Get completed rounds up to current point
     completed_rounds = simulation.negotiation_rounds
                                 .where("round_number < ?", round_number)
@@ -193,7 +193,7 @@ class SimulationDynamicsService
     offer_count = 0
 
     completed_rounds.each do |round|
-      [round.plaintiff_offer, round.defendant_offer].compact.each do |offer|
+      [ round.plaintiff_offer, round.defendant_offer ].compact.each do |offer|
         total_quality += offer.quality_score || 50
         offer_count += 1
       end
@@ -259,7 +259,7 @@ class SimulationDynamicsService
     if defendant_total_change.abs > 1000
       new_max = simulation.defendant_max_acceptable + defendant_total_change
       # Ensure it doesn't go below ideal
-      new_max = [new_max, simulation.defendant_ideal].max
+      new_max = [ new_max, simulation.defendant_ideal ].max
       simulation.update!(defendant_max_acceptable: new_max)
     end
 
@@ -314,7 +314,7 @@ class SimulationDynamicsService
   # Get current pressure factors affecting the simulation
   def current_pressure_factors
     current_round = simulation.current_round
-    
+
     {
       time_pressure: calculate_time_pressure_factor(current_round),
       media_pressure: calculate_media_pressure_factor(current_round),
@@ -429,7 +429,7 @@ class SimulationDynamicsService
 
     if total_defendant_change.abs > 500
       new_max = simulation.defendant_max_acceptable + total_defendant_change
-      new_max = [new_max, simulation.defendant_ideal].max
+      new_max = [ new_max, simulation.defendant_ideal ].max
       simulation.update!(defendant_max_acceptable: new_max)
     end
 
@@ -456,7 +456,7 @@ class SimulationDynamicsService
   def calculate_time_pressure_factor(round_number)
     total_rounds = simulation.total_rounds
     progress = round_number.to_f / total_rounds
-    
+
     {
       round_number: round_number,
       total_rounds: total_rounds,
@@ -494,7 +494,7 @@ class SimulationDynamicsService
     return { average_quality: 0, pressure_level: "none" } if offers.empty?
 
     avg_quality = offers.average(:final_quality_score)
-    
+
     {
       average_quality: avg_quality.round(1),
       total_scored_offers: offers.count,
@@ -507,8 +507,8 @@ class SimulationDynamicsService
                       .where("trigger_round <= ?", round_number)
                       .where.not(event_type: :additional_evidence)
 
-    high_impact_events = events.where(event_type: [:witness_change, :ipo_delay, :court_deadline])
-    
+    high_impact_events = events.where(event_type: [ :witness_change, :ipo_delay, :court_deadline ])
+
     {
       total_events: events.count,
       high_impact_events: high_impact_events.count,
@@ -553,32 +553,32 @@ class SimulationDynamicsService
   # Event triggering logic - now configuration driven
   def should_trigger_media_attention?
     # Get event probability from scenario configuration
-    event_config = get_event_configuration('media_attention')
-    base_probability = event_config['base_probability'] || 0.6
-    
+    event_config = get_event_configuration("media_attention")
+    base_probability = event_config["base_probability"] || 0.6
+
     # Apply case-specific modifiers
-    modifiers = event_config['case_type_modifiers'] || {}
+    modifiers = event_config["case_type_modifiers"] || {}
     case_modifier = modifiers[simulation.case.case_type] || 1.0
-    
+
     final_probability = base_probability * case_modifier
     rand < final_probability
   end
 
   def should_trigger_witness_change?
-    event_config = get_event_configuration('witness_change')
-    base_probability = event_config['base_probability'] || 0.5
-    
+    event_config = get_event_configuration("witness_change")
+    base_probability = event_config["base_probability"] || 0.5
+
     # Check if gap-based triggering is enabled
-    if event_config['gap_based_triggering']
+    if event_config["gap_based_triggering"]
       current_round = simulation.current_negotiation_round
       if current_round&.both_teams_submitted? && current_round.settlement_gap
-        gap_threshold_factor = event_config['gap_threshold_factor'] || 0.3
+        gap_threshold_factor = event_config["gap_threshold_factor"] || 0.3
         gap_threshold = simulation.plaintiff_ideal * gap_threshold_factor
         large_gap = current_round.settlement_gap > gap_threshold
-        
-        large_gap_probability = event_config['large_gap_probability'] || 0.7
-        small_gap_probability = event_config['small_gap_probability'] || 0.4
-        
+
+        large_gap_probability = event_config["large_gap_probability"] || 0.7
+        small_gap_probability = event_config["small_gap_probability"] || 0.4
+
         rand < (large_gap ? large_gap_probability : small_gap_probability)
       else
         rand < base_probability
@@ -589,27 +589,27 @@ class SimulationDynamicsService
   end
 
   def should_trigger_ipo_delay?
-    event_config = get_event_configuration('ipo_delay')
-    base_probability = event_config['base_probability'] || 0.55
-    
+    event_config = get_event_configuration("ipo_delay")
+    base_probability = event_config["base_probability"] || 0.55
+
     # Apply case-specific modifiers (only relevant for corporate cases)
-    modifiers = event_config['case_type_modifiers'] || {}
+    modifiers = event_config["case_type_modifiers"] || {}
     case_modifier = modifiers[simulation.case.case_type] || 1.0
-    
+
     final_probability = base_probability * case_modifier
     rand < final_probability
   end
 
   def should_trigger_court_deadline?
-    event_config = get_event_configuration('court_deadline')
-    base_probability = event_config['base_probability'] || 0.8
-    
+    event_config = get_event_configuration("court_deadline")
+    base_probability = event_config["base_probability"] || 0.8
+
     # Apply round-based escalation if configured
-    if event_config['round_escalation']
-      round_factor = event_config['round_escalation_factor'] || 1.1
+    if event_config["round_escalation"]
+      round_factor = event_config["round_escalation_factor"] || 1.1
       current_round = simulation.current_round
       escalated_probability = base_probability * (round_factor ** (current_round - 4))
-      rand < [escalated_probability, 1.0].min
+      rand < [ escalated_probability, 1.0 ].min
     else
       rand < base_probability
     end
@@ -619,7 +619,7 @@ class SimulationDynamicsService
   def generate_offer_feedback(settlement_offer, team)
     case_team = team.case_teams.find_by(case: simulation.case)
     role = case_team&.role
-    
+
     return "Unable to provide feedback on this offer." unless role
 
     if role == "plaintiff"
@@ -676,7 +676,7 @@ class SimulationDynamicsService
 
   def generate_pressure_feedback(round_number, team)
     pressure = current_pressure_level
-    
+
     if pressure > 0.7
       "High pressure situation. External factors are strongly encouraging settlement."
     elsif pressure > 0.4
@@ -703,12 +703,12 @@ class SimulationDynamicsService
 
   def calculate_event_pressure_factor
     event_count = simulation.simulation_events.triggered.count
-    [event_count * 0.15, 0.3].min # Max 30% pressure from events
+    [ event_count * 0.15, 0.3 ].min # Max 30% pressure from events
   end
 
   def calculate_media_pressure_factor
     media_events = simulation.simulation_events.where(event_type: :media_attention).triggered.count
-    [media_events * 0.2, 0.25].min # Max 25% pressure from media
+    [ media_events * 0.2, 0.25 ].min # Max 25% pressure from media
   end
 
   def calculate_overlap_zone
@@ -724,24 +724,24 @@ class SimulationDynamicsService
   # Get event configuration from simulation scenario configuration
   def get_event_configuration(event_type)
     scenario_config = simulation.simulation_config || {}
-    event_probabilities = scenario_config['event_probabilities'] || {}
+    event_probabilities = scenario_config["event_probabilities"] || {}
     event_probabilities[event_type] || {}
   end
 
   # Get round-specific event triggers configuration
   def get_round_event_configuration(round_number)
     scenario_config = simulation.simulation_config || {}
-    round_triggers = scenario_config['round_triggers'] || default_round_triggers
+    round_triggers = scenario_config["round_triggers"] || default_round_triggers
     round_triggers[round_number.to_s] || {}
   end
 
   # Default round triggers if not configured in scenario
   def default_round_triggers
     {
-      '2' => { 'media_attention' => true },
-      '3' => { 'witness_change' => true },
-      '4' => { 'ipo_delay' => true },
-      '5' => { 'court_deadline' => true }
+      "2" => { "media_attention" => true },
+      "3" => { "witness_change" => true },
+      "4" => { "ipo_delay" => true },
+      "5" => { "court_deadline" => true }
     }
   end
 end

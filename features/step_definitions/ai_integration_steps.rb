@@ -17,7 +17,7 @@ end
 
 Given('the AI service is in mock mode') do
   allow(GoogleAI).to receive(:enabled?).and_return(true)
-  
+
   # Set up mock responses that will be used by the service
   @mock_ai_response = {
     feedback_text: "Based on the current negotiation dynamics, this offer demonstrates strategic positioning. The client's response indicates moderate satisfaction with the approach.",
@@ -25,11 +25,11 @@ Given('the AI service is in mock mode') do
     satisfaction_score: 75,
     strategic_guidance: "Consider exploring non-monetary terms to bridge the remaining gap."
   }
-  
+
   # Set up the mock client to expect the call
   mock_client = instance_double(Gemini::Controllers::Client)
   allow(GoogleAI).to receive(:client).and_return(mock_client)
-  
+
   mock_response = {
     'candidates' => [
       {
@@ -41,7 +41,7 @@ Given('the AI service is in mock mode') do
       }
     ]
   }
-  
+
   allow(mock_client).to receive(:generate_content).and_return(mock_response)
 end
 
@@ -50,17 +50,17 @@ Given('I have a legal simulation with teams') do
   @course = create(:course, organization: @organization)
   @plaintiff_team = create(:team, course: @course)
   @defendant_team = create(:team, course: @course)
-  
+
   @case = create(:case, course: @course)
   create(:case_team, case: @case, team: @plaintiff_team, role: "plaintiff")
   create(:case_team, case: @case, team: @defendant_team, role: "defendant")
-  
+
   @simulation = create(:simulation, case: @case)
 end
 
 Given('a settlement offer has been submitted') do
   @negotiation_round = create(:negotiation_round, simulation: @simulation, round_number: 1)
-  @settlement_offer = create(:settlement_offer, 
+  @settlement_offer = create(:settlement_offer,
     team: @plaintiff_team,
     negotiation_round: @negotiation_round,
     amount: 150_000
@@ -70,12 +70,12 @@ end
 Given('a negotiation is in progress') do
   @negotiation_round = create(:negotiation_round, simulation: @simulation, round_number: 3)
   # Create offers from both teams
-  create(:settlement_offer, 
+  create(:settlement_offer,
     team: @plaintiff_team,
     negotiation_round: @negotiation_round,
     amount: 200_000
   )
-  create(:settlement_offer, 
+  create(:settlement_offer,
     team: @defendant_team,
     negotiation_round: @negotiation_round,
     amount: 100_000
@@ -89,24 +89,24 @@ end
 
 Given('a negotiation with a large settlement gap') do
   @negotiation_round = create(:negotiation_round, simulation: @simulation, round_number: 2)
-  @plaintiff_offer = create(:settlement_offer, 
+  @plaintiff_offer = create(:settlement_offer,
     team: @plaintiff_team,
     negotiation_round: @negotiation_round,
     amount: 300_000
   )
-  @defendant_offer = create(:settlement_offer, 
+  @defendant_offer = create(:settlement_offer,
     team: @defendant_team,
     negotiation_round: @negotiation_round,
     amount: 75_000
   )
-  
+
   # Ensure we have a settlement offer for fallback scenarios
   @settlement_offer = @plaintiff_offer
 end
 
 When('the AI service generates feedback for the offer') do
   @ai_service = GoogleAiService.new
-  
+
   # Mock the AI response in the expected format
   mock_response = {
     'candidates' => [
@@ -119,15 +119,15 @@ When('the AI service generates feedback for the offer') do
       }
     ]
   }
-  
+
   allow(GoogleAI.client).to receive(:generate_content).and_return(mock_response)
-  
+
   @generated_feedback = @ai_service.generate_settlement_feedback(@settlement_offer)
 end
 
 When('the AI service analyzes the negotiation state') do
   @ai_service = GoogleAiService.new
-  
+
   # Mock the AI response for strategic analysis
   mock_response = {
     'candidates' => [
@@ -140,25 +140,25 @@ When('the AI service analyzes the negotiation state') do
       }
     ]
   }
-  
+
   allow(GoogleAI.client).to receive(:generate_content).and_return(mock_response)
-  
+
   @strategic_analysis = @ai_service.analyze_negotiation_state(@simulation, @current_round)
 end
 
 When('the system attempts to generate AI feedback') do
   @ai_service = GoogleAiService.new
-  
+
   # Ensure we have a settlement offer for this test
   unless @settlement_offer
     @negotiation_round ||= create(:negotiation_round, simulation: @simulation, round_number: 1)
-    @settlement_offer = create(:settlement_offer, 
+    @settlement_offer = create(:settlement_offer,
       team: @plaintiff_team,
       negotiation_round: @negotiation_round,
       amount: 150_000
     )
   end
-  
+
   begin
     @generated_feedback = @ai_service.generate_settlement_feedback(@settlement_offer)
     @error_occurred = false
@@ -171,7 +171,7 @@ end
 
 When('the AI service analyzes potential settlement paths') do
   @ai_service = GoogleAiService.new
-  
+
   # Mock the AI response for settlement analysis
   settlement_analysis = "Consider structured settlement with performance milestones. Risk assessment: moderate. Creative options include deferred payments and non-monetary terms."
   mock_response = {
@@ -185,53 +185,53 @@ When('the AI service analyzes potential settlement paths') do
       }
     ]
   }
-  
+
   allow(GoogleAI.client).to receive(:generate_content).and_return(mock_response)
-  
+
   @settlement_recommendations = @ai_service.analyze_settlement_options(@plaintiff_offer, @defendant_offer)
 end
 
 When('the system attempts to use AI features') do
   @ai_service = GoogleAiService.new
   @ai_call_attempted = true
-  
+
   # Ensure we have a settlement offer for this test
   unless @settlement_offer
     @negotiation_round ||= create(:negotiation_round, simulation: @simulation, round_number: 1)
-    @settlement_offer = create(:settlement_offer, 
+    @settlement_offer = create(:settlement_offer,
       team: @plaintiff_team,
       negotiation_round: @negotiation_round,
       amount: 150_000
     )
   end
-  
+
   # Since AI is disabled, this should use fallback
   @response = @ai_service.generate_settlement_feedback(@settlement_offer)
 end
 
 When('AI feedback is requested') do
   @ai_service = GoogleAiService.new
-  
+
   # Ensure we have a settlement offer for this test
   unless @settlement_offer
     @negotiation_round ||= create(:negotiation_round, simulation: @simulation, round_number: 1)
-    @settlement_offer = create(:settlement_offer, 
+    @settlement_offer = create(:settlement_offer,
       team: @plaintiff_team,
       negotiation_round: @negotiation_round,
       amount: 150_000
     )
   end
-  
+
   @ai_feedback = @ai_service.generate_settlement_feedback(@settlement_offer)
 end
 
 Then('the feedback should be contextually relevant') do
   expect(@generated_feedback).to be_present
-  expect(@generated_feedback[:feedback_text]).to include_any_of(['strategic', 'positioning', 'client', 'negotiation'])
+  expect(@generated_feedback[:feedback_text]).to include_any_of([ 'strategic', 'positioning', 'client', 'negotiation' ])
 end
 
 Then('the feedback should include mood assessment') do
-  expect(@generated_feedback[:mood_level]).to be_in(['very_satisfied', 'satisfied', 'neutral', 'unhappy', 'very_unhappy'])
+  expect(@generated_feedback[:mood_level]).to be_in([ 'very_satisfied', 'satisfied', 'neutral', 'unhappy', 'very_unhappy' ])
 end
 
 Then('the feedback should provide strategic guidance') do
@@ -315,7 +315,7 @@ Then('performance should not be impacted') do
   start_time = Time.current
   @ai_service.generate_settlement_feedback(@settlement_offer)
   end_time = Time.current
-  
+
   expect(end_time - start_time).to be < 0.1 # Should be very fast for mocked responses
 end
 
@@ -332,9 +332,9 @@ end
 # Additional steps for ClientFeedbackService AI integration
 
 Given('the Google AI service is configured and enabled') do
-  steps %Q{
+  steps %Q(
     Given the Google AI service is configured
-  }
+  )
 end
 
 Given('I am a member of the {string} \\(plaintiff)') do |team_name|
@@ -389,7 +389,7 @@ end
 
 When('the AI service generates feedback for my offer') do
   @client_feedback_service = ClientFeedbackService.new(@simulation)
-  
+
   # Mock Google AI service to return contextual feedback
   mock_ai_feedback = {
     feedback_text: "Client reviewing settlement positioning with cautious optimism. Strategic consideration of timing and market factors.",
@@ -398,16 +398,16 @@ When('the AI service generates feedback for my offer') do
     strategic_guidance: "Consider emphasizing non-monetary terms to strengthen overall package.",
     source: "ai"
   }
-  
+
   allow_any_instance_of(GoogleAiService).to receive(:generate_settlement_feedback).and_return(mock_ai_feedback)
-  
+
   @generated_feedback = @client_feedback_service.generate_feedback_for_offer!(@settlement_offer)
   @ai_feedback = @generated_feedback.first
 end
 
 When('the system attempts to generate AI feedback') do
   @client_feedback_service = ClientFeedbackService.new(@simulation)
-  
+
   begin
     @generated_feedback = @client_feedback_service.generate_feedback_for_offer!(@settlement_offer)
     @ai_feedback = @generated_feedback.first
@@ -430,7 +430,7 @@ end
 
 When('the AI service generates event feedback') do
   @client_feedback_service = ClientFeedbackService.new(@simulation)
-  
+
   # Mock AI-enhanced event feedback
   mock_event_feedback = {
     feedback_text: "Client response to recent developments shows heightened engagement and strategic recalibration.",
@@ -438,10 +438,10 @@ When('the AI service generates event feedback') do
     satisfaction_score: 80,
     source: "ai"
   }
-  
+
   allow_any_instance_of(GoogleAiService).to receive(:generate_settlement_feedback).and_return(mock_event_feedback)
-  
-  @event_feedback = @client_feedback_service.generate_event_feedback!(@simulation_event, [@plaintiff_team, @defendant_team])
+
+  @event_feedback = @client_feedback_service.generate_event_feedback!(@simulation_event, [ @plaintiff_team, @defendant_team ])
 end
 
 When('both teams have completed round {int}') do |round_number|
@@ -472,11 +472,11 @@ end
 When('a settlement is reached at ${int}') do |amount|
   @final_round = create(:negotiation_round, simulation: @simulation, round_number: 4)
   @final_settlement_amount = amount
-  
+
   # Create converging offers that result in settlement
   create(:settlement_offer, team: @plaintiff_team, negotiation_round: @final_round, amount: amount + 5000)
   create(:settlement_offer, team: @defendant_team, negotiation_round: @final_round, amount: amount - 5000)
-  
+
   @final_round.update!(settlement_reached: true)
 end
 
@@ -488,7 +488,7 @@ end
 When('both teams have completed {int} rounds without settlement') do |round_count|
   @max_rounds = round_count
   @simulation.update!(total_rounds: round_count)
-  
+
   (1..round_count).each do |round_num|
     round = create(:negotiation_round, simulation: @simulation, round_number: round_num)
     create(:settlement_offer, team: @plaintiff_team, negotiation_round: round, amount: 300000 - (round_num * 10000))
@@ -527,7 +527,7 @@ end
 When('the AI service generates feedback for each offer') do
   @client_feedback_service = ClientFeedbackService.new(@simulation)
   @multiple_feedback = []
-  
+
   @multiple_offers.each do |offer|
     mock_feedback = {
       feedback_text: "Client maintaining consistent strategic approach with evolving tactical adjustments.",
@@ -535,7 +535,7 @@ When('the AI service generates feedback for each offer') do
       satisfaction_score: 75,
       source: "ai"
     }
-    
+
     allow_any_instance_of(GoogleAiService).to receive(:generate_settlement_feedback).and_return(mock_feedback)
     feedback = @client_feedback_service.generate_feedback_for_offer!(offer)
     @multiple_feedback << feedback.first
@@ -600,7 +600,7 @@ When('responses are generated for various offer scenarios') do
     { amount: 200000, expected_mood: "neutral" },
     { amount: 300000, expected_mood: "satisfied" }
   ]
-  
+
   @generated_responses = []
   @test_scenarios.each do |scenario|
     offer = create(:settlement_offer,
@@ -608,14 +608,14 @@ When('responses are generated for various offer scenarios') do
       negotiation_round: @negotiation_round,
       amount: scenario[:amount]
     )
-    
+
     mock_feedback = {
       feedback_text: "Professional response appropriate for educational context.",
       mood_level: scenario[:expected_mood],
       satisfaction_score: 70,
       source: "ai"
     }
-    
+
     @generated_responses << mock_feedback
   end
 end
@@ -626,8 +626,8 @@ Then('I should receive AI-enhanced client feedback') do
 end
 
 Then('the feedback should include realistic client mood assessment') do
-  mood_levels = ['very_satisfied', 'satisfied', 'neutral', 'unhappy', 'very_unhappy']
-  
+  mood_levels = [ 'very_satisfied', 'satisfied', 'neutral', 'unhappy', 'very_unhappy' ]
+
   if @ai_feedback.respond_to?(:mood_level)
     expect(mood_levels).to include(@ai_feedback.mood_level)
   else
@@ -670,17 +670,17 @@ end
 
 Then('the feedback should provide risk-based strategic guidance') do
   feedback_text = @ai_feedback.respond_to?(:feedback_text) ? @ai_feedback.feedback_text : @ai_feedback[:feedback_text]
-  expect(feedback_text).to include_any_of(['strategic', 'consider', 'risk', 'approach'])
+  expect(feedback_text).to include_any_of([ 'strategic', 'consider', 'risk', 'approach' ])
 end
 
 Then('the feedback should reflect defendant perspective appropriately') do
   feedback_text = @ai_feedback.respond_to?(:feedback_text) ? @ai_feedback.feedback_text : @ai_feedback[:feedback_text]
-  expect(feedback_text).to include_any_of(['client', 'exposure', 'cost', 'resolution'])
+  expect(feedback_text).to include_any_of([ 'client', 'exposure', 'cost', 'resolution' ])
 end
 
 Then('the feedback should consider financial exposure concerns') do
   feedback_text = @ai_feedback.respond_to?(:feedback_text) ? @ai_feedback.feedback_text : @ai_feedback[:feedback_text]
-  expect(feedback_text).to include_any_of(['financial', 'cost', 'exposure', 'acceptable'])
+  expect(feedback_text).to include_any_of([ 'financial', 'cost', 'exposure', 'acceptable' ])
 end
 
 Then('I should receive fallback client feedback') do
@@ -697,7 +697,7 @@ end
 
 Then('the error should be logged for monitoring') do
   # In real implementation, this would check Rails.logger or monitoring system
-  expect(@error_occurred).to be_in([true, false])  # Either error occurred or was handled gracefully
+  expect(@error_occurred).to be_in([ true, false ])  # Either error occurred or was handled gracefully
 end
 
 Then('my user experience should not be disrupted') do
@@ -894,7 +894,7 @@ end
 Then('responses should be professionally appropriate') do
   @generated_responses.each do |response|
     expect(response[:feedback_text]).to be_present
-    expect(response[:feedback_text]).not_to include_any_of(['inappropriate', 'offensive'])
+    expect(response[:feedback_text]).not_to include_any_of([ 'inappropriate', 'offensive' ])
   end
 end
 
@@ -913,7 +913,7 @@ end
 
 Then('responses should avoid inappropriate content') do
   @generated_responses.each do |response|
-    expect(response[:feedback_text]).not_to include_any_of(['inappropriate', 'offensive', 'unprofessional'])
+    expect(response[:feedback_text]).not_to include_any_of([ 'inappropriate', 'offensive', 'unprofessional' ])
   end
 end
 
@@ -945,7 +945,7 @@ end
 
 When('the AI service enhances the range validation feedback') do
   @range_validation_service = ClientRangeValidationService.new(@simulation)
-  
+
   # Mock AI-enhanced range validation
   mock_validation_result = ClientRangeValidationService::ValidationResult.new(
     positioning: :strategic_positioning,
@@ -955,15 +955,15 @@ When('the AI service enhances the range validation feedback') do
     pressure_level: :low,
     within_acceptable_range: true
   )
-  
+
   allow(@range_validation_service).to receive(:validate_offer).and_return(mock_validation_result)
-  
+
   @validation_result = @range_validation_service.validate_offer(@current_team, @settlement_offer.amount)
 end
 
 When('the AI service enhances validation with historical context') do
   @range_validation_service = ClientRangeValidationService.new(@simulation)
-  
+
   # Mock contextually aware validation
   mock_contextual_result = ClientRangeValidationService::ValidationResult.new(
     positioning: :strategic_positioning,
@@ -973,14 +973,14 @@ When('the AI service enhances validation with historical context') do
     pressure_level: :moderate,
     within_acceptable_range: true
   )
-  
+
   allow(@range_validation_service).to receive(:validate_offer).and_return(mock_contextual_result)
   @validation_result = @range_validation_service.validate_offer(@current_team, @settlement_offer.amount)
 end
 
 When('the AI service enhances pressure assessment with personality factors') do
   @range_validation_service = ClientRangeValidationService.new(@simulation)
-  
+
   # Mock personality-aware pressure assessment
   mock_pressure_result = ClientRangeValidationService::ValidationResult.new(
     positioning: :concerning_amount,
@@ -990,14 +990,14 @@ When('the AI service enhances pressure assessment with personality factors') do
     pressure_level: :high,
     within_acceptable_range: true
   )
-  
+
   allow(@range_validation_service).to receive(:validate_offer).and_return(mock_pressure_result)
   @validation_result = @range_validation_service.validate_offer(@current_team, @settlement_offer.amount)
 end
 
 When('the AI service analyzes the settlement gap') do
   @range_validation_service = ClientRangeValidationService.new(@simulation)
-  
+
   # Mock AI-enhanced gap analysis
   mock_gap_analysis = ClientRangeValidationService::GapAnalysis.new(
     gap_size: 75000,
@@ -1005,14 +1005,14 @@ When('the AI service analyzes the settlement gap') do
     settlement_likelihood: :possible,
     strategic_guidance: "Consider creative terms to bridge remaining gap with focus on non-monetary value"
   )
-  
+
   allow(@range_validation_service).to receive(:analyze_settlement_gap).and_return(mock_gap_analysis)
   @gap_analysis = @range_validation_service.analyze_settlement_gap(250000, 175000)
 end
 
 When('the AI service validates offer considering event impacts') do
   @range_validation_service = ClientRangeValidationService.new(@simulation)
-  
+
   # Mock event-aware validation
   mock_event_result = ClientRangeValidationService::ValidationResult.new(
     positioning: :strong_position,
@@ -1022,14 +1022,14 @@ When('the AI service validates offer considering event impacts') do
     pressure_level: :low,
     within_acceptable_range: true
   )
-  
+
   allow(@range_validation_service).to receive(:validate_offer).and_return(mock_event_result)
   @validation_result = @range_validation_service.validate_offer(@current_team, @settlement_offer.amount)
 end
 
 When('the AI service validates with previous interaction context') do
   @range_validation_service = ClientRangeValidationService.new(@simulation)
-  
+
   # Mock consistent validation building on previous interactions
   mock_consistent_result = ClientRangeValidationService::ValidationResult.new(
     positioning: :acceptable_compromise,
@@ -1039,14 +1039,14 @@ When('the AI service validates with previous interaction context') do
     pressure_level: :moderate,
     within_acceptable_range: true
   )
-  
+
   allow(@range_validation_service).to receive(:validate_offer).and_return(mock_consistent_result)
   @validation_result = @range_validation_service.validate_offer(@current_team, @settlement_offer.amount)
 end
 
 When('the AI service validates considering multi-round context') do
   @range_validation_service = ClientRangeValidationService.new(@simulation)
-  
+
   # Mock multi-round context validation
   mock_multi_round_result = ClientRangeValidationService::ValidationResult.new(
     positioning: :strategic_positioning,
@@ -1056,14 +1056,14 @@ When('the AI service validates considering multi-round context') do
     pressure_level: :moderate,
     within_acceptable_range: true
   )
-  
+
   allow(@range_validation_service).to receive(:validate_offer).and_return(mock_multi_round_result)
   @validation_result = @range_validation_service.validate_offer(@current_team, @settlement_offer.amount)
 end
 
 When('the system attempts to enhance range validation with AI') do
   @range_validation_service = ClientRangeValidationService.new(@simulation)
-  
+
   begin
     @validation_result = @range_validation_service.validate_offer(@current_team, @settlement_offer.amount)
     @error_occurred = false
@@ -1089,7 +1089,7 @@ When('the AI service provides enhanced validation feedback') do
     { amount: 200000, expected_positioning: :strategic_positioning },
     { amount: 350000, expected_positioning: :too_aggressive }
   ]
-  
+
   @validation_results = []
   @validation_scenarios.each do |scenario|
     mock_result = ClientRangeValidationService::ValidationResult.new(
@@ -1163,7 +1163,7 @@ Given('I have submitted previous offers with consistent client feedback') do
   (1..2).each do |round_num|
     round = create(:negotiation_round, simulation: @simulation, round_number: round_num)
     offer = create(:settlement_offer, team: @current_team, negotiation_round: round, amount: 200000 - (round_num * 25000))
-    
+
     create(:client_feedback,
       simulation: @simulation,
       team: @current_team,
@@ -1176,7 +1176,7 @@ Given('I have submitted previous offers with consistent client feedback') do
 end
 
 Given('I have submitted offers in rounds {int}, {int}, and {int}') do |r1, r2, r3|
-  [r1, r2, r3].each_with_index do |round_num, index|
+  [ r1, r2, r3 ].each_with_index do |round_num, index|
     round = create(:negotiation_round, simulation: @simulation, round_number: round_num)
     create(:settlement_offer, team: @current_team, negotiation_round: round, amount: 280000 - (index * 20000))
   end
@@ -1210,17 +1210,17 @@ Then('I should receive AI-enhanced validation feedback') do
 end
 
 Then('the feedback should indicate strong positioning') do
-  expect(@validation_result.positioning).to be_in([:strategic_positioning, :strong_position, :excellent_position])
+  expect(@validation_result.positioning).to be_in([ :strategic_positioning, :strong_position, :excellent_position ])
 end
 
 Then('the feedback should reflect client satisfaction with strategic approach') do
   expect(@validation_result.satisfaction_score).to be > 70
-  expect(@validation_result.mood).to be_in(["satisfied", "very_satisfied"])
+  expect(@validation_result.mood).to be_in([ "satisfied", "very_satisfied" ])
 end
 
 Then('the feedback should provide contextual guidance without revealing ranges') do
   expect(@validation_result.feedback_theme).to be_present
-  expect(@validation_result.feedback_theme).not_to be_in([:range_revealed, :mechanics_exposed])
+  expect(@validation_result.feedback_theme).not_to be_in([ :range_revealed, :mechanics_exposed ])
 end
 
 Then('the feedback should maintain educational messaging') do
@@ -1229,29 +1229,29 @@ Then('the feedback should maintain educational messaging') do
 end
 
 Then('the feedback should indicate financial concern') do
-  expect(@validation_result.positioning).to be_in([:concerning_amount, :approaching_maximum, :exceeds_maximum])
+  expect(@validation_result.positioning).to be_in([ :concerning_amount, :approaching_maximum, :exceeds_maximum ])
 end
 
 Then('the feedback should reflect client anxiety about exposure levels') do
   expect(@validation_result.satisfaction_score).to be < 60
-  expect(@validation_result.mood).to be_in(["unhappy", "very_unhappy"])
-  expect(@validation_result.pressure_level).to be_in([:high, :extreme])
+  expect(@validation_result.mood).to be_in([ "unhappy", "very_unhappy" ])
+  expect(@validation_result.pressure_level).to be_in([ :high, :extreme ])
 end
 
 Then('the feedback should suggest risk mitigation strategies') do
-  expect(@validation_result.feedback_theme).to be_in([:financial_concern, :serious_concern, :unacceptable_exposure])
+  expect(@validation_result.feedback_theme).to be_in([ :financial_concern, :serious_concern, :unacceptable_exposure ])
 end
 
 Then('the feedback should encourage strategic reconsideration') do
-  expect(@validation_result.within_acceptable_range).to be_in([true, false])  # Could be either depending on amount
+  expect(@validation_result.within_acceptable_range).to be_in([ true, false ])  # Could be either depending on amount
 end
 
 Then('the feedback should indicate concerns about aggressive positioning') do
-  expect(@validation_result.positioning).to be_in([:too_aggressive, :unrealistic_position])
+  expect(@validation_result.positioning).to be_in([ :too_aggressive, :unrealistic_position ])
 end
 
 Then('the feedback should suggest more strategic opening position') do
-  expect(@validation_result.feedback_theme).to be_in([:unrealistic_demand, :too_aggressive])
+  expect(@validation_result.feedback_theme).to be_in([ :unrealistic_demand, :too_aggressive ])
 end
 
 Then('the feedback should maintain client relationship authenticity') do
@@ -1265,7 +1265,7 @@ Then('the feedback should provide educational guidance on negotiation dynamics')
 end
 
 Then('the feedback should indicate potential insulting nature of offer') do
-  expect(@validation_result.positioning).to be_in([:too_low, :insulting_offer])
+  expect(@validation_result.positioning).to be_in([ :too_low, :insulting_offer ])
   expect(@validation_result.satisfaction_score).to be < 50
 end
 
@@ -1274,8 +1274,8 @@ Then('the feedback should suggest good faith negotiation approaches') do
 end
 
 Then('the feedback should reflect client concern about relationship damage') do
-  expect(@validation_result.mood).to be_in(["unhappy", "very_unhappy"])
-  expect(@validation_result.pressure_level).to be_in([:moderate, :high])
+  expect(@validation_result.mood).to be_in([ "unhappy", "very_unhappy" ])
+  expect(@validation_result.pressure_level).to be_in([ :moderate, :high ])
 end
 
 Then('the feedback should encourage more reasonable positioning') do
@@ -1293,7 +1293,7 @@ Then('the feedback should still be contextually appropriate') do
 end
 
 Then('the validation logic should remain accurate') do
-  expect(@validation_result.within_acceptable_range).to be_in([true, false])
+  expect(@validation_result.within_acceptable_range).to be_in([ true, false ])
 end
 
 Then('I should receive contextually aware validation feedback') do
@@ -1306,7 +1306,7 @@ Then('the feedback should acknowledge negotiation progress') do
 end
 
 Then('the feedback should consider round timing pressures') do
-  expect(@validation_result.pressure_level).to be_in([:low, :moderate, :high])
+  expect(@validation_result.pressure_level).to be_in([ :low, :moderate, :high ])
 end
 
 Then('the feedback should reflect appropriate urgency levels') do
@@ -1328,7 +1328,7 @@ Then('the feedback should reflect risk-averse client concerns') do
 end
 
 Then('the feedback should include appropriate anxiety levels') do
-  expect(@validation_result.mood).to be_in(["unhappy", "very_unhappy"])
+  expect(@validation_result.mood).to be_in([ "unhappy", "very_unhappy" ])
 end
 
 Then('the feedback should suggest personality-consistent strategies') do
@@ -1460,7 +1460,7 @@ end
 
 Then('validation should avoid revealing simulation mechanics') do
   @validation_results.each do |result|
-    expect(result.feedback_theme).not_to be_in([:range_revealed, :mechanics_exposed])
+    expect(result.feedback_theme).not_to be_in([ :range_revealed, :mechanics_exposed ])
   end
 end
 
@@ -1509,7 +1509,7 @@ Given('the AI response caching system is enabled') do
   @caching_enabled = true
   allow(Rails.cache).to receive(:read).and_call_original
   allow(Rails.cache).to receive(:write).and_call_original
-  
+
   # Mock cache store for testing
   @mock_cache = {}
   allow(Rails.cache).to receive(:read) { |key| @mock_cache[key] }
@@ -1526,7 +1526,7 @@ Given('a previous offer with similar context has been cached') do
     source: "cache",
     cached_at: 1.hour.ago.iso8601
   }
-  
+
   @cache_key = generate_cache_key("plaintiff", 275000, 1, @simulation.id)
   @mock_cache[@cache_key] = @cached_response
 end
@@ -1557,7 +1557,7 @@ Given('the cache contains responses from previous sessions') do
     { key: "sim_1_defendant_150k_r1", cached_at: 30.minutes.ago },
     { key: "sim_1_plaintiff_300k_r2", cached_at: 3.hours.ago }
   ]
-  
+
   @previous_responses.each do |resp|
     @mock_cache[resp[:key]] = {
       feedback_text: "Previous response",
@@ -1587,7 +1587,7 @@ Given('the cache contains responses for current simulation state') do
     "sim_#{@simulation.id}_plaintiff_250k_r1",
     "sim_#{@simulation.id}_defendant_150k_r1"
   ]
-  
+
   @current_responses.each do |key|
     @mock_cache[key] = {
       feedback_text: "Current state response",
@@ -1616,7 +1616,7 @@ end
 
 Given('the cache has accumulated many responses over time') do
   @accumulated_responses = 100
-  
+
   (1..@accumulated_responses).each do |i|
     key = "sim_#{@simulation.id}_response_#{i}"
     @mock_cache[key] = {
@@ -1650,7 +1650,7 @@ Given('the cache contains AI-generated responses') do
       }
     }
   ]
-  
+
   @secure_responses.each do |resp|
     @mock_cache[resp[:key]] = resp[:data]
   end
@@ -1669,7 +1669,7 @@ Given('cached responses are being reused') do
     { key: "reused_1", usage_count: 5, quality_score: 85 },
     { key: "reused_2", usage_count: 3, quality_score: 78 }
   ]
-  
+
   @reused_responses.each do |resp|
     @mock_cache[resp[:key]] = {
       feedback_text: "Reused response",
@@ -1701,7 +1701,7 @@ When('the cache cleanup process runs') do
     expired_removed: 0,
     retained: 0
   }
-  
+
   @mock_cache.keys.each do |key|
     response = @mock_cache[key]
     if response[:cached_at] && Time.parse(response[:cached_at]) < 2.hours.ago
@@ -1718,16 +1718,16 @@ When('the cache warming process runs') do
     responses_generated: 0,
     api_requests_made: 0
   }
-  
+
   @common_scenarios.each do |scenario|
     cache_key = "warmed_#{scenario[:role]}_#{scenario[:amount_range]}_#{@simulation.id}"
-    
+
     @mock_cache[cache_key] = {
       feedback_text: "Pre-warmed response for #{scenario[:role]} #{scenario[:amount_range]}",
       source: "cache_warmed",
       warmed_at: Time.current.iso8601
     }
-    
+
     @warming_results[:responses_generated] += 1
     @warming_results[:api_requests_made] += 1
   end
@@ -1740,12 +1740,12 @@ end
 
 When('a simulation event triggers and adjusts acceptable ranges') do
   @pre_event_cache_size = @mock_cache.size
-  
+
   # Simulate event impact
   @simulation.update!(
     plaintiff_min_acceptable: @simulation.plaintiff_min_acceptable + 25000
   )
-  
+
   @event_triggered = true
 end
 
@@ -1860,7 +1860,7 @@ Then('the response time should be significantly improved') do
   # Cached responses should be much faster than AI generation
   @cached_response_time = 0.05  # Mock cached response time
   @ai_response_time = 0.85      # Mock AI generation time
-  
+
   expect(@cached_response_time).to be < (@ai_response_time * 0.1)
 end
 
@@ -1882,7 +1882,7 @@ Then('a new AI response should be generated') do
     satisfaction_score: 72,
     source: "ai"
   }
-  
+
   expect(@new_ai_response[:source]).to eq("ai")
 end
 
@@ -1908,7 +1908,7 @@ end
 Then('similar offers should generate similar cache keys') do
   plaintiff_keys = @generated_keys.select { |key| key.include?("plaintiff") }
   expect(plaintiff_keys.length).to be > 1
-  
+
   # Keys for same role should share common patterns
   expect(plaintiff_keys.first).to include("plaintiff")
 end
@@ -1916,14 +1916,14 @@ end
 Then('different team roles should have different cache keys') do
   plaintiff_keys = @generated_keys.select { |key| key.include?("plaintiff") }
   defendant_keys = @generated_keys.select { |key| key.include?("defendant") }
-  
+
   expect(plaintiff_keys & defendant_keys).to be_empty  # No overlap
 end
 
 Then('round numbers should influence cache key generation') do
   round1_keys = @generated_keys.select { |key| key.include?("round_1") }
   round2_keys = @generated_keys.select { |key| key.include?("round_2") }
-  
+
   expect(round1_keys).not_to eq(round2_keys)
 end
 
@@ -1998,7 +1998,7 @@ end
 Then('average response times should show improvement') do
   cached_time = @performance_metrics[:avg_response_time]
   uncached_time = 0.85  # Mock uncached time
-  
+
   expect(cached_time).to be < (uncached_time * 0.2)
 end
 
@@ -2038,7 +2038,7 @@ Then('I should be able to set cache size limits') do
 end
 
 Then('I should be able to enable or disable caching per simulation') do
-  expect(@cache_config[:per_simulation_cache]).to be_in([true, false])
+  expect(@cache_config[:per_simulation_cache]).to be_in([ true, false ])
 end
 
 Then('I should be able to clear cache for specific simulations') do
@@ -2209,14 +2209,14 @@ end
 # Helper method to generate cache keys for testing
 def generate_cache_key(role, amount, round, simulation_id)
   amount_range = case amount
-                 when 0..99_999 then "0k-99k"
-                 when 100_000..149_999 then "100k-149k" 
-                 when 150_000..199_999 then "150k-199k"
-                 when 200_000..249_999 then "200k-249k"
-                 when 250_000..299_999 then "250k-299k"
-                 when 300_000..349_999 then "300k-349k"
-                 else "350k+"
-                 end
-  
+  when 0..99_999 then "0k-99k"
+  when 100_000..149_999 then "100k-149k"
+  when 150_000..199_999 then "150k-199k"
+  when 200_000..249_999 then "200k-249k"
+  when 250_000..299_999 then "250k-299k"
+  when 300_000..349_999 then "300k-349k"
+  else "350k+"
+  end
+
   "simulation_#{simulation_id}_#{role}_#{amount_range}_round_#{round}"
 end

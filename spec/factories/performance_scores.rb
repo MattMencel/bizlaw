@@ -5,7 +5,7 @@ FactoryBot.define do
     simulation
     team
     user
-    
+
     score_type { "individual" }
     total_score { rand(60..95) }
     settlement_quality_score { rand(20..40) }
@@ -15,7 +15,7 @@ FactoryBot.define do
     speed_bonus { rand(0..10) }
     creative_terms_score { rand(0..10) }
     scored_at { Time.current }
-    
+
     # Automatically calculate score_breakdown
     after(:build) do |score|
       score.score_breakdown = {

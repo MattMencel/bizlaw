@@ -5,11 +5,11 @@ FactoryBot.define do
     transient do
       case_instance { nil }
     end
-    
+
     simulation { case_instance ? create(:simulation, case: case_instance) : create(:simulation, case: create(:case, :with_teams)) }
     team { simulation.case.plaintiff_team }
     settlement_offer { nil }
-    
+
     feedback_type { :offer_reaction }
     mood_level { :neutral }
     satisfaction_score { rand(40..80) }

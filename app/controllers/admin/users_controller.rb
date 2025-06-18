@@ -86,12 +86,12 @@ class Admin::UsersController < ApplicationController
 
   def user_params
     permitted_params = params.require(:user).permit(:first_name, :last_name, :email, :role, :organization_id, :active, roles: [])
-    
+
     # Clean up empty values from roles array
     if permitted_params[:roles]
       permitted_params[:roles] = permitted_params[:roles].reject(&:blank?)
     end
-    
+
     permitted_params
   end
 end

@@ -20,10 +20,10 @@ class TeamsController < ApplicationController
     respond_to do |format|
       format.html do
         if turbo_frame_request?
-          if params[:section] == 'members'
-            render partial: 'team_members', locals: { team: @team }
-          elsif params[:section] == 'activity' 
-            render partial: 'activity', locals: { team: @team }
+          if params[:section] == "members"
+            render partial: "team_members", locals: { team: @team }
+          elsif params[:section] == "activity"
+            render partial: "activity", locals: { team: @team }
           else
             render
           end

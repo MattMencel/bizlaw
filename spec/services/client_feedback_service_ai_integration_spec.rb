@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe ClientFeedbackService do
   let(:simulation) do
     case_instance = create(:case, :with_teams)
-    create(:simulation, 
+    create(:simulation,
       case: case_instance,
       plaintiff_min_acceptable: 150_000,
       plaintiff_ideal: 300_000,
@@ -13,12 +13,12 @@ RSpec.describe ClientFeedbackService do
       defendant_max_acceptable: 250_000
     )
   end
-  
+
   let(:plaintiff_team) { simulation.case.plaintiff_team }
   let(:defendant_team) { simulation.case.defendant_team }
   let(:service) { described_class.new(simulation) }
   let(:negotiation_round) { create(:negotiation_round, simulation: simulation, round_number: 1) }
-  
+
   let(:mock_ai_service) { instance_double(GoogleAiService) }
 
   before do
@@ -28,7 +28,7 @@ RSpec.describe ClientFeedbackService do
 
   describe "#generate_feedback_for_offer! with AI integration" do
     let(:settlement_offer) do
-      create(:settlement_offer, 
+      create(:settlement_offer,
         negotiation_round: negotiation_round,
         team: plaintiff_team,
         amount: 275_000,
@@ -56,10 +56,10 @@ RSpec.describe ClientFeedbackService do
 
       it "integrates AI feedback into range-based feedback generation" do
         feedbacks = service.generate_feedback_for_offer!(settlement_offer)
-        
+
         expect(feedbacks).to be_an(Array)
         expect(feedbacks.first).to be_a(ClientFeedback)
-        
+
         feedback = feedbacks.first
         expect(feedback.feedback_text).to include("Client reviewing settlement positioning")
         expect(feedback.mood_level).to eq("satisfied")
@@ -68,14 +68,14 @@ RSpec.describe ClientFeedbackService do
 
       it "calls Google AI service for settlement feedback" do
         service.generate_feedback_for_offer!(settlement_offer)
-        
+
         expect(mock_ai_service).to have_received(:generate_settlement_feedback)
           .with(settlement_offer)
       end
 
       it "preserves existing feedback categorization" do
         feedbacks = service.generate_feedback_for_offer!(settlement_offer)
-        
+
         feedback = feedbacks.first
         expect(feedback.feedback_type).to eq("offer_reaction")
         expect(feedback.triggered_by_round).to eq(negotiation_round.round_number)
@@ -84,7 +84,7 @@ RSpec.describe ClientFeedbackService do
 
       it "maintains educational context in AI responses" do
         feedbacks = service.generate_feedback_for_offer!(settlement_offer)
-        
+
         feedback = feedbacks.first
         expect(feedback.feedback_text).to be_present
         expect(feedback.feedback_text.length).to be > 20
@@ -102,10 +102,10 @@ RSpec.describe ClientFeedbackService do
 
       it "falls back to original range validation feedback" do
         feedbacks = service.generate_feedback_for_offer!(settlement_offer)
-        
+
         expect(feedbacks).to be_an(Array)
         expect(feedbacks.first).to be_a(ClientFeedback)
-        
+
         # Should still generate meaningful feedback
         feedback = feedbacks.first
         expect(feedback.feedback_text).to be_present
@@ -115,7 +115,7 @@ RSpec.describe ClientFeedbackService do
 
       it "does not call AI service when disabled" do
         service.generate_feedback_for_offer!(settlement_offer)
-        
+
         expect(mock_ai_service).not_to have_received(:generate_settlement_feedback)
       end
     end
@@ -141,7 +141,7 @@ RSpec.describe ClientFeedbackService do
 
       it "gracefully handles AI service errors" do
         feedbacks = service.generate_feedback_for_offer!(settlement_offer)
-        
+
         expect(feedbacks).to be_an(Array)
         feedback = feedbacks.first
         expect(feedback.feedback_text).to be_present
@@ -150,16 +150,16 @@ RSpec.describe ClientFeedbackService do
 
       it "logs errors for monitoring" do
         allow(Rails.logger).to receive(:warn)
-        
+
         service.generate_feedback_for_offer!(settlement_offer)
-        
+
         # Error logging would be handled by GoogleAiService
         expect(mock_ai_service).to have_received(:generate_settlement_feedback)
       end
 
       it "maintains user experience during errors" do
         feedbacks = service.generate_feedback_for_offer!(settlement_offer)
-        
+
         expect(feedbacks).not_to be_empty
         expect(feedbacks.first).to be_a(ClientFeedback)
         expect(feedbacks.first.feedback_text).to be_present
@@ -193,11 +193,11 @@ RSpec.describe ClientFeedbackService do
       end
 
       it "generates AI-enhanced event feedback for affected teams" do
-        feedbacks = service.generate_event_feedback!(simulation_event, [plaintiff_team, defendant_team])
-        
+        feedbacks = service.generate_event_feedback!(simulation_event, [ plaintiff_team, defendant_team ])
+
         expect(feedbacks).to be_an(Array)
         expect(feedbacks.length).to be >= 1
-        
+
         feedbacks.each do |feedback|
           expect(feedback).to be_a(ClientFeedback)
           expect(feedback.feedback_text).to include("media developments")
@@ -206,7 +206,7 @@ RSpec.describe ClientFeedbackService do
 
       it "provides contextually relevant responses to events" do
         feedbacks = service.generate_event_feedback!(simulation_event)
-        
+
         feedbacks.each do |feedback|
           expect(feedback.feedback_text).to be_present
           expect(feedback.feedback_text).not_to include("opponent")
@@ -222,15 +222,15 @@ RSpec.describe ClientFeedbackService do
 
     before do
       # Create offers for the completed round
-      create(:settlement_offer, 
-        team: plaintiff_team, 
-        negotiation_round: completed_round, 
+      create(:settlement_offer,
+        team: plaintiff_team,
+        negotiation_round: completed_round,
         amount: 250_000,
         quality_score: 85
       )
-      create(:settlement_offer, 
-        team: defendant_team, 
-        negotiation_round: completed_round, 
+      create(:settlement_offer,
+        team: defendant_team,
+        negotiation_round: completed_round,
         amount: 150_000,
         quality_score: 75
       )
@@ -253,7 +253,7 @@ RSpec.describe ClientFeedbackService do
 
       it "incorporates AI strategic analysis into transition feedback" do
         feedbacks = service.generate_round_transition_feedback!(completed_round.round_number, next_round)
-        
+
         expect(feedbacks).to be_an(Array)
         expect(mock_ai_service).to have_received(:analyze_negotiation_state)
           .with(simulation, next_round)
@@ -261,7 +261,7 @@ RSpec.describe ClientFeedbackService do
 
       it "provides role-specific strategic guidance" do
         feedbacks = service.generate_round_transition_feedback!(completed_round.round_number, next_round)
-        
+
         feedbacks.each do |feedback|
           expect(feedback).to be_a(ClientFeedback)
           expect(feedback.feedback_type).to eq("strategy_guidance")
@@ -271,7 +271,7 @@ RSpec.describe ClientFeedbackService do
 
       it "builds on negotiation history" do
         feedbacks = service.generate_round_transition_feedback!(completed_round.round_number, next_round)
-        
+
         feedbacks.each do |feedback|
           expect(feedback.feedback_text).to be_present
           expect(feedback.feedback_text.length).to be > 30
@@ -282,9 +282,9 @@ RSpec.describe ClientFeedbackService do
   end
 
   describe "#generate_settlement_feedback! with AI enhancement" do
-    let(:final_round) do 
-      create(:negotiation_round, 
-        simulation: simulation, 
+    let(:final_round) do
+      create(:negotiation_round,
+        simulation: simulation,
         round_number: 4,
         settlement_reached: true
       )
@@ -294,14 +294,14 @@ RSpec.describe ClientFeedbackService do
 
     before do
       # Create converging offers that resulted in settlement
-      create(:settlement_offer, 
-        team: plaintiff_team, 
-        negotiation_round: final_round, 
+      create(:settlement_offer,
+        team: plaintiff_team,
+        negotiation_round: final_round,
         amount: final_settlement_amount + 5_000
       )
-      create(:settlement_offer, 
-        team: defendant_team, 
-        negotiation_round: final_round, 
+      create(:settlement_offer,
+        team: defendant_team,
+        negotiation_round: final_round,
         amount: final_settlement_amount - 5_000
       )
     end
@@ -323,7 +323,7 @@ RSpec.describe ClientFeedbackService do
 
       it "generates AI-enhanced settlement satisfaction responses" do
         feedbacks = service.generate_settlement_feedback!(final_round)
-        
+
         expect(feedbacks).to be_an(Array)
         feedbacks.each do |feedback|
           expect(feedback).to be_a(ClientFeedback)
@@ -334,7 +334,7 @@ RSpec.describe ClientFeedbackService do
 
       it "reflects appropriate closure context" do
         feedbacks = service.generate_settlement_feedback!(final_round)
-        
+
         feedbacks.each do |feedback|
           expect(feedback.feedback_text).to include_any_of([
             "settlement", "resolution", "outcome", "negotiation"
@@ -382,7 +382,7 @@ RSpec.describe ClientFeedbackService do
         feedbacks = multiple_offers.map do |offer|
           service.generate_feedback_for_offer!(offer).first
         end
-        
+
         expect(feedbacks.length).to eq(3)
         feedbacks.each do |feedback|
           expect(feedback.feedback_text).to include("analytical")
@@ -394,7 +394,7 @@ RSpec.describe ClientFeedbackService do
         feedbacks = multiple_offers.map do |offer|
           service.generate_feedback_for_offer!(offer).first
         end
-        
+
         # Each feedback should build on the established personality
         feedbacks.each do |feedback|
           expect(feedback.satisfaction_score).to be_between(70, 85)
@@ -406,7 +406,7 @@ RSpec.describe ClientFeedbackService do
 
   describe "AI cost and usage monitoring integration" do
     let(:settlement_offer) do
-      create(:settlement_offer, 
+      create(:settlement_offer,
         negotiation_round: negotiation_round,
         team: plaintiff_team,
         amount: 200_000
@@ -432,7 +432,7 @@ RSpec.describe ClientFeedbackService do
 
       it "tracks AI service costs when available" do
         feedbacks = service.generate_feedback_for_offer!(settlement_offer)
-        
+
         expect(mock_ai_service).to have_received(:generate_settlement_feedback)
         # Cost tracking would be handled by GoogleAiService
         expect(feedbacks.first).to be_a(ClientFeedback)
@@ -445,9 +445,9 @@ RSpec.describe ClientFeedbackService do
           cost: 0,
           quota_exceeded: true
         )
-        
+
         allow(mock_ai_service).to receive(:generate_settlement_feedback).and_return(quota_exceeded_feedback)
-        
+
         feedbacks = service.generate_feedback_for_offer!(settlement_offer)
         expect(feedbacks.first).to be_a(ClientFeedback)
       end
@@ -456,7 +456,7 @@ RSpec.describe ClientFeedbackService do
 
   describe "AI response quality validation" do
     let(:settlement_offer) do
-      create(:settlement_offer, 
+      create(:settlement_offer,
         negotiation_round: negotiation_round,
         team: plaintiff_team,
         amount: 225_000
@@ -481,7 +481,7 @@ RSpec.describe ClientFeedbackService do
 
       it "validates AI responses are professionally appropriate" do
         feedbacks = service.generate_feedback_for_offer!(settlement_offer)
-        
+
         feedback = feedbacks.first
         expect(feedback.feedback_text).to be_present
         expect(feedback.feedback_text).not_to include_any_of([
@@ -491,7 +491,7 @@ RSpec.describe ClientFeedbackService do
 
       it "ensures educational value in AI responses" do
         feedbacks = service.generate_feedback_for_offer!(settlement_offer)
-        
+
         feedback = feedbacks.first
         expect(feedback.feedback_text.length).to be > 30
         expect(feedback.feedback_text).to include_any_of([
@@ -501,7 +501,7 @@ RSpec.describe ClientFeedbackService do
 
       it "maintains legal realism in AI feedback" do
         feedbacks = service.generate_feedback_for_offer!(settlement_offer)
-        
+
         feedback = feedbacks.first
         expect(feedback.feedback_text).to include_any_of([
           "client", "settlement", "business", "risk", "objectives"

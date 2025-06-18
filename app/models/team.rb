@@ -18,7 +18,7 @@ class Team < ApplicationRecord
   # Validations
   validates :name, presence: true,
                   length: { maximum: 255 },
-                  uniqueness: { scope: [:course_id, :owner_id], case_sensitive: false }
+                  uniqueness: { scope: [ :course_id, :owner_id ], case_sensitive: false }
   validates :description, presence: true
   validates :owner_id, presence: true
   validates :course_id, presence: true
@@ -89,17 +89,17 @@ class Team < ApplicationRecord
   def full?
     member_count >= max_members
   end
-  
+
   def case_role
     # Get the role from the first case team association
     # This assumes teams typically have one primary role
-    case_teams.first&.role || 'unassigned'
+    case_teams.first&.role || "unassigned"
   end
-  
+
   def role_in_case(case_obj)
     case_teams.find_by(case: case_obj)&.role
   end
-  
+
   def primary_case
     # Return the first case this team is assigned to
     cases.first

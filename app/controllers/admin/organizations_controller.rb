@@ -32,7 +32,7 @@ class Admin::OrganizationsController < ApplicationController
       @organizations = @organizations.where(active: false)
     end
 
-    @organizations = @organizations.page(params[:page]).per(20)
+    @organizations = @organizations.includes(:users, :courses).page(params[:page]).per(20)
   end
 
   def show
@@ -103,7 +103,7 @@ class Admin::OrganizationsController < ApplicationController
   private
 
   def set_organization
-    @organization = Organization.find(params[:id])
+    @organization = Organization.includes(:users, :courses, :instructors, :students, :admins).find(params[:id])
   end
 
   def organization_params

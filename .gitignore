@@ -64,6 +64,7 @@ tasks/
 mcp-server/
 
 .claude/
+.mcp.json
 
 # Scenario-specific PRDs and sensitive simulation content
 .prd/SCENARIO_*

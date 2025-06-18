@@ -55,14 +55,14 @@ class CaseScenarioService
           }
         },
         round_triggers: {
-          '2' => { 'media_attention' => true },
-          '3' => { 'witness_change' => true },
-          '4' => { 'ipo_delay' => true },
-          '5' => { 'court_deadline' => true }
+          "2" => { "media_attention" => true },
+          "3" => { "witness_change" => true },
+          "4" => { "ipo_delay" => true },
+          "5" => { "court_deadline" => true }
         }
       }
     },
-    
+
     # Contract Dispute Cases
     {
       id: "apex_v_digitech",
@@ -116,14 +116,14 @@ class CaseScenarioService
           }
         },
         round_triggers: {
-          '2' => { 'witness_change' => true },
-          '3' => { 'media_attention' => true },
-          '4' => { 'court_deadline' => true },
-          '5' => { 'court_deadline' => true }
+          "2" => { "witness_change" => true },
+          "3" => { "media_attention" => true },
+          "4" => { "court_deadline" => true },
+          "5" => { "court_deadline" => true }
         }
       }
     },
-    
+
     # Discrimination Cases
     {
       id: "chen_v_globalbank",
@@ -177,14 +177,14 @@ class CaseScenarioService
           }
         },
         round_triggers: {
-          '2' => { 'media_attention' => true },
-          '3' => { 'witness_change' => true },
-          '4' => { 'court_deadline' => true },
-          '5' => { 'court_deadline' => true }
+          "2" => { "media_attention" => true },
+          "3" => { "witness_change" => true },
+          "4" => { "court_deadline" => true },
+          "5" => { "court_deadline" => true }
         }
       }
     },
-    
+
     # Intellectual Property Cases
     {
       id: "innovate_v_techgiant",
@@ -238,16 +238,16 @@ class CaseScenarioService
           }
         },
         round_triggers: {
-          '2' => { 'media_attention' => true },
-          '3' => { 'witness_change' => true },
-          '4' => { 'ipo_delay' => true },
-          '5' => { 'court_deadline' => true },
-          '6' => { 'court_deadline' => true },
-          '7' => { 'court_deadline' => true }
+          "2" => { "media_attention" => true },
+          "3" => { "witness_change" => true },
+          "4" => { "ipo_delay" => true },
+          "5" => { "court_deadline" => true },
+          "6" => { "court_deadline" => true },
+          "7" => { "court_deadline" => true }
         }
       }
     },
-    
+
     # Wrongful Termination Cases
     {
       id: "martinez_v_retailcorp",
@@ -301,10 +301,10 @@ class CaseScenarioService
           }
         },
         round_triggers: {
-          '2' => { 'media_attention' => true },
-          '3' => { 'witness_change' => true },
-          '4' => { 'court_deadline' => true },
-          '5' => { 'court_deadline' => true }
+          "2" => { "media_attention" => true },
+          "3" => { "witness_change" => true },
+          "4" => { "court_deadline" => true },
+          "5" => { "court_deadline" => true }
         }
       }
     }

@@ -55,7 +55,7 @@ class Document < ApplicationRecord
                     message: "must be a PDF, Word, Excel, PowerPoint, text, or markdown file"
                   },
                   size: { less_than: 100.megabytes, message: "must be less than 100MB" }
-  
+
   validates :access_level, presence: true
   validates :category, presence: true, if: :case_material?
 
@@ -134,7 +134,7 @@ class Document < ApplicationRecord
 
   # Case material specific methods
   def case_material?
-    document_type_resource? && documentable_type == 'Case'
+    document_type_resource? && documentable_type == "Case"
   end
 
   def accessible_by_team?(team)
@@ -148,7 +148,7 @@ class Document < ApplicationRecord
     return true if user.role_admin? || user.role_instructor?
     return true if access_level_public?
     return true if created_by == user
-    
+
     if case_material?
       user_teams = user.teams.joins(:case_teams).where(case_teams: { case: documentable })
       user_teams.any? { |team| accessible_by_team?(team) }
@@ -159,7 +159,7 @@ class Document < ApplicationRecord
 
   def add_annotation!(user, content, options = {})
     return false unless case_material?
-    
+
     annotation = {
       id: SecureRandom.uuid,
       user_id: user.id,
@@ -173,22 +173,22 @@ class Document < ApplicationRecord
     current_annotations = annotations || []
     current_annotations << annotation
     update!(annotations: current_annotations)
-    
+
     annotation
   end
 
   def remove_annotation!(annotation_id, user)
     return false unless case_material?
-    
+
     current_annotations = annotations || []
-    annotation = current_annotations.find { |a| a['id'] == annotation_id }
-    
+    annotation = current_annotations.find { |a| a["id"] == annotation_id }
+
     return false unless annotation
-    return false unless annotation['user_id'] == user.id || user.role_instructor? || user.role_admin?
-    
-    current_annotations.reject! { |a| a['id'] == annotation_id }
+    return false unless annotation["user_id"] == user.id || user.role_instructor? || user.role_admin?
+
+    current_annotations.reject! { |a| a["id"] == annotation_id }
     update!(annotations: current_annotations)
-    
+
     true
   end
 
@@ -206,7 +206,7 @@ class Document < ApplicationRecord
 
   def update_searchable_content!
     return unless case_material?
-    
+
     content = extract_text_content
     update!(searchable_content: content) if content.present?
   end
@@ -214,23 +214,23 @@ class Document < ApplicationRecord
   private
 
   def team_in_case?(team)
-    return false unless documentable_type == 'Case'
+    return false unless documentable_type == "Case"
     team.case_teams.exists?(case: documentable)
   end
 
   def team_allowed?(team)
-    team_restrictions.present? && 
-    (team_restrictions[team.id.to_s] == true || 
-     team_restrictions['allowed_teams']&.include?(team.id.to_s))
+    team_restrictions.present? &&
+    (team_restrictions[team.id.to_s] == true ||
+     team_restrictions["allowed_teams"]&.include?(team.id.to_s))
   end
 
   def extract_text_content
     return nil unless file.attached?
-    
+
     case file.content_type
-    when 'text/plain', 'text/markdown'
+    when "text/plain", "text/markdown"
       file.download
-    when 'application/pdf'
+    when "application/pdf"
       # Would use a gem like pdf-reader to extract text
       extract_pdf_content if defined?(PDF::Reader)
     else

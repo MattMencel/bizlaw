@@ -137,14 +137,14 @@ class SettlementOffer < ApplicationRecord
 
   # Check if offer positioning is strong
   def strong_positioning?
-    [:strong_position, :excellent_position, :ideal_amount].include?(
+    [ :strong_position, :excellent_position, :ideal_amount ].include?(
       client_range_validation.positioning
     )
   end
 
   # Check if offer is problematic for client
   def problematic_positioning?
-    [:too_aggressive, :below_minimum, :exceeds_maximum, :unacceptable_exposure].include?(
+    [ :too_aggressive, :below_minimum, :exceeds_maximum, :unacceptable_exposure ].include?(
       client_range_validation.positioning
     )
   end
@@ -289,7 +289,7 @@ class SettlementOffer < ApplicationRecord
   def amount_within_reasonable_bounds
     return unless amount.present? && simulation.present?
 
-    max_reasonable = [simulation.plaintiff_ideal, simulation.defendant_max_acceptable].max * 2
+    max_reasonable = [ simulation.plaintiff_ideal, simulation.defendant_max_acceptable ].max * 2
 
     if amount > max_reasonable
       errors.add(:amount, "is unreasonably high for this case")
@@ -311,14 +311,14 @@ class SettlementOffer < ApplicationRecord
     # Legal reasoning keywords (0-10 points)
     legal_terms = %w[damages compensation liability negligence precedent statute evidence testimony]
     legal_score = legal_terms.count { |term| justification.downcase.include?(term) }
-    score += [legal_score * 2, 10].min
+    score += [ legal_score * 2, 10 ].min
 
     # Professional tone (0-5 points)
     if justification.match?(/\b(respectfully|pursuant|whereas|therefore)\b/i)
       score += 5
     end
 
-    [score, 25].min
+    [ score, 25 ].min
   end
 
   def calculate_strategic_positioning
@@ -352,9 +352,9 @@ class SettlementOffer < ApplicationRecord
     # Additional score for specific creative elements
     creative_elements = %w[apology training policy confidentiality reference mediation]
     element_score = creative_elements.count { |element| non_monetary_terms.downcase.include?(element) }
-    score += [element_score * 3, 15].min
+    score += [ element_score * 3, 15 ].min
 
-    [score, 25].min
+    [ score, 25 ].min
   end
 
   def trigger_client_feedback

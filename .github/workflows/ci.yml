@@ -48,6 +48,12 @@ jobs:
           bundle exec cucumber
           bundle exec rails test:system
 
+      - name: Run E2E tests
+        id: e2e_tests
+        continue-on-error: true
+        run: |
+          bundle exec rspec spec/e2e/
+
       - name: Upload coverage to Coveralls
         if: always()
         uses: coverallsapp/github-action@v2
@@ -78,7 +84,7 @@ jobs:
         run: bin/importmap audit
 
       - name: Fail job if tests failed
-        if: steps.tests.outcome == 'failure'
+        if: steps.tests.outcome == 'failure' || steps.e2e_tests.outcome == 'failure'
         run: |
           echo "Tests failed, but all other checks completed"
           exit 1

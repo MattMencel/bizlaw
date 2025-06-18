@@ -3,7 +3,7 @@
 class Api::V1::CaseMaterialsController < Api::V1::BaseController
   before_action :authenticate_user!
   before_action :set_case
-  before_action :set_case_material, only: [:show, :update, :destroy, :download]
+  before_action :set_case_material, only: [ :show, :update, :destroy, :download ]
   before_action :ensure_case_access
 
   # GET /api/v1/cases/:case_id/case_materials
@@ -15,10 +15,10 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
 
     # Filter by team access permissions
     @case_materials = filter_materials_by_team_access(@case_materials)
-    
+
     # Apply search and category filters
     @case_materials = apply_search_filters(@case_materials)
-    
+
     # Sort by category and creation date
     @case_materials = @case_materials.order(:category, :created_at)
 
@@ -87,10 +87,10 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
     @case_material = @case.documents.build(case_material_params)
     @case_material.created_by = current_user
     @case_material.documentable = @case
-    
+
     # Set default category if not provided
     @case_material.category ||= determine_default_category(@case_material)
-    
+
     authorize @case_material
 
     if @case_material.save
@@ -105,9 +105,9 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
         }
       }, status: :created
     else
-      render json: { 
+      render json: {
         error: "Failed to upload case material",
-        details: @case_material.errors.full_messages 
+        details: @case_material.errors.full_messages
       }, status: :unprocessable_entity
     end
   end
@@ -126,9 +126,9 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
         }
       }
     else
-      render json: { 
+      render json: {
         error: "Failed to update case material",
-        details: @case_material.errors.full_messages 
+        details: @case_material.errors.full_messages
       }, status: :unprocessable_entity
     end
   end
@@ -152,8 +152,8 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
 
     if @case_material.file.attached?
       # Log the download for audit purposes
-      log_material_access(@case_material, 'download')
-      
+      log_material_access(@case_material, "download")
+
       redirect_to rails_blob_url(@case_material.file, disposition: "attachment")
     else
       render json: { error: "File not found" }, status: :not_found
@@ -200,7 +200,7 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
     return render json: { data: [], meta: { query: query } } if query.blank?
 
     @results = search_case_materials(query)
-    
+
     render json: {
       data: @results.map do |material|
         {
@@ -255,29 +255,31 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
   def case_material_params
     permitted_params = params.require(:case_material).permit(
       :title, :description, :category, :access_level, :file,
-      team_restrictions: {}, tags: []
+      team_restrictions: [ :allowed_teams, :restricted_teams ],
+      tags: []
     )
-    
+
     # Sanitize nested and array attributes
     permitted_params[:team_restrictions] = sanitize_team_restrictions(permitted_params[:team_restrictions])
     permitted_params[:tags] = sanitize_tags(permitted_params[:tags])
-    
+
     # Override document_type to case material type
-    permitted_params[:document_type] = 'resource'
-    
+    permitted_params[:document_type] = "resource"
+
     permitted_params
   end
 
   def case_material_update_params
     permitted_params = params.require(:case_material).permit(
       :title, :description, :category, :access_level,
-      team_restrictions: {}, tags: []
+      team_restrictions: [ :allowed_teams, :restricted_teams ],
+      tags: []
     )
-    
+
     # Sanitize nested and array attributes
     permitted_params[:team_restrictions] = sanitize_team_restrictions(permitted_params[:team_restrictions])
     permitted_params[:tags] = sanitize_tags(permitted_params[:tags])
-    
+
     permitted_params
   end
 
@@ -287,17 +289,17 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
 
   def case_material_categories
     [
-      'case_facts',
-      'legal_precedents', 
-      'evidence_documents',
-      'witness_statements',
-      'expert_reports',
-      'company_policies',
-      'communications',
-      'financial_records',
-      'legal_briefs',
-      'settlement_history',
-      'reference_materials'
+      "case_facts",
+      "legal_precedents",
+      "evidence_documents",
+      "witness_statements",
+      "expert_reports",
+      "company_policies",
+      "communications",
+      "financial_records",
+      "legal_briefs",
+      "settlement_history",
+      "reference_materials"
     ]
   end
 
@@ -307,41 +309,41 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
     # Filter based on access level and team restrictions
     materials.where(
       "access_level = ? OR access_level = ? OR (team_restrictions ? ?)",
-      'public',
-      'case_teams',
+      "public",
+      "case_teams",
       current_user_team.id.to_s
     )
   end
 
   def apply_search_filters(materials)
     materials = materials.where(category: params[:category]) if params[:category].present?
-    materials = materials.where("title ILIKE ? OR searchable_content ILIKE ?", 
+    materials = materials.where("title ILIKE ? OR searchable_content ILIKE ?",
                                "%#{params[:search]}%", "%#{params[:search]}%") if params[:search].present?
-    materials = materials.where("tags @> ?", [params[:tag]].to_json) if params[:tag].present?
+    materials = materials.where("tags @> ?", [ params[:tag] ].to_json) if params[:tag].present?
     materials
   end
 
   def determine_default_category(material)
     # Analyze filename to suggest category
     filename = material.file.filename.to_s.downcase
-    
+
     case filename
     when /policy|handbook|manual/
-      'company_policies'
+      "company_policies"
     when /statement|testimony|deposition/
-      'witness_statements'
+      "witness_statements"
     when /expert|report|analysis/
-      'expert_reports'
+      "expert_reports"
     when /email|communication|correspondence/
-      'communications'
+      "communications"
     when /financial|budget|salary|compensation/
-      'financial_records'
+      "financial_records"
     when /precedent|case.*law|ruling/
-      'legal_precedents'
+      "legal_precedents"
     when /brief|motion|pleading/
-      'legal_briefs'
+      "legal_briefs"
     else
-      'evidence_documents'
+      "evidence_documents"
     end
   end
 
@@ -360,33 +362,33 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
   def calculate_relevance_score(material, query)
     score = 0
     query_terms = query.downcase.split(/\s+/)
-    
+
     query_terms.each do |term|
       score += 10 if material.title.downcase.include?(term)
       score += 5 if material.description&.downcase&.include?(term)
       score += 3 if material.searchable_content&.downcase&.include?(term)
       score += 2 if material.tags&.any? { |tag| tag.downcase.include?(term) }
     end
-    
+
     score
   end
 
   def extract_matching_content(material, query)
     content = material.searchable_content || ""
     query_terms = query.downcase.split(/\s+/)
-    
+
     matches = []
     query_terms.each do |term|
       if content.downcase.include?(term)
         # Extract surrounding context (50 chars before and after)
         index = content.downcase.index(term)
-        start_pos = [0, index - 50].max
-        end_pos = [content.length, index + term.length + 50].min
+        start_pos = [ 0, index - 50 ].max
+        end_pos = [ content.length, index + term.length + 50 ].min
         context = content[start_pos...end_pos]
         matches << "...#{context}..."
       end
     end
-    
+
     matches.first(3) # Return up to 3 matching excerpts
   end
 
@@ -413,7 +415,7 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
     )
 
     case_material_categories.map do |category|
-      [category, accessible_materials.where(category: category).count]
+      [ category, accessible_materials.where(category: category).count ]
     end.to_h
   end
 
@@ -425,7 +427,7 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
     # Create audit log entry
     @case.case_events.create!(
       user: current_user,
-      event_type: 'document_access',
+      event_type: "document_access",
       metadata: {
         document_id: material.id,
         document_title: material.title,

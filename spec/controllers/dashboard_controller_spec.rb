@@ -18,7 +18,7 @@ RSpec.describe DashboardController, type: :controller do
       let(:team2) { create(:team, name: "Defense Team B") }
       let(:case1) { create(:case, case_type: :sexual_harassment, title: "Mitchell v. TechFlow Industries") }
       let(:case2) { create(:case, case_type: :discrimination, title: "Johnson v. MegaCorp") }
-      
+
       before do
         sign_in student
         create(:team_member, user: student, team: team1)
@@ -56,7 +56,7 @@ RSpec.describe DashboardController, type: :controller do
       let(:instructor) { create(:user, role: :instructor) }
       let(:course) { create(:course) }
       let(:team) { create(:team) }
-      
+
       before do
         sign_in instructor
         course.instructor = instructor
@@ -127,7 +127,7 @@ RSpec.describe DashboardController, type: :controller do
     let(:student) { create(:user, role: :student) }
     let(:team) { create(:team) }
     let(:case_with_simulation) { create(:case, :with_simulation) }
-    
+
     before do
       sign_in student
       create(:team_member, user: student, team: team)
@@ -141,7 +141,7 @@ RSpec.describe DashboardController, type: :controller do
 
     context "with active simulations" do
       let!(:active_simulation) { create(:simulation, status: :active, case: case_with_simulation) }
-      
+
       it "identifies active simulations for the student" do
         get :index
         active_cases = assigns(:my_cases).joins(:simulation).where(simulations: { status: :active })
@@ -151,7 +151,7 @@ RSpec.describe DashboardController, type: :controller do
 
     context "with completed simulations" do
       let!(:completed_simulation) { create(:simulation, status: :completed, case: case_with_simulation) }
-      
+
       it "identifies completed simulations for the student" do
         get :index
         completed_cases = assigns(:my_cases).joins(:simulation).where(simulations: { status: :completed })
@@ -162,7 +162,7 @@ RSpec.describe DashboardController, type: :controller do
 
   describe "dashboard performance" do
     let(:student) { create(:user, role: :student) }
-    
+
     before do
       sign_in student
       # Create test data
@@ -179,14 +179,14 @@ RSpec.describe DashboardController, type: :controller do
 
   describe "error handling" do
     let(:student) { create(:user, role: :student) }
-    
+
     before do
       sign_in student
     end
 
     it "handles missing simulation data gracefully" do
       allow(student).to receive(:teams).and_raise(ActiveRecord::StatementInvalid.new("Connection lost"))
-      
+
       expect { get :index }.not_to raise_error
     end
   end

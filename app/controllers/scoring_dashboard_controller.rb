@@ -2,8 +2,8 @@
 
 class ScoringDashboardController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_current_simulation, only: [:index, :performance_data, :trends]
-  before_action :authorize_instructor, only: [:class_analytics, :update_score]
+  before_action :set_current_simulation, only: [ :index, :performance_data, :trends ]
+  before_action :authorize_instructor, only: [ :class_analytics, :update_score ]
 
   def index
     case current_user.role
@@ -43,7 +43,7 @@ class ScoringDashboardController < ApplicationController
       format.json do
         trend_data = build_trend_data
         improvement_analysis = calculate_improvement_analysis(trend_data)
-        
+
         render json: {
           trend_data: trend_data,
           improvement_analysis: improvement_analysis
@@ -69,9 +69,9 @@ class ScoringDashboardController < ApplicationController
           include_trends: true,
           include_recommendations: true
         )
-        
+
         pdf_data = report_generator.generate_pdf
-        
+
         send_data pdf_data,
                   filename: "performance_report_#{current_user.id}_#{Date.current.strftime('%Y%m%d')}.pdf",
                   type: "application/pdf",
@@ -82,11 +82,11 @@ class ScoringDashboardController < ApplicationController
 
   def update_score
     @performance_score = PerformanceScore.find(params[:id])
-    
+
     respond_to do |format|
       format.json do
         if update_score_params[:adjustment_reason].blank?
-          render json: { errors: { adjustment_reason: ["is required for manual adjustments"] } }, 
+          render json: { errors: { adjustment_reason: [ "is required for manual adjustments" ] } },
                  status: :unprocessable_entity
           return
         end
@@ -95,8 +95,8 @@ class ScoringDashboardController < ApplicationController
           adjusted_by: current_user,
           adjusted_at: Time.current
         ))
-          render json: { 
-            success: true, 
+          render json: {
+            success: true,
             new_total: @performance_score.total_score,
             message: "Score updated successfully"
           }
@@ -205,7 +205,7 @@ class ScoringDashboardController < ApplicationController
     return [] unless @current_simulation_score
 
     achievements = []
-    
+
     if @current_simulation_score.speed_bonus > 0
       achievements << {
         type: "speed_bonus",
@@ -311,11 +311,11 @@ class ScoringDashboardController < ApplicationController
 
     trend_direction = if total_improvement > 5
                        "improving"
-                     elsif total_improvement < -5
+    elsif total_improvement < -5
                        "declining"
-                     else
+    else
                        "stable"
-                     end
+    end
 
     {
       overall_trend: trend_direction,
@@ -391,7 +391,7 @@ class ScoringDashboardController < ApplicationController
 
   def build_class_analytics_data
     simulations = @instructor_simulations
-    
+
     # Get all individual scores for the instructor's simulations
     all_scores = PerformanceScore.joins(:user, team: :case_teams)
                                 .where(simulation: simulations, score_type: "individual")
@@ -399,9 +399,9 @@ class ScoringDashboardController < ApplicationController
 
     # Calculate basic statistics
     class_averages = calculate_class_averages(simulations)
-    
+
     # Score distribution for histogram
-    score_ranges = [0, 60, 70, 80, 90, 100]
+    score_ranges = [ 0, 60, 70, 80, 90, 100 ]
     distribution = score_ranges.each_cons(2).map do |min, max|
       count = all_scores.where(total_score: min...max).count
       { range: "#{min}-#{max-1}", count: count }
@@ -428,7 +428,7 @@ class ScoringDashboardController < ApplicationController
   def calculate_role_comparison(scores)
     plaintiff_scores = scores.joins(team: :case_teams)
                             .where(case_teams: { role: "plaintiff" })
-    
+
     defendant_scores = scores.joins(team: :case_teams)
                             .where(case_teams: { role: "defendant" })
 
@@ -445,7 +445,7 @@ class ScoringDashboardController < ApplicationController
       difference: (plaintiff_avg - defendant_avg).round(1),
       statistical_significance: {
         is_significant: significance == "significant",
-        description: significance == "significant" ? 
+        description: significance == "significant" ?
           "The difference between plaintiff and defendant performance is statistically notable" :
           "No significant difference between plaintiff and defendant performance"
       }
@@ -461,7 +461,7 @@ class ScoringDashboardController < ApplicationController
     actual_scores = PerformanceScore.where(simulation: simulations, score_type: "individual").count
 
     return 0 if total_expected_scores.zero?
-    
+
     ((actual_scores.to_f / total_expected_scores) * 100).round(1)
   end
 

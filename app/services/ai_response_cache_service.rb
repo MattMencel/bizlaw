@@ -5,7 +5,7 @@ class AiResponseCacheService
 
   CACHE_EXPIRATION = 2.hours.freeze
   MAX_CACHE_SIZE = 1000.freeze
-  
+
   def initialize(simulation)
     @simulation = simulation
     @cache_enabled = cache_enabled?
@@ -14,9 +14,9 @@ class AiResponseCacheService
   # Generate or retrieve cached AI response for settlement offer
   def get_or_generate_response(settlement_offer, &block)
     return yield unless @cache_enabled
-    
+
     cache_key = generate_cache_key(settlement_offer)
-    
+
     # Try to get from cache first
     cached_response = get_cached_response(cache_key)
     if cached_response
@@ -24,59 +24,59 @@ class AiResponseCacheService
       track_cache_hit
       return adapt_cached_response(cached_response, settlement_offer)
     end
-    
+
     # Cache miss - generate new response
     Rails.logger.info "AI Cache MISS for key: #{cache_key}"
     track_cache_miss
-    
+
     fresh_response = yield
     if fresh_response && fresh_response[:source] == "ai"
       cache_response(cache_key, fresh_response, settlement_offer)
     end
-    
+
     fresh_response
   end
 
   # Generate or retrieve cached AI gap analysis
   def get_or_generate_gap_analysis(plaintiff_offer, defendant_offer, &block)
     return yield unless @cache_enabled
-    
+
     cache_key = generate_gap_cache_key(plaintiff_offer, defendant_offer)
-    
+
     cached_analysis = get_cached_response(cache_key)
     if cached_analysis
       Rails.logger.info "AI Gap Analysis Cache HIT for key: #{cache_key}"
       track_cache_hit
       return cached_analysis
     end
-    
+
     Rails.logger.info "AI Gap Analysis Cache MISS for key: #{cache_key}"
     track_cache_miss
-    
+
     fresh_analysis = yield
     if fresh_analysis && fresh_analysis[:source] == "ai"
       cache_response(cache_key, fresh_analysis)
     end
-    
+
     fresh_analysis
   end
 
   # Cache warming for common scenarios
   def warm_cache_for_common_scenarios
     return unless @cache_enabled
-    
+
     Rails.logger.info "Starting cache warming for simulation #{@simulation.id}"
-    
+
     common_scenarios = identify_common_scenarios
     warmed_count = 0
-    
+
     common_scenarios.each do |scenario|
       break if warmed_count >= 10  # Limit warming to avoid API abuse
-      
+
       begin
         mock_offer = build_scenario_offer(scenario)
         cache_key = generate_cache_key(mock_offer)
-        
+
         # Only warm if not already cached
         unless cache_exists?(cache_key)
           ai_service = GoogleAiService.new
@@ -84,7 +84,7 @@ class AiResponseCacheService
             response = ai_service.generate_settlement_feedback(mock_offer)
             cache_response(cache_key, response, mock_offer)
             warmed_count += 1
-            
+
             # Small delay to respect rate limits
             sleep(0.1)
           end
@@ -93,7 +93,7 @@ class AiResponseCacheService
         Rails.logger.warn "Cache warming failed for scenario #{scenario}: #{e.message}"
       end
     end
-    
+
     Rails.logger.info "Cache warming completed: #{warmed_count} responses pre-generated"
     warmed_count
   end
@@ -101,23 +101,23 @@ class AiResponseCacheService
   # Invalidate cache entries after simulation events
   def invalidate_cache_for_event(event_type)
     return unless @cache_enabled
-    
+
     Rails.logger.info "Invalidating cache for simulation #{@simulation.id} after #{event_type} event"
-    
+
     # Pattern to match simulation-specific cache keys
     cache_pattern = "ai_response:simulation_#{@simulation.id}:*"
-    
+
     invalidated_count = 0
-    
+
     # In production, this would use Redis SCAN for better performance
     # For now, we'll use a simplified approach
     cache_keys = find_cache_keys_by_pattern(cache_pattern)
-    
+
     cache_keys.each do |key|
       Rails.cache.delete(key)
       invalidated_count += 1
     end
-    
+
     Rails.logger.info "Invalidated #{invalidated_count} cache entries"
     invalidated_count
   end
@@ -125,15 +125,15 @@ class AiResponseCacheService
   # Clean up expired cache entries
   def cleanup_expired_entries
     return unless @cache_enabled
-    
+
     Rails.logger.info "Starting cache cleanup for expired entries"
-    
+
     # This would be implemented differently with Redis
     # For Rails.cache, expiration is handled automatically
     # But we can implement custom cleanup logic here
-    
+
     cleanup_count = perform_custom_cleanup
-    
+
     Rails.logger.info "Cache cleanup completed: #{cleanup_count} entries cleaned"
     cleanup_count
   end
@@ -154,16 +154,16 @@ class AiResponseCacheService
   # Clear all cache for simulation
   def clear_simulation_cache
     return unless @cache_enabled
-    
+
     cache_pattern = "ai_response:simulation_#{@simulation.id}:*"
     cache_keys = find_cache_keys_by_pattern(cache_pattern)
-    
+
     cleared_count = 0
     cache_keys.each do |key|
       Rails.cache.delete(key)
       cleared_count += 1
     end
-    
+
     Rails.logger.info "Cleared #{cleared_count} cache entries for simulation #{@simulation.id}"
     cleared_count
   end
@@ -183,10 +183,10 @@ class AiResponseCacheService
     team_role = determine_team_role(settlement_offer.team)
     amount_range = categorize_amount(settlement_offer.amount)
     round_number = settlement_offer.negotiation_round.round_number
-    
+
     # Include simulation context and event state
     event_hash = calculate_event_state_hash
-    
+
     "ai_response:simulation_#{@simulation.id}:#{team_role}:#{amount_range}:round_#{round_number}:events_#{event_hash}"
   end
 
@@ -194,9 +194,9 @@ class AiResponseCacheService
     plaintiff_range = categorize_amount(plaintiff_offer)
     defendant_range = categorize_amount(defendant_offer)
     gap_category = categorize_gap_size(plaintiff_offer - defendant_offer)
-    
+
     event_hash = calculate_event_state_hash
-    
+
     "ai_gap_analysis:simulation_#{@simulation.id}:p_#{plaintiff_range}:d_#{defendant_range}:gap_#{gap_category}:events_#{event_hash}"
   end
 
@@ -228,7 +228,7 @@ class AiResponseCacheService
                               .where("triggered_at > ?", 24.hours.ago)
                               .pluck(:event_type)
                               .sort
-    
+
     Digest::MD5.hexdigest(recent_events.join(","))[0..7]
   end
 
@@ -247,9 +247,9 @@ class AiResponseCacheService
     cached_data[:cached_at] = Time.current.iso8601
     cached_data[:cache_key] = cache_key
     cached_data[:context] = extract_context_info(context_offer) if context_offer
-    
+
     Rails.cache.write(cache_key, cached_data, expires_in: CACHE_EXPIRATION)
-    
+
     Rails.logger.debug "Cached AI response with key: #{cache_key}"
   end
 
@@ -260,14 +260,14 @@ class AiResponseCacheService
   def adapt_cached_response(cached_response, current_offer)
     # Adapt cached response to current context if needed
     adapted_response = cached_response.dup
-    
+
     # Update timestamp to show when it was retrieved
     adapted_response[:retrieved_at] = Time.current.iso8601
     adapted_response[:source] = "cache"
-    
+
     # Could add context adaptation here if needed
     # For example, adjusting pronouns or specific references
-    
+
     adapted_response
   end
 
@@ -296,7 +296,7 @@ class AiResponseCacheService
     mock_team = build_mock_team(scenario[:role])
     mock_round = build_mock_round(scenario[:round])
     estimated_amount = estimate_amount_from_range(scenario[:amount_range])
-    
+
     OpenStruct.new(
       team: mock_team,
       negotiation_round: mock_round,
@@ -307,7 +307,7 @@ class AiResponseCacheService
 
   def build_mock_team(role)
     OpenStruct.new(
-      case_teams: [OpenStruct.new(case: @simulation.case, role: role)]
+      case_teams: [ OpenStruct.new(case: @simulation.case, role: role) ]
     )
   end
 
@@ -362,7 +362,7 @@ class AiResponseCacheService
     hits = cache_hit_count
     misses = cache_miss_count
     total = hits + misses
-    
+
     return 0.0 if total.zero?
     (hits.to_f / total * 100).round(2)
   end

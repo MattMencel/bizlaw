@@ -8,26 +8,26 @@ FactoryBot.define do
     password { "password123" }
     password_confirmation { "password123" }
     role { :student }
-    roles { ['student'] }
+    roles { [ 'student' ] }
 
     trait :student do
       role { :student }
-      roles { ['student'] }
+      roles { [ 'student' ] }
     end
 
     trait :instructor do
       role { :instructor }
-      roles { ['instructor'] }
+      roles { [ 'instructor' ] }
     end
 
     trait :admin do
       role { :admin }
-      roles { ['admin'] }
+      roles { [ 'admin' ] }
     end
 
     trait :org_admin do
       role { :instructor }
-      roles { ['instructor', 'org_admin'] }
+      roles { [ 'instructor', 'org_admin' ] }
     end
 
     trait :with_teams do

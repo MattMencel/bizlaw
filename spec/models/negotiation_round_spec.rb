@@ -43,7 +43,7 @@ RSpec.describe NegotiationRound, type: :model do
   end
 
   describe 'enums' do
-    it { is_expected.to define_enum_for(:status).with_values(
+    it { expect(subject).to define_enum_for(:status).with_values(
       pending: "pending",
       active: "active",
       plaintiff_submitted: "plaintiff_submitted",

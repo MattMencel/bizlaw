@@ -5,10 +5,10 @@ class ProcessCaseMaterialJob < ApplicationJob
 
   def perform(document)
     return unless document.case_material?
-    
+
     # Extract text content for search indexing
     document.update_searchable_content!
-    
+
     # Log the processing
     Rails.logger.info "Processed case material: #{document.title} (#{document.id})"
   rescue => e

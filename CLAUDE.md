@@ -16,6 +16,7 @@ bundle exec rspec                  # Run RSpec unit/integration tests
 bundle exec cucumber               # Run Cucumber BDD tests
 bundle exec rails test:system     # Run system tests with Capybara + Playwright
 bundle exec rspec spec/system/    # Run accessibility & system tests
+bundle exec rspec spec/e2e/       # Run end-to-end tests with Playwright
 bundle exec rspec --tag accessibility  # Run only accessibility tests
 ```
 
@@ -92,6 +93,28 @@ This codebase follows Rails Omakase conventions:
 - ActiveRecord validations and associations
 
 When working with this codebase, leverage the existing patterns rather than creating new architectural approaches.
+
+## MCP Integration
+
+This project supports Model Context Protocol (MCP) integrations for enhanced development workflows:
+
+### GitHub MCP
+For GitHub operations, use the GitHub MCP tools instead of bash commands:
+- Repository management (create, fork, branches)
+- Issues and pull requests (create, update, review, merge)
+- Code and security scanning alerts
+- Notifications and project management
+- File operations (create, update, delete files directly in GitHub)
+
+### Playwright MCP
+For browser automation and E2E testing:
+- Web page navigation and interaction
+- Screenshot and snapshot capture
+- Form filling and element interaction
+- Test generation and execution
+- Accessibility testing with browser tools
+
+These MCPs provide more reliable and feature-rich alternatives to traditional CLI tools for GitHub and browser automation tasks.
 
 ## Project Documentation
 

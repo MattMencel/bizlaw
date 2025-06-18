@@ -134,9 +134,9 @@ RSpec.describe GoogleAiService do
 
       it "logs the error" do
         allow(Rails.logger).to receive(:error)
-        
+
         service.generate_settlement_feedback(settlement_offer)
-        
+
         expect(Rails.logger).to have_received(:error).with(/GoogleAI error/)
       end
     end
@@ -278,7 +278,7 @@ RSpec.describe GoogleAiService do
 
     it "delegates to GoogleAI configuration" do
       allow(GoogleAI).to receive(:enabled?).and_return(true)
-      
+
       expect(service.enabled?).to be true
       expect(GoogleAI).to have_received(:enabled?).at_least(:once)
     end
@@ -324,7 +324,7 @@ RSpec.describe GoogleAiService do
     describe "#parse_ai_feedback" do
       it "extracts sentiment and guidance from AI response" do
         ai_text = "Client satisfaction: moderate. Strategic guidance: Consider more flexible terms."
-        
+
         result = service.send(:parse_ai_feedback, ai_text, settlement_offer)
 
         expect(result[:mood_level]).to be_present

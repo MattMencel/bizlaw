@@ -24,8 +24,8 @@ class GoogleAiService
     # Use caching service if available
     if use_caching?(settlement_offer)
       cache_service = AiResponseCacheService.new(settlement_offer.negotiation_round.simulation)
-      
-      return cache_service.get_or_generate_response(settlement_offer) do
+
+      cache_service.get_or_generate_response(settlement_offer) do
         generate_fresh_settlement_feedback(settlement_offer)
       end
     else
@@ -38,16 +38,16 @@ class GoogleAiService
     # Check rate limits and budget before making request
     rate_limit_check = @monitoring_service.check_rate_limit
     budget_check = @monitoring_service.check_budget_limit
-    
+
     unless rate_limit_check[:allowed] && budget_check[:allowed]
       Rails.logger.warn "AI request blocked: Rate limit: #{rate_limit_check[:allowed]}, Budget: #{budget_check[:allowed]}"
       return fallback_feedback(settlement_offer).merge(
-        blocked_reason: rate_limit_check[:allowed] ? 'budget_exceeded' : 'rate_limited'
+        blocked_reason: rate_limit_check[:allowed] ? "budget_exceeded" : "rate_limited"
       )
     end
 
     start_time = Time.current
-    
+
     begin
       prompt = build_settlement_prompt_with_personality(settlement_offer)
       response = @client.generate_content(
@@ -69,14 +69,14 @@ class GoogleAiService
       response_time = ((Time.current - start_time) * 1000).round
       response_text = extract_text_from_response(response)
       cost = calculate_cost(response)
-      
+
       # Track usage
       @monitoring_service.track_request(
         model: @model,
         cost: cost,
         response_time: response_time,
         tokens_used: estimate_tokens_used(prompt, response_text),
-        request_type: 'settlement_feedback',
+        request_type: "settlement_feedback",
         error_occurred: false
       )
 
@@ -86,10 +86,10 @@ class GoogleAiService
         model_used: @model,
         response_time: response_time
       )
-      
+
       # Track personality consistency if personality is present
       track_personality_consistency(settlement_offer, result)
-      
+
       result
     rescue StandardError => e
       response_time = ((Time.current - start_time) * 1000).round
@@ -101,7 +101,7 @@ class GoogleAiService
         cost: 0,
         response_time: response_time,
         tokens_used: 0,
-        request_type: 'settlement_feedback',
+        request_type: "settlement_feedback",
         error_occurred: true
       )
 
@@ -161,8 +161,8 @@ class GoogleAiService
     # Use caching service if available
     if use_gap_caching?(plaintiff_offer, defendant_offer)
       cache_service = AiResponseCacheService.new(extract_simulation(plaintiff_offer, defendant_offer))
-      
-      return cache_service.get_or_generate_gap_analysis(plaintiff_offer.amount, defendant_offer.amount) do
+
+      cache_service.get_or_generate_gap_analysis(plaintiff_offer.amount, defendant_offer.amount) do
         generate_fresh_settlement_options(plaintiff_offer, defendant_offer)
       end
     else
@@ -226,7 +226,7 @@ class GoogleAiService
     simulation = settlement_offer.negotiation_round.simulation
     team_role = determine_team_role(settlement_offer.team, simulation)
     personality_type = get_client_personality(simulation.case, team_role)
-    
+
     if personality_type.present?
       PersonalityService.build_personality_prompt(settlement_offer, personality_type, team_role)
     else
@@ -313,18 +313,18 @@ class GoogleAiService
     simulation = settlement_offer.negotiation_round.simulation
     team_role = determine_team_role(settlement_offer.team, simulation)
     personality_type = get_client_personality(simulation.case, team_role)
-    
+
     base_mood = determine_mood_from_text(ai_text)
     base_satisfaction = extract_satisfaction_score(ai_text)
-    
+
     # Apply personality influence if personality is present
     if personality_type.present?
       mood_level = PersonalityService.get_mood_adjustment(
-        personality_type, 
-        base_mood, 
+        personality_type,
+        base_mood,
         context: determine_offer_context(settlement_offer, team_role)
       )
-      
+
       satisfaction_score = PersonalityService.personality_influences_satisfaction(
         personality_type,
         base_satisfaction,
@@ -335,7 +335,7 @@ class GoogleAiService
       mood_level = base_mood
       satisfaction_score = base_satisfaction
     end
-    
+
     {
       feedback_text: ai_text,
       mood_level: mood_level,
@@ -588,7 +588,7 @@ class GoogleAiService
     # 1. Caching is enabled globally
     # 2. Settlement offer has sufficient context
     # 3. Not in development/test mode (optional)
-    caching_enabled? && settlement_offer.respond_to?(:negotiation_round) && 
+    caching_enabled? && settlement_offer.respond_to?(:negotiation_round) &&
       settlement_offer.negotiation_round.respond_to?(:simulation)
   rescue StandardError
     false
@@ -596,9 +596,9 @@ class GoogleAiService
 
   def use_gap_caching?(plaintiff_offer, defendant_offer)
     # Enable caching for gap analysis if both offers have context
-    caching_enabled? && 
+    caching_enabled? &&
       extract_simulation(plaintiff_offer, defendant_offer) &&
-      plaintiff_offer.respond_to?(:amount) && 
+      plaintiff_offer.respond_to?(:amount) &&
       defendant_offer.respond_to?(:amount)
   rescue StandardError
     false
@@ -616,20 +616,20 @@ class GoogleAiService
     # Extract simulation from either offer
     simulation = plaintiff_offer&.negotiation_round&.simulation ||
                 defendant_offer&.negotiation_round&.simulation
-    
+
     # If offers are mock objects (like OpenStruct), try different approach
     simulation ||= plaintiff_offer&.simulation || defendant_offer&.simulation
-    
+
     simulation
   end
 
   # Personality-related helper methods
   def get_client_personality(case_instance, team_role)
     case team_role
-    when 'plaintiff'
-      case_instance.plaintiff_info['personality_type']
-    when 'defendant'
-      case_instance.defendant_info['personality_type']
+    when "plaintiff"
+      case_instance.plaintiff_info["personality_type"]
+    when "defendant"
+      case_instance.defendant_info["personality_type"]
     else
       nil
     end
@@ -637,33 +637,33 @@ class GoogleAiService
 
   def determine_offer_context(settlement_offer, team_role)
     amount = settlement_offer.amount
-    
+
     # Simple context determination based on amount ranges
     # In a real system, this would be more sophisticated
     case team_role
-    when 'plaintiff'
+    when "plaintiff"
       case amount
-      when 0..75_000 then 'low_offer'
-      when 75_001..200_000 then 'reasonable_offer'
-      else 'positive_offer'
+      when 0..75_000 then "low_offer"
+      when 75_001..200_000 then "reasonable_offer"
+      else "positive_offer"
       end
-    when 'defendant'
+    when "defendant"
       case amount
-      when 0..100_000 then 'positive_offer'
-      when 100_001..250_000 then 'reasonable_offer'
-      else 'negative_offer'
+      when 0..100_000 then "positive_offer"
+      when 100_001..250_000 then "reasonable_offer"
+      else "negative_offer"
       end
     else
-      'neutral_offer'
+      "neutral_offer"
     end
   end
 
   def track_personality_consistency(settlement_offer, result)
     return unless result[:personality_type].present?
-    
+
     simulation = settlement_offer.negotiation_round.simulation
     case_instance = simulation.case
-    
+
     # Get recent responses for this case and personality
     recent_trackers = PersonalityConsistencyTracker
                        .where(case: case_instance, personality_type: result[:personality_type])
@@ -673,19 +673,19 @@ class GoogleAiService
 
     if recent_trackers
       # Update existing tracker with new response
-      updated_history = recent_trackers.response_history + [result[:feedback_text]]
+      updated_history = recent_trackers.response_history + [ result[:feedback_text] ]
       recent_trackers.update!(
         response_history: updated_history,
-        consistency_score: PersonalityService.send(:calculate_consistency_score, 
-                                                   result[:personality_type], 
+        consistency_score: PersonalityService.send(:calculate_consistency_score,
+                                                   result[:personality_type],
                                                    updated_history)
       )
     else
       # Create new tracker
       PersonalityService.track_consistency(
-        case_instance, 
-        result[:personality_type], 
-        [result[:feedback_text]]
+        case_instance,
+        result[:personality_type],
+        [ result[:feedback_text] ]
       )
     end
   rescue StandardError => e

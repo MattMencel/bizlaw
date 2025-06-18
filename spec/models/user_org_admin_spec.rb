@@ -84,7 +84,7 @@ RSpec.describe User, type: :model do
       end
 
       context 'when creating second instructor for organization' do
-        before { create(:user, :instructor, organization: organization, roles: ['instructor', 'org_admin']) }
+        before { create(:user, :instructor, organization: organization, roles: [ 'instructor', 'org_admin' ]) }
 
         it 'does not automatically assign as org_admin' do
           second_instructor = create(:user, :instructor, organization: organization)
@@ -103,7 +103,7 @@ RSpec.describe User, type: :model do
     describe 'scopes' do
       before do
         instructor.add_role('org_admin')
-        create(:user, :instructor, organization: organization, roles: ['instructor'])
+        create(:user, :instructor, organization: organization, roles: [ 'instructor' ])
       end
 
       describe '.org_admins' do

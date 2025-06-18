@@ -23,21 +23,21 @@ class ClientFeedbackService
     # Generate pressure response feedback if events were triggered
     pressure_feedback = generate_pressure_response_if_needed(team, round_number)
 
-    [range_feedback, strategic_feedback, pressure_feedback].compact
+    [ range_feedback, strategic_feedback, pressure_feedback ].compact
   end
 
   # Generate AI-enhanced feedback when simulation events are triggered
   def generate_event_feedback!(event, affected_teams = nil)
-    affected_teams ||= [simulation.plaintiff_team, simulation.defendant_team].compact
+    affected_teams ||= [ simulation.plaintiff_team, simulation.defendant_team ].compact
 
     feedbacks = []
-    
+
     affected_teams.each do |team|
       next unless team
 
       # Try AI-enhanced event feedback first
       ai_feedback = generate_ai_enhanced_event_feedback(event, team)
-      
+
       if ai_feedback && ai_feedback[:source] == "ai"
         feedback = ClientFeedback.create!(
           simulation: simulation,
@@ -51,13 +51,13 @@ class ClientFeedbackService
       else
         # Fallback to existing rule-based feedback
         feedback = ClientFeedback.generate_pressure_response(
-          simulation, 
-          team, 
-          simulation.current_round, 
+          simulation,
+          team,
+          simulation.current_round,
           event.event_type
         )
       end
-      
+
       feedbacks << feedback if feedback
     end
 
@@ -68,7 +68,7 @@ class ClientFeedbackService
   def generate_round_transition_feedback!(from_round, to_round)
     feedbacks = []
 
-    [simulation.plaintiff_team, simulation.defendant_team].compact.each do |team|
+    [ simulation.plaintiff_team, simulation.defendant_team ].compact.each do |team|
       # Skip if team hasn't submitted an offer in the completed round
       completed_round = simulation.negotiation_rounds.find_by(round_number: from_round)
       next unless completed_round
@@ -78,9 +78,9 @@ class ClientFeedbackService
 
       has_offer = if team_role == "plaintiff"
                    completed_round.has_plaintiff_offer?
-                 else
+      else
                    completed_round.has_defendant_offer?
-                 end
+      end
 
       next unless has_offer
 
@@ -98,7 +98,7 @@ class ClientFeedbackService
 
     feedbacks = []
 
-    [simulation.plaintiff_team, simulation.defendant_team].compact.each do |team|
+    [ simulation.plaintiff_team, simulation.defendant_team ].compact.each do |team|
       feedback = generate_settlement_satisfaction_feedback(team, final_round)
       feedbacks << feedback if feedback
     end
@@ -110,7 +110,7 @@ class ClientFeedbackService
   def generate_arbitration_feedback!
     feedbacks = []
 
-    [simulation.plaintiff_team, simulation.defendant_team].compact.each do |team|
+    [ simulation.plaintiff_team, simulation.defendant_team ].compact.each do |team|
       feedback = generate_arbitration_warning_feedback(team)
       feedbacks << feedback if feedback
     end
@@ -175,11 +175,11 @@ class ClientFeedbackService
 
     # Generate pressure response for the most impactful recent event
     most_impactful_event = recent_events.order(:triggered_at).last
-    
+
     ClientFeedback.generate_pressure_response(
-      simulation, 
-      team, 
-      round_number, 
+      simulation,
+      team,
+      round_number,
       most_impactful_event.event_type
     )
   end
@@ -191,10 +191,10 @@ class ClientFeedbackService
 
     # Analyze the completed round for feedback themes
     feedback_themes = analyze_round_performance(team, completed_round)
-    
+
     # Try AI-enhanced transition feedback
     ai_feedback = generate_ai_enhanced_transition_feedback(team, from_round, to_round, feedback_themes)
-    
+
     if ai_feedback && ai_feedback[:source] == "ai"
       ClientFeedback.create!(
         simulation: simulation,
@@ -231,23 +231,23 @@ class ClientFeedbackService
     # Analyze final settlement terms
     team_offer = if role == "plaintiff"
                   final_round.plaintiff_offer
-                else
+    else
                   final_round.defendant_offer
-                end
+    end
 
     opposing_offer = if role == "plaintiff"
                       final_round.defendant_offer
-                    else
+    else
                       final_round.plaintiff_offer
-                    end
+    end
 
     return nil unless team_offer && opposing_offer
 
     settlement_amount = (team_offer.amount + opposing_offer.amount) / 2.0
-    
+
     # Try AI-enhanced settlement satisfaction feedback
     ai_feedback = generate_ai_enhanced_settlement_feedback(team_offer, settlement_amount, role)
-    
+
     if ai_feedback && ai_feedback[:source] == "ai"
       ClientFeedback.create!(
         simulation: simulation,
@@ -283,9 +283,9 @@ class ClientFeedbackService
     satisfaction = 30
     message = if role == "plaintiff"
                 "Client disappointed that settlement negotiations failed. Arbitration outcome is now uncertain and costly."
-              else
+    else
                 "Client concerned about proceeding to arbitration. Settlement would have provided more predictable resolution."
-              end
+    end
 
     ClientFeedback.create!(
       simulation: simulation,
@@ -318,9 +318,9 @@ class ClientFeedbackService
     team_role = team.case_teams.find_by(case: simulation.case)&.role
     team_offer = if team_role == "plaintiff"
                    round.plaintiff_offer
-                 else
+    else
                    round.defendant_offer
-                 end
+    end
 
     if team_offer
       # Analyze offer quality
@@ -423,32 +423,32 @@ class ClientFeedbackService
       mood = "unhappy"
     end
 
-    final_satisfaction = [base_satisfaction, 100].min
-    final_satisfaction = [final_satisfaction, 0].max
+    final_satisfaction = [ base_satisfaction, 100 ].min
+    final_satisfaction = [ final_satisfaction, 0 ].max
 
-    [mood, final_satisfaction, message_parts.join(" ")]
+    [ mood, final_satisfaction, message_parts.join(" ") ]
   end
 
   def calculate_settlement_satisfaction(role, settlement_amount)
     if role == "plaintiff"
       if settlement_amount >= simulation.plaintiff_ideal * 0.9
-        ["very_satisfied", 95, "Client extremely pleased with settlement outcome. This exceeds expectations and provides excellent compensation."]
+        [ "very_satisfied", 95, "Client extremely pleased with settlement outcome. This exceeds expectations and provides excellent compensation." ]
       elsif settlement_amount >= simulation.plaintiff_min_acceptable * 1.2
-        ["satisfied", 85, "Client satisfied with settlement. This provides fair compensation for the harm suffered."]
+        [ "satisfied", 85, "Client satisfied with settlement. This provides fair compensation for the harm suffered." ]
       elsif settlement_amount >= simulation.plaintiff_min_acceptable
-        ["neutral", 70, "Client accepts settlement as reasonable resolution, though hoped for more."]
+        [ "neutral", 70, "Client accepts settlement as reasonable resolution, though hoped for more." ]
       else
-        ["unhappy", 40, "Client disappointed with settlement amount but glad to avoid arbitration uncertainty."]
+        [ "unhappy", 40, "Client disappointed with settlement amount but glad to avoid arbitration uncertainty." ]
       end
     else
       if settlement_amount <= simulation.defendant_ideal * 1.2
-        ["very_satisfied", 95, "Client very pleased with settlement cost. This resolves the matter efficiently and reasonably."]
+        [ "very_satisfied", 95, "Client very pleased with settlement cost. This resolves the matter efficiently and reasonably." ]
       elsif settlement_amount <= simulation.defendant_max_acceptable * 0.8
-        ["satisfied", 85, "Client satisfied with settlement terms. Cost is acceptable for resolution."]
+        [ "satisfied", 85, "Client satisfied with settlement terms. Cost is acceptable for resolution." ]
       elsif settlement_amount <= simulation.defendant_max_acceptable
-        ["neutral", 70, "Client accepts settlement cost as necessary to avoid trial uncertainty."]
+        [ "neutral", 70, "Client accepts settlement cost as necessary to avoid trial uncertainty." ]
       else
-        ["unhappy", 40, "Client concerned about settlement cost but relieved to avoid potential trial risks."]
+        [ "unhappy", 40, "Client concerned about settlement cost but relieved to avoid potential trial risks." ]
       end
     end
   end
@@ -463,7 +463,7 @@ class ClientFeedbackService
     return "neutral" if recent_feedbacks.empty?
 
     # Weight recent feedback more heavily
-    weights = [0.2, 0.3, 0.5] # oldest to newest
+    weights = [ 0.2, 0.3, 0.5 ] # oldest to newest
     mood_scores = recent_feedbacks.map { |f| mood_to_score(f.mood_level) }
 
     weighted_score = mood_scores.zip(weights[-mood_scores.length..-1]).sum { |score, weight| score * weight }
@@ -615,13 +615,13 @@ class ClientFeedbackService
   def generate_range_based_feedback(settlement_offer)
     team = settlement_offer.team
     amount = settlement_offer.amount
-    
+
     # Use the range validation service to assess the offer
     validation_result = range_validation_service.validate_offer(team, amount)
-    
+
     # Try to generate AI-enhanced feedback
     ai_feedback = generate_ai_enhanced_feedback(settlement_offer, validation_result)
-    
+
     if ai_feedback && ai_feedback[:source] == "ai"
       # Use AI-enhanced feedback
       ClientFeedback.create!(
@@ -637,7 +637,7 @@ class ClientFeedbackService
     else
       # Fallback to rule-based feedback
       feedback_text = generate_feedback_message(team, validation_result, amount)
-      
+
       ClientFeedback.create!(
         simulation: simulation,
         team: team,
@@ -655,7 +655,7 @@ class ClientFeedbackService
 
   def generate_feedback_message(team, validation_result, amount)
     team_role = determine_team_role(team)
-    
+
     case team_role
     when "plaintiff"
       generate_plaintiff_feedback_message(validation_result)
@@ -710,14 +710,14 @@ class ClientFeedbackService
   end
 
   # AI Enhancement Methods
-  
+
   def generate_ai_enhanced_feedback(settlement_offer, validation_result)
     return nil unless ai_service_available?
-    
+
     begin
       ai_service = GoogleAiService.new
       ai_response = ai_service.generate_settlement_feedback(settlement_offer)
-      
+
       # Merge AI insights with validation result
       {
         feedback_text: ai_response[:feedback_text],
@@ -734,14 +734,14 @@ class ClientFeedbackService
 
   def generate_ai_enhanced_event_feedback(event, team)
     return nil unless ai_service_available?
-    
+
     begin
       ai_service = GoogleAiService.new
-      
+
       # Create a mock settlement offer for AI context
       mock_offer = build_event_context_offer(team, event)
       ai_response = ai_service.generate_settlement_feedback(mock_offer)
-      
+
       {
         feedback_text: adapt_event_feedback(ai_response[:feedback_text], event),
         mood_level: ai_response[:mood_level],
@@ -756,11 +756,11 @@ class ClientFeedbackService
 
   def generate_ai_enhanced_transition_feedback(team, from_round, to_round, themes)
     return nil unless ai_service_available?
-    
+
     begin
       ai_service = GoogleAiService.new
       analysis = ai_service.analyze_negotiation_state(simulation, to_round)
-      
+
       if analysis && analysis[:advice]
         {
           feedback_text: adapt_transition_feedback(analysis[:advice], themes, team),
@@ -785,10 +785,10 @@ class ClientFeedbackService
     # Create a contextual offer for AI processing
     recent_round = simulation.negotiation_rounds.order(:round_number).last
     recent_round ||= simulation.negotiation_rounds.build(round_number: 1)
-    
+
     # Estimate an amount based on team role and event
     estimated_amount = estimate_contextual_amount(team, event)
-    
+
     OpenStruct.new(
       team: team,
       negotiation_round: recent_round,
@@ -799,7 +799,7 @@ class ClientFeedbackService
 
   def estimate_contextual_amount(team, event)
     team_role = determine_team_role(team)
-    
+
     case team_role
     when "plaintiff"
       base_amount = (simulation.plaintiff_min_acceptable + simulation.plaintiff_ideal) / 2
@@ -828,16 +828,16 @@ class ClientFeedbackService
   def adapt_event_feedback(ai_text, event)
     # Inject event context into AI response
     event_context = case event.event_type
-                   when "media_attention"
+    when "media_attention"
                      "recent media developments"
-                   when "additional_evidence"
+    when "additional_evidence"
                      "new evidence emergence"
-                   when "ipo_delay"
+    when "ipo_delay"
                      "market timing considerations"
-                   else
+    else
                      "recent developments"
-                   end
-    
+    end
+
     # Prepend context if not already present
     if ai_text.downcase.include?(event_context.split.first)
       ai_text
@@ -848,10 +848,10 @@ class ClientFeedbackService
 
   def adapt_transition_feedback(ai_advice, themes, team)
     team_role = determine_team_role(team)
-    
+
     # Customize AI advice for specific team role and themes
     role_context = team_role == "plaintiff" ? "client's position" : "company's exposure"
-    
+
     if themes.include?(:close_to_settlement)
       "#{ai_advice} The #{role_context} suggests we're approaching a viable resolution."
     elsif themes.include?(:far_from_settlement)
@@ -875,7 +875,7 @@ class ClientFeedbackService
 
   def calculate_satisfaction_from_themes(themes)
     base_score = 60
-    
+
     if themes.include?(:settlement_reached)
       base_score = 95
     elsif themes.include?(:high_quality_arguments)
@@ -891,20 +891,20 @@ class ClientFeedbackService
     elsif themes.include?(:far_from_settlement)
       base_score -= 20
     end
-    
-    [[base_score, 100].min, 0].max
+
+    [ [ base_score, 100 ].min, 0 ].max
   end
 
   def generate_ai_enhanced_settlement_feedback(team_offer, settlement_amount, role)
     return nil unless ai_service_available?
-    
+
     begin
       ai_service = GoogleAiService.new
       ai_response = ai_service.generate_settlement_feedback(team_offer)
-      
+
       # Enhance response with settlement context
       enhanced_text = adapt_settlement_feedback(ai_response[:feedback_text], settlement_amount, role)
-      
+
       {
         feedback_text: enhanced_text,
         mood_level: ai_response[:mood_level],
@@ -921,10 +921,10 @@ class ClientFeedbackService
     # Add settlement completion context to AI response
     settlement_context = if role == "plaintiff"
                           "With the settlement reached at #{ActionView::Helpers::NumberHelper.number_to_currency(settlement_amount)}, #{ai_text.downcase}"
-                        else
+    else
                           "The settlement resolution at #{ActionView::Helpers::NumberHelper.number_to_currency(settlement_amount)} represents #{ai_text.downcase}"
-                        end
-    
+    end
+
     # Ensure settlement context is added appropriately
     if ai_text.downcase.include?("settlement")
       ai_text

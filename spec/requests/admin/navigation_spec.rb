@@ -3,9 +3,9 @@
 require 'rails_helper'
 
 RSpec.describe 'Admin Navigation', type: :request do
-  let(:admin_user) { create(:user, role: 'admin', roles: ['admin']) }
-  let(:org_admin_user) { create(:user, role: 'org_admin', roles: ['org_admin']) }
-  let(:regular_user) { create(:user, role: 'student', roles: ['student']) }
+  let(:admin_user) { create(:user, role: 'admin', roles: [ 'admin' ]) }
+  let(:org_admin_user) { create(:user, role: 'org_admin', roles: [ 'org_admin' ]) }
+  let(:regular_user) { create(:user, role: 'student', roles: [ 'student' ]) }
 
   describe 'Admin route accessibility' do
     context 'when signed in as admin' do

@@ -3,7 +3,7 @@
 require 'rails_helper'
 require 'axe-rspec'
 
-RSpec.describe 'Admin Interface Accessibility', type: :system, accessibility: true do
+RSpec.describe 'Admin Interface Accessibility', :accessibility, type: :system do
   let(:organization) { create(:organization) }
   let(:admin) { create(:user, :admin, organization: organization) }
   let(:instructor) { create(:user, :instructor, organization: organization) }
@@ -118,18 +118,18 @@ RSpec.describe 'Admin Interface Accessibility', type: :system, accessibility: tr
 
     it 'users data table is accessible' do
       visit admin_users_path
-      
+
       # Check that tables have proper headers and structure
       expect(page).to have_selector('table')
       expect(page).to have_selector('th[scope="col"]') # Column headers should have scope
-      
+
       check_authenticated_page_accessibility
     end
 
     it 'organizations data table is accessible' do
       create_list(:organization, 3)
       visit admin_organizations_path
-      
+
       expect(page).to have_selector('table')
       check_authenticated_page_accessibility
     end
@@ -138,13 +138,13 @@ RSpec.describe 'Admin Interface Accessibility', type: :system, accessibility: tr
   describe 'Form validation accessibility' do
     it 'form errors are accessible' do
       visit new_admin_organization_path
-      
+
       # Submit empty form to trigger validation errors
       click_button 'Create Organization'
-      
+
       # Check that errors are announced to screen readers
       expect(page).to have_selector('[role="alert"]') if page.has_content?('error')
-      
+
       check_authenticated_page_accessibility
     end
   end
@@ -153,7 +153,7 @@ RSpec.describe 'Admin Interface Accessibility', type: :system, accessibility: tr
     it 'confirmation dialogs are accessible' do
       organization_to_delete = create(:organization)
       visit admin_organization_path(organization_to_delete)
-      
+
       # Look for delete buttons or confirmation dialogs
       if page.has_button?('Delete') || page.has_link?('Delete')
         check_authenticated_page_accessibility
@@ -168,10 +168,10 @@ RSpec.describe 'Admin Interface Accessibility', type: :system, accessibility: tr
 
     it 'bulk selection interface is accessible' do
       visit admin_users_path
-      
+
       # Check for bulk action controls
       check_authenticated_page_accessibility
-      
+
       # Verify checkboxes have proper labels
       expect(page).to have_selector('input[type="checkbox"][aria-label], input[type="checkbox"] + label') if page.has_selector('input[type="checkbox"]')
     end
