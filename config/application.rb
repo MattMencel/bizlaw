@@ -34,7 +34,7 @@ module Rb
     config.api_only = false
 
     # Add middleware paths to autoload
-    config.autoload_paths += %W[#{config.root}/app/middleware]
+    config.autoload_paths << Rails.root.join("app", "middleware")
 
     # Add session timeout handler and API version header
     config.middleware.use SessionTimeoutHandler

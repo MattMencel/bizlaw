@@ -62,6 +62,10 @@ gem "thruster", require: false
 gem "rqrcode", "~> 2.2"
 gem "chunky_png", "~> 1.4"
 
+# PDF generation
+gem "prawn", "~> 2.4"
+gem "prawn-table", "~> 0.2"
+
 # Authentication & Authorization
 gem "devise", "~> 4.9"
 gem "devise-jwt", "~> 0.12"
