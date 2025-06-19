@@ -109,6 +109,5 @@ jobs:
           bin/rails db:test:prepare
       - name: Run E2E tests
         id: e2e_tests
-        continue-on-error: true
         run: |
           bundle exec rspec spec/e2e/
