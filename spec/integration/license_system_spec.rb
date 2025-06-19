@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe "License System Integration", type: :model do
   before do
@@ -25,7 +25,7 @@ RSpec.describe "License System Integration", type: :model do
     it "creates default free license" do
       default_license = License.default_free_license
       expect(default_license).to be_persisted
-      expect(default_license.license_type).to eq('free')
+      expect(default_license.license_type).to eq("free")
       expect(default_license.valid_signature?).to be true
     end
   end
@@ -35,7 +35,7 @@ RSpec.describe "License System Integration", type: :model do
 
     it "assigns default license to organization" do
       expect(organization.license).to be_present
-      expect(organization.license.license_type).to eq('free')
+      expect(organization.license.license_type).to eq("free")
     end
 
     it "respects license limits for free tier" do
@@ -66,21 +66,21 @@ RSpec.describe "License System Integration", type: :model do
     end
 
     it "allows creating users within limits" do
-      instructor = build(:user, role: 'instructor', organization: organization)
+      instructor = build(:user, role: "instructor", organization: organization)
       expect(instructor).to be_valid
       expect(instructor.save).to be true
     end
 
     it "allows creating courses within limits" do
-      instructor = create(:user, role: 'instructor', organization: organization)
+      instructor = create(:user, role: "instructor", organization: organization)
       course = build(:course, organization: organization, instructor: instructor)
       expect(course).to be_valid
       expect(course.save).to be true
     end
 
     it "provides accurate usage summary" do
-      instructor = create(:user, role: 'instructor', organization: organization)
-      create_list(:user, 2, role: 'student', organization: organization)
+      instructor = create(:user, role: "instructor", organization: organization)
+      create_list(:user, 2, role: "student", organization: organization)
       create(:course, organization: organization, instructor: instructor)
 
       summary = organization.usage_summary
@@ -90,11 +90,11 @@ RSpec.describe "License System Integration", type: :model do
     end
 
     it "reports when within limits" do
-      instructor = create(:user, role: 'instructor', organization: organization)
-      create(:user, role: 'student', organization: organization)
+      create(:user, role: "instructor", organization: organization)
+      create(:user, role: "student", organization: organization)
 
       expect(organization.within_license_limits?).to be true
-      expect(organization.license_status).to eq('valid')
+      expect(organization.license_status).to eq("valid")
     end
   end
 
@@ -103,7 +103,7 @@ RSpec.describe "License System Integration", type: :model do
 
     it "can upgrade from free to paid license" do
       # Start with free license
-      expect(organization.effective_license.license_type).to eq('free')
+      expect(organization.effective_license.license_type).to eq("free")
 
       # Create and assign paid license
       pro_license = License.create!(
@@ -118,8 +118,8 @@ RSpec.describe "License System Integration", type: :model do
 
       organization.update!(license: pro_license)
 
-      expect(organization.effective_license.license_type).to eq('professional')
-      expect(organization.can_add_user?('instructor')).to be true
+      expect(organization.effective_license.license_type).to eq("professional")
+      expect(organization.can_add_user?("instructor")).to be true
     end
 
     it "enables features based on license type" do
@@ -135,8 +135,8 @@ RSpec.describe "License System Integration", type: :model do
 
       organization.update!(license: pro_license)
 
-      expect(organization.feature_enabled?('advanced_analytics')).to be true
-      expect(organization.feature_enabled?('custom_branding')).to be true
+      expect(organization.feature_enabled?("advanced_analytics")).to be true
+      expect(organization.feature_enabled?("custom_branding")).to be true
     end
   end
 end

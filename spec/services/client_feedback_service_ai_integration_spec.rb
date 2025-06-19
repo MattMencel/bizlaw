@@ -10,8 +10,7 @@ RSpec.describe ClientFeedbackService do
       plaintiff_min_acceptable: 150_000,
       plaintiff_ideal: 300_000,
       defendant_ideal: 75_000,
-      defendant_max_acceptable: 250_000
-    )
+      defendant_max_acceptable: 250_000)
   end
 
   let(:plaintiff_team) { simulation.case.plaintiff_team }
@@ -32,8 +31,7 @@ RSpec.describe ClientFeedbackService do
         negotiation_round: negotiation_round,
         team: plaintiff_team,
         amount: 275_000,
-        justification: "Strong case with significant damages"
-      )
+        justification: "Strong case with significant damages")
     end
 
     context "when AI service is enabled and available" do
@@ -173,8 +171,7 @@ RSpec.describe ClientFeedbackService do
         simulation: simulation,
         event_type: "media_attention",
         trigger_round: 2,
-        triggered_at: Time.current
-      )
+        triggered_at: Time.current)
     end
 
     context "when AI service is available" do
@@ -193,7 +190,7 @@ RSpec.describe ClientFeedbackService do
       end
 
       it "generates AI-enhanced event feedback for affected teams" do
-        feedbacks = service.generate_event_feedback!(simulation_event, [ plaintiff_team, defendant_team ])
+        feedbacks = service.generate_event_feedback!(simulation_event, [plaintiff_team, defendant_team])
 
         expect(feedbacks).to be_an(Array)
         expect(feedbacks.length).to be >= 1
@@ -226,14 +223,12 @@ RSpec.describe ClientFeedbackService do
         team: plaintiff_team,
         negotiation_round: completed_round,
         amount: 250_000,
-        quality_score: 85
-      )
+        quality_score: 85)
       create(:settlement_offer,
         team: defendant_team,
         negotiation_round: completed_round,
         amount: 150_000,
-        quality_score: 75
-      )
+        quality_score: 75)
     end
 
     context "when AI service enhances strategic guidance" do
@@ -286,8 +281,7 @@ RSpec.describe ClientFeedbackService do
       create(:negotiation_round,
         simulation: simulation,
         round_number: 4,
-        settlement_reached: true
-      )
+        settlement_reached: true)
     end
 
     let(:final_settlement_amount) { 200_000 }
@@ -297,13 +291,11 @@ RSpec.describe ClientFeedbackService do
       create(:settlement_offer,
         team: plaintiff_team,
         negotiation_round: final_round,
-        amount: final_settlement_amount + 5_000
-      )
+        amount: final_settlement_amount + 5_000)
       create(:settlement_offer,
         team: defendant_team,
         negotiation_round: final_round,
-        amount: final_settlement_amount - 5_000
-      )
+        amount: final_settlement_amount - 5_000)
     end
 
     context "when AI enhances settlement satisfaction feedback" do
@@ -357,8 +349,7 @@ RSpec.describe ClientFeedbackService do
         create(:settlement_offer,
           team: plaintiff_team,
           negotiation_round: round,
-          amount: 300_000 - (index * 25_000)
-        )
+          amount: 300_000 - (index * 25_000))
       end
     end
 
@@ -409,8 +400,7 @@ RSpec.describe ClientFeedbackService do
       create(:settlement_offer,
         negotiation_round: negotiation_round,
         team: plaintiff_team,
-        amount: 200_000
-      )
+        amount: 200_000)
     end
 
     context "when monitoring AI usage" do
@@ -459,8 +449,7 @@ RSpec.describe ClientFeedbackService do
       create(:settlement_offer,
         negotiation_round: negotiation_round,
         team: plaintiff_team,
-        amount: 225_000
-      )
+        amount: 225_000)
     end
 
     context "when validating AI response appropriateness" do

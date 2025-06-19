@@ -34,8 +34,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
           collaboration_score: 16,
           efficiency_score: 8,
           speed_bonus: 3,
-          creative_terms_score: 2
-        )
+          creative_terms_score: 2)
 
         get :index
 
@@ -62,8 +61,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
           legal_strategy_score: 28,
           collaboration_score: 15,
           efficiency_score: 7,
-          speed_bonus: 3
-        )
+          speed_bonus: 3)
 
         get :index
 
@@ -96,8 +94,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
             simulation: simulation,
             team: team,
             user: student,
-            total_score: 70 + (index * 5)
-          )
+            total_score: 70 + (index * 5))
         end
 
         get :index
@@ -119,7 +116,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
         create(:performance_score, simulation: simulation, team: team, user: student, total_score: 85)
         create(:performance_score, simulation: simulation2, team: team, user: student, total_score: 90)
 
-        get :index, params: { simulation_id: simulation.id }
+        get :index, params: {simulation_id: simulation.id}
 
         expect(assigns(:filtered_simulation)).to eq(simulation)
         expect(assigns(:class_performance_data).size).to eq(1)
@@ -138,7 +135,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
     before { sign_in student }
 
     it "returns JSON performance data for student" do
-      performance_score = create(:performance_score,
+      create(:performance_score,
         simulation: simulation,
         team: team,
         user: student,
@@ -146,8 +143,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
         settlement_quality_score: 32,
         legal_strategy_score: 24,
         collaboration_score: 16,
-        efficiency_score: 8
-      )
+        efficiency_score: 8)
 
       get :performance_data, format: :json
 
@@ -187,7 +183,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
       create(:performance_score, simulation: simulation, team: team, user: student, total_score: 85)
       create(:performance_score, simulation: simulation, team: team, user: teammate, total_score: 78)
 
-      get :performance_data, format: :json, params: { include_team: true }
+      get :performance_data, format: :json, params: {include_team: true}
 
       json_response = JSON.parse(response.body)
       expect(json_response).to include("team_comparison")
@@ -211,8 +207,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
           user: student,
           total_score: 60 + (round * 5),
           settlement_quality_score: 20 + (round * 2),
-          scored_at: round.days.ago
-        )
+          scored_at: round.days.ago)
       end
 
       get :trends, format: :json
@@ -235,11 +230,11 @@ RSpec.describe ScoringDashboardController, type: :controller do
     it "includes improvement analysis" do
       # Create improving scores
       create(:performance_score, simulation: simulation, team: team, user: student,
-             total_score: 65, scored_at: 5.days.ago)
+        total_score: 65, scored_at: 5.days.ago)
       create(:performance_score, simulation: simulation, team: team, user: student,
-             total_score: 75, scored_at: 3.days.ago)
+        total_score: 75, scored_at: 3.days.ago)
       create(:performance_score, simulation: simulation, team: team, user: student,
-             total_score: 85, scored_at: 1.day.ago)
+        total_score: 85, scored_at: 1.day.ago)
 
       get :trends, format: :json
 
@@ -270,8 +265,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
           total_score: 70 + (i * 4),
           settlement_quality_score: 25 + i,
           legal_strategy_score: 20 + i,
-          collaboration_score: 15 + i
-        )
+          collaboration_score: 15 + i)
       end
 
       get :class_analytics, format: :json
@@ -307,9 +301,9 @@ RSpec.describe ScoringDashboardController, type: :controller do
       create(:case_team, case: case_record, team: defendant_team, role: "defendant")
 
       create(:performance_score, simulation: simulation, team: plaintiff_team,
-             user: plaintiff_student, total_score: 85, legal_strategy_score: 28)
+        user: plaintiff_student, total_score: 85, legal_strategy_score: 28)
       create(:performance_score, simulation: simulation, team: defendant_team,
-             user: defendant_student, total_score: 80, legal_strategy_score: 25)
+        user: defendant_student, total_score: 80, legal_strategy_score: 25)
 
       get :class_analytics, format: :json
 
@@ -344,8 +338,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
         settlement_quality_score: 32,
         legal_strategy_score: 24,
         collaboration_score: 16,
-        efficiency_score: 8
-      )
+        efficiency_score: 8)
 
       post :export_report, format: :pdf
 
@@ -360,8 +353,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
         simulation: simulation,
         team: team,
         user: student,
-        total_score: 85
-      )
+        total_score: 85)
 
       allow(PerformanceReportGenerator).to receive(:new).and_call_original
 
@@ -386,8 +378,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
           team: team,
           user: student,
           total_score: 80,
-          settlement_quality_score: 30
-        )
+          settlement_quality_score: 30)
 
         patch :update_score, params: {
           id: performance_score.id,
@@ -425,7 +416,7 @@ RSpec.describe ScoringDashboardController, type: :controller do
       it "returns forbidden status" do
         performance_score = create(:performance_score, simulation: simulation, team: team, user: student)
 
-        patch :update_score, params: { id: performance_score.id }, format: :json
+        patch :update_score, params: {id: performance_score.id}, format: :json
         expect(response).to have_http_status(:forbidden)
       end
     end

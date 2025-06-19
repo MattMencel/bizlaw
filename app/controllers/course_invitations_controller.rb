@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 class CourseInvitationsController < ApplicationController
-  before_action :authenticate_user!, except: [ :show ]
-  before_action :find_invitation, only: [ :show, :join ]
-  before_action :validate_invitation, only: [ :show, :join ]
-  before_action :require_student, only: [ :join ]
+  before_action :authenticate_user!, except: [:show]
+  before_action :find_invitation, only: [:show, :join]
+  before_action :validate_invitation, only: [:show, :join]
+  before_action :require_student, only: [:join]
 
   def show
     @course = @invitation.course
@@ -23,7 +23,7 @@ class CourseInvitationsController < ApplicationController
       redirect_to @course, notice: "Successfully enrolled in #{@course.display_name}!"
     else
       redirect_to course_invitation_path(@invitation.token),
-                  alert: "Unable to enroll in the course. Please try again or contact your instructor."
+        alert: "Unable to enroll in the course. Please try again or contact your instructor."
     end
   end
 
@@ -46,7 +46,7 @@ class CourseInvitationsController < ApplicationController
       redirect_to course_invitation_path(token)
     else
       redirect_to enter_code_course_invitations_path,
-                  alert: "Invalid or expired invitation code. Please check the code and try again."
+        alert: "Invalid or expired invitation code. Please check the code and try again."
     end
   end
 
@@ -66,15 +66,15 @@ class CourseInvitationsController < ApplicationController
     when "png"
       png_data = invitation.qr_code_png(size: size)
       send_data png_data.to_s,
-                type: "image/png",
-                filename: "course_invitation_#{invitation.token}.png",
-                disposition: "attachment"
+        type: "image/png",
+        filename: "course_invitation_#{invitation.token}.png",
+        disposition: "attachment"
     when "svg"
       svg_data = invitation.qr_code_svg(size: size)
       send_data svg_data,
-                type: "image/svg+xml",
-                filename: "course_invitation_#{invitation.token}.svg",
-                disposition: "attachment"
+        type: "image/svg+xml",
+        filename: "course_invitation_#{invitation.token}.svg",
+        disposition: "attachment"
     else
       redirect_to courses_path, alert: "Invalid QR code format requested."
     end
@@ -106,7 +106,7 @@ class CourseInvitationsController < ApplicationController
   def require_student
     unless current_user.student?
       redirect_to course_invitation_path(@invitation.token),
-                  alert: "Only students can enroll in courses."
+        alert: "Only students can enroll in courses."
     end
   end
 end

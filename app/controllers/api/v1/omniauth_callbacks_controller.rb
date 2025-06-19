@@ -14,7 +14,7 @@ module Api
           status: {
             code: 401,
             message: "Authentication failed",
-            errors: [ request.env["omniauth.error"].to_s ]
+            errors: [request.env["omniauth.error"].to_s]
           }
         }, status: :unauthorized
       end
@@ -26,7 +26,7 @@ module Api
         if @user.persisted?
           sign_in @user
           render json: {
-            status: { code: 200, message: "Signed in successfully with #{kind}." },
+            status: {code: 200, message: "Signed in successfully with #{kind}."},
             data: {
               user: UserSerializer.new(@user).serializable_hash[:data][:attributes],
               token: request.env["warden-jwt_auth.token"]

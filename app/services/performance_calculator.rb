@@ -120,11 +120,13 @@ class PerformanceCalculator
     # Bonus for citing legal precedents (0-3 points)
     offers = user_settlement_offers
 
-    research_count = offers.count { |offer| offer.justification&.include?("precedent") ||
-                                          offer.justification&.include?("case law") ||
-                                          offer.justification&.include?("statute") }
+    research_count = offers.count { |offer|
+      offer.justification&.include?("precedent") ||
+        offer.justification&.include?("case law") ||
+        offer.justification&.include?("statute")
+    }
 
-    [ research_count, 3 ].min
+    [research_count, 3].min
   end
 
   def calculate_precedent_usage_bonus
@@ -132,7 +134,7 @@ class PerformanceCalculator
     offers = user_settlement_offers
 
     precedent_usage = offers.count { |offer| well_cited_precedent?(offer) }
-    [ precedent_usage, 2 ].min
+    [precedent_usage, 2].min
   end
 
   # Collaboration Calculations (20 points max)
@@ -155,7 +157,7 @@ class PerformanceCalculator
     # Analyze message quality (simplified)
     quality_indicators = messages.count { |msg|
       msg.length > 50 && # Substantial messages
-      !msg.match?(/^(ok|yes|no|sure)$/i) # Not just short responses
+        !msg.match?(/^(ok|yes|no|sure)$/i) # Not just short responses
     }
 
     ratio = quality_indicators.to_f / messages.count
@@ -217,7 +219,7 @@ class PerformanceCalculator
     return 0 unless simulation.settlement_reached?
 
     rounds_saved = simulation.max_rounds - simulation.current_round
-    [ rounds_saved * 1.5, 7 ].min.round
+    [rounds_saved * 1.5, 7].min.round
   end
 
   def calculate_quick_response_bonus
@@ -238,7 +240,7 @@ class PerformanceCalculator
     offers = user_settlement_offers
 
     creative_count = offers.count { |offer| includes_creative_terms?(offer) }
-    [ creative_count * 2, 6 ].min
+    [creative_count * 2, 6].min
   end
 
   def calculate_innovative_terms_bonus
@@ -246,7 +248,7 @@ class PerformanceCalculator
     offers = user_settlement_offers
 
     innovation_score = offers.sum { |offer| rate_innovation_level(offer) }
-    [ innovation_score, 4 ].min
+    [innovation_score, 4].min
   end
 
   # Helper Methods
@@ -278,8 +280,8 @@ class PerformanceCalculator
 
     # Look for legal citation patterns
     justification.match?(/\b\d+\s+[a-z\.]+\s+\d+\b/) || # Citation format like "123 F.3d 456"
-    justification.match?(/\bv\.\s+[a-z]/i) || # Case name format
-    justification.include?("precedent") && justification.length > 100
+      justification.match?(/\bv\.\s+[a-z]/i) || # Case name format
+      justification.include?("precedent") && justification.length > 100
   end
 
   def count_user_team_actions
@@ -323,7 +325,7 @@ class PerformanceCalculator
       next 12 if round.nil?
 
       hours_to_respond = ((offer.created_at - round.start_time) / 1.hour)
-      [ hours_to_respond, 48 ].min # Cap at 48 hours
+      [hours_to_respond, 48].min # Cap at 48 hours
     end.compact
 
     response_times.empty? ? 12 : response_times.average

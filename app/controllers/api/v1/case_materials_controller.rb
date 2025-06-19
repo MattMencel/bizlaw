@@ -3,15 +3,15 @@
 class Api::V1::CaseMaterialsController < Api::V1::BaseController
   before_action :authenticate_user!
   before_action :set_case
-  before_action :set_case_material, only: [ :show, :update, :destroy, :download ]
+  before_action :set_case_material, only: [:show, :update, :destroy, :download]
   before_action :ensure_case_access
 
   # GET /api/v1/cases/:case_id/case_materials
   # List case materials with team-specific filtering
   def index
     @case_materials = policy_scope(@case.documents)
-                       .includes(:created_by, file_attachment: :blob)
-                       .where(document_type: case_material_types)
+      .includes(:created_by, file_attachment: :blob)
+      .where(document_type: case_material_types)
 
     # Filter by team access permissions
     @case_materials = filter_materials_by_team_access(@case_materials)
@@ -139,9 +139,9 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
     authorize @case_material
 
     if @case_material.destroy
-      render json: { message: "Case material deleted successfully" }
+      render json: {message: "Case material deleted successfully"}
     else
-      render json: { error: "Failed to delete case material" }, status: :unprocessable_entity
+      render json: {error: "Failed to delete case material"}, status: :unprocessable_entity
     end
   end
 
@@ -156,7 +156,7 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
 
       redirect_to rails_blob_url(@case_material.file, disposition: "attachment")
     else
-      render json: { error: "File not found" }, status: :not_found
+      render json: {error: "File not found"}, status: :not_found
     end
   end
 
@@ -189,7 +189,7 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
         }
       }
     else
-      render json: { error: "Failed to add annotation" }, status: :unprocessable_entity
+      render json: {error: "Failed to add annotation"}, status: :unprocessable_entity
     end
   end
 
@@ -197,7 +197,7 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
   # Search case materials
   def search
     query = params[:query]
-    return render json: { data: [], meta: { query: query } } if query.blank?
+    return render json: {data: [], meta: {query: query}} if query.blank?
 
     @results = search_case_materials(query)
 
@@ -244,18 +244,18 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
 
   def ensure_case_access
     unless policy(@case).show?
-      render json: { error: "Access denied to this case" }, status: :forbidden
+      render json: {error: "Access denied to this case"}, status: :forbidden
     end
   end
 
   def current_user_team
-    @current_user_team ||= current_user.teams.joins(:case_teams).where(case_teams: { case: @case }).first
+    @current_user_team ||= current_user.teams.joins(:case_teams).where(case_teams: {case: @case}).first
   end
 
   def case_material_params
     permitted_params = params.require(:case_material).permit(
       :title, :description, :category, :access_level, :file,
-      team_restrictions: [ :allowed_teams, :restricted_teams ],
+      team_restrictions: [:allowed_teams, :restricted_teams],
       tags: []
     )
 
@@ -272,7 +272,7 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
   def case_material_update_params
     permitted_params = params.require(:case_material).permit(
       :title, :description, :category, :access_level,
-      team_restrictions: [ :allowed_teams, :restricted_teams ],
+      team_restrictions: [:allowed_teams, :restricted_teams],
       tags: []
     )
 
@@ -317,9 +317,11 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
 
   def apply_search_filters(materials)
     materials = materials.where(category: params[:category]) if params[:category].present?
-    materials = materials.where("title ILIKE ? OR searchable_content ILIKE ?",
-                               "%#{params[:search]}%", "%#{params[:search]}%") if params[:search].present?
-    materials = materials.where("tags @> ?", [ params[:tag] ].to_json) if params[:tag].present?
+    if params[:search].present?
+      materials = materials.where("title ILIKE ? OR searchable_content ILIKE ?",
+        "%#{params[:search]}%", "%#{params[:search]}%")
+    end
+    materials = materials.where("tags @> ?", [params[:tag]].to_json) if params[:tag].present?
     materials
   end
 
@@ -382,8 +384,8 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
       if content.downcase.include?(term)
         # Extract surrounding context (50 chars before and after)
         index = content.downcase.index(term)
-        start_pos = [ 0, index - 50 ].max
-        end_pos = [ content.length, index + term.length + 50 ].min
+        start_pos = [0, index - 50].max
+        end_pos = [content.length, index + term.length + 50].min
         context = content[start_pos...end_pos]
         matches << "...#{context}..."
       end
@@ -415,7 +417,7 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
     )
 
     case_material_categories.map do |category|
-      [ category, accessible_materials.where(category: category).count ]
+      [category, accessible_materials.where(category: category).count]
     end.to_h
   end
 

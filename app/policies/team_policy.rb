@@ -73,7 +73,7 @@ class TeamPolicy < ApplicationPolicy
       when "admin", "instructor"
         scope.all
       when "student"
-        scope.joins(:team_members).where(team_members: { user_id: user.id })
+        scope.joins(:team_members).where(team_members: {user_id: user.id})
       else
         scope.none
       end

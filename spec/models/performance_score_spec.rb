@@ -110,8 +110,7 @@ RSpec.describe PerformanceScore, type: :model do
         collaboration_score: 16,
         efficiency_score: 8,
         speed_bonus: 5,
-        creative_terms_score: 3
-      )
+        creative_terms_score: 3)
     end
 
     describe "#individual_score?" do
@@ -234,14 +233,15 @@ RSpec.describe PerformanceScore, type: :model do
             simulation: simulation,
             team: team,
             user: user,
-            total_score: 70 + (index * 10) # Scores: 70, 80, 90
-          )
+            total_score: 70 + (index * 10)) # Scores: 70, 80, 90
         end
       end
 
-      before { create(:team_member, team: team, user: other_users.first)
-create(:team_member, team: team, user: other_users.second)
-create(:team_member, team: team, user: other_users.third)  }
+      before {
+        create(:team_member, team: team, user: other_users.first)
+        create(:team_member, team: team, user: other_users.second)
+        create(:team_member, team: team, user: other_users.third)
+      }
 
       it "calculates rank correctly" do
         performance_score.update(total_score: 85)
@@ -262,8 +262,7 @@ create(:team_member, team: team, user: other_users.third)  }
             simulation: simulation,
             team: team,
             user: user,
-            total_score: 60 + (index * 10) # Scores: 60, 70, 80, 90
-          )
+            total_score: 60 + (index * 10)) # Scores: 60, 70, 80, 90
         end
       end
 
@@ -298,8 +297,7 @@ create(:team_member, team: team, user: other_users.third)  }
             settlement_quality_score: 25 + (index * 5),
             legal_strategy_score: 20 + (index * 3),
             collaboration_score: 15 + (index * 2),
-            efficiency_score: 7 + index
-          )
+            efficiency_score: 7 + index)
         end
       end
 

@@ -4,7 +4,7 @@ FactoryBot.define do
   factory :license do
     sequence(:organization_name) { |n| "Organization #{n}" }
     sequence(:contact_email) { |n| "contact#{n}@example.com" }
-    license_type { 'free' }
+    license_type { "free" }
     max_instructors { 1 }
     max_students { 3 }
     max_courses { 1 }
@@ -18,7 +18,7 @@ FactoryBot.define do
     end
 
     trait :starter do
-      license_type { 'starter' }
+      license_type { "starter" }
       max_instructors { 2 }
       max_students { 25 }
       max_courses { 5 }
@@ -26,7 +26,7 @@ FactoryBot.define do
     end
 
     trait :professional do
-      license_type { 'professional' }
+      license_type { "professional" }
       max_instructors { 5 }
       max_students { 100 }
       max_courses { 20 }
@@ -34,7 +34,7 @@ FactoryBot.define do
     end
 
     trait :enterprise do
-      license_type { 'enterprise' }
+      license_type { "enterprise" }
       max_instructors { 50 }
       max_students { 1000 }
       max_courses { 100 }
@@ -56,7 +56,7 @@ FactoryBot.define do
     trait :trial do
       starter
       expires_at { 30.days.from_now.to_date }
-      features { { 'trial' => true } }
+      features { {"trial" => true} }
     end
   end
 end

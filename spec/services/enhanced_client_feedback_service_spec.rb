@@ -16,8 +16,7 @@ RSpec.describe ClientFeedbackService do
       plaintiff_min_acceptable: min_acceptable,
       plaintiff_ideal: ideal,
       defendant_ideal: defendant_ideal,
-      defendant_max_acceptable: defendant_max
-    )
+      defendant_max_acceptable: defendant_max)
   end
 
   let(:plaintiff_team) { simulation.case.plaintiff_team }
@@ -38,8 +37,7 @@ RSpec.describe ClientFeedbackService do
         negotiation_round: negotiation_round,
         team: plaintiff_team,
         amount: simulation.plaintiff_ideal * 0.92,
-        justification: "Strong case with clear evidence of harassment and significant impact on plaintiff's career and wellbeing"
-      )
+        justification: "Strong case with clear evidence of harassment and significant impact on plaintiff's career and wellbeing")
     end
 
     it "generates range-based feedback for offer" do
@@ -55,8 +53,7 @@ RSpec.describe ClientFeedbackService do
         create(:settlement_offer,
           negotiation_round: negotiation_round,
           team: plaintiff_team,
-          amount: simulation.plaintiff_min_acceptable * 0.83 # Below minimum acceptable
-        )
+          amount: simulation.plaintiff_min_acceptable * 0.83) # Below minimum acceptable
       end
 
       it "generates unhappy feedback" do
@@ -88,8 +85,7 @@ RSpec.describe ClientFeedbackService do
           team: plaintiff_team,
           mood_level: :satisfied,
           satisfaction_score: 85,
-          created_at: 1.hour.ago
-        )
+          created_at: 1.hour.ago)
       end
 
       it "returns current mood indicator based on latest feedback" do
@@ -111,8 +107,7 @@ RSpec.describe ClientFeedbackService do
           create(:settlement_offer,
             negotiation_round: negotiation_round,
             team: plaintiff_team,
-            amount: simulation.plaintiff_ideal * 1.08
-          )
+            amount: simulation.plaintiff_ideal * 1.08)
         end
 
         it "generates satisfied client feedback" do
@@ -129,8 +124,7 @@ RSpec.describe ClientFeedbackService do
           create(:settlement_offer,
             negotiation_round: negotiation_round,
             team: plaintiff_team,
-            amount: simulation.plaintiff_min_acceptable * 0.83
-          )
+            amount: simulation.plaintiff_min_acceptable * 0.83)
         end
 
         it "generates very unhappy client feedback" do
@@ -151,8 +145,7 @@ RSpec.describe ClientFeedbackService do
           create(:settlement_offer,
             negotiation_round: negotiation_round,
             team: defendant_team,
-            amount: simulation.defendant_ideal
-          )
+            amount: simulation.defendant_ideal)
         end
 
         it "generates satisfied client feedback" do
@@ -169,8 +162,7 @@ RSpec.describe ClientFeedbackService do
           create(:settlement_offer,
             negotiation_round: negotiation_round,
             team: defendant_team,
-            amount: simulation.defendant_max_acceptable * 1.2
-          )
+            amount: simulation.defendant_max_acceptable * 1.2)
         end
 
         it "generates very unhappy client feedback" do
@@ -222,8 +214,7 @@ RSpec.describe ClientFeedbackService do
       create(:settlement_offer,
         negotiation_round: negotiation_round,
         team: plaintiff_team,
-        amount: simulation.plaintiff_ideal * 0.92
-      )
+        amount: simulation.plaintiff_ideal * 0.92)
     end
 
     it "uses validation service for range-based feedback" do

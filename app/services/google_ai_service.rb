@@ -9,7 +9,7 @@ class GoogleAiService
     begin
       @client = GoogleAI.client if @enabled
       @model = GoogleAI.model
-    rescue StandardError => e
+    rescue => e
       Rails.logger.warn "GoogleAI client initialization failed: #{e.message}"
       @enabled = false
       @client = nil
@@ -91,7 +91,7 @@ class GoogleAiService
       track_personality_consistency(settlement_offer, result)
 
       result
-    rescue StandardError => e
+    rescue => e
       response_time = ((Time.current - start_time) * 1000).round
       Rails.logger.error "GoogleAI error in generate_settlement_feedback: #{e.message}"
 
@@ -105,7 +105,7 @@ class GoogleAiService
         error_occurred: true
       )
 
-      error_attributes = { error_handled: true, error_type: e.class.name }
+      error_attributes = {error_handled: true, error_type: e.class.name}
 
       # Add specific error indicators based on error type
       if e.message.include?("Rate limit")
@@ -148,7 +148,7 @@ class GoogleAiService
         confidence: extract_confidence(response_text),
         timestamp: Time.current
       }
-    rescue StandardError => e
+    rescue => e
       Rails.logger.error "GoogleAI error in analyze_negotiation_state: #{e.message}"
       fallback_analysis(simulation, current_round)
     end
@@ -172,29 +172,27 @@ class GoogleAiService
 
   # Generate fresh settlement options analysis (without caching)
   def generate_fresh_settlement_options(plaintiff_offer, defendant_offer)
-    begin
-      prompt = build_settlement_options_prompt(plaintiff_offer, defendant_offer)
-      response = @client.generate_content(
-        {
-          contents: {
-            parts: {
-              text: prompt
-            }
-          },
-          generationConfig: {
-            temperature: 0.8,
-            topP: 0.9,
-            maxOutputTokens: 600
+    prompt = build_settlement_options_prompt(plaintiff_offer, defendant_offer)
+    response = @client.generate_content(
+      {
+        contents: {
+          parts: {
+            text: prompt
           }
+        },
+        generationConfig: {
+          temperature: 0.8,
+          topP: 0.9,
+          maxOutputTokens: 600
         }
-      )
+      }
+    )
 
-      response_text = extract_text_from_response(response)
-      parse_settlement_options(response_text, plaintiff_offer, defendant_offer)
-    rescue StandardError => e
-      Rails.logger.error "GoogleAI error in analyze_settlement_options: #{e.message}"
-      fallback_settlement_options(plaintiff_offer, defendant_offer)
-    end
+    response_text = extract_text_from_response(response)
+    parse_settlement_options(response_text, plaintiff_offer, defendant_offer)
+  rescue => e
+    Rails.logger.error "GoogleAI error in analyze_settlement_options: #{e.message}"
+    fallback_settlement_options(plaintiff_offer, defendant_offer)
   end
 
   # Check if AI service is enabled and available
@@ -461,7 +459,7 @@ class GoogleAiService
     gap = plaintiff_offer.amount - defendant_offer.amount
 
     {
-      creative_options: [ "Consider structured payment terms", "Explore non-monetary agreements", "Evaluate performance-based milestones" ],
+      creative_options: ["Consider structured payment terms", "Explore non-monetary agreements", "Evaluate performance-based milestones"],
       risk_assessment: "Large gap presents settlement challenges requiring creative solutions",
       gap_analysis: {
         gap_size: gap,
@@ -486,10 +484,10 @@ class GoogleAiService
     # Simple rule-based mood determination
     # In a real implementation, this would consider simulation ranges
     case amount
-    when 0..50_000 then team_role == "defendant" ? "satisfied" : "unhappy"
+    when 0..50_000 then (team_role == "defendant") ? "satisfied" : "unhappy"
     when 50_001..150_000 then "neutral"
-    when 150_001..300_000 then team_role == "plaintiff" ? "satisfied" : "unhappy"
-    else team_role == "plaintiff" ? "very_satisfied" : "very_unhappy"
+    when 150_001..300_000 then (team_role == "plaintiff") ? "satisfied" : "unhappy"
+    else (team_role == "plaintiff") ? "very_satisfied" : "very_unhappy"
     end
   end
 
@@ -523,9 +521,9 @@ class GoogleAiService
 
   def get_recent_offers(simulation, current_round)
     simulation.settlement_offers
-              .joins(:negotiation_round)
-              .where(negotiation_rounds: { round_number: [ current_round - 1, current_round ].max(1) })
-              .includes(:team, :negotiation_round)
+      .joins(:negotiation_round)
+      .where(negotiation_rounds: {round_number: [current_round - 1, current_round].max(1)})
+      .includes(:team, :negotiation_round)
   end
 
   def format_offers_for_prompt(offers)
@@ -554,7 +552,7 @@ class GoogleAiService
 
     # If no structured options found, return default fallback options
     if options.empty?
-      [ "Consider structured payment terms", "Explore non-monetary agreements", "Evaluate performance-based milestones" ]
+      ["Consider structured payment terms", "Explore non-monetary agreements", "Evaluate performance-based milestones"]
     else
       options
     end
@@ -590,7 +588,7 @@ class GoogleAiService
     # 3. Not in development/test mode (optional)
     caching_enabled? && settlement_offer.respond_to?(:negotiation_round) &&
       settlement_offer.negotiation_round.respond_to?(:simulation)
-  rescue StandardError
+  rescue
     false
   end
 
@@ -600,7 +598,7 @@ class GoogleAiService
       extract_simulation(plaintiff_offer, defendant_offer) &&
       plaintiff_offer.respond_to?(:amount) &&
       defendant_offer.respond_to?(:amount)
-  rescue StandardError
+  rescue
     false
   end
 
@@ -608,14 +606,14 @@ class GoogleAiService
     # Check if AI response caching is enabled
     Rails.application.config.respond_to?(:ai_response_caching) &&
       Rails.application.config.ai_response_caching
-  rescue StandardError
+  rescue
     false
   end
 
   def extract_simulation(plaintiff_offer, defendant_offer)
     # Extract simulation from either offer
     simulation = plaintiff_offer&.negotiation_round&.simulation ||
-                defendant_offer&.negotiation_round&.simulation
+      defendant_offer&.negotiation_round&.simulation
 
     # If offers are mock objects (like OpenStruct), try different approach
     simulation ||= plaintiff_offer&.simulation || defendant_offer&.simulation
@@ -630,8 +628,6 @@ class GoogleAiService
       case_instance.plaintiff_info["personality_type"]
     when "defendant"
       case_instance.defendant_info["personality_type"]
-    else
-      nil
     end
   end
 
@@ -666,29 +662,29 @@ class GoogleAiService
 
     # Get recent responses for this case and personality
     recent_trackers = PersonalityConsistencyTracker
-                       .where(case: case_instance, personality_type: result[:personality_type])
-                       .recent
-                       .limit(1)
-                       .first
+      .where(case: case_instance, personality_type: result[:personality_type])
+      .recent
+      .limit(1)
+      .first
 
     if recent_trackers
       # Update existing tracker with new response
-      updated_history = recent_trackers.response_history + [ result[:feedback_text] ]
+      updated_history = recent_trackers.response_history + [result[:feedback_text]]
       recent_trackers.update!(
         response_history: updated_history,
         consistency_score: PersonalityService.send(:calculate_consistency_score,
-                                                   result[:personality_type],
-                                                   updated_history)
+          result[:personality_type],
+          updated_history)
       )
     else
       # Create new tracker
       PersonalityService.track_consistency(
         case_instance,
         result[:personality_type],
-        [ result[:feedback_text] ]
+        [result[:feedback_text]]
       )
     end
-  rescue StandardError => e
+  rescue => e
     Rails.logger.warn "Failed to track personality consistency: #{e.message}"
   end
 

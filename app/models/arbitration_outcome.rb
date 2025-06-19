@@ -13,9 +13,9 @@ class ArbitrationOutcome < ApplicationRecord
 
   # Validations
   validates :award_amount, presence: true,
-                          numericality: { greater_than_or_equal_to: 0 }
+    numericality: {greater_than_or_equal_to: 0}
   validates :rationale, presence: true,
-                       length: { minimum: 100, maximum: 2000 }
+    length: {minimum: 100, maximum: 2000}
   validates :calculated_at, presence: true
   validates :factors_considered, presence: true
 
@@ -30,8 +30,8 @@ class ArbitrationOutcome < ApplicationRecord
   # Scopes
   scope :recent_outcomes, -> { order(calculated_at: :desc) }
   scope :by_award_amount, -> { order(:award_amount) }
-  scope :plaintiff_wins, -> { where(outcome_type: [ :plaintiff_victory, :split_decision ]) }
-  scope :defendant_wins, -> { where(outcome_type: [ :defendant_victory, :no_award ]) }
+  scope :plaintiff_wins, -> { where(outcome_type: [:plaintiff_victory, :split_decision]) }
+  scope :defendant_wins, -> { where(outcome_type: [:defendant_victory, :no_award]) }
 
   # Instance methods
   def plaintiff_won?
@@ -40,7 +40,7 @@ class ArbitrationOutcome < ApplicationRecord
 
   def defendant_won?
     outcome_defendant_victory? || outcome_no_award? ||
-    (outcome_split_decision? && award_amount <= simulation.defendant_ideal)
+      (outcome_split_decision? && award_amount <= simulation.defendant_ideal)
   end
 
   def outcome_summary
@@ -138,14 +138,14 @@ class ArbitrationOutcome < ApplicationRecord
       lessons << "More reasonable negotiation positions might have led to better settlement opportunities"
     end
 
-    lessons.presence || [ "This case demonstrates the unpredictability of arbitration outcomes" ]
+    lessons.presence || ["This case demonstrates the unpredictability of arbitration outcomes"]
   end
 end
 
 # Separate service class for arbitration calculations
 class ArbitrationCalculator
   attr_reader :simulation, :evidence_strength_factor, :argument_quality_factor,
-              :negotiation_history_factor, :random_variance
+    :negotiation_history_factor, :random_variance
 
   def initialize(simulation)
     @simulation = simulation
@@ -232,7 +232,7 @@ class ArbitrationCalculator
     negotiation_adjustment = base_award * 0.15 * (negotiation_history_factor - 0.5)
 
     adjusted = base_award + evidence_adjustment + argument_adjustment + negotiation_adjustment
-    [ adjusted, 0 ].max # Ensure non-negative
+    [adjusted, 0].max # Ensure non-negative
   end
 
   def apply_variance(adjusted_award)

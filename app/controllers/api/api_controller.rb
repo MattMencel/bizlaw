@@ -23,8 +23,8 @@ module Api
     def ensure_json_request
       return if request.format.json?
 
-      render json: { error: "Only JSON requests are accepted" },
-             status: :not_acceptable
+      render json: {error: "Only JSON requests are accepted"},
+        status: :not_acceptable
     end
 
     def not_found(exception)

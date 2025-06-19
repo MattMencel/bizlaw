@@ -31,7 +31,7 @@ RSpec.describe "Api::V1::Cases", type: :request do
       let!(:searchable_case) { create(:case, title: "Contract Law Case", created_by: user, updated_by: user) }
 
       it "returns cases matching the search query" do
-        get "/api/v1/cases", params: { query: "Contract" }
+        get "/api/v1/cases", params: {query: "Contract"}
         expect(response).to have_http_status(:ok)
 
         json = JSON.parse(response.body)
@@ -45,7 +45,7 @@ RSpec.describe "Api::V1::Cases", type: :request do
       let!(:in_progress_case) { create(:case, status: :in_progress, created_by: user, updated_by: user) }
 
       it "filters by difficulty level" do
-        get "/api/v1/cases", params: { difficulty_level: "advanced" }
+        get "/api/v1/cases", params: {difficulty_level: "advanced"}
         expect(response).to have_http_status(:ok)
 
         json = JSON.parse(response.body)
@@ -54,7 +54,7 @@ RSpec.describe "Api::V1::Cases", type: :request do
       end
 
       it "filters by status" do
-        get "/api/v1/cases", params: { status: "in_progress" }
+        get "/api/v1/cases", params: {status: "in_progress"}
         expect(response).to have_http_status(:ok)
 
         json = JSON.parse(response.body)
@@ -67,7 +67,7 @@ RSpec.describe "Api::V1::Cases", type: :request do
       before { create_list(:case, 5, created_by: user, updated_by: user) }
 
       it "returns paginated results" do
-        get "/api/v1/cases", params: { page: 1, per_page: 2 }
+        get "/api/v1/cases", params: {page: 1, per_page: 2}
         expect(response).to have_http_status(:ok)
 
         json = JSON.parse(response.body)
@@ -117,12 +117,12 @@ RSpec.describe "Api::V1::Cases", type: :request do
           case_type: "contract_dispute",
           team_id: team.id,
           case_type_id: case_type.id,
-          plaintiff_info: { name: "Plaintiff" },
-          defendant_info: { name: "Defendant" },
-          legal_issues: [ "Contract breach" ],
+          plaintiff_info: {name: "Plaintiff"},
+          defendant_info: {name: "Defendant"},
+          legal_issues: ["Contract breach"],
           case_teams_attributes: [
-            { team_id: plaintiff_team.id, role: "plaintiff" },
-            { team_id: defendant_team.id, role: "defendant" }
+            {team_id: plaintiff_team.id, role: "plaintiff"},
+            {team_id: defendant_team.id, role: "defendant"}
           ]
         }
       }
@@ -139,7 +139,7 @@ RSpec.describe "Api::V1::Cases", type: :request do
     end
 
     it "returns validation errors for invalid attributes" do
-      post "/api/v1/cases", params: { case: { title: "" } }
+      post "/api/v1/cases", params: {case: {title: ""}}
       expect(response).to have_http_status(:unprocessable_entity)
 
       json = JSON.parse(response.body)

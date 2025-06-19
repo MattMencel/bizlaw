@@ -2,14 +2,14 @@
 
 class TermsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_term, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_term, only: [:show, :edit, :update, :destroy]
   before_action :ensure_authorized_user
-  before_action :ensure_can_modify_term, only: [ :edit, :update, :destroy ]
+  before_action :ensure_can_modify_term, only: [:edit, :update, :destroy]
 
   def index
     @terms = current_user_terms.includes(:courses)
-                              .order(:academic_year, :start_date)
-                              .page(params[:page]).per(20)
+      .order(:academic_year, :start_date)
+      .page(params[:page]).per(20)
 
     @current_terms = @terms.current
     @upcoming_terms = @terms.upcoming.limit(5)
@@ -36,12 +36,12 @@ class TermsController < ApplicationController
     set_default_dates
 
     # For admins, provide organization options
-    @organizations = current_user.admin? ? Organization.includes(:courses).all : [ current_user_organization ]
+    @organizations = current_user.admin? ? Organization.includes(:courses).all : [current_user_organization]
   end
 
   def create
     # Determine which organization to create the term for
-    organization = current_user.admin? && params[:term][:organization_id].present? ?
+    organization = (current_user.admin? && params[:term][:organization_id].present?) ?
                      Organization.find(params[:term][:organization_id]) :
                      current_user_organization
 
@@ -95,7 +95,7 @@ class TermsController < ApplicationController
 
   def current_user_organization
     @current_user_organization ||= current_user.organization ||
-                                   Organization.find_by(domain: current_user.email.split("@").last)
+      Organization.find_by(domain: current_user.email.split("@").last)
   end
 
   def ensure_authorized_user
@@ -126,7 +126,7 @@ class TermsController < ApplicationController
   end
 
   def term_params
-    permitted_params = [ :term_name, :academic_year, :start_date, :end_date, :description, :active ]
+    permitted_params = [:term_name, :academic_year, :start_date, :end_date, :description, :active]
     permitted_params << :organization_id if current_user.admin?
     params.require(:term).permit(permitted_params)
   end

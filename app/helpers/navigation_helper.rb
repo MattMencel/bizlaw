@@ -19,10 +19,10 @@ module NavigationHelper
 
     # Check session for active team
     if session[:active_team_id].present?
-      current_user_case.teams.joins(:users).where(users: { id: current_user.id }).find_by(id: session[:active_team_id])
+      current_user_case.teams.joins(:users).where(users: {id: current_user.id}).find_by(id: session[:active_team_id])
     else
       # Default to first team in current case
-      current_user_case.teams.joins(:users).where(users: { id: current_user.id }).first
+      current_user_case.teams.joins(:users).where(users: {id: current_user.id}).first
     end
   end
 
@@ -116,8 +116,6 @@ module NavigationHelper
       if current_user_case
         current_user_case.upcoming_deadlines.count
       end
-    else
-      nil
     end
   end
 
@@ -139,17 +137,17 @@ module NavigationHelper
 
     base_classes = case size
     when "sm"
-                     "flex items-center px-2 py-1.5 text-xs rounded-sm"
+      "flex items-center px-2 py-1.5 text-xs rounded-sm"
     when "lg"
-                     "flex items-center px-4 py-3 text-base rounded-md"
+      "flex items-center px-4 py-3 text-base rounded-md"
     else
-                     "flex items-center px-3 py-2 text-sm rounded-md"
+      "flex items-center px-3 py-2 text-sm rounded-md"
     end
 
     state_classes = if is_active
-                      "bg-blue-600 text-white"
+      "bg-blue-600 text-white"
     else
-                      "text-gray-300 hover:bg-gray-700 hover:text-white"
+      "text-gray-300 hover:bg-gray-700 hover:text-white"
     end
 
     "#{base_classes} #{state_classes} transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 group"
@@ -271,12 +269,10 @@ module NavigationHelper
   end
 
   # Get safe navigation path (fallback to # if route doesn't exist)
-  def safe_nav_path(path_helper, *args)
-    begin
-      send(path_helper, *args)
-    rescue
-      "#"
-    end
+  def safe_nav_path(path_helper, *)
+    send(path_helper, *)
+  rescue
+    "#"
   end
 
   # Check if user has any administrative privileges

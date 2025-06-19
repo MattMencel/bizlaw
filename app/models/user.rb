@@ -4,9 +4,9 @@ class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable
   devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :validatable,
-         :timeoutable,
-         :omniauthable, omniauth_providers: [ :google_oauth2 ]
+    :recoverable, :rememberable, :validatable,
+    :timeoutable,
+    :omniauthable, omniauth_providers: [:google_oauth2]
   include HasUuid
   include HasTimestamps
   include SoftDeletable
@@ -47,7 +47,7 @@ class User < ApplicationRecord
   AVAILABLE_ROLES = %w[student instructor admin org_admin].freeze
 
   # Keep the enum for backward compatibility but add roles array support
-  enum :role, { student: "student", instructor: "instructor", admin: "admin" }, prefix: true
+  enum :role, {student: "student", instructor: "instructor", admin: "admin"}, prefix: true
 
   # Scopes for multiple roles
   scope :by_role, ->(role) { where("? = ANY(roles)", role) }
@@ -57,7 +57,7 @@ class User < ApplicationRecord
   scope :org_admins, -> { where("'org_admin' = ANY(roles)") }
   scope :search_by_name, ->(query) {
     where("LOWER(first_name) LIKE :query OR LOWER(last_name) LIKE :query",
-          query: "%#{query.downcase}%")
+      query: "%#{query.downcase}%")
   }
 
   # Instance methods
@@ -102,7 +102,7 @@ class User < ApplicationRecord
     return false unless AVAILABLE_ROLES.include?(role_name.to_s)
     return true if has_role?(role_name)
 
-    self.roles = (roles + [ role_name.to_s ]).uniq
+    self.roles = (roles + [role_name.to_s]).uniq
     save
   end
 
@@ -122,7 +122,7 @@ class User < ApplicationRecord
     return "admin" if admin?
     return "instructor" if instructor?
 
-    team = case_obj.teams.joins(:users).where(users: { id: id }).first
+    team = case_obj.teams.joins(:users).where(users: {id: id}).first
     team&.team_type&.humanize || "Student"
   end
 
@@ -149,7 +149,7 @@ class User < ApplicationRecord
   def remove_role(role_name)
     return false unless has_role?(role_name)
 
-    self.roles = roles - [ role_name.to_s ]
+    self.roles = roles - [role_name.to_s]
     save
   end
 
@@ -159,7 +159,7 @@ class User < ApplicationRecord
 
   def primary_role
     # Return the first non-org_admin role, or 'student' as default
-    (roles - [ "org_admin" ]).first || "student"
+    (roles - ["org_admin"]).first || "student"
   end
 
   def professional?
@@ -172,7 +172,7 @@ class User < ApplicationRecord
 
   def can_manage_organization?(organization)
     return false unless organization
-    admin? || (org_admin? && self.organization_id == organization.id)
+    admin? || (org_admin? && organization_id == organization.id)
   end
 
   def can_assign_org_admin?
@@ -207,7 +207,7 @@ class User < ApplicationRecord
       user.first_name = auth.info.first_name
       user.last_name = auth.info.last_name
       user.role = "student"
-      user.roles = [ "student" ]
+      user.roles = ["student"]
       # No avatar_url assignment
     end
   end
@@ -252,7 +252,7 @@ class User < ApplicationRecord
 
     invalid_roles = roles - AVAILABLE_ROLES
     if invalid_roles.any?
-      errors.add(:roles, "contains invalid roles: #{invalid_roles.join(', ')}")
+      errors.add(:roles, "contains invalid roles: #{invalid_roles.join(", ")}")
     end
 
     # Ensure at least one primary role (student, instructor, or admin)

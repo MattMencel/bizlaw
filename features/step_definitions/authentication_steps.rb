@@ -2,10 +2,10 @@
 
 Given("a user exists with email {string} and password {string}") do |email, password|
   @user = create(:user,
-                email: email,
-                password: password,
-                password_confirmation: password,
-                confirmed_at: Time.current)
+    email: email,
+    password: password,
+    password_confirmation: password,
+    confirmed_at: Time.current)
 end
 
 Given("I am logged in") do

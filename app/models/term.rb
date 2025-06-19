@@ -10,16 +10,16 @@ class Term < ApplicationRecord
   has_many :courses, dependent: :destroy
 
   # Validations
-  validates :term_name, presence: true, length: { maximum: 100 }
+  validates :term_name, presence: true, length: {maximum: 100}
   validates :academic_year, presence: true,
-                           numericality: {
-                             greater_than: 2000,
-                             less_than_or_equal_to: -> { Date.current.year + 10 }
-                           }
+    numericality: {
+      greater_than: 2000,
+      less_than_or_equal_to: -> { Date.current.year + 10 }
+    }
   validates :slug, presence: true,
-                  length: { maximum: 50 },
-                  uniqueness: { scope: :organization_id, case_sensitive: false },
-                  format: { with: /\A[a-z0-9\-]+\z/, message: "must contain only lowercase letters, numbers, and hyphens" }
+    length: {maximum: 50},
+    uniqueness: {scope: :organization_id, case_sensitive: false},
+    format: {with: /\A[a-z0-9\-]+\z/, message: "must contain only lowercase letters, numbers, and hyphens"}
   validates :start_date, presence: true
   validates :end_date, presence: true
   validate :end_date_after_start_date
@@ -95,11 +95,10 @@ class Term < ApplicationRecord
 
   def generate_slug
     base_slug = term_name.downcase
-                         .gsub(/[^\w\s\-]/, "")     # Remove special characters
-                         .gsub(/\s+/, "-")          # Replace spaces with hyphens
-                         .gsub(/-+/, "-")           # Replace multiple hyphens with single
-                         .strip
-                         .gsub(/^-|-$/, "")         # Remove leading/trailing hyphens
+      .gsub(/[^\w\s\-]/, "")     # Remove special characters
+      .gsub(/\s+/, "-").squeeze("-")           # Replace multiple hyphens with single
+      .strip
+      .gsub(/^-|-$/, "")         # Remove leading/trailing hyphens
 
     # Add academic year if not already included
     unless base_slug.include?(academic_year.to_s)
@@ -113,8 +112,7 @@ class Term < ApplicationRecord
     return unless slug.present?
 
     self.slug = slug.downcase
-                   .gsub(/[^\w\-]/, "")    # Remove invalid characters
-                   .gsub(/-+/, "-")        # Replace multiple hyphens with single
-                   .gsub(/^-|-$/, "")      # Remove leading/trailing hyphens
+      .gsub(/[^\w\-]/, "").squeeze("-")        # Replace multiple hyphens with single
+      .gsub(/^-|-$/, "")      # Remove leading/trailing hyphens
   end
 end

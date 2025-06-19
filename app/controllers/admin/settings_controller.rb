@@ -3,7 +3,7 @@
 class Admin::SettingsController < ApplicationController
   before_action :authenticate_user!
   before_action :ensure_admin!
-  before_action :set_settings_category, only: [ :show, :update ]
+  before_action :set_settings_category, only: [:show, :update]
 
   def index
     @settings_categories = {
@@ -46,7 +46,7 @@ class Admin::SettingsController < ApplicationController
 
   def ensure_admin!
     unless current_user.admin? || current_user.roles.include?("admin")
-      render file: Rails.root.join("public", "403.html"), status: :forbidden
+      render file: Rails.public_path.join("403.html"), status: :forbidden
     end
   end
 
@@ -97,8 +97,6 @@ class Admin::SettingsController < ApplicationController
         webhook_url: ENV.fetch("WEBHOOK_URL", ""),
         api_rate_limit: ENV.fetch("API_RATE_LIMIT", "1000").to_i
       }
-    else
-      nil
     end
   end
 

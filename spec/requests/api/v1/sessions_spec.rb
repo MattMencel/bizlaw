@@ -59,7 +59,7 @@ RSpec.describe "Api::V1::Sessions", type: :request do
           }
         }
         @token = response.headers["Authorization"]
-        delete logout_url, headers: { "Authorization": @token }
+        delete logout_url, headers: {Authorization: @token}
       end
 
       it "returns 200" do
@@ -67,7 +67,7 @@ RSpec.describe "Api::V1::Sessions", type: :request do
       end
 
       it "blacklists JWT token" do
-        get "/api/v1/profile", headers: { "Authorization": @token }
+        get "/api/v1/profile", headers: {Authorization: @token}
         expect(response).to have_http_status(401)
       end
     end

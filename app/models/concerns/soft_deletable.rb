@@ -9,13 +9,13 @@ module SoftDeletable
 
   def soft_delete
     return if deleted?
-    attrs = { deleted_at: Time.current }
+    attrs = {deleted_at: Time.current}
     attrs[:active] = false if has_attribute?(:active)
     update(attrs)
   end
 
   def restore
-    attrs = { deleted_at: nil }
+    attrs = {deleted_at: nil}
     attrs[:active] = true if has_attribute?(:active)
     update(attrs)
   end

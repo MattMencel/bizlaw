@@ -8,10 +8,10 @@ class Invitation < ApplicationRecord
   belongs_to :organization, optional: true
 
   # Validations
-  validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
-  validates :role, presence: true, inclusion: { in: %w[student instructor admin] }
+  validates :email, format: {with: URI::MailTo::EMAIL_REGEXP}, allow_blank: true
+  validates :role, presence: true, inclusion: {in: %w[student instructor admin]}
   validates :token, presence: true, uniqueness: true
-  validates :status, presence: true, inclusion: { in: %w[pending accepted expired revoked] }
+  validates :status, presence: true, inclusion: {in: %w[pending accepted expired revoked]}
   validates :expires_at, presence: true
   validate :email_required_for_non_shareable
   validate :organization_required_for_non_admin_roles
@@ -119,7 +119,7 @@ class Invitation < ApplicationRecord
 
     base_url = invitation_url
     encoded_url = CGI.escape(base_url)
-    message = CGI.escape("Join #{organization&.name || 'our platform'} as a #{role}")
+    message = CGI.escape("Join #{organization&.name || "our platform"} as a #{role}")
 
     {
       facebook: "https://www.facebook.com/sharer/sharer.php?u=#{encoded_url}",
@@ -170,10 +170,10 @@ class Invitation < ApplicationRecord
     existing = self.class.where(email: email, status: "pending")
     existing = existing.where.not(id: id) if persisted?
 
-    if organization.present?
-      existing = existing.where(organization: organization)
+    existing = if organization.present?
+      existing.where(organization: organization)
     else
-      existing = existing.where(organization: nil)
+      existing.where(organization: nil)
     end
 
     if existing.exists?

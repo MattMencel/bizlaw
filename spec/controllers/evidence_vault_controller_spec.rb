@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe EvidenceVaultController, type: :controller do
   include Devise::Test::ControllerHelpers
@@ -21,9 +21,9 @@ RSpec.describe EvidenceVaultController, type: :controller do
       reference_number: "CASE-#{rand(1000..9999)}",
       status: :not_started,
       difficulty_level: :intermediate,
-      plaintiff_info: { "name" => "Sarah Mitchell", "position" => "Software Engineer" },
-      defendant_info: { "name" => "TechFlow Industries", "type" => "Corporation" },
-      legal_issues: [ "Sexual harassment", "Hostile work environment", "Retaliation" ],
+      plaintiff_info: {"name" => "Sarah Mitchell", "position" => "Software Engineer"},
+      defendant_info: {"name" => "TechFlow Industries", "type" => "Corporation"},
+      legal_issues: ["Sexual harassment", "Hostile work environment", "Retaliation"],
       team: team,
       created_by: instructor,
       updated_by: instructor
@@ -39,30 +39,30 @@ RSpec.describe EvidenceVaultController, type: :controller do
 
   let!(:public_document) do
     create(:document,
-           title: "Employee Handbook",
-           category: "company_policies",
-           access_level: "case_teams",
-           tags: [ "harassment", "policy" ],
-           documentable: case_instance)
+      title: "Employee Handbook",
+      category: "company_policies",
+      access_level: "case_teams",
+      tags: ["harassment", "policy"],
+      documentable: case_instance)
   end
 
   let!(:team_restricted_document) do
     create(:document,
-           title: "Expert Damages Assessment",
-           category: "expert_reports",
-           access_level: "team_restricted",
-           team_restrictions: { "allowed_teams" => [ team.id ] },
-           tags: [ "damages", "economics", "expert" ],
-           documentable: case_instance)
+      title: "Expert Damages Assessment",
+      category: "expert_reports",
+      access_level: "team_restricted",
+      team_restrictions: {"allowed_teams" => [team.id]},
+      tags: ["damages", "economics", "expert"],
+      documentable: case_instance)
   end
 
   let!(:instructor_only_document) do
     create(:document,
-           title: "TechFlow Financial Records",
-           category: "financial_records",
-           access_level: "instructor_only",
-           tags: [ "financials", "confidential" ],
-           documentable: case_instance)
+      title: "TechFlow Financial Records",
+      category: "financial_records",
+      access_level: "instructor_only",
+      tags: ["financials", "confidential"],
+      documentable: case_instance)
   end
 
   before do
@@ -73,7 +73,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
   describe "GET #index" do
     context "when user is not authenticated" do
       it "redirects to login page" do
-        get :index, params: { case_id: case_instance.id }
+        get :index, params: {case_id: case_instance.id}
         expect(response).to redirect_to(new_user_session_path)
       end
     end
@@ -82,13 +82,13 @@ RSpec.describe EvidenceVaultController, type: :controller do
       before { sign_in student1 }
 
       it "renders the evidence vault interface" do
-        get :index, params: { case_id: case_instance.id }
+        get :index, params: {case_id: case_instance.id}
         expect(response).to have_http_status(:success)
         expect(response).to render_template("index")
       end
 
       it "loads documents accessible to the student's team" do
-        get :index, params: { case_id: case_instance.id }
+        get :index, params: {case_id: case_instance.id}
 
         documents = assigns(:documents)
         expect(documents).to include(public_document)
@@ -97,7 +97,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
       end
 
       it "groups documents by category" do
-        get :index, params: { case_id: case_instance.id }
+        get :index, params: {case_id: case_instance.id}
 
         categories = assigns(:document_categories)
         expect(categories).to include("company_policies")
@@ -106,7 +106,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
       end
 
       it "includes document metadata for frontend" do
-        get :index, params: { case_id: case_instance.id }
+        get :index, params: {case_id: case_instance.id}
 
         expect(assigns(:case)).to eq(case_instance)
         expect(assigns(:current_team)).to eq(team)
@@ -118,7 +118,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
       before { sign_in instructor }
 
       it "loads all documents including instructor-only" do
-        get :index, params: { case_id: case_instance.id }
+        get :index, params: {case_id: case_instance.id}
 
         documents = assigns(:documents)
         expect(documents).to include(public_document)
@@ -133,7 +133,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
       before { sign_in other_student }
 
       it "returns forbidden status" do
-        get :index, params: { case_id: case_instance.id }
+        get :index, params: {case_id: case_instance.id}
         expect(response).to have_http_status(:forbidden)
       end
     end
@@ -174,7 +174,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
     it "filters by tags" do
       get :search, params: {
         case_id: case_instance.id,
-        tags: [ "economics" ],
+        tags: ["economics"],
         format: :json
       }
 
@@ -329,7 +329,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
       put :update_tags, params: {
         case_id: case_instance.id,
         id: public_document.id,
-        tags: [ "harassment", "policy", "new-tag" ],
+        tags: ["harassment", "policy", "new-tag"],
         format: :json
       }
 
@@ -343,7 +343,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
       put :update_tags, params: {
         case_id: case_instance.id,
         id: public_document.id,
-        tags: [ "valid-tag", "", "  " ], # Invalid tags
+        tags: ["valid-tag", "", "  "], # Invalid tags
         format: :json
       }
 
@@ -359,7 +359,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
         case_id: case_instance.id,
         bundle: {
           name: "Harassment Evidence Package",
-          document_ids: [ public_document.id, team_restricted_document.id ]
+          document_ids: [public_document.id, team_restricted_document.id]
         },
         format: :json
       }
@@ -393,7 +393,7 @@ RSpec.describe EvidenceVaultController, type: :controller do
       create_list(:document, 50, documentable: case_instance, access_level: "case_teams")
 
       expect {
-        get :index, params: { case_id: case_instance.id }
+        get :index, params: {case_id: case_instance.id}
       }.not_to exceed_query_limit(10)
     end
 

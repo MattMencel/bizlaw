@@ -11,7 +11,7 @@ class PersonalityConsistencyTracker < ApplicationRecord
   validates :personality_type, presence: true
   validates :response_history, presence: true
   validates :consistency_score, presence: true,
-                                numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
+    numericality: {greater_than_or_equal_to: 0, less_than_or_equal_to: 100}
 
   # Scopes
   scope :by_personality, ->(personality_type) { where(personality_type: personality_type) }

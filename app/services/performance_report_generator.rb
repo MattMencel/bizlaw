@@ -29,9 +29,9 @@ class PerformanceReportGenerator
 
   def current_simulation
     @current_simulation ||= user.teams
-                               .joins(case_teams: { case: :simulation })
-                               .merge(Simulation.active)
-                               .first&.case&.simulation
+      .joins(case_teams: {case: :simulation})
+      .merge(Simulation.active)
+      .first&.case&.simulation
   end
 
   def current_performance_score
@@ -39,8 +39,8 @@ class PerformanceReportGenerator
       return nil unless current_simulation
 
       user_team = user.teams.joins(:case_teams)
-                           .where(case_teams: { case: current_simulation.case })
-                           .first
+        .where(case_teams: {case: current_simulation.case})
+        .first
 
       PerformanceScore.find_by(
         simulation: current_simulation,
@@ -58,7 +58,7 @@ class PerformanceReportGenerator
     pdf.move_down 10
     pdf.font "Helvetica", size: 14
     pdf.text "Student: #{user.full_name}", align: :center
-    pdf.text "Generated: #{Date.current.strftime('%B %d, %Y')}", align: :center
+    pdf.text "Generated: #{Date.current.strftime("%B %d, %Y")}", align: :center
 
     if current_simulation
       pdf.text "Simulation: #{current_simulation.case.title}", align: :center
@@ -76,22 +76,21 @@ class PerformanceReportGenerator
 
     if current_performance_score
       summary_data = [
-        [ "Total Score", "#{current_performance_score.total_score}/100" ],
-        [ "Grade", current_performance_score.performance_grade ],
-        [ "Class Rank", "#{current_performance_score.rank_in_simulation}" ],
-        [ "Percentile", "#{current_performance_score.percentile_in_simulation}th" ],
-        [ "Last Updated", current_performance_score.scored_at.strftime("%B %d, %Y") ]
+        ["Total Score", "#{current_performance_score.total_score}/100"],
+        ["Grade", current_performance_score.performance_grade],
+        ["Class Rank", "#{current_performance_score.rank_in_simulation}"],
+        ["Percentile", "#{current_performance_score.percentile_in_simulation}th"],
+        ["Last Updated", current_performance_score.scored_at.strftime("%B %d, %Y")]
       ]
 
       pdf.table(summary_data,
         header: false,
         cell_style: {
-          borders: [ :top, :bottom ],
-          padding: [ 8, 12 ],
+          borders: [:top, :bottom],
+          padding: [8, 12],
           size: 12
         },
-        column_widths: [ 200, 200 ]
-      )
+        column_widths: [200, 200])
     else
       pdf.font "Helvetica", size: 12
       pdf.text "No performance data available for active simulations."
@@ -108,11 +107,11 @@ class PerformanceReportGenerator
     pdf.move_down 10
 
     breakdown_data = [
-      [ "Component", "Score", "Max Points", "Percentage", "Weight" ]
+      ["Component", "Score", "Max Points", "Percentage", "Weight"]
     ]
 
     current_performance_score.score_breakdown.each do |component, details|
-      percentage = details["max_points"] > 0 ?
+      percentage = (details["max_points"] > 0) ?
         ((details["score"].to_f / details["max_points"]) * 100).round(1) : 0
 
       breakdown_data << [
@@ -127,12 +126,11 @@ class PerformanceReportGenerator
     pdf.table(breakdown_data,
       header: true,
       cell_style: {
-        borders: [ :top, :bottom ],
-        padding: [ 6, 8 ],
+        borders: [:top, :bottom],
+        padding: [6, 8],
         size: 10
       },
-      header_color: "E8E8E8"
-    )
+      header_color: "E8E8E8")
 
     pdf.move_down 20
   end
@@ -145,8 +143,8 @@ class PerformanceReportGenerator
     pdf.move_down 10
 
     user_team = user.teams.joins(:case_teams)
-                         .where(case_teams: { case: current_simulation.case })
-                         .first
+      .where(case_teams: {case: current_simulation.case})
+      .first
 
     trend_scores = PerformanceScore.where(
       simulation: current_simulation,
@@ -155,7 +153,7 @@ class PerformanceReportGenerator
     ).order(:scored_at).limit(10)
 
     if trend_scores.any?
-      trend_data = [ [ "Date", "Total Score", "Settlement", "Strategy", "Collaboration" ] ]
+      trend_data = [["Date", "Total Score", "Settlement", "Strategy", "Collaboration"]]
 
       trend_scores.each do |score|
         trend_data << [
@@ -170,12 +168,11 @@ class PerformanceReportGenerator
       pdf.table(trend_data,
         header: true,
         cell_style: {
-          borders: [ :top, :bottom ],
-          padding: [ 6, 8 ],
+          borders: [:top, :bottom],
+          padding: [6, 8],
           size: 9
         },
-        header_color: "E8E8E8"
-      )
+        header_color: "E8E8E8")
 
       # Add trend analysis
       if trend_scores.count >= 2
@@ -187,11 +184,11 @@ class PerformanceReportGenerator
         pdf.font "Helvetica", size: 12
 
         trend_text = if improvement > 5
-                      "📈 Your performance shows consistent improvement (+#{improvement} points)"
+          "📈 Your performance shows consistent improvement (+#{improvement} points)"
         elsif improvement < -5
-                      "📉 Your performance shows a decline (#{improvement} points)"
+          "📉 Your performance shows a decline (#{improvement} points)"
         else
-                      "📊 Your performance has remained stable"
+          "📊 Your performance has remained stable"
         end
 
         pdf.text trend_text
@@ -256,9 +253,9 @@ class PerformanceReportGenerator
 
   def add_footer(pdf)
     pdf.number_pages "<page> of <total>",
-                     at: [ 0, 0 ],
-                     align: :center,
-                     size: 10
+      at: [0, 0],
+      align: :center,
+      size: 10
 
     pdf.stroke_horizontal_rule
     pdf.move_down 10

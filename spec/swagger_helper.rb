@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.configure do |config|
   # Specify a root folder where Swagger JSON files are generated
   # NOTE: If you're using the rswag-api to serve API descriptions, you'll need
   # to ensure that it's configured to serve Swagger from the same folder
-  config.openapi_root = Rails.root.join('swagger').to_s
+  config.openapi_root = Rails.root.join("swagger").to_s
 
   # Define one or more Swagger documents and provide global metadata for each one
   # When you run the 'rswag:specs:swaggerize' rake task, the complete Swagger will
@@ -15,31 +15,31 @@ RSpec.configure do |config|
   # document below. You can override this behavior by adding a swagger_doc tag to the
   # the root example_group in your specs, e.g. describe '...', swagger_doc: 'v2/swagger.json'
   config.openapi_specs = {
-    'v1/swagger.yaml' => {
-      openapi: '3.0.1',
+    "v1/swagger.yaml" => {
+      openapi: "3.0.1",
       info: {
-        title: 'Business Law API V1',
-        version: 'v1',
-        description: 'API documentation for the Business Law application',
+        title: "Business Law API V1",
+        version: "v1",
+        description: "API documentation for the Business Law application",
         contact: {
-          name: 'API Support',
-          email: 'support@example.com'
+          name: "API Support",
+          email: "support@example.com"
         },
         license: {
-          name: 'MIT',
-          url: 'https://opensource.org/licenses/MIT'
+          name: "MIT",
+          url: "https://opensource.org/licenses/MIT"
         }
       },
       paths: {},
       servers: [
         {
-          url: '{protocol}://{defaultHost}',
+          url: "{protocol}://{defaultHost}",
           variables: {
             protocol: {
-              default: 'http'
+              default: "http"
             },
             defaultHost: {
-              default: 'localhost:3000'
+              default: "localhost:3000"
             }
           }
         }
@@ -49,15 +49,15 @@ RSpec.configure do |config|
           bearer_auth: {
             type: :http,
             scheme: :bearer,
-            bearer_format: 'JWT'
+            bearer_format: "JWT"
           },
           google_oauth2: {
             type: :oauth2,
             flows: {
               implicit: {
-                authorizationUrl: '/users/auth/google_oauth2',
+                authorizationUrl: "/users/auth/google_oauth2",
                 scopes: {
-                  'email profile': 'Basic user information'
+                  "email profile": "Basic user information"
                 }
               }
             }
@@ -67,19 +67,19 @@ RSpec.configure do |config|
           error: {
             type: :object,
             properties: {
-              error: { type: :string }
+              error: {type: :string}
             }
           },
           user: {
             type: :object,
             properties: {
-              id: { type: :string, format: :uuid },
-              email: { type: :string },
-              first_name: { type: :string },
-              last_name: { type: :string },
-              avatar_url: { type: :string },
-              created_at: { type: :string, format: :"date-time" },
-              updated_at: { type: :string, format: :"date-time" }
+              id: {type: :string, format: :uuid},
+              email: {type: :string},
+              first_name: {type: :string},
+              last_name: {type: :string},
+              avatar_url: {type: :string},
+              created_at: {type: :string, format: :"date-time"},
+              updated_at: {type: :string, format: :"date-time"}
             }
           }
         }

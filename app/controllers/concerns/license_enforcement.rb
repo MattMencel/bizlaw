@@ -18,7 +18,7 @@ module LicenseEnforcement
     when "expired"
       handle_expired_license
     when "over_limits"
-      handle_over_limits unless action_name.in?([ "show", "index" ])
+      handle_over_limits unless action_name.in?(["show", "index"])
     end
   end
 
@@ -26,7 +26,7 @@ module LicenseEnforcement
     flash.now[:alert] = "Your license has expired. Some features may be limited. Please renew your license."
 
     # Allow read-only operations during grace period
-    unless action_name.in?([ "show", "index" ]) || license_enforcement_service.grace_period_active?
+    unless action_name.in?(["show", "index"]) || license_enforcement_service.grace_period_active?
       redirect_to license_status_path, alert: "License expired. Please renew to continue using the platform."
     end
   end
@@ -34,7 +34,7 @@ module LicenseEnforcement
   def handle_over_limits
     warnings = license_enforcement_service.warnings
     if warnings.any?
-      flash.now[:warning] = "License limits exceeded: #{warnings.join(', ')}"
+      flash.now[:warning] = "License limits exceeded: #{warnings.join(", ")}"
     end
   end
 
@@ -53,15 +53,15 @@ module LicenseEnforcement
 
   def skip_license_check?
     # Skip license checks for certain controllers/actions
-    controller_name.in?([ "license_status", "health", "home" ]) ||
-      (controller_name == "users" && action_name.in?([ "show", "edit", "update" ]))
+    controller_name.in?(["license_status", "health", "home"]) ||
+      (controller_name == "users" && action_name.in?(["show", "edit", "update"]))
   end
 
   def require_feature!(feature_name)
     license_enforcement_service.enforce_feature_access!(feature_name)
   rescue LicenseEnforcementService::FeatureNotLicensed => e
     if request.format.json?
-      render json: { error: e.message }, status: :forbidden
+      render json: {error: e.message}, status: :forbidden
     else
       redirect_to license_status_path, alert: e.message
     end
@@ -71,7 +71,7 @@ module LicenseEnforcement
     license_enforcement_service.enforce_user_limit!(role)
   rescue LicenseEnforcementService::LicenseLimitExceeded => e
     if request.format.json?
-      render json: { error: e.message }, status: :forbidden
+      render json: {error: e.message}, status: :forbidden
     else
       redirect_back(fallback_location: root_path, alert: e.message)
     end
@@ -81,7 +81,7 @@ module LicenseEnforcement
     license_enforcement_service.enforce_course_limit!
   rescue LicenseEnforcementService::LicenseLimitExceeded => e
     if request.format.json?
-      render json: { error: e.message }, status: :forbidden
+      render json: {error: e.message}, status: :forbidden
     else
       redirect_back(fallback_location: root_path, alert: e.message)
     end

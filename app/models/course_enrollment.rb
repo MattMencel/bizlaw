@@ -12,9 +12,9 @@ class CourseEnrollment < ApplicationRecord
   # Validations
   validates :user_id, presence: true
   validates :course_id, presence: true
-  validates :status, presence: true, inclusion: { in: %w[active inactive withdrawn] }
+  validates :status, presence: true, inclusion: {in: %w[active inactive withdrawn]}
   validates :enrolled_at, presence: true
-  validates :user_id, uniqueness: { scope: :course_id, message: "is already enrolled in this course" }
+  validates :user_id, uniqueness: {scope: :course_id, message: "is already enrolled in this course"}
   validate :user_must_be_student
 
   # Scopes
@@ -54,11 +54,11 @@ class CourseEnrollment < ApplicationRecord
 
     end_time = case status
     when "withdrawn"
-                 updated_at
+      updated_at
     when "inactive"
-                 updated_at
+      updated_at
     else
-                 Time.current
+      Time.current
     end
 
     end_time - enrolled_at

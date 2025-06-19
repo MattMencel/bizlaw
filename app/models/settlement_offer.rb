@@ -18,12 +18,12 @@ class SettlementOffer < ApplicationRecord
 
   # Validations
   validates :amount, presence: true,
-                    numericality: { greater_than_or_equal_to: 0 }
+    numericality: {greater_than_or_equal_to: 0}
   validates :justification, presence: true,
-                           length: { minimum: 50, maximum: 2000 }
+    length: {minimum: 50, maximum: 2000}
   validates :submitted_at, presence: true
-  validates :team_id, uniqueness: { scope: :negotiation_round_id,
-                                   message: "can only submit one offer per round" }
+  validates :team_id, uniqueness: {scope: :negotiation_round_id,
+                                   message: "can only submit one offer per round"}
 
   validate :team_assigned_to_case
   validate :offer_submitted_within_deadline
@@ -37,12 +37,16 @@ class SettlementOffer < ApplicationRecord
   }, prefix: :offer
 
   # Scopes
-  scope :plaintiff_offers, -> { joins(:team)
-                                 .joins("JOIN case_teams ON teams.id = case_teams.team_id")
-                                 .where(case_teams: { role: :plaintiff }) }
-  scope :defendant_offers, -> { joins(:team)
-                                 .joins("JOIN case_teams ON teams.id = case_teams.team_id")
-                                 .where(case_teams: { role: :defendant }) }
+  scope :plaintiff_offers, -> {
+    joins(:team)
+      .joins("JOIN case_teams ON teams.id = case_teams.team_id")
+      .where(case_teams: {role: :plaintiff})
+  }
+  scope :defendant_offers, -> {
+    joins(:team)
+      .joins("JOIN case_teams ON teams.id = case_teams.team_id")
+      .where(case_teams: {role: :defendant})
+  }
   scope :by_submission_time, -> { order(:submitted_at) }
   scope :recent_first, -> { order(submitted_at: :desc) }
 
@@ -75,20 +79,20 @@ class SettlementOffer < ApplicationRecord
 
   def latest_opposing_offer
     opposing_team&.settlement_offers
-                 &.joins(:negotiation_round)
-                 &.where(negotiation_rounds: { simulation: simulation })
-                 &.where("negotiation_rounds.round_number <= ?", round_number)
-                 &.order("negotiation_rounds.round_number DESC, settlement_offers.submitted_at DESC")
-                 &.first
+      &.joins(:negotiation_round)
+      &.where(negotiation_rounds: {simulation: simulation})
+      &.where("negotiation_rounds.round_number <= ?", round_number)
+      &.order("negotiation_rounds.round_number DESC, settlement_offers.submitted_at DESC")
+      &.first
   end
 
   def movement_from_previous
     previous_offer = team.settlement_offers
-                        .joins(:negotiation_round)
-                        .where(negotiation_rounds: { simulation: simulation })
-                        .where("negotiation_rounds.round_number < ?", round_number)
-                        .order("negotiation_rounds.round_number DESC")
-                        .first
+      .joins(:negotiation_round)
+      .where(negotiation_rounds: {simulation: simulation})
+      .where("negotiation_rounds.round_number < ?", round_number)
+      .order("negotiation_rounds.round_number DESC")
+      .first
 
     return nil unless previous_offer
 
@@ -137,14 +141,14 @@ class SettlementOffer < ApplicationRecord
 
   # Check if offer positioning is strong
   def strong_positioning?
-    [ :strong_position, :excellent_position, :ideal_amount ].include?(
+    [:strong_position, :excellent_position, :ideal_amount].include?(
       client_range_validation.positioning
     )
   end
 
   # Check if offer is problematic for client
   def problematic_positioning?
-    [ :too_aggressive, :below_minimum, :exceeds_maximum, :unacceptable_exposure ].include?(
+    [:too_aggressive, :below_minimum, :exceeds_maximum, :unacceptable_exposure].include?(
       client_range_validation.positioning
     )
   end
@@ -173,7 +177,7 @@ class SettlementOffer < ApplicationRecord
     score += creative_score
     factors[:creativity] = creative_score
 
-    { total_score: score, breakdown: factors }
+    {total_score: score, breakdown: factors}
   end
 
   def update_quality_score!
@@ -198,12 +202,12 @@ class SettlementOffer < ApplicationRecord
   end
 
   def calculate_final_quality_score!
-    if instructor_quality_score.present?
+    final_score = if instructor_quality_score.present?
       # Use instructor score when available (weighted 70% instructor, 30% automatic)
-      final_score = (instructor_quality_score * 0.7) + ((quality_score || 0) * 0.3)
+      (instructor_quality_score * 0.7) + ((quality_score || 0) * 0.3)
     else
       # Use automatic assessment only
-      final_score = quality_score || 0
+      quality_score || 0
     end
 
     update!(final_quality_score: final_score.round)
@@ -261,12 +265,12 @@ class SettlementOffer < ApplicationRecord
   private
 
   def set_offer_type
-    if round_number == 1
-      self.offer_type = :initial_demand
+    self.offer_type = if round_number == 1
+      :initial_demand
     elsif round_number >= simulation.total_rounds
-      self.offer_type = :final_offer
+      :final_offer
     else
-      self.offer_type = :counteroffer
+      :counteroffer
     end
   end
 
@@ -289,7 +293,7 @@ class SettlementOffer < ApplicationRecord
   def amount_within_reasonable_bounds
     return unless amount.present? && simulation.present?
 
-    max_reasonable = [ simulation.plaintiff_ideal, simulation.defendant_max_acceptable ].max * 2
+    max_reasonable = [simulation.plaintiff_ideal, simulation.defendant_max_acceptable].max * 2
 
     if amount > max_reasonable
       errors.add(:amount, "is unreasonably high for this case")
@@ -311,14 +315,14 @@ class SettlementOffer < ApplicationRecord
     # Legal reasoning keywords (0-10 points)
     legal_terms = %w[damages compensation liability negligence precedent statute evidence testimony]
     legal_score = legal_terms.count { |term| justification.downcase.include?(term) }
-    score += [ legal_score * 2, 10 ].min
+    score += [legal_score * 2, 10].min
 
     # Professional tone (0-5 points)
     if justification.match?(/\b(respectfully|pursuant|whereas|therefore)\b/i)
       score += 5
     end
 
-    [ score, 25 ].min
+    [score, 25].min
   end
 
   def calculate_strategic_positioning
@@ -352,9 +356,9 @@ class SettlementOffer < ApplicationRecord
     # Additional score for specific creative elements
     creative_elements = %w[apology training policy confidentiality reference mediation]
     element_score = creative_elements.count { |element| non_monetary_terms.downcase.include?(element) }
-    score += [ element_score * 3, 15 ].min
+    score += [element_score * 3, 15].min
 
-    [ score, 25 ].min
+    [score, 25].min
   end
 
   def trigger_client_feedback

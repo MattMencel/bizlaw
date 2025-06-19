@@ -8,13 +8,13 @@ FactoryBot.define do
 
     sequence(:title) { |n| "Mitchell v. TechFlow Industries #{n}" }
     description { "Sexual harassment lawsuit involving workplace misconduct allegations" }
-    sequence(:reference_number) { |n| "CASE-#{n.to_s.rjust(4, '0')}" }
+    sequence(:reference_number) { |n| "CASE-#{n.to_s.rjust(4, "0")}" }
     status { :not_started }
     difficulty_level { :intermediate }
     case_type { :sexual_harassment }
-    plaintiff_info { { "name" => "Sarah Mitchell", "position" => "Software Engineer" } }
-    defendant_info { { "name" => "TechFlow Industries", "type" => "Corporation" } }
-    legal_issues { [ "Sexual harassment", "Hostile work environment", "Retaliation" ] }
+    plaintiff_info { {"name" => "Sarah Mitchell", "position" => "Software Engineer"} }
+    defendant_info { {"name" => "TechFlow Industries", "type" => "Corporation"} }
+    legal_issues { ["Sexual harassment", "Hostile work environment", "Retaliation"] }
 
     trait :with_teams do
       # Create case teams after the case is created
@@ -29,13 +29,11 @@ FactoryBot.define do
         plaintiff_team = create(:team,
           name: "#{case_instance.title} - Plaintiff Team",
           course: case_instance.course,
-          owner: plaintiff_owner
-        )
+          owner: plaintiff_owner)
         defendant_team = create(:team,
           name: "#{case_instance.title} - Defendant Team",
           course: case_instance.course,
-          owner: defendant_owner
-        )
+          owner: defendant_owner)
 
         create(:case_team, case: case_instance, team: plaintiff_team, role: "plaintiff")
         create(:case_team, case: case_instance, team: defendant_team, role: "defendant")

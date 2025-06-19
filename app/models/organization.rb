@@ -16,21 +16,21 @@ class Organization < ApplicationRecord
   has_many :org_admins, -> { where(org_admin: true) }, class_name: "User"
 
   # Validations
-  validates :name, presence: true, length: { maximum: 255 }
+  validates :name, presence: true, length: {maximum: 255}
   validates :domain, presence: true,
-                    length: { maximum: 100 },
-                    uniqueness: { case_sensitive: false },
-                    format: {
-                      with: /\A[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\z/,
-                      message: "must be a valid domain (e.g., university.edu)"
-                    }
+    length: {maximum: 100},
+    uniqueness: {case_sensitive: false},
+    format: {
+      with: /\A[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\z/,
+      message: "must be a valid domain (e.g., university.edu)"
+    }
   validates :slug, presence: true,
-                  length: { maximum: 50 },
-                  uniqueness: { case_sensitive: false },
-                  format: {
-                    with: /\A[a-z0-9-]+\z/,
-                    message: "must contain only lowercase letters, numbers, and hyphens"
-                  }
+    length: {maximum: 50},
+    uniqueness: {case_sensitive: false},
+    format: {
+      with: /\A[a-z0-9-]+\z/,
+      message: "must contain only lowercase letters, numbers, and hyphens"
+    }
 
   # Callbacks
   before_validation :normalize_slug
@@ -54,10 +54,9 @@ class Organization < ApplicationRecord
 
   def self.generate_slug_from_name(name)
     name.downcase
-        .gsub(/[^a-z0-9\s-]/, "")  # Remove special chars
-        .gsub(/\s+/, "-")          # Replace spaces with hyphens
-        .gsub(/-+/, "-")           # Collapse multiple hyphens
-        .gsub(/^-|-$/, "")         # Remove leading/trailing hyphens
+      .gsub(/[^a-z0-9\s-]/, "")  # Remove special chars
+      .gsub(/\s+/, "-").squeeze("-")           # Collapse multiple hyphens
+      .gsub(/^-|-$/, "")         # Remove leading/trailing hyphens
   end
 
   # Instance methods
@@ -134,9 +133,9 @@ class Organization < ApplicationRecord
 
   def usage_summary
     {
-      instructors: { count: instructor_count, limit: effective_license.max_instructors },
-      students: { count: student_count, limit: effective_license.max_students },
-      courses: { count: course_count, limit: effective_license.max_courses }
+      instructors: {count: instructor_count, limit: effective_license.max_instructors},
+      students: {count: student_count, limit: effective_license.max_students},
+      courses: {count: course_count, limit: effective_license.max_courses}
     }
   end
 
@@ -193,6 +192,6 @@ class Organization < ApplicationRecord
 
   def assign_default_license
     return if Rails.application.config.skip_license_enforcement
-    self.update!(license: License.default_free_license)
+    update!(license: License.default_free_license)
   end
 end

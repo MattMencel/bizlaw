@@ -2,13 +2,13 @@
 
 class InvitationsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_invitation, only: [ :edit, :update, :destroy, :resend, :revoke ]
-  before_action :authorize_invitation_management!, except: [ :index ]
+  before_action :set_invitation, only: [:edit, :update, :destroy, :resend, :revoke]
+  before_action :authorize_invitation_management!, except: [:index]
 
   def index
     @invitations = policy_scope(Invitation).includes(:organization, :invited_by)
-                                          .order(created_at: :desc)
-                                          .page(params[:page])
+      .order(created_at: :desc)
+      .page(params[:page])
   end
 
   def new

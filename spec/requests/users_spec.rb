@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe "Users", type: :request do
   include Devise::Test::IntegrationHelpers
@@ -18,7 +18,7 @@ RSpec.describe "Users", type: :request do
       user: student_user,
       course: course,
       enrolled_at: Time.current,
-      status: 'active',
+      status: "active",
       created_at: Time.current,
       updated_at: Time.current
     )

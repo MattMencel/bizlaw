@@ -52,7 +52,7 @@ RSpec.describe "Users::OmniauthCallbacks", type: :request do
       end
 
       it "signs in an existing user" do
-        existing_user = create(:user, email: "user@example.com", provider: "google_oauth2", uid: "123456789")
+        create(:user, email: "user@example.com", provider: "google_oauth2", uid: "123456789")
 
         expect {
           get "/users/auth/google_oauth2/callback"
@@ -68,8 +68,7 @@ RSpec.describe "Users::OmniauthCallbacks", type: :request do
           provider: "google_oauth2",
           uid: "123456789",
           first_name: "Old Name",
-          avatar_url: "old_photo.jpg"
-        )
+          avatar_url: "old_photo.jpg")
 
         get "/users/auth/google_oauth2/callback"
 

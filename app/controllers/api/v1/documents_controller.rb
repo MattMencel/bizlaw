@@ -65,7 +65,7 @@ module Api
             include: %i[created_by documentable]
           ).serializable_hash
         else
-          render json: { error: "Cannot finalize document" }, status: :unprocessable_entity
+          render json: {error: "Cannot finalize document"}, status: :unprocessable_entity
         end
       end
 
@@ -77,7 +77,7 @@ module Api
             include: %i[created_by documentable]
           ).serializable_hash
         else
-          render json: { error: "Cannot archive document" }, status: :unprocessable_entity
+          render json: {error: "Cannot archive document"}, status: :unprocessable_entity
         end
       end
 
@@ -93,9 +93,9 @@ module Api
       private
 
       def set_document
-        @document = Document.find_by!(id: params[:id])
+        @document = Document.find(params[:id])
       rescue ActiveRecord::RecordNotFound
-        render json: { error: "Document not found" }, status: :not_found
+        render json: {error: "Document not found"}, status: :not_found
       end
 
       def filter_documents(documents)

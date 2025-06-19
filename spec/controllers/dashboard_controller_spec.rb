@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe DashboardController, type: :controller do
   include Devise::Test::ControllerHelpers
@@ -104,19 +104,19 @@ RSpec.describe DashboardController, type: :controller do
 
       context "with user search parameter" do
         it "returns matching users for impersonation" do
-          get :index, params: { user_search: instructor.first_name }
+          get :index, params: {user_search: instructor.first_name}
           expect(assigns(:search_results)).to include(instructor)
           expect(assigns(:search_results)).not_to include(admin)
         end
 
         it "searches by email" do
-          get :index, params: { user_search: student.email.split('@').first }
+          get :index, params: {user_search: student.email.split("@").first}
           expect(assigns(:search_results)).to include(student)
         end
 
         it "limits search results to 10" do
           create_list(:user, 15, role: :student)
-          get :index, params: { user_search: "test" }
+          get :index, params: {user_search: "test"}
           expect(assigns(:search_results).count).to be <= 10
         end
       end
@@ -144,7 +144,7 @@ RSpec.describe DashboardController, type: :controller do
 
       it "identifies active simulations for the student" do
         get :index
-        active_cases = assigns(:my_cases).joins(:simulation).where(simulations: { status: :active })
+        active_cases = assigns(:my_cases).joins(:simulation).where(simulations: {status: :active})
         expect(active_cases).to include(case_with_simulation)
       end
     end
@@ -154,7 +154,7 @@ RSpec.describe DashboardController, type: :controller do
 
       it "identifies completed simulations for the student" do
         get :index
-        completed_cases = assigns(:my_cases).joins(:simulation).where(simulations: { status: :completed })
+        completed_cases = assigns(:my_cases).joins(:simulation).where(simulations: {status: :completed})
         expect(completed_cases).to include(case_with_simulation)
       end
     end

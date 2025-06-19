@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe "User Impersonation", type: :model do
   let(:organization) { create(:organization) }
@@ -16,7 +16,7 @@ RSpec.describe "User Impersonation", type: :model do
       user: student_user,
       course: course,
       enrolled_at: Time.current,
-      status: 'active',
+      status: "active",
       created_at: Time.current,
       updated_at: Time.current
     )

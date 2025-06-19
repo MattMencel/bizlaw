@@ -82,25 +82,23 @@ class SimulationOrchestrationService
       # Calculate arbitration outcome
       ArbitrationOutcome.calculate_outcome!(simulation)
 
-    else
+    elsif simulation.can_advance_round?
       # Advance to next round
-      if simulation.can_advance_round?
-        simulation.next_round!
-        results[:next_round_created] = true
+      simulation.next_round!
+      results[:next_round_created] = true
 
-        # Generate round transition feedback
-        feedback_service = ClientFeedbackService.new(simulation)
-        feedbacks = feedback_service.generate_round_transition_feedback!(
-          simulation.current_round - 1,
-          simulation.current_round
-        )
-        results[:feedbacks_generated] = feedbacks
+      # Generate round transition feedback
+      feedback_service = ClientFeedbackService.new(simulation)
+      feedbacks = feedback_service.generate_round_transition_feedback!(
+        simulation.current_round - 1,
+        simulation.current_round
+      )
+      results[:feedbacks_generated] = feedbacks
 
-        # Schedule events for the new round
-        event_orchestrator = SimulationEventOrchestrator.new(simulation)
-        events = event_orchestrator.schedule_future_events!(simulation.current_round)
-        results[:events_scheduled] = events
-      end
+      # Schedule events for the new round
+      event_orchestrator = SimulationEventOrchestrator.new(simulation)
+      events = event_orchestrator.schedule_future_events!(simulation.current_round)
+      results[:events_scheduled] = events
     end
 
     results
@@ -123,12 +121,12 @@ class SimulationOrchestrationService
 
     # Generate event-specific feedback
     feedback_service = ClientFeedbackService.new(simulation)
-    affected_teams = [ simulation.plaintiff_team, simulation.defendant_team ].compact
+    affected_teams = [simulation.plaintiff_team, simulation.defendant_team].compact
     feedbacks = feedback_service.generate_event_feedback!(event, affected_teams)
     results[:feedbacks_generated] = feedbacks
 
     # Check for cascade events
-    event_orchestrator = SimulationEventOrchestrator.new(simulation)
+    SimulationEventOrchestrator.new(simulation)
     # This would need to be implemented in the orchestrator
     # cascade_events = event_orchestrator.check_cascade_effects!(event)
     # results[:cascade_events] = cascade_events
@@ -170,18 +168,18 @@ class SimulationOrchestrationService
 
     # Check logical consistency
     if simulation.plaintiff_min_acceptable && simulation.plaintiff_ideal &&
-       simulation.plaintiff_min_acceptable > simulation.plaintiff_ideal
+        simulation.plaintiff_min_acceptable > simulation.plaintiff_ideal
       errors << "Plaintiff minimum cannot exceed ideal amount"
     end
 
     if simulation.defendant_ideal && simulation.defendant_max_acceptable &&
-       simulation.defendant_ideal > simulation.defendant_max_acceptable
+        simulation.defendant_ideal > simulation.defendant_max_acceptable
       errors << "Defendant ideal cannot exceed maximum amount"
     end
 
     # Check for settlement possibility
     if simulation.plaintiff_min_accessible && simulation.defendant_max_acceptable &&
-       simulation.plaintiff_min_accessible > simulation.defendant_max_acceptable
+        simulation.plaintiff_min_accessible > simulation.defendant_max_acceptable
       errors << "Warning: Current ranges make settlement impossible - consider adjustment"
     end
 
@@ -191,14 +189,14 @@ class SimulationOrchestrationService
   # Start a simulation
   def start_simulation!
     errors = validate_simulation_readiness
-    raise StandardError, "Simulation validation failed: #{errors.join(', ')}" if errors.any?
+    raise StandardError, "Simulation validation failed: #{errors.join(", ")}" if errors.any?
 
     simulation.update!(status: :active, start_date: Time.current)
 
     # Create initial round
     initial_round = simulation.negotiation_rounds.create!(
       round_number: 1,
-      deadline: Time.current + 48.hours, # Default 48 hours
+      deadline: 48.hours.from_now, # Default 48 hours
       status: :active
     )
 
@@ -226,7 +224,7 @@ class SimulationOrchestrationService
       if simulation.simulation_config.dig("auto_advance_rounds")
         process_round_completion!(negotiation_round)
       else
-        { awaiting_instructor_advance: true }
+        {awaiting_instructor_advance: true}
       end
     end
   end
@@ -268,7 +266,7 @@ class SimulationOrchestrationService
   end
 
   def get_user_team(user)
-    user.teams.joins(:case_teams).where(case_teams: { case: simulation.case }).first
+    user.teams.joins(:case_teams).where(case_teams: {case: simulation.case}).first
   end
 
   def get_current_round_status
@@ -295,9 +293,9 @@ class SimulationOrchestrationService
     team_offer = nil
     if current_round && case_team
       team_offer = if case_team.role == "plaintiff"
-                     current_round.plaintiff_offer
+        current_round.plaintiff_offer
       else
-                     current_round.defendant_offer
+        current_round.defendant_offer
       end
     end
 
@@ -311,11 +309,11 @@ class SimulationOrchestrationService
 
   def get_recent_events_summary
     simulation.simulation_events
-              .triggered
-              .where("triggered_at >= ?", 24.hours.ago)
-              .order(triggered_at: :desc)
-              .limit(5)
-              .map do |event|
+      .triggered
+      .where("triggered_at >= ?", 24.hours.ago)
+      .order(triggered_at: :desc)
+      .limit(5)
+      .map do |event|
       {
         event_type: event.event_type,
         description: event.impact_description,

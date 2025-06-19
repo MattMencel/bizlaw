@@ -11,7 +11,7 @@ module Api
       def respond_with(resource, _opts = {})
         if resource.persisted?
           render json: {
-            status: { code: 200, message: "Logged in successfully." },
+            status: {code: 200, message: "Logged in successfully."},
             data: {
               user: UserSerializer.new(resource).serializable_hash[:data][:attributes],
               token: request.env["warden-jwt_auth.token"]
@@ -19,7 +19,7 @@ module Api
           }
         else
           render json: {
-            status: { code: 401, message: "Invalid email or password." }
+            status: {code: 401, message: "Invalid email or password."}
           }, status: :unauthorized
         end
       end
@@ -27,11 +27,11 @@ module Api
       def respond_to_on_destroy
         if current_user
           render json: {
-            status: { code: 200, message: "Logged out successfully." }
+            status: {code: 200, message: "Logged out successfully."}
           }
         else
           render json: {
-            status: { code: 401, message: "Couldn't find an active session." }
+            status: {code: 401, message: "Couldn't find an active session."}
           }, status: :unauthorized
         end
       end

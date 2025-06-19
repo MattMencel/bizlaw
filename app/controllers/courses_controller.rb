@@ -4,16 +4,16 @@ class CoursesController < ApplicationController
   include LicenseEnforcement
 
   before_action :authenticate_user!
-  before_action :set_course, only: [ :show, :edit, :update, :destroy, :manage_invitations, :create_invitation, :assign_students, :assign_student, :remove_student ]
-  before_action :require_instructor_or_admin, except: [ :index, :show ]
-  before_action :authorize_course_access, only: [ :show, :edit, :update, :destroy, :manage_invitations, :create_invitation, :assign_students, :assign_student, :remove_student ]
-  before_action :check_course_creation_limit!, only: [ :create ]
+  before_action :set_course, only: [:show, :edit, :update, :destroy, :manage_invitations, :create_invitation, :assign_students, :assign_student, :remove_student]
+  before_action :require_instructor_or_admin, except: [:index, :show]
+  before_action :authorize_course_access, only: [:show, :edit, :update, :destroy, :manage_invitations, :create_invitation, :assign_students, :assign_student, :remove_student]
+  before_action :check_course_creation_limit!, only: [:create]
 
   def index
     @courses = if current_user.instructor? || current_user.admin?
-                current_user.taught_courses.includes(:instructor).active
+      current_user.taught_courses.includes(:instructor).active
     else
-                current_user.enrolled_courses.includes(:instructor).active
+      current_user.enrolled_courses.includes(:instructor).active
     end
 
     @courses = @courses.search_by_title(params[:search]) if params[:search].present?
@@ -82,7 +82,7 @@ class CoursesController < ApplicationController
 
     if @invitation.save
       redirect_to manage_invitations_course_path(@course),
-                  notice: "Invitation '#{@invitation.display_name}' was created successfully."
+        notice: "Invitation '#{@invitation.display_name}' was created successfully."
     else
       @invitations = @course.course_invitations.includes(:course).order(created_at: :desc)
       @new_invitation = @invitation
@@ -98,10 +98,12 @@ class CoursesController < ApplicationController
 
     @available_students = @course.available_students_for_assignment
 
-    @available_students = @available_students.where(
-      "LOWER(first_name) LIKE :query OR LOWER(last_name) LIKE :query OR LOWER(email) LIKE :query",
-      query: "%#{params[:search].downcase}%"
-    ) if params[:search].present?
+    if params[:search].present?
+      @available_students = @available_students.where(
+        "LOWER(first_name) LIKE :query OR LOWER(last_name) LIKE :query OR LOWER(email) LIKE :query",
+        query: "%#{params[:search].downcase}%"
+      )
+    end
 
     # Apply pagination if Kaminari is available
     @available_students = @available_students.page(params[:page]).per(20) if defined?(Kaminari)
@@ -119,10 +121,10 @@ class CoursesController < ApplicationController
 
     if @course.assign_student_directly!(@student)
       redirect_to assign_students_course_path(@course),
-                  notice: "#{@student.full_name} has been successfully assigned to the course."
+        notice: "#{@student.full_name} has been successfully assigned to the course."
     else
       redirect_to assign_students_course_path(@course),
-                  alert: "Failed to assign #{@student.full_name} to the course."
+        alert: "Failed to assign #{@student.full_name} to the course."
     end
   end
 
@@ -136,10 +138,10 @@ class CoursesController < ApplicationController
 
     if @course.remove_student_directly!(@student)
       redirect_to assign_students_course_path(@course),
-                  notice: "#{@student.full_name} has been successfully removed from the course."
+        notice: "#{@student.full_name} has been successfully removed from the course."
     else
       redirect_to assign_students_course_path(@course),
-                  alert: "Failed to remove #{@student.full_name} from the course."
+        alert: "Failed to remove #{@student.full_name} from the course."
     end
   end
 

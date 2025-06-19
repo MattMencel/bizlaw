@@ -4,7 +4,7 @@ class AiResponseCacheService
   include ActionView::Helpers::NumberHelper
 
   CACHE_EXPIRATION = 2.hours.freeze
-  MAX_CACHE_SIZE = 1000.freeze
+  MAX_CACHE_SIZE = 1000
 
   def initialize(simulation)
     @simulation = simulation
@@ -89,7 +89,7 @@ class AiResponseCacheService
             sleep(0.1)
           end
         end
-      rescue StandardError => e
+      rescue => e
         Rails.logger.warn "Cache warming failed for scenario #{scenario}: #{e.message}"
       end
     end
@@ -175,7 +175,7 @@ class AiResponseCacheService
     Rails.application.config.respond_to?(:ai_response_caching) &&
       Rails.application.config.ai_response_caching &&
       GoogleAI.enabled?
-  rescue StandardError
+  rescue
     false
   end
 
@@ -225,9 +225,9 @@ class AiResponseCacheService
     # Create a hash representing the current state of simulation events
     # This ensures cache is invalidated when events change the simulation state
     recent_events = @simulation.simulation_events
-                              .where("triggered_at > ?", 24.hours.ago)
-                              .pluck(:event_type)
-                              .sort
+      .where("triggered_at > ?", 24.hours.ago)
+      .pluck(:event_type)
+      .sort
 
     Digest::MD5.hexdigest(recent_events.join(","))[0..7]
   end
@@ -250,7 +250,7 @@ class AiResponseCacheService
 
     Rails.cache.write(cache_key, cached_data, expires_in: CACHE_EXPIRATION)
 
-    Rails.logger.debug "Cached AI response with key: #{cache_key}"
+    Rails.logger.debug { "Cached AI response with key: #{cache_key}" }
   end
 
   def cache_exists?(cache_key)
@@ -282,12 +282,12 @@ class AiResponseCacheService
   def identify_common_scenarios
     # Define common negotiation scenarios for cache warming
     [
-      { role: "plaintiff", amount_range: "200k-249k", round: 1 },
-      { role: "plaintiff", amount_range: "250k-299k", round: 1 },
-      { role: "plaintiff", amount_range: "250k-299k", round: 2 },
-      { role: "defendant", amount_range: "100k-149k", round: 1 },
-      { role: "defendant", amount_range: "150k-199k", round: 1 },
-      { role: "defendant", amount_range: "150k-199k", round: 2 }
+      {role: "plaintiff", amount_range: "200k-249k", round: 1},
+      {role: "plaintiff", amount_range: "250k-299k", round: 1},
+      {role: "plaintiff", amount_range: "250k-299k", round: 2},
+      {role: "defendant", amount_range: "100k-149k", round: 1},
+      {role: "defendant", amount_range: "150k-199k", round: 1},
+      {role: "defendant", amount_range: "150k-199k", round: 2}
     ]
   end
 
@@ -307,7 +307,7 @@ class AiResponseCacheService
 
   def build_mock_team(role)
     OpenStruct.new(
-      case_teams: [ OpenStruct.new(case: @simulation.case, role: role) ]
+      case_teams: [OpenStruct.new(case: @simulation.case, role: role)]
     )
   end
 

@@ -6,14 +6,14 @@
 # instead of editing this one. Cucumber will automatically load all features/**/*.rb
 # files.
 
-require 'cucumber/rails'
-require 'rack/test'
-require 'capybara/cucumber'
-require 'email_spec'
-require 'email_spec/cucumber'
-require 'timecop'
-require 'factory_bot'
-require 'rspec/mocks'
+require "cucumber/rails"
+require "rack/test"
+require "capybara/cucumber"
+require "email_spec"
+require "email_spec/cucumber"
+require "timecop"
+require "factory_bot"
+require "rspec/mocks"
 
 World(Rack::Test::Methods)
 World(FactoryBot::Syntax::Methods)
@@ -120,7 +120,7 @@ After do
   RSpec::Mocks.teardown
 end
 
-Before('@oauth_failure') do
+Before("@oauth_failure") do
   OmniAuth.config.mock_auth[:google_oauth2] = :invalid_credentials
 end
 

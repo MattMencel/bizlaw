@@ -86,7 +86,7 @@ module Api
       def set_case
         @case = Case.find(params[:id])
       rescue ActiveRecord::RecordNotFound
-        render json: { error: "Case not found" }, status: :not_found
+        render json: {error: "Case not found"}, status: :not_found
       end
 
       def case_params
@@ -105,7 +105,6 @@ module Api
           case_teams_attributes: %i[id team_id role _destroy]
         )
       end
-
 
       def pagination_meta(cases)
         {

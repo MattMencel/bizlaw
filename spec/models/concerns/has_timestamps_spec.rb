@@ -56,11 +56,11 @@ RSpec.describe HasTimestamps do
     end
 
     it "returns recent records" do
-      expect(test_class.recent).to eq([ new_record, old_record ])
+      expect(test_class.recent).to eq([new_record, old_record])
     end
 
     it "returns recently updated records" do
-      expect(test_class.recently_updated).to eq([ new_record, old_record ])
+      expect(test_class.recently_updated).to eq([new_record, old_record])
     end
   end
 

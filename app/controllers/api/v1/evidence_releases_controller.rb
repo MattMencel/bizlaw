@@ -3,26 +3,26 @@
 class Api::V1::EvidenceReleasesController < Api::V1::BaseController
   before_action :authenticate_user!
   before_action :set_case
-  before_action :set_evidence_release, only: [ :show, :approve, :deny ]
+  before_action :set_evidence_release, only: [:show, :approve, :deny]
   before_action :ensure_case_access
 
   # GET /api/v1/cases/:case_id/evidence_releases
   # List evidence releases for a case
   def index
     @evidence_releases = @case.simulation.evidence_releases
-                              .includes(:document, :requesting_team)
-                              .order(:release_round, :scheduled_release_at)
+      .includes(:document, :requesting_team)
+      .order(:release_round, :scheduled_release_at)
 
     # Filter by team access if student
     unless current_user.role_instructor? || current_user.role_admin?
       user_team = current_user_team
-      if user_team
-        @evidence_releases = @evidence_releases.where(
+      @evidence_releases = if user_team
+        @evidence_releases.where(
           "requesting_team_id = ? OR auto_release = true",
           user_team.id
         )
       else
-        @evidence_releases = @evidence_releases.auto_releases
+        @evidence_releases.auto_releases
       end
     end
 
@@ -126,7 +126,7 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
         }
       }
     else
-      render json: { error: "Failed to approve evidence request" }, status: :unprocessable_entity
+      render json: {error: "Failed to approve evidence request"}, status: :unprocessable_entity
     end
   end
 
@@ -146,7 +146,7 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
         }
       }
     else
-      render json: { error: "Failed to deny evidence request" }, status: :unprocessable_entity
+      render json: {error: "Failed to deny evidence request"}, status: :unprocessable_entity
     end
   end
 
@@ -156,8 +156,8 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
     ensure_instructor!
 
     all_releases = @case.simulation.evidence_releases
-                        .includes(:document, :requesting_team)
-                        .order(:release_round, :scheduled_release_at)
+      .includes(:document, :requesting_team)
+      .order(:release_round, :scheduled_release_at)
 
     render json: {
       data: {
@@ -210,18 +210,18 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
 
   def ensure_case_access
     unless policy(@case).show?
-      render json: { error: "Access denied to this case" }, status: :forbidden
+      render json: {error: "Access denied to this case"}, status: :forbidden
     end
   end
 
   def ensure_instructor!
     unless current_user.role_instructor? || current_user.role_admin?
-      render json: { error: "Instructor access required" }, status: :forbidden
+      render json: {error: "Instructor access required"}, status: :forbidden
     end
   end
 
   def current_user_team
-    @current_user_team ||= current_user.teams.joins(:case_teams).where(case_teams: { case: @case }).first
+    @current_user_team ||= current_user.teams.joins(:case_teams).where(case_teams: {case: @case}).first
   end
 
   def evidence_params
@@ -249,7 +249,7 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
 
   def authorize_evidence_access!
     unless can_access_evidence?(@evidence_release)
-      render json: { error: "Access denied to this evidence release" }, status: :forbidden
+      render json: {error: "Access denied to this evidence release"}, status: :forbidden
     end
   end
 
@@ -264,9 +264,9 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
 
   def can_approve_release?
     (current_user.role_instructor? || current_user.role_admin?) &&
-    @evidence_release.team_requested? &&
-    !@evidence_release.released? &&
-    @evidence_release.release_conditions["denied_by"].blank?
+      @evidence_release.team_requested? &&
+      !@evidence_release.released? &&
+      @evidence_release.release_conditions["denied_by"].blank?
   end
 
   def can_deny_release?
@@ -348,11 +348,11 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
 
     all_releases.each do |release|
       date_key = if release.released?
-                   release.released_at.to_date.to_s
+        release.released_at.to_date.to_s
       elsif release.scheduled_release_at
-                   release.scheduled_release_at.to_date.to_s
+        release.scheduled_release_at.to_date.to_s
       else
-                   "unscheduled"
+        "unscheduled"
       end
 
       calendar[date_key] ||= []

@@ -36,13 +36,15 @@ RSpec.describe Case, type: :model do
 
   # Enums
   describe "enums" do
-    it { expect(subject).to define_enum_for(:status).with_values(
-      not_started: 'not_started',
-      in_progress: 'in_progress',
-      submitted: 'submitted',
-      reviewed: 'reviewed',
-      completed: 'completed'
-    ).with_prefix(true) }
+    it {
+      expect(subject).to define_enum_for(:status).with_values(
+        not_started: "not_started",
+        in_progress: "in_progress",
+        submitted: "submitted",
+        reviewed: "reviewed",
+        completed: "completed"
+      ).with_prefix(true)
+    }
 
     it { is_expected.to define_enum_for(:difficulty_level).with_values(beginner: "beginner", intermediate: "intermediate", advanced: "advanced").with_prefix(true) }
   end
@@ -116,7 +118,7 @@ RSpec.describe Case, type: :model do
       let!(:new_case) { create(:case, created_at: 1.day.ago) }
 
       it "orders cases by creation date descending" do
-        expect(described_class.recent_first).to eq([ new_case, old_case ])
+        expect(described_class.recent_first).to eq([new_case, old_case])
       end
     end
   end
@@ -226,66 +228,66 @@ RSpec.describe Case, type: :model do
     end
   end
 
-  describe 'status helpers' do
+  describe "status helpers" do
     let(:case_instance) { create(:case) }
 
-    describe '#started?' do
-      it 'returns false when not started' do
+    describe "#started?" do
+      it "returns false when not started" do
         case_instance.status = :not_started
         expect(case_instance).not_to be_started
       end
 
-      it 'returns true when in progress' do
+      it "returns true when in progress" do
         case_instance.status = :in_progress
         expect(case_instance).to be_started
       end
     end
 
-    describe '#completed?' do
-      it 'returns true when completed' do
+    describe "#completed?" do
+      it "returns true when completed" do
         case_instance.status = :completed
         expect(case_instance).to be_completed
       end
 
-      it 'returns false when not completed' do
+      it "returns false when not completed" do
         case_instance.status = :in_progress
         expect(case_instance).not_to be_completed
       end
     end
 
-    describe '#can_submit?' do
-      it 'returns true when in progress' do
+    describe "#can_submit?" do
+      it "returns true when in progress" do
         case_instance.status = :in_progress
         expect(case_instance).to be_can_submit
       end
 
-      it 'returns false when not in progress' do
+      it "returns false when not in progress" do
         case_instance.status = :not_started
         expect(case_instance).not_to be_can_submit
       end
     end
 
-    describe '#can_review?' do
-      it 'returns true when submitted' do
+    describe "#can_review?" do
+      it "returns true when submitted" do
         case_instance.status = :submitted
         expect(case_instance).to be_can_review
       end
 
-      it 'returns false when not submitted' do
+      it "returns false when not submitted" do
         case_instance.status = :in_progress
         expect(case_instance).not_to be_can_review
       end
     end
   end
 
-  describe 'soft deletion' do
+  describe "soft deletion" do
     let(:case_instance) { create(:case) }
 
-    it 'can be soft deleted' do
+    it "can be soft deleted" do
       expect { case_instance.soft_delete }.to change(case_instance, :deleted_at).from(nil)
     end
 
-    it 'can be restored' do
+    it "can be restored" do
       case_instance.soft_delete
       expect { case_instance.restore }.to change(case_instance, :deleted_at).to(nil)
     end

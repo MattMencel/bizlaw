@@ -15,7 +15,7 @@ class EvidenceRelease < ApplicationRecord
 
   # Validations
   validates :release_round, presence: true,
-                           numericality: { greater_than: 0 }
+    numericality: {greater_than: 0}
   validates :evidence_type, presence: true
   validates :impact_description, presence: true
   validates :scheduled_release_at, presence: true, if: :auto_release?
@@ -40,7 +40,7 @@ class EvidenceRelease < ApplicationRecord
     performance_review
   ].freeze
 
-  validates :evidence_type, inclusion: { in: EVIDENCE_TYPES }
+  validates :evidence_type, inclusion: {in: EVIDENCE_TYPES}
 
   # Scopes
   scope :scheduled_for_round, ->(round) { where(release_round: round) }

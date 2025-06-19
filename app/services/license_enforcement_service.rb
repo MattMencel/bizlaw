@@ -123,5 +123,6 @@ class LicenseEnforcementService
   end
 
   class LicenseLimitExceeded < StandardError; end
+
   class FeatureNotLicensed < StandardError; end
 end

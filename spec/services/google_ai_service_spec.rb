@@ -24,11 +24,11 @@ RSpec.describe GoogleAiService do
   let(:mock_client) { instance_double(Gemini::Controllers::Client) }
   let(:mock_response) do
     {
-      'candidates' => [
+      "candidates" => [
         {
-          'content' => {
-            'parts' => [
-              { 'text' => 'Mock AI response text' }
+          "content" => {
+            "parts" => [
+              {"text" => "Mock AI response text"}
             ]
           }
         }
@@ -60,11 +60,11 @@ RSpec.describe GoogleAiService do
       before do
         # Create a mock response that matches the expected format
         mock_response_with_text = {
-          'candidates' => [
+          "candidates" => [
             {
-              'content' => {
-                'parts' => [
-                  { 'text' => ai_response_text }
+              "content" => {
+                "parts" => [
+                  {"text" => ai_response_text}
                 ]
               }
             }
@@ -165,11 +165,11 @@ RSpec.describe GoogleAiService do
 
       before do
         mock_analysis_response = {
-          'candidates' => [
+          "candidates" => [
             {
-              'content' => {
-                'parts' => [
-                  { 'text' => ai_analysis }
+              "content" => {
+                "parts" => [
+                  {"text" => ai_analysis}
                 ]
               }
             }
@@ -224,11 +224,11 @@ RSpec.describe GoogleAiService do
 
       before do
         mock_suggestions_response = {
-          'candidates' => [
+          "candidates" => [
             {
-              'content' => {
-                'parts' => [
-                  { 'text' => ai_suggestions }
+              "content" => {
+                "parts" => [
+                  {"text" => ai_suggestions}
                 ]
               }
             }

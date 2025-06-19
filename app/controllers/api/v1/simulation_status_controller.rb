@@ -65,9 +65,9 @@ module Api
         authorize @simulation, :show?
 
         events = @simulation.simulation_events
-                           .triggered
-                           .order(triggered_at: :desc)
-                           .limit(20)
+          .triggered
+          .order(triggered_at: :desc)
+          .limit(20)
 
         render json: {
           events: events.map { |event| format_event_data(event) },
@@ -81,7 +81,7 @@ module Api
       def set_case
         @case = Case.find(params[:case_id])
       rescue ActiveRecord::RecordNotFound
-        render json: { error: "Case not found" }, status: :not_found
+        render json: {error: "Case not found"}, status: :not_found
       end
 
       def set_simulation
@@ -106,9 +106,9 @@ module Api
 
       def current_user_team
         @current_user_team ||= current_user.teams
-                                          .joins(:case_teams)
-                                          .where(case_teams: { case: @case })
-                                          .first
+          .joins(:case_teams)
+          .where(case_teams: {case: @case})
+          .first
       end
 
       def simulation_status_data
@@ -150,9 +150,9 @@ module Api
 
         if current_round && team_role
           team_offer = if team_role == "plaintiff"
-                        current_round.plaintiff_offer
+            current_round.plaintiff_offer
           else
-                        current_round.defendant_offer
+            current_round.defendant_offer
           end
         end
 
@@ -184,11 +184,11 @@ module Api
 
       def recent_events_data
         @simulation.simulation_events
-                  .triggered
-                  .where("triggered_at >= ?", 24.hours.ago)
-                  .order(triggered_at: :desc)
-                  .limit(5)
-                  .map { |event| format_event_data(event) }
+          .triggered
+          .where("triggered_at >= ?", 24.hours.ago)
+          .order(triggered_at: :desc)
+          .limit(5)
+          .map { |event| format_event_data(event) }
       end
 
       def negotiation_progress_data
@@ -251,8 +251,8 @@ module Api
 
         # Event pressure
         recent_events = @simulation.simulation_events
-                                  .triggered
-                                  .where("triggered_at >= ?", 48.hours.ago)
+          .triggered
+          .where("triggered_at >= ?", 48.hours.ago)
 
         if recent_events.any?
           sources << {
@@ -282,18 +282,18 @@ module Api
       def get_recent_range_adjustments
         # Look for recent simulation events that included range adjustments
         @simulation.simulation_events
-                  .where("triggered_at >= ?", 24.hours.ago)
-                  .where.not(pressure_adjustment: {})
-                  .order(triggered_at: :desc)
-                  .limit(3)
-                  .map do |event|
-            {
-              event_type: event.event_type,
-              triggered_at: event.triggered_at,
-              adjustments: event.pressure_adjustment,
-              description: event.impact_description
-            }
-          end
+          .where("triggered_at >= ?", 24.hours.ago)
+          .where.not(pressure_adjustment: {})
+          .order(triggered_at: :desc)
+          .limit(3)
+          .map do |event|
+          {
+            event_type: event.event_type,
+            triggered_at: event.triggered_at,
+            adjustments: event.pressure_adjustment,
+            description: event.impact_description
+          }
+        end
       end
 
       def get_market_conditions
@@ -309,19 +309,19 @@ module Api
 
       def negotiation_rounds_summary
         @simulation.negotiation_rounds
-                  .completed
-                  .includes(:settlement_offers)
-                  .order(:round_number)
-                  .map do |round|
-            {
-              round_number: round.round_number,
-              completed_at: round.completed_at,
-              plaintiff_amount: round.plaintiff_offer&.amount,
-              defendant_amount: round.defendant_offer&.amount,
-              settlement_gap: round.settlement_gap,
-              settlement_reached: round.settlement_reached?
-            }
-          end
+          .completed
+          .includes(:settlement_offers)
+          .order(:round_number)
+          .map do |round|
+          {
+            round_number: round.round_number,
+            completed_at: round.completed_at,
+            plaintiff_amount: round.plaintiff_offer&.amount,
+            defendant_amount: round.defendant_offer&.amount,
+            settlement_gap: round.settlement_gap,
+            settlement_reached: round.settlement_reached?
+          }
+        end
       end
 
       def settlement_progression_data
@@ -329,18 +329,18 @@ module Api
         return {} if rounds.empty?
 
         {
-          plaintiff_offers: rounds.map { |r| { round: r[:round_number], amount: r[:plaintiff_amount] } }.compact,
-          defendant_offers: rounds.map { |r| { round: r[:round_number], amount: r[:defendant_amount] } }.compact,
-          gap_trend: rounds.map { |r| { round: r[:round_number], gap: r[:settlement_gap] } }.compact,
+          plaintiff_offers: rounds.map { |r| {round: r[:round_number], amount: r[:plaintiff_amount]} }.compact,
+          defendant_offers: rounds.map { |r| {round: r[:round_number], amount: r[:defendant_amount]} }.compact,
+          gap_trend: rounds.map { |r| {round: r[:round_number], gap: r[:settlement_gap]} }.compact,
           convergence_rate: calculate_convergence_rate(rounds)
         }
       end
 
       def argument_quality_trends
         offers = SettlementOffer.joins(:negotiation_round)
-                               .where(negotiation_rounds: { simulation: @simulation })
-                               .where(team: current_user_team)
-                               .order("negotiation_rounds.round_number")
+          .where(negotiation_rounds: {simulation: @simulation})
+          .where(team: current_user_team)
+          .order("negotiation_rounds.round_number")
 
         offers.map do |offer|
           {
@@ -372,7 +372,7 @@ module Api
             type: "round_completed",
             timestamp: round.completed_at,
             description: "Round #{round.round_number} completed",
-            data: { round_number: round.round_number }
+            data: {round_number: round.round_number}
           }
         end
 
@@ -382,19 +382,19 @@ module Api
             type: "simulation_event",
             timestamp: event.triggered_at,
             description: event.impact_description,
-            data: { event_type: event.event_type }
+            data: {event_type: event.event_type}
           }
         end
 
-        events.sort_by { |e| e[:timestamp] }.reverse.first(20)
+        events.sort_by { |e| e[:timestamp] }.last(20).reverse
       end
 
       def get_upcoming_events
         @simulation.simulation_events
-                  .pending
-                  .order(:triggered_at)
-                  .limit(5)
-                  .map { |event| format_event_data(event) }
+          .pending
+          .order(:triggered_at)
+          .limit(5)
+          .map { |event| format_event_data(event) }
       end
 
       def get_event_impact_summary
@@ -535,7 +535,7 @@ module Api
         rounds_needed = (current_gap / closing_rate).ceil
         projected_round = @simulation.current_round + rounds_needed
 
-        projected_round <= @simulation.total_rounds ? projected_round : nil
+        (projected_round <= @simulation.total_rounds) ? projected_round : nil
       end
 
       def calculate_total_pressure_increase(events)

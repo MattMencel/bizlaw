@@ -1,20 +1,20 @@
 # frozen_string_literal: true
 
-require 'timecop'
+require "timecop"
 
 RSpec.configure do |config|
   # Include Timecop methods at the top level
   config.include Module.new {
-    def freeze_time(*args, &block)
-      Timecop.freeze(*args, &block)
+    def freeze_time(*, &)
+      Timecop.freeze(*, &)
     end
 
-    def travel(*args, &block)
-      Timecop.travel(*args, &block)
+    def travel(*, &)
+      Timecop.travel(*, &)
     end
 
-    def travel_to(*args, &block)
-      Timecop.travel(*args, &block)
+    def travel_to(*, &)
+      Timecop.travel(*, &)
     end
   }
 

@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe OrganizationPolicy, type: :policy do
-  let(:admin_user) { create(:user, role: 'admin') }
-  let(:instructor_user) { create(:user, role: 'instructor') }
-  let(:student_user) { create(:user, role: 'student') }
+  let(:admin_user) { create(:user, role: "admin") }
+  let(:instructor_user) { create(:user, role: "instructor") }
+  let(:student_user) { create(:user, role: "student") }
   let(:organization) { create(:organization) }
 
-  describe '.scope' do
-    it 'returns all organizations for admin users' do
+  describe ".scope" do
+    it "returns all organizations for admin users" do
       org1 = create(:organization)
       org2 = create(:organization)
 
@@ -17,9 +17,9 @@ RSpec.describe OrganizationPolicy, type: :policy do
       expect(scope).to include(org1, org2)
     end
 
-    it 'returns empty scope for non-admin users' do
-      org1 = create(:organization)
-      org2 = create(:organization)
+    it "returns empty scope for non-admin users" do
+      create(:organization)
+      create(:organization)
 
       instructor_scope = Pundit.policy_scope(instructor_user, Organization)
       student_scope = Pundit.policy_scope(student_user, Organization)
@@ -29,10 +29,10 @@ RSpec.describe OrganizationPolicy, type: :policy do
     end
   end
 
-  describe 'admin permissions' do
+  describe "admin permissions" do
     let(:policy) { described_class.new(admin_user, organization) }
 
-    it 'allows all actions' do
+    it "allows all actions" do
       expect(policy.index?).to be true
       expect(policy.show?).to be true
       expect(policy.new?).to be true
@@ -45,10 +45,10 @@ RSpec.describe OrganizationPolicy, type: :policy do
     end
   end
 
-  describe 'instructor permissions' do
+  describe "instructor permissions" do
     let(:policy) { described_class.new(instructor_user, organization) }
 
-    it 'denies all actions' do
+    it "denies all actions" do
       expect(policy.index?).to be false
       expect(policy.show?).to be false
       expect(policy.new?).to be false
@@ -61,10 +61,10 @@ RSpec.describe OrganizationPolicy, type: :policy do
     end
   end
 
-  describe 'student permissions' do
+  describe "student permissions" do
     let(:policy) { described_class.new(student_user, organization) }
 
-    it 'denies all actions' do
+    it "denies all actions" do
       expect(policy.index?).to be false
       expect(policy.show?).to be false
       expect(policy.new?).to be false
@@ -77,10 +77,10 @@ RSpec.describe OrganizationPolicy, type: :policy do
     end
   end
 
-  describe 'unauthenticated user permissions' do
+  describe "unauthenticated user permissions" do
     let(:policy) { described_class.new(nil, organization) }
 
-    it 'denies all actions' do
+    it "denies all actions" do
       expect(policy.index?).to be false
       expect(policy.show?).to be false
       expect(policy.new?).to be false

@@ -5,8 +5,8 @@ class CaseTeamSerializer
   include JSONAPI::Serializer
 
   attributes :role,
-             :created_at,
-             :updated_at
+    :created_at,
+    :updated_at
 
   belongs_to :case
   belongs_to :team

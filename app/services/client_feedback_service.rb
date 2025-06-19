@@ -23,12 +23,12 @@ class ClientFeedbackService
     # Generate pressure response feedback if events were triggered
     pressure_feedback = generate_pressure_response_if_needed(team, round_number)
 
-    [ range_feedback, strategic_feedback, pressure_feedback ].compact
+    [range_feedback, strategic_feedback, pressure_feedback].compact
   end
 
   # Generate AI-enhanced feedback when simulation events are triggered
   def generate_event_feedback!(event, affected_teams = nil)
-    affected_teams ||= [ simulation.plaintiff_team, simulation.defendant_team ].compact
+    affected_teams ||= [simulation.plaintiff_team, simulation.defendant_team].compact
 
     feedbacks = []
 
@@ -38,8 +38,8 @@ class ClientFeedbackService
       # Try AI-enhanced event feedback first
       ai_feedback = generate_ai_enhanced_event_feedback(event, team)
 
-      if ai_feedback && ai_feedback[:source] == "ai"
-        feedback = ClientFeedback.create!(
+      feedback = if ai_feedback && ai_feedback[:source] == "ai"
+        ClientFeedback.create!(
           simulation: simulation,
           team: team,
           feedback_type: :pressure_response,
@@ -50,7 +50,7 @@ class ClientFeedbackService
         )
       else
         # Fallback to existing rule-based feedback
-        feedback = ClientFeedback.generate_pressure_response(
+        ClientFeedback.generate_pressure_response(
           simulation,
           team,
           simulation.current_round,
@@ -68,7 +68,7 @@ class ClientFeedbackService
   def generate_round_transition_feedback!(from_round, to_round)
     feedbacks = []
 
-    [ simulation.plaintiff_team, simulation.defendant_team ].compact.each do |team|
+    [simulation.plaintiff_team, simulation.defendant_team].compact.each do |team|
       # Skip if team hasn't submitted an offer in the completed round
       completed_round = simulation.negotiation_rounds.find_by(round_number: from_round)
       next unless completed_round
@@ -77,9 +77,9 @@ class ClientFeedbackService
       next unless team_role
 
       has_offer = if team_role == "plaintiff"
-                   completed_round.has_plaintiff_offer?
+        completed_round.has_plaintiff_offer?
       else
-                   completed_round.has_defendant_offer?
+        completed_round.has_defendant_offer?
       end
 
       next unless has_offer
@@ -98,7 +98,7 @@ class ClientFeedbackService
 
     feedbacks = []
 
-    [ simulation.plaintiff_team, simulation.defendant_team ].compact.each do |team|
+    [simulation.plaintiff_team, simulation.defendant_team].compact.each do |team|
       feedback = generate_settlement_satisfaction_feedback(team, final_round)
       feedbacks << feedback if feedback
     end
@@ -110,7 +110,7 @@ class ClientFeedbackService
   def generate_arbitration_feedback!
     feedbacks = []
 
-    [ simulation.plaintiff_team, simulation.defendant_team ].compact.each do |team|
+    [simulation.plaintiff_team, simulation.defendant_team].compact.each do |team|
       feedback = generate_arbitration_warning_feedback(team)
       feedbacks << feedback if feedback
     end
@@ -123,10 +123,10 @@ class ClientFeedbackService
     round_number ||= simulation.current_round
 
     feedbacks = simulation.client_feedbacks
-                          .where(team: team)
-                          .where("triggered_by_round <= ?", round_number)
-                          .recent_feedback
-                          .limit(10)
+      .where(team: team)
+      .where("triggered_by_round <= ?", round_number)
+      .recent_feedback
+      .limit(10)
 
     {
       recent_feedbacks: feedbacks.map(&:formatted_message),
@@ -140,9 +140,9 @@ class ClientFeedbackService
   # Real-time client mood indicator (without revealing specific numbers)
   def get_client_mood_indicator(team)
     latest_feedback = simulation.client_feedbacks
-                                .where(team: team)
-                                .recent_feedback
-                                .first
+      .where(team: team)
+      .recent_feedback
+      .first
 
     return default_mood_indicator unless latest_feedback
 
@@ -168,8 +168,8 @@ class ClientFeedbackService
   def generate_pressure_response_if_needed(team, round_number)
     # Check if any events were triggered this round
     recent_events = simulation.simulation_events
-                             .where(trigger_round: round_number)
-                             .where("triggered_at >= ?", 1.hour.ago)
+      .where(trigger_round: round_number)
+      .where("triggered_at >= ?", 1.hour.ago)
 
     return nil if recent_events.empty?
 
@@ -230,15 +230,15 @@ class ClientFeedbackService
 
     # Analyze final settlement terms
     team_offer = if role == "plaintiff"
-                  final_round.plaintiff_offer
+      final_round.plaintiff_offer
     else
-                  final_round.defendant_offer
+      final_round.defendant_offer
     end
 
     opposing_offer = if role == "plaintiff"
-                      final_round.defendant_offer
+      final_round.defendant_offer
     else
-                      final_round.plaintiff_offer
+      final_round.plaintiff_offer
     end
 
     return nil unless team_offer && opposing_offer
@@ -282,9 +282,9 @@ class ClientFeedbackService
     mood = "unhappy"
     satisfaction = 30
     message = if role == "plaintiff"
-                "Client disappointed that settlement negotiations failed. Arbitration outcome is now uncertain and costly."
+      "Client disappointed that settlement negotiations failed. Arbitration outcome is now uncertain and costly."
     else
-                "Client concerned about proceeding to arbitration. Settlement would have provided more predictable resolution."
+      "Client concerned about proceeding to arbitration. Settlement would have provided more predictable resolution."
     end
 
     ClientFeedback.create!(
@@ -304,10 +304,10 @@ class ClientFeedbackService
 
     # Provide guidance if recent satisfaction is low
     recent_feedback = simulation.client_feedbacks
-                                .where(team: team)
-                                .where("triggered_by_round >= ?", round_number - 1)
-                                .order(:created_at)
-                                .last
+      .where(team: team)
+      .where("triggered_by_round >= ?", round_number - 1)
+      .order(:created_at)
+      .last
 
     recent_feedback&.satisfaction_score&.< 50
   end
@@ -317,9 +317,9 @@ class ClientFeedbackService
 
     team_role = team.case_teams.find_by(case: simulation.case)&.role
     team_offer = if team_role == "plaintiff"
-                   round.plaintiff_offer
+      round.plaintiff_offer
     else
-                   round.defendant_offer
+      round.defendant_offer
     end
 
     if team_offer
@@ -331,10 +331,10 @@ class ClientFeedbackService
       end
 
       # Analyze strategic positioning
-      if team_offer.within_client_expectations?
-        themes << :good_positioning
+      themes << if team_offer.within_client_expectations?
+        :good_positioning
       else
-        themes << :poor_positioning
+        :poor_positioning
       end
 
       # Analyze movement from previous round
@@ -365,12 +365,12 @@ class ClientFeedbackService
     message_parts = []
 
     # Round progression context
-    if to_round <= 2
-      message_parts << "Early negotiation progress shows"
+    message_parts << if to_round <= 2
+      "Early negotiation progress shows"
     elsif to_round <= 4
-      message_parts << "Mid-negotiation analysis indicates"
+      "Mid-negotiation analysis indicates"
     else
-      message_parts << "As we approach final rounds, assessment shows"
+      "As we approach final rounds, assessment shows"
     end
 
     # Performance-based feedback
@@ -423,47 +423,45 @@ class ClientFeedbackService
       mood = "unhappy"
     end
 
-    final_satisfaction = [ base_satisfaction, 100 ].min
-    final_satisfaction = [ final_satisfaction, 0 ].max
+    final_satisfaction = [base_satisfaction, 100].min
+    final_satisfaction = [final_satisfaction, 0].max
 
-    [ mood, final_satisfaction, message_parts.join(" ") ]
+    [mood, final_satisfaction, message_parts.join(" ")]
   end
 
   def calculate_settlement_satisfaction(role, settlement_amount)
     if role == "plaintiff"
       if settlement_amount >= simulation.plaintiff_ideal * 0.9
-        [ "very_satisfied", 95, "Client extremely pleased with settlement outcome. This exceeds expectations and provides excellent compensation." ]
+        ["very_satisfied", 95, "Client extremely pleased with settlement outcome. This exceeds expectations and provides excellent compensation."]
       elsif settlement_amount >= simulation.plaintiff_min_acceptable * 1.2
-        [ "satisfied", 85, "Client satisfied with settlement. This provides fair compensation for the harm suffered." ]
+        ["satisfied", 85, "Client satisfied with settlement. This provides fair compensation for the harm suffered."]
       elsif settlement_amount >= simulation.plaintiff_min_acceptable
-        [ "neutral", 70, "Client accepts settlement as reasonable resolution, though hoped for more." ]
+        ["neutral", 70, "Client accepts settlement as reasonable resolution, though hoped for more."]
       else
-        [ "unhappy", 40, "Client disappointed with settlement amount but glad to avoid arbitration uncertainty." ]
+        ["unhappy", 40, "Client disappointed with settlement amount but glad to avoid arbitration uncertainty."]
       end
+    elsif settlement_amount <= simulation.defendant_ideal * 1.2
+      ["very_satisfied", 95, "Client very pleased with settlement cost. This resolves the matter efficiently and reasonably."]
+    elsif settlement_amount <= simulation.defendant_max_acceptable * 0.8
+      ["satisfied", 85, "Client satisfied with settlement terms. Cost is acceptable for resolution."]
+    elsif settlement_amount <= simulation.defendant_max_acceptable
+      ["neutral", 70, "Client accepts settlement cost as necessary to avoid trial uncertainty."]
     else
-      if settlement_amount <= simulation.defendant_ideal * 1.2
-        [ "very_satisfied", 95, "Client very pleased with settlement cost. This resolves the matter efficiently and reasonably." ]
-      elsif settlement_amount <= simulation.defendant_max_acceptable * 0.8
-        [ "satisfied", 85, "Client satisfied with settlement terms. Cost is acceptable for resolution." ]
-      elsif settlement_amount <= simulation.defendant_max_acceptable
-        [ "neutral", 70, "Client accepts settlement cost as necessary to avoid trial uncertainty." ]
-      else
-        [ "unhappy", 40, "Client concerned about settlement cost but relieved to avoid potential trial risks." ]
-      end
+      ["unhappy", 40, "Client concerned about settlement cost but relieved to avoid potential trial risks."]
     end
   end
 
   def calculate_current_mood(team, round_number)
     recent_feedbacks = simulation.client_feedbacks
-                                 .where(team: team)
-                                 .where("triggered_by_round <= ?", round_number)
-                                 .order(:created_at)
-                                 .last(3)
+      .where(team: team)
+      .where("triggered_by_round <= ?", round_number)
+      .order(:created_at)
+      .last(3)
 
     return "neutral" if recent_feedbacks.empty?
 
     # Weight recent feedback more heavily
-    weights = [ 0.2, 0.3, 0.5 ] # oldest to newest
+    weights = [0.2, 0.3, 0.5] # oldest to newest
     mood_scores = recent_feedbacks.map { |f| mood_to_score(f.mood_level) }
 
     weighted_score = mood_scores.zip(weights[-mood_scores.length..-1]).sum { |score, weight| score * weight }
@@ -472,11 +470,11 @@ class ClientFeedbackService
 
   def calculate_satisfaction_trend(team, round_number)
     recent_scores = simulation.client_feedbacks
-                              .where(team: team)
-                              .where("triggered_by_round <= ?", round_number)
-                              .order(:created_at)
-                              .last(3)
-                              .pluck(:satisfaction_score)
+      .where(team: team)
+      .where("triggered_by_round <= ?", round_number)
+      .order(:created_at)
+      .last(3)
+      .pluck(:satisfaction_score)
 
     return "stable" if recent_scores.length < 2
 
@@ -494,10 +492,10 @@ class ClientFeedbackService
 
     # Analyze recent feedback for concerning patterns
     recent_feedbacks = simulation.client_feedbacks
-                                 .where(team: team)
-                                 .where("triggered_by_round <= ?", round_number)
-                                 .order(:created_at)
-                                 .last(5)
+      .where(team: team)
+      .where("triggered_by_round <= ?", round_number)
+      .order(:created_at)
+      .last(5)
 
     low_satisfaction_count = recent_feedbacks.count { |f| f.satisfaction_score < 50 }
     if low_satisfaction_count >= 2
@@ -525,12 +523,12 @@ class ClientFeedbackService
     role = case_team&.role
 
     # Round-specific recommendations
-    if round_number <= 2
-      recommendations << "Focus on establishing strong legal foundation for your position"
+    recommendations << if round_number <= 2
+      "Focus on establishing strong legal foundation for your position"
     elsif round_number <= 4
-      recommendations << "Consider non-monetary terms to bridge gaps creatively"
+      "Consider non-monetary terms to bridge gaps creatively"
     else
-      recommendations << "Time to make final strategic decisions for resolution"
+      "Time to make final strategic decisions for resolution"
     end
 
     # Role-specific recommendations
@@ -550,10 +548,10 @@ class ClientFeedbackService
 
   def calculate_mood_trend(team)
     recent_moods = simulation.client_feedbacks
-                             .where(team: team)
-                             .order(:created_at)
-                             .last(3)
-                             .map { |f| mood_to_score(f.mood_level) }
+      .where(team: team)
+      .order(:created_at)
+      .last(3)
+      .map { |f| mood_to_score(f.mood_level) }
 
     return "stable" if recent_moods.length < 2
 
@@ -726,7 +724,7 @@ class ClientFeedbackService
         strategic_guidance: ai_response[:strategic_guidance],
         source: ai_response[:source] || "ai"
       }
-    rescue StandardError => e
+    rescue => e
       Rails.logger.warn "AI feedback generation failed: #{e.message}"
       nil
     end
@@ -748,7 +746,7 @@ class ClientFeedbackService
         satisfaction_score: ai_response[:satisfaction_score],
         source: "ai"
       }
-    rescue StandardError => e
+    rescue => e
       Rails.logger.warn "AI event feedback generation failed: #{e.message}"
       nil
     end
@@ -769,7 +767,7 @@ class ClientFeedbackService
           source: "ai"
         }
       end
-    rescue StandardError => e
+    rescue => e
       Rails.logger.warn "AI transition feedback generation failed: #{e.message}"
       nil
     end
@@ -777,7 +775,7 @@ class ClientFeedbackService
 
   def ai_service_available?
     GoogleAI.enabled?
-  rescue StandardError
+  rescue
     false
   end
 
@@ -815,11 +813,11 @@ class ClientFeedbackService
   def adjust_amount_for_event(base_amount, event, team_role)
     case event.event_type
     when "media_attention"
-      team_role == "plaintiff" ? base_amount * 1.1 : base_amount * 1.05
+      (team_role == "plaintiff") ? base_amount * 1.1 : base_amount * 1.05
     when "additional_evidence"
-      team_role == "plaintiff" ? base_amount * 1.15 : base_amount * 1.1
+      (team_role == "plaintiff") ? base_amount * 1.15 : base_amount * 1.1
     when "ipo_delay"
-      team_role == "defendant" ? base_amount * 1.2 : base_amount
+      (team_role == "defendant") ? base_amount * 1.2 : base_amount
     else
       base_amount
     end
@@ -829,13 +827,13 @@ class ClientFeedbackService
     # Inject event context into AI response
     event_context = case event.event_type
     when "media_attention"
-                     "recent media developments"
+      "recent media developments"
     when "additional_evidence"
-                     "new evidence emergence"
+      "new evidence emergence"
     when "ipo_delay"
-                     "market timing considerations"
+      "market timing considerations"
     else
-                     "recent developments"
+      "recent developments"
     end
 
     # Prepend context if not already present
@@ -850,7 +848,7 @@ class ClientFeedbackService
     team_role = determine_team_role(team)
 
     # Customize AI advice for specific team role and themes
-    role_context = team_role == "plaintiff" ? "client's position" : "company's exposure"
+    role_context = (team_role == "plaintiff") ? "client's position" : "company's exposure"
 
     if themes.include?(:close_to_settlement)
       "#{ai_advice} The #{role_context} suggests we're approaching a viable resolution."
@@ -892,7 +890,7 @@ class ClientFeedbackService
       base_score -= 20
     end
 
-    [ [ base_score, 100 ].min, 0 ].max
+    [[base_score, 100].min, 0].max
   end
 
   def generate_ai_enhanced_settlement_feedback(team_offer, settlement_amount, role)
@@ -911,7 +909,7 @@ class ClientFeedbackService
         satisfaction_score: ai_response[:satisfaction_score],
         source: "ai"
       }
-    rescue StandardError => e
+    rescue => e
       Rails.logger.warn "AI settlement satisfaction feedback generation failed: #{e.message}"
       nil
     end
@@ -920,9 +918,9 @@ class ClientFeedbackService
   def adapt_settlement_feedback(ai_text, settlement_amount, role)
     # Add settlement completion context to AI response
     settlement_context = if role == "plaintiff"
-                          "With the settlement reached at #{ActionView::Helpers::NumberHelper.number_to_currency(settlement_amount)}, #{ai_text.downcase}"
+      "With the settlement reached at #{ActionView::Helpers::NumberHelper.number_to_currency(settlement_amount)}, #{ai_text.downcase}"
     else
-                          "The settlement resolution at #{ActionView::Helpers::NumberHelper.number_to_currency(settlement_amount)} represents #{ai_text.downcase}"
+      "The settlement resolution at #{ActionView::Helpers::NumberHelper.number_to_currency(settlement_amount)} represents #{ai_text.downcase}"
     end
 
     # Ensure settlement context is added appropriately

@@ -28,7 +28,7 @@ class Case < ApplicationRecord
 
   # Validations
   validates :title, presence: true,
-                   length: { maximum: 255 }
+    length: {maximum: 255}
   validates :description, presence: true
   validates :status, presence: true
   validates :difficulty_level, presence: true
@@ -83,7 +83,7 @@ class Case < ApplicationRecord
     when "admin", "instructor"
       all
     when "student"
-      joins(:assigned_teams).where(teams: { id: user.team_ids })
+      joins(:assigned_teams).where(teams: {id: user.team_ids})
     else
       none
     end
@@ -157,7 +157,7 @@ class Case < ApplicationRecord
 
   # Navigation helper methods
   def user_team_for(user)
-    assigned_teams.joins(:users).where(users: { id: user.id }).first
+    assigned_teams.joins(:users).where(users: {id: user.id}).first
   end
 
   def status_for_user(user)

@@ -1,8 +1,8 @@
 # API Controller for context switching functionality
 class Api::V1::ContextController < Api::V1::BaseController
   before_action :authenticate_user!
-  before_action :find_case, only: [ :switch_case ]
-  before_action :find_team, only: [ :switch_team ]
+  before_action :find_case, only: [:switch_case]
+  before_action :find_team, only: [:switch_team]
 
   # GET /api/v1/context/current
   def current
@@ -19,12 +19,12 @@ class Api::V1::ContextController < Api::V1::BaseController
   # PATCH /api/v1/context/switch_case
   def switch_case
     if @case.nil?
-      render json: { error: "Case not found" }, status: :not_found
+      render json: {error: "Case not found"}, status: :not_found
       return
     end
 
     unless current_user.can_access_case?(@case)
-      render json: { error: "Access denied" }, status: :forbidden
+      render json: {error: "Access denied"}, status: :forbidden
       return
     end
 
@@ -32,7 +32,7 @@ class Api::V1::ContextController < Api::V1::BaseController
     session[:active_case_id] = @case.id
 
     # Find appropriate team for user in this case
-    new_team = @case.teams.joins(:users).where(users: { id: current_user.id }).first
+    new_team = @case.teams.joins(:users).where(users: {id: current_user.id}).first
     session[:active_team_id] = new_team&.id
 
     # Track context switch
@@ -51,12 +51,12 @@ class Api::V1::ContextController < Api::V1::BaseController
   # PATCH /api/v1/context/switch_team
   def switch_team
     if @team.nil?
-      render json: { error: "Team not found" }, status: :not_found
+      render json: {error: "Team not found"}, status: :not_found
       return
     end
 
     unless current_user.can_access_team?(@team)
-      render json: { error: "Access denied" }, status: :forbidden
+      render json: {error: "Access denied"}, status: :forbidden
       return
     end
 
@@ -82,22 +82,22 @@ class Api::V1::ContextController < Api::V1::BaseController
     query = params[:q]&.strip
 
     if query.blank? || query.length < 2
-      render json: { cases: [], teams: [] }
+      render json: {cases: [], teams: []}
       return
     end
 
     # Search cases
     cases = current_user.cases
-                       .where("title ILIKE ? OR description ILIKE ?", "%#{query}%", "%#{query}%")
-                       .limit(5)
-                       .includes(:teams)
+      .where("title ILIKE ? OR description ILIKE ?", "%#{query}%", "%#{query}%")
+      .limit(5)
+      .includes(:teams)
 
     # Search teams
     teams = Team.joins(:case, :users)
-                .where(users: { id: current_user.id })
-                .where("teams.name ILIKE ? OR cases.title ILIKE ?", "%#{query}%", "%#{query}%")
-                .limit(5)
-                .includes(:case)
+      .where(users: {id: current_user.id})
+      .where("teams.name ILIKE ? OR cases.title ILIKE ?", "%#{query}%", "%#{query}%")
+      .limit(5)
+      .includes(:case)
 
     results = {
       cases: cases.map { |c| serialize_case(c) },
@@ -187,12 +187,10 @@ class Api::V1::ContextController < Api::V1::BaseController
   end
 
   def current_user_case
-    @current_user_case ||= begin
-      if session[:active_case_id].present?
-        current_user.cases.find_by(id: session[:active_case_id])
-      else
-        current_user.cases.active.first
-      end
+    @current_user_case ||= if session[:active_case_id].present?
+      current_user.cases.find_by(id: session[:active_case_id])
+    else
+      current_user.cases.active.first
     end
   end
 
@@ -201,9 +199,9 @@ class Api::V1::ContextController < Api::V1::BaseController
       return nil unless current_user_case
 
       if session[:active_team_id].present?
-        current_user_case.teams.joins(:users).where(users: { id: current_user.id }).find_by(id: session[:active_team_id])
+        current_user_case.teams.joins(:users).where(users: {id: current_user.id}).find_by(id: session[:active_team_id])
       else
-        current_user_case.teams.joins(:users).where(users: { id: current_user.id }).first
+        current_user_case.teams.joins(:users).where(users: {id: current_user.id}).first
       end
     end
   end

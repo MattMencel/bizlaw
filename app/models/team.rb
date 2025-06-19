@@ -17,12 +17,12 @@ class Team < ApplicationRecord
 
   # Validations
   validates :name, presence: true,
-                  length: { maximum: 255 },
-                  uniqueness: { scope: [ :course_id, :owner_id ], case_sensitive: false }
+    length: {maximum: 255},
+    uniqueness: {scope: [:course_id, :owner_id], case_sensitive: false}
   validates :description, presence: true
   validates :owner_id, presence: true
   validates :course_id, presence: true
-  validates :max_members, presence: true, numericality: { greater_than: 0 }
+  validates :max_members, presence: true, numericality: {greater_than: 0}
   validate :validate_member_limit, on: :create
   validate :owner_must_be_enrolled_in_course
 
@@ -32,17 +32,17 @@ class Team < ApplicationRecord
     where("LOWER(name) LIKE :query", query: "%#{query.downcase}%")
   }
   scope :with_member, ->(user) {
-    joins(:team_members).where(team_members: { user_id: user.id })
+    joins(:team_members).where(team_members: {user_id: user.id})
   }
   scope :with_role, ->(role) {
-    joins(:team_members).where(team_members: { role: role })
+    joins(:team_members).where(team_members: {role: role})
   }
   scope :accessible_by, ->(user) {
     case user.role
     when "admin", "instructor"
       all
     when "student"
-      joins(:team_members).where(team_members: { user_id: user.id })
+      joins(:team_members).where(team_members: {user_id: user.id})
     else
       none
     end

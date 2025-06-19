@@ -36,25 +36,25 @@ class Document < ApplicationRecord
 
   # Validations
   validates :title, presence: true,
-                   length: { minimum: 3, maximum: 255 }
+    length: {minimum: 3, maximum: 255}
   validates :document_type, presence: true
   validates :status, presence: true
   validates :file, presence: true,
-                  content_type: {
-                    in: %w[
-                      application/pdf
-                      application/msword
-                      application/vnd.openxmlformats-officedocument.wordprocessingml.document
-                      application/vnd.ms-excel
-                      application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-                      application/vnd.ms-powerpoint
-                      application/vnd.openxmlformats-officedocument.presentationml.presentation
-                      text/plain
-                      text/markdown
-                    ],
-                    message: "must be a PDF, Word, Excel, PowerPoint, text, or markdown file"
-                  },
-                  size: { less_than: 100.megabytes, message: "must be less than 100MB" }
+    content_type: {
+      in: %w[
+        application/pdf
+        application/msword
+        application/vnd.openxmlformats-officedocument.wordprocessingml.document
+        application/vnd.ms-excel
+        application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+        application/vnd.ms-powerpoint
+        application/vnd.openxmlformats-officedocument.presentationml.presentation
+        text/plain
+        text/markdown
+      ],
+      message: "must be a PDF, Word, Excel, PowerPoint, text, or markdown file"
+    },
+    size: {less_than: 100.megabytes, message: "must be less than 100MB"}
 
   validates :access_level, presence: true
   validates :category, presence: true, if: :case_material?
@@ -150,7 +150,7 @@ class Document < ApplicationRecord
     return true if created_by == user
 
     if case_material?
-      user_teams = user.teams.joins(:case_teams).where(case_teams: { case: documentable })
+      user_teams = user.teams.joins(:case_teams).where(case_teams: {case: documentable})
       user_teams.any? { |team| accessible_by_team?(team) }
     else
       false
@@ -220,8 +220,8 @@ class Document < ApplicationRecord
 
   def team_allowed?(team)
     team_restrictions.present? &&
-    (team_restrictions[team.id.to_s] == true ||
-     team_restrictions["allowed_teams"]&.include?(team.id.to_s))
+      (team_restrictions[team.id.to_s] == true ||
+       team_restrictions["allowed_teams"]&.include?(team.id.to_s))
   end
 
   def extract_text_content
@@ -233,8 +233,6 @@ class Document < ApplicationRecord
     when "application/pdf"
       # Would use a gem like pdf-reader to extract text
       extract_pdf_content if defined?(PDF::Reader)
-    else
-      nil
     end
   rescue
     nil

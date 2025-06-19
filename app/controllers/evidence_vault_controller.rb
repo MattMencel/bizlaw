@@ -5,7 +5,7 @@ class EvidenceVaultController < ApplicationController
   before_action :set_case
   before_action :set_team_membership
   before_action :authorize_case_access!
-  before_action :set_document, only: [ :show, :annotate, :update_tags ]
+  before_action :set_document, only: [:show, :annotate, :update_tags]
 
   def index
     @documents = accessible_documents.includes(:created_by, :updated_by)
@@ -23,8 +23,8 @@ class EvidenceVaultController < ApplicationController
     @search_query = params[:q]&.strip
     @category_filter = params[:category]
     @tag_filters = Array(params[:tags]).reject(&:blank?)
-    @page = [ params[:page]&.to_i || 1, 1 ].max
-    @per_page = [ params[:per_page]&.to_i || 25, 100 ].min
+    @page = [params[:page]&.to_i || 1, 1].max
+    @per_page = [params[:per_page]&.to_i || 25, 100].min
 
     @documents = build_search_query
     @search_results = paginate_results(@documents)
@@ -70,11 +70,11 @@ class EvidenceVaultController < ApplicationController
     annotation_params = params.require(:annotation).permit(:content, :page, :position_x, :position_y)
 
     if annotation_params[:content].blank?
-      return render json: { errors: [ "Content cannot be blank" ] }, status: :unprocessable_entity
+      return render json: {errors: ["Content cannot be blank"]}, status: :unprocessable_entity
     end
 
     if annotation_params[:page].present? && annotation_params[:page].to_i < 1
-      return render json: { errors: [ "Page must be a positive number" ] }, status: :unprocessable_entity
+      return render json: {errors: ["Page must be a positive number"]}, status: :unprocessable_entity
     end
 
     new_annotation = {
@@ -100,7 +100,7 @@ class EvidenceVaultController < ApplicationController
         user: current_user,
         event_type: "document_annotated",
         description: "Added annotation to #{@document.title}",
-        metadata: { document_id: @document.id, annotation_id: new_annotation[:id] }
+        metadata: {document_id: @document.id, annotation_id: new_annotation[:id]}
       )
 
       render json: {
@@ -109,7 +109,7 @@ class EvidenceVaultController < ApplicationController
         success: true
       }
     else
-      render json: { errors: @document.errors.full_messages }, status: :unprocessable_entity
+      render json: {errors: @document.errors.full_messages}, status: :unprocessable_entity
     end
   end
 
@@ -119,7 +119,7 @@ class EvidenceVaultController < ApplicationController
     new_tags = Array(params[:tags]).map(&:strip).reject(&:blank?).uniq
 
     if new_tags.any? { |tag| tag.match?(/\A\s*\z/) }
-      return render json: { errors: [ "Tags cannot be blank" ] }, status: :unprocessable_entity
+      return render json: {errors: ["Tags cannot be blank"]}, status: :unprocessable_entity
     end
 
     if @document.update(tags: new_tags)
@@ -129,7 +129,7 @@ class EvidenceVaultController < ApplicationController
         user: current_user,
         event_type: "document_tagged",
         description: "Updated tags for #{@document.title}",
-        metadata: { document_id: @document.id, tags: new_tags }
+        metadata: {document_id: @document.id, tags: new_tags}
       )
 
       render json: {
@@ -137,7 +137,7 @@ class EvidenceVaultController < ApplicationController
         success: true
       }
     else
-      render json: { errors: @document.errors.full_messages }, status: :unprocessable_entity
+      render json: {errors: @document.errors.full_messages}, status: :unprocessable_entity
     end
   end
 
@@ -145,19 +145,19 @@ class EvidenceVaultController < ApplicationController
     bundle_params = params.require(:bundle).permit(:name, document_ids: [])
 
     if bundle_params[:name].blank?
-      return render json: { errors: [ "Bundle name cannot be blank" ] }, status: :unprocessable_entity
+      return render json: {errors: ["Bundle name cannot be blank"]}, status: :unprocessable_entity
     end
 
     document_ids = Array(bundle_params[:document_ids]).reject(&:blank?)
     if document_ids.empty?
-      return render json: { errors: [ "Bundle must contain at least one document" ] }, status: :unprocessable_entity
+      return render json: {errors: ["Bundle must contain at least one document"]}, status: :unprocessable_entity
     end
 
     # Only include documents the user can actually access
     accessible_document_ids = accessible_documents.where(id: document_ids).pluck(:id)
 
     if accessible_document_ids.empty?
-      return render json: { errors: [ "No accessible documents found" ] }, status: :unprocessable_entity
+      return render json: {errors: ["No accessible documents found"]}, status: :unprocessable_entity
     end
 
     bundle_documents = accessible_documents.where(id: accessible_document_ids)
@@ -195,27 +195,27 @@ class EvidenceVaultController < ApplicationController
   def set_case
     @case = Case.find(params[:case_id])
   rescue ActiveRecord::RecordNotFound
-    render json: { error: "Case not found" }, status: :not_found
+    render json: {error: "Case not found"}, status: :not_found
   end
 
   def set_team_membership
     @team_membership = current_user.team_members
-                                  .joins(:team)
-                                  .joins("JOIN case_teams ON case_teams.team_id = teams.id")
-                                  .where("case_teams.case_id = ?", @case.id)
-                                  .first
+      .joins(:team)
+      .joins("JOIN case_teams ON case_teams.team_id = teams.id")
+      .where("case_teams.case_id = ?", @case.id)
+      .first
   end
 
   def authorize_case_access!
     unless @team_membership || current_user.instructor? || current_user.admin?
-      render json: { error: "Access denied" }, status: :forbidden
+      render json: {error: "Access denied"}, status: :forbidden
     end
   end
 
   def set_document
     @document = accessible_documents.find(params[:id])
   rescue ActiveRecord::RecordNotFound
-    render json: { error: "Document not found or access denied" }, status: :forbidden
+    render json: {error: "Document not found or access denied"}, status: :forbidden
   end
 
   def accessible_documents
@@ -315,8 +315,7 @@ class EvidenceVaultController < ApplicationController
   def available_tags
     # Extract all unique tags from JSONB arrays
     tag_query = accessible_documents.where.not(tags: nil)
-    all_tags = tag_query.pluck("jsonb_array_elements_text(tags)").uniq.sort
-    all_tags
+    tag_query.pluck("jsonb_array_elements_text(tags)").uniq.sort
   end
 
   def pagination_metadata

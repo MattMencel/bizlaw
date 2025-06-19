@@ -10,8 +10,8 @@ class Rack::Attack
   blocklist("block suspicious requests") do |req|
     Rack::Attack::Fail2Ban.filter("suspicious-#{req.ip}", maxretry: 3, findtime: 10.minutes, bantime: 1.hour) do
       CGI.unescape(req.path).include?("/etc/password") ||
-      req.path.include?("/wp-admin") ||
-      req.path.include?("/wp-login")
+        req.path.include?("/wp-admin") ||
+        req.path.include?("/wp-login")
     end
   end
 
@@ -57,12 +57,12 @@ class Rack::Attack
       "X-RateLimit-Reset" => (now + (match_data[:period] - now.to_i % match_data[:period])).iso8601
     }
 
-    [429, headers, [{ error: "Rate limit exceeded. Please wait and try again later." }.to_json]]
+    [429, headers, [{error: "Rate limit exceeded. Please wait and try again later."}.to_json]]
   end
 
   ### Custom Blocklist Response ###
   self.blocklisted_responder = lambda do |request|
-    [403, { "Content-Type" => "application/json" }, [{ error: "Forbidden" }.to_json]]
+    [403, {"Content-Type" => "application/json"}, [{error: "Forbidden"}.to_json]]
   end
 end
 

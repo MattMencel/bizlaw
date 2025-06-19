@@ -8,7 +8,7 @@ if Rails.env.production?
   # TODO: Configure actual StatsD client when ready
   # require 'statsd-ruby'
   # StatsD = Statsd.new('localhost', 8125)
-  
+
   # For now, use stub in production too until StatsD is set up
   module StatsD
     def self.measure(*args, **kwargs)

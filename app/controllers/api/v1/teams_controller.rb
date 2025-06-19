@@ -3,7 +3,7 @@
 module Api
   module V1
     class TeamsController < BaseController
-      before_action :set_team, only: [ :show, :update, :destroy ]
+      before_action :set_team, only: [:show, :update, :destroy]
 
       def index
         @teams = policy_scope(Team).includes(:owner, :team_members)
@@ -11,16 +11,14 @@ module Api
         @teams = @teams.page(params[:page]).per(params[:per_page])
 
         render json: TeamSerializer.new(@teams,
-          include: [ :owner ],
-          meta: pagination_meta(@teams)
-        ).serializable_hash
+          include: [:owner],
+          meta: pagination_meta(@teams)).serializable_hash
       end
 
       def show
         authorize @team
         render json: TeamSerializer.new(@team,
-          include: [ :owner, :team_members ]
-        ).serializable_hash
+          include: [:owner, :team_members]).serializable_hash
       end
 
       def create
@@ -30,7 +28,7 @@ module Api
 
         if @team.save
           render json: TeamSerializer.new(@team).serializable_hash,
-                 status: :created
+            status: :created
         else
           render json: {
             errors: @team.errors.full_messages
@@ -60,13 +58,12 @@ module Api
       def set_team
         @team = Team.find(params[:id])
       rescue ActiveRecord::RecordNotFound
-        render json: { error: "Team not found" }, status: :not_found
+        render json: {error: "Team not found"}, status: :not_found
       end
 
       def team_params
         params.require(:team).permit(:name, :description, :max_members)
       end
-
 
       def pagination_meta(teams)
         {

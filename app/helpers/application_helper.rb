@@ -7,11 +7,11 @@ module ApplicationHelper
     css_class += " text-blue-600" if params[:sort] == column
 
     link_to path_method,
-            { sort: column, direction: direction }.merge(request.query_parameters.except("sort", "direction")),
-            { class: css_class } do
+      {sort: column, direction: direction}.merge(request.query_parameters.except("sort", "direction")),
+      {class: css_class} do
       content = title.html_safe
       if params[:sort] == column
-        arrow = params[:direction] == "asc" ? " ↑" : " ↓"
+        arrow = (params[:direction] == "asc") ? " ↑" : " ↓"
         content += arrow.html_safe
       end
       content

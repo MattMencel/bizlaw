@@ -12,11 +12,11 @@ class SessionTimeoutHandler
       token = extract_jwt_token(env)
 
       if token && token_expired?(token)
-        return [ 401, { "Content-Type" => "application/json" }, [ { error: "Session expired" }.to_json ] ]
+        return [401, {"Content-Type" => "application/json"}, [{error: "Session expired"}.to_json]]
       end
     end
 
-    [ status, headers, response ]
+    [status, headers, response]
   end
 
   private

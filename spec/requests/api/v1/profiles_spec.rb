@@ -17,7 +17,7 @@ RSpec.describe "Api::V1::Profiles", type: :request do
           }
         }
         @token = response.headers["Authorization"]
-        get profile_url, headers: { "Authorization": @token }
+        get profile_url, headers: {Authorization: @token}
       end
 
       it "returns 200" do
@@ -60,8 +60,8 @@ RSpec.describe "Api::V1::Profiles", type: :request do
         }
         @token = response.headers["Authorization"]
         patch profile_url,
-              params: valid_attributes,
-              headers: { "Authorization": @token }
+          params: valid_attributes,
+          headers: {Authorization: @token}
       end
 
       it "returns 200" do
@@ -91,8 +91,8 @@ RSpec.describe "Api::V1::Profiles", type: :request do
         }
         @token = response.headers["Authorization"]
         patch profile_url,
-              params: { user: { email: "invalid_email" } },
-              headers: { "Authorization": @token }
+          params: {user: {email: "invalid_email"}},
+          headers: {Authorization: @token}
       end
 
       it "returns 422" do

@@ -13,7 +13,7 @@ FactoryBot.define do
     defendant_max_acceptable { 250000 }
     defendant_ideal { 75000 }
     pressure_escalation_rate { :moderate }
-    simulation_config { { auto_events: true, scoring_enabled: true } }
+    simulation_config { {auto_events: true, scoring_enabled: true} }
     auto_events_enabled { true }
     argument_quality_required { true }
 

@@ -38,30 +38,30 @@ class DashboardController < ApplicationController
 
   def load_instructor_data
     @my_courses = current_user.taught_courses
-    @my_teams = Team.joins(:members).where(team_members: { user: current_user })
+    @my_teams = Team.joins(:members).where(team_members: {user: current_user})
     # TODO: implement activity tracking
     @recent_activity = []
   end
 
   def load_student_data
-    @my_teams = current_user.teams.includes(cases: [ :simulation, :documents ])
+    @my_teams = current_user.teams.includes(cases: [:simulation, :documents])
     @my_cases = current_user.cases.includes(:documents, :simulation, :case_teams)
 
     # Simulation-specific data for dashboard
     @active_simulations = current_user.teams
-                                     .joins(cases: :simulation)
-                                     .where(simulations: { status: [ :active, :paused ] })
-                                     .includes(:simulation, :case)
+      .joins(cases: :simulation)
+      .where(simulations: {status: [:active, :paused]})
+      .includes(:simulation, :case)
 
     @completed_simulations = current_user.teams
-                                        .joins(cases: :simulation)
-                                        .where(simulations: { status: [ :completed, :arbitration ] })
-                                        .includes(:simulation, :case)
+      .joins(cases: :simulation)
+      .where(simulations: {status: [:completed, :arbitration]})
+      .includes(:simulation, :case)
 
     @pending_simulations = current_user.teams
-                                      .joins(cases: :simulation)
-                                      .where(simulations: { status: :setup })
-                                      .includes(:simulation, :case)
+      .joins(cases: :simulation)
+      .where(simulations: {status: :setup})
+      .includes(:simulation, :case)
 
     # Calculate simulation statistics
     @simulation_stats = calculate_simulation_stats
@@ -73,21 +73,21 @@ class DashboardController < ApplicationController
   def calculate_simulation_stats
     total_simulations = current_user.teams.joins(cases: :simulation).count
     completed_count = current_user.teams
-                                 .joins(cases: :simulation)
-                                 .where(simulations: { status: [ :completed, :arbitration ] })
-                                 .count
+      .joins(cases: :simulation)
+      .where(simulations: {status: [:completed, :arbitration]})
+      .count
 
     active_count = current_user.teams
-                              .joins(cases: :simulation)
-                              .where(simulations: { status: [ :active, :paused ] })
-                              .count
+      .joins(cases: :simulation)
+      .where(simulations: {status: [:active, :paused]})
+      .count
 
     settlement_count = current_user.teams
-                                  .joins(cases: :simulation)
-                                  .where(simulations: { status: :completed })
-                                  .count
+      .joins(cases: :simulation)
+      .where(simulations: {status: :completed})
+      .count
 
-    settlement_rate = completed_count > 0 ? (settlement_count.to_f / completed_count * 100).round(1) : 0
+    settlement_rate = (completed_count > 0) ? (settlement_count.to_f / completed_count * 100).round(1) : 0
 
     {
       total: total_simulations,

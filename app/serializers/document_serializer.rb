@@ -5,16 +5,16 @@ class DocumentSerializer
   include JSONAPI::Serializer
 
   attributes :title,
-             :description,
-             :document_type,
-             :status,
-             :file_url,
-             :file_type,
-             :file_size,
-             :created_at,
-             :updated_at,
-             :finalized_at,
-             :archived_at
+    :description,
+    :document_type,
+    :status,
+    :file_url,
+    :file_type,
+    :file_size,
+    :created_at,
+    :updated_at,
+    :finalized_at,
+    :archived_at
 
   belongs_to :created_by, serializer: :user
   belongs_to :documentable, polymorphic: true

@@ -25,10 +25,10 @@ class ApplicationController < ActionController::Base
 
   # Impersonation helper methods
   def current_user
-    if impersonating?
-      @current_user ||= User.find(session[:impersonated_user_id])
+    @current_user ||= if impersonating?
+      User.find(session[:impersonated_user_id])
     else
-      @current_user ||= super
+      super
     end
   end
 
@@ -58,7 +58,7 @@ class ApplicationController < ActionController::Base
 
   def user_not_authorized
     if request.format.json?
-      render json: { error: "You are not authorized to perform this action" }, status: :forbidden
+      render json: {error: "You are not authorized to perform this action"}, status: :forbidden
     else
       flash[:alert] = "You are not authorized to perform this action."
       redirect_to(request.referrer || root_path)
