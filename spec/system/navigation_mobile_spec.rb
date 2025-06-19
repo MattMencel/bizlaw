@@ -25,7 +25,7 @@ RSpec.describe "Mobile Navigation", :js, type: :system do
       it "shows hamburger menu and hides main navigation" do
         visit dashboard_path
 
-        expect(page).to have_css('[data-mobile-navigation-target="toggle"]', visible: true)
+        expect(page).to have_css('[data-mobile-navigation-target="toggle"]', :visible)
         expect(page).to have_css("nav.hidden", visible: false)
       end
 
@@ -37,7 +37,7 @@ RSpec.describe "Mobile Navigation", :js, type: :system do
 
         # Click to open
         find('[data-mobile-navigation-target="toggle"]').click
-        expect(page).to have_css('[data-mobile-navigation-target="menu"]', visible: true)
+        expect(page).to have_css('[data-mobile-navigation-target="menu"]', :visible)
 
         # Click to close
         find('[data-mobile-navigation-target="toggle"]').click
@@ -49,7 +49,7 @@ RSpec.describe "Mobile Navigation", :js, type: :system do
 
         # Open menu
         find('[data-mobile-navigation-target="toggle"]').click
-        expect(page).to have_css('[data-mobile-navigation-target="menu"]', visible: true)
+        expect(page).to have_css('[data-mobile-navigation-target="menu"]', :visible)
 
         # Click outside (on backdrop)
         find('[data-mobile-navigation-target="backdrop"]').click
@@ -71,7 +71,7 @@ RSpec.describe "Mobile Navigation", :js, type: :system do
         visit dashboard_path
 
         # Ensure main content is not blocked
-        expect(page).to have_css("main", visible: true)
+        expect(page).to have_css("main", :visible)
 
         # Should be able to interact with main content
         expect(page).to have_content("Business Law Education Platform")
@@ -100,8 +100,8 @@ RSpec.describe "Mobile Navigation", :js, type: :system do
       it "shows full navigation sidebar without hamburger menu" do
         visit dashboard_path
 
-        expect(page).to have_css("nav", visible: true)
-        expect(page).not_to have_css('[data-mobile-navigation-target="toggle"]', visible: true)
+        expect(page).to have_css("nav", :visible)
+        expect(page).not_to have_css('[data-mobile-navigation-target="toggle"]', :visible)
       end
     end
   end
@@ -112,15 +112,15 @@ RSpec.describe "Mobile Navigation", :js, type: :system do
 
       # Start at desktop
       page.driver.browser.manage.window.resize_to(1200, 800)
-      expect(page).not_to have_css('[data-mobile-navigation-target="toggle"]', visible: true)
+      expect(page).not_to have_css('[data-mobile-navigation-target="toggle"]', :visible)
 
       # Resize to mobile
       page.driver.browser.manage.window.resize_to(375, 667)
-      expect(page).to have_css('[data-mobile-navigation-target="toggle"]', visible: true)
+      expect(page).to have_css('[data-mobile-navigation-target="toggle"]', :visible)
 
       # Resize back to desktop
       page.driver.browser.manage.window.resize_to(1200, 800)
-      expect(page).not_to have_css('[data-mobile-navigation-target="toggle"]', visible: true)
+      expect(page).not_to have_css('[data-mobile-navigation-target="toggle"]', :visible)
     end
   end
 
@@ -145,7 +145,7 @@ RSpec.describe "Mobile Navigation", :js, type: :system do
 
       # Open menu with keyboard
       find('[data-mobile-navigation-target="toggle"]').send_keys(:enter)
-      expect(page).to have_css('[data-mobile-navigation-target="menu"]', visible: true)
+      expect(page).to have_css('[data-mobile-navigation-target="menu"]', :visible)
 
       # Close menu with escape
       find("body").send_keys(:escape)
@@ -176,7 +176,7 @@ RSpec.describe "Mobile Navigation", :js, type: :system do
       find('[data-mobile-navigation-target="toggle"]').click
 
       # Should complete animation within reasonable time
-      expect(page).to have_css('[data-mobile-navigation-target="menu"]', visible: true)
+      expect(page).to have_css('[data-mobile-navigation-target="menu"]', :visible)
       expect(Time.current - start_time).to be < 1.0 # Less than 1 second
     end
   end

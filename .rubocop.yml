@@ -30,6 +30,7 @@ AllCops:
   Exclude:
     - bin/**/*
     - build/**/*
+    - config/**/*
     - db/**/*
     - frontend/**/*
     - node_modules/**/*
