@@ -34,11 +34,11 @@ class ClientRangeValidationService
     # Get base validation result
     base_result = case team_role
     when "plaintiff"
-                   validate_plaintiff_offer(offer_amount)
+      validate_plaintiff_offer(offer_amount)
     when "defendant"
-                   validate_defendant_offer(offer_amount)
+      validate_defendant_offer(offer_amount)
     else
-                   raise ArgumentError, "Unknown team role: #{team_role}"
+      raise ArgumentError, "Unknown team role: #{team_role}"
     end
 
     # Try to enhance with AI insights
@@ -81,9 +81,9 @@ class ClientRangeValidationService
     return false unless ranges_overlap?
 
     plaintiff_offer >= simulation.plaintiff_min_acceptable &&
-    plaintiff_offer <= simulation.defendant_max_acceptable &&
-    defendant_offer >= simulation.plaintiff_min_acceptable &&
-    defendant_offer <= simulation.defendant_max_acceptable
+      plaintiff_offer <= simulation.defendant_max_acceptable &&
+      defendant_offer >= simulation.plaintiff_min_acceptable &&
+      defendant_offer <= simulation.defendant_max_acceptable
   end
 
   def adjust_ranges_for_event!(event_type, intensity = :moderate)
@@ -132,17 +132,17 @@ class ClientRangeValidationService
     ideal = simulation.plaintiff_ideal
 
     positioning, satisfaction, mood, theme, pressure = if amount < min_acceptable * 0.9
-      [ :below_minimum, rand(10..25), "very_unhappy", :unacceptable_amount, :extreme ]
+      [:below_minimum, rand(10..25), "very_unhappy", :unacceptable_amount, :extreme]
     elsif amount < min_acceptable
-      [ :near_minimum, rand(35..50), "unhappy", :concerning_low, :high ]
+      [:near_minimum, rand(35..50), "unhappy", :concerning_low, :high]
     elsif amount < (min_acceptable + ideal) / 2
-      [ :conservative_approach, rand(55..70), "neutral", :strategic_positioning, :moderate ]
+      [:conservative_approach, rand(55..70), "neutral", :strategic_positioning, :moderate]
     elsif amount <= ideal * 1.05
-      [ :reasonable_opening, rand(70..85), "satisfied", :excellent_positioning, :low ]
+      [:reasonable_opening, rand(70..85), "satisfied", :excellent_positioning, :low]
     elsif amount <= ideal * 1.15
-      [ :strong_position, rand(80..90), "satisfied", :excellent_positioning, :low ]
+      [:strong_position, rand(80..90), "satisfied", :excellent_positioning, :low]
     else
-      [ :too_aggressive, rand(20..40), "unhappy", :unrealistic_demand, :moderate ]
+      [:too_aggressive, rand(20..40), "unhappy", :unrealistic_demand, :moderate]
     end
 
     ValidationResult.new(
@@ -160,17 +160,17 @@ class ClientRangeValidationService
     max_acceptable = simulation.defendant_max_acceptable
 
     positioning, satisfaction, mood, theme, pressure = if amount <= ideal * 0.9
-      [ :excellent_position, rand(85..95), "very_satisfied", :conservative_approach, :low ]
+      [:excellent_position, rand(85..95), "very_satisfied", :conservative_approach, :low]
     elsif amount <= ideal * 1.1
-      [ :ideal_amount, rand(80..90), "satisfied", :target_achieved, :low ]
+      [:ideal_amount, rand(80..90), "satisfied", :target_achieved, :low]
     elsif amount <= (ideal + max_acceptable) / 2
-      [ :acceptable_compromise, rand(60..75), "neutral", :reasonable_settlement, :moderate ]
+      [:acceptable_compromise, rand(60..75), "neutral", :reasonable_settlement, :moderate]
     elsif amount <= max_acceptable * 0.95
-      [ :concerning_amount, rand(35..50), "unhappy", :financial_concern, :high ]
+      [:concerning_amount, rand(35..50), "unhappy", :financial_concern, :high]
     elsif amount <= max_acceptable
-      [ :approaching_maximum, rand(25..40), "unhappy", :serious_concern, :high ]
+      [:approaching_maximum, rand(25..40), "unhappy", :serious_concern, :high]
     else
-      [ :exceeds_maximum, rand(10..25), "very_unhappy", :unacceptable_exposure, :extreme ]
+      [:exceeds_maximum, rand(10..25), "very_unhappy", :unacceptable_exposure, :extreme]
     end
 
     ValidationResult.new(
@@ -363,7 +363,7 @@ class ClientRangeValidationService
         pressure_level: calculate_ai_enhanced_pressure(ai_response, base_result),
         within_acceptable_range: base_result.within_acceptable_range
       )
-    rescue StandardError => e
+    rescue => e
       Rails.logger.warn "AI validation enhancement failed: #{e.message}"
       nil
     end
@@ -391,7 +391,7 @@ class ClientRangeValidationService
           strategic_guidance: enhanced_guidance
         )
       end
-    rescue StandardError => e
+    rescue => e
       Rails.logger.warn "AI gap analysis enhancement failed: #{e.message}"
       nil
     end
@@ -399,7 +399,7 @@ class ClientRangeValidationService
 
   def ai_service_available?
     GoogleAI.enabled?
-  rescue StandardError
+  rescue
     false
   end
 
@@ -419,7 +419,7 @@ class ClientRangeValidationService
   def build_gap_context_offer(role, amount)
     # Create mock team for gap analysis
     mock_team = OpenStruct.new(
-      case_teams: [ OpenStruct.new(role: role) ]
+      case_teams: [OpenStruct.new(role: role)]
     )
 
     # Create mock negotiation round
@@ -474,11 +474,11 @@ class ClientRangeValidationService
     when "very_unhappy"
       :extreme
     when "unhappy"
-      base_result.pressure_level == :low ? :moderate : :high
+      (base_result.pressure_level == :low) ? :moderate : :high
     when "very_satisfied"
       :low
     when "satisfied"
-      base_result.pressure_level == :extreme ? :high : base_result.pressure_level
+      (base_result.pressure_level == :extreme) ? :high : base_result.pressure_level
     else
       base_result.pressure_level
     end

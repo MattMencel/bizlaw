@@ -5,8 +5,8 @@ class TeamMemberSerializer
   include JSONAPI::Serializer
 
   attributes :role,
-             :created_at,
-             :updated_at
+    :created_at,
+    :updated_at
 
   attribute :display_name, &:display_name
   attribute :is_manager, &:manager?

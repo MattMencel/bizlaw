@@ -13,13 +13,13 @@ module Api
         authorize @simulation, :show?
 
         @rounds = @simulation.negotiation_rounds
-                            .includes(:settlement_offers)
-                            .by_round_number
+          .includes(:settlement_offers)
+          .by_round_number
 
         render json: NegotiationRoundSerializer.new(
           @rounds,
           include: %i[settlement_offers],
-          params: { current_user: current_user }
+          params: {current_user: current_user}
         ).serializable_hash
       end
 
@@ -29,7 +29,7 @@ module Api
         render json: NegotiationRoundSerializer.new(
           @negotiation_round,
           include: %i[settlement_offers],
-          params: { current_user: current_user }
+          params: {current_user: current_user}
         ).serializable_hash
       end
 
@@ -59,7 +59,7 @@ module Api
 
         # Find existing settlement offer for this team and round
         @settlement_offer = @negotiation_round.settlement_offers
-                                             .find_by(team: current_user_team)
+          .find_by(team: current_user_team)
 
         if @settlement_offer.nil?
           return api_error(
@@ -94,7 +94,7 @@ module Api
       def set_case
         @case = Case.find(params[:case_id])
       rescue ActiveRecord::RecordNotFound
-        render json: { error: "Case not found" }, status: :not_found
+        render json: {error: "Case not found"}, status: :not_found
       end
 
       def set_simulation
@@ -110,9 +110,9 @@ module Api
 
       def set_negotiation_round
         @negotiation_round = @simulation.negotiation_rounds
-                                       .find(params[:id])
+          .find(params[:id])
       rescue ActiveRecord::RecordNotFound
-        render json: { error: "Negotiation round not found" }, status: :not_found
+        render json: {error: "Negotiation round not found"}, status: :not_found
       end
 
       def verify_team_participation
@@ -123,7 +123,7 @@ module Api
           )
         end
 
-        unless [ @simulation.plaintiff_team, @simulation.defendant_team ].include?(current_user_team)
+        unless [@simulation.plaintiff_team, @simulation.defendant_team].include?(current_user_team)
           api_error(
             message: "Your team is not participating in this simulation",
             status: :forbidden
@@ -133,15 +133,15 @@ module Api
 
       def current_user_team
         @current_user_team ||= current_user.teams
-                                          .joins(:case_teams)
-                                          .where(case_teams: { case: @case })
-                                          .first
+          .joins(:case_teams)
+          .where(case_teams: {case: @case})
+          .first
       end
 
       def find_or_create_current_round
         # Find existing round or create it if it doesn't exist
         round = @simulation.negotiation_rounds
-                          .find_by(round_number: @simulation.current_round)
+          .find_by(round_number: @simulation.current_round)
 
         return round if round
 
@@ -164,7 +164,7 @@ module Api
       def build_settlement_offer
         # Check if team already has an offer for this round
         existing_offer = @negotiation_round.settlement_offers
-                                          .find_by(team: current_user_team)
+          .find_by(team: current_user_team)
 
         if existing_offer
           return api_error(
@@ -231,11 +231,9 @@ module Api
             # Generate arbitration feedback
             feedback_service = ClientFeedbackService.new(@simulation)
             feedback_service.generate_arbitration_feedback!
-          else
+          elsif @simulation.simulation_config.dig("auto_advance_rounds")
             # Advance to next round if auto-advance is enabled
-            if @simulation.simulation_config.dig("auto_advance_rounds")
-              advance_to_next_round
-            end
+            advance_to_next_round
           end
         end
       end

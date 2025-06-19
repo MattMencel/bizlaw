@@ -2,11 +2,11 @@
 
 FactoryBot.define do
   factory :ai_usage_log do
-    model { 'gemini-2.0-flash-lite' }
+    model { "gemini-2.0-flash-lite" }
     cost { 0.001 }
     response_time_ms { 250 }
     tokens_used { 150 }
-    request_type { 'settlement_feedback' }
+    request_type { "settlement_feedback" }
     error_occurred { false }
     metadata { {} }
 
@@ -25,13 +25,13 @@ FactoryBot.define do
     end
 
     trait :negotiation_analysis do
-      request_type { 'negotiation_analysis' }
+      request_type { "negotiation_analysis" }
       tokens_used { 200 }
       cost { 0.002 }
     end
 
     trait :gap_analysis do
-      request_type { 'gap_analysis' }
+      request_type { "gap_analysis" }
       tokens_used { 180 }
       cost { 0.0015 }
     end

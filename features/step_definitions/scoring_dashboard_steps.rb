@@ -3,11 +3,11 @@
 # Performance Score Setup Steps
 Given("I have the following performance scores for the simulation:") do |table|
   simulation = Simulation.joins(case: :course).find_by(
-    cases: { courses: { name: "Advanced Business Law" } }
+    cases: {courses: {name: "Advanced Business Law"}}
   )
 
   user = User.find_by(email: @current_user_email)
-  team = user.teams.joins(:case_teams).where(case_teams: { case: simulation.case }).first
+  team = user.teams.joins(:case_teams).where(case_teams: {case: simulation.case}).first
 
   scores = {}
   table.hashes.each do |row|
@@ -23,8 +23,7 @@ Given("I have the following performance scores for the simulation:") do |table|
     collaboration_score: scores["collaboration_score"],
     efficiency_score: scores["efficiency_score"],
     speed_bonus: scores["speed_bonus"],
-    creative_terms_score: scores["creative_terms_score"]
-  )
+    creative_terms_score: scores["creative_terms_score"])
 
   @performance_score.calculate_total_score!
 end
@@ -36,32 +35,30 @@ end
 Given("my team {string} has a team score of {int} out of {int}") do |team_name, score, max|
   team = Team.find_by(name: team_name)
   simulation = Simulation.joins(case: :course).find_by(
-    cases: { courses: { name: "Advanced Business Law" } }
+    cases: {courses: {name: "Advanced Business Law"}}
   )
 
   @team_score = create(:performance_score, :team_score,
     simulation: simulation,
     team: team,
-    total_score: score
-  )
+    total_score: score)
 end
 
 Given("the opposing team {string} has a team score of {int} out of {int}") do |team_name, score, max|
   team = Team.find_by(name: team_name)
   simulation = Simulation.joins(case: :course).find_by(
-    cases: { courses: { name: "Advanced Business Law" } }
+    cases: {courses: {name: "Advanced Business Law"}}
   )
 
   create(:performance_score, :team_score,
     simulation: simulation,
     team: team,
-    total_score: score
-  )
+    total_score: score)
 end
 
 Given("there are {int} other teams in the simulation with scores ranging from {int}-{int}") do |team_count, min_score, max_score|
   simulation = Simulation.joins(case: :course).find_by(
-    cases: { courses: { name: "Advanced Business Law" } }
+    cases: {courses: {name: "Advanced Business Law"}}
   )
 
   team_count.times do |i|
@@ -72,18 +69,17 @@ Given("there are {int} other teams in the simulation with scores ranging from {i
     create(:performance_score, :team_score,
       simulation: simulation,
       team: team,
-      total_score: score
-    )
+      total_score: score)
   end
 end
 
 Given("I have score history over {int} simulation rounds:") do |round_count, table|
   simulation = Simulation.joins(case: :course).find_by(
-    cases: { courses: { name: "Advanced Business Law" } }
+    cases: {courses: {name: "Advanced Business Law"}}
   )
 
   user = User.find_by(email: @current_user_email)
-  team = user.teams.joins(:case_teams).where(case_teams: { case: simulation.case }).first
+  team = user.teams.joins(:case_teams).where(case_teams: {case: simulation.case}).first
 
   table.hashes.each_with_index do |row, index|
     create(:performance_score,
@@ -94,18 +90,17 @@ Given("I have score history over {int} simulation rounds:") do |round_count, tab
       settlement_quality_score: row["settlement_score"].to_i,
       legal_strategy_score: row["strategy_score"].to_i,
       collaboration_score: row["collaboration_score"].to_i,
-      scored_at: (round_count - index).days.ago
-    )
+      scored_at: (round_count - index).days.ago)
   end
 end
 
 Given("I have earned the following bonus points:") do |table|
   simulation = Simulation.joins(case: :course).find_by(
-    cases: { courses: { name: "Advanced Business Law" } }
+    cases: {courses: {name: "Advanced Business Law"}}
   )
 
   user = User.find_by(email: @current_user_email)
-  team = user.teams.joins(:case_teams).where(case_teams: { case: simulation.case }).first
+  team = user.teams.joins(:case_teams).where(case_teams: {case: simulation.case}).first
 
   total_bonus = 0
   bonus_details = {}
@@ -134,15 +129,14 @@ Given("I have earned the following bonus points:") do |table|
       speed_bonus: bonus_details["early_settlement"]&.dig("points") || 0,
       creative_terms_score: (bonus_details["creative_solution"]&.dig("points") || 0) +
                            (bonus_details["legal_research"]&.dig("points") || 0),
-      bonus_details: bonus_details
-    )
+      bonus_details: bonus_details)
     @performance_score.calculate_total_score!
   end
 end
 
 Given("my course has {int} students across {int} teams") do |student_count, team_count|
   course = Course.find_by(name: "Advanced Business Law")
-  simulation = Simulation.joins(:case).find_by(cases: { course: course })
+  simulation = Simulation.joins(:case).find_by(cases: {course: course})
 
   # Create teams
   team_count.times do |i|
@@ -161,9 +155,9 @@ end
 
 Given("all students have performance scores recorded") do
   course = Course.find_by(name: "Advanced Business Law")
-  simulation = Simulation.joins(:case).find_by(cases: { course: course })
+  simulation = Simulation.joins(:case).find_by(cases: {course: course})
 
-  User.joins(:teams).where(teams: { course: course }).find_each do |student|
+  User.joins(:teams).where(teams: {course: course}).find_each do |student|
     team = student.teams.where(course: course).first
 
     create(:performance_score,
@@ -174,8 +168,7 @@ Given("all students have performance scores recorded") do
       settlement_quality_score: rand(20..40),
       legal_strategy_score: rand(18..30),
       collaboration_score: rand(12..20),
-      efficiency_score: rand(6..10)
-    )
+      efficiency_score: rand(6..10))
   end
 end
 
@@ -200,28 +193,27 @@ end
 When("a teammate submits a high-quality settlement offer") do
   # Simulate real-time score update
   simulation = Simulation.joins(case: :course).find_by(
-    cases: { courses: { name: "Advanced Business Law" } }
+    cases: {courses: {name: "Advanced Business Law"}}
   )
 
   user = User.find_by(email: @current_user_email)
-  team = user.teams.joins(:case_teams).where(case_teams: { case: simulation.case }).first
+  team = user.teams.joins(:case_teams).where(case_teams: {case: simulation.case}).first
 
   # Create a high-quality offer that would boost collaboration scores
   teammate = team.team_members.where.not(user: user).first&.user ||
-             create(:user, :student, organization: user.organization)
+    create(:user, :student, organization: user.organization)
 
   unless team.team_members.exists?(user: teammate)
     create(:team_member, team: team, user: teammate)
   end
 
-  offer = create(:settlement_offer,
+  create(:settlement_offer,
     simulation: simulation,
     team: team,
     user: teammate,
     amount: 250000,
     quality_score: 85,
-    justification: "Well-researched offer with strong legal precedent"
-  )
+    justification: "Well-researched offer with strong legal precedent")
 
   # This would trigger real-time updates in the actual application
   @new_collaboration_score = (@performance_score.collaboration_score || 0) + 3
@@ -337,7 +329,7 @@ Then("I should see {string} insight") do |insight_text|
 end
 
 Then("I should see a {string} section containing:") do |section_name, table|
-  section = find(".#{section_name.downcase.gsub(' ', '-')}-section")
+  section = find(".#{section_name.downcase.tr(" ", "-")}-section")
 
   table.hashes.each do |row|
     within(section) do
@@ -372,8 +364,8 @@ Then("I should see available bonus opportunities I haven't earned yet") do
 end
 
 Then("I should see progress bars for {string} and {string} bonuses") do |bonus1, bonus2|
-  expect(page).to have_css(".bonus-progress[data-bonus='#{bonus1.downcase.gsub(' ', '-')}']")
-  expect(page).to have_css(".bonus-progress[data-bonus='#{bonus2.downcase.gsub(' ', '-')}']")
+  expect(page).to have_css(".bonus-progress[data-bonus='#{bonus1.downcase.tr(" ", "-")}']")
+  expect(page).to have_css(".bonus-progress[data-bonus='#{bonus2.downcase.tr(" ", "-")}']")
 end
 
 # Instructor-specific steps
@@ -425,7 +417,7 @@ Then("I should see average scores by metric:") do |table|
 
     expect(page).to have_content(metric)
     expect(page).to have_content(average)
-    expect(page).to have_css(".metric-average[data-metric='#{metric.downcase.gsub(' ', '-')}']")
+    expect(page).to have_css(".metric-average[data-metric='#{metric.downcase.tr(" ", "-")}']")
   end
 end
 

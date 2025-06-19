@@ -16,8 +16,7 @@ RSpec.describe ClientRangeValidationService do
       plaintiff_min_acceptable: min_acceptable,
       plaintiff_ideal: ideal,
       defendant_ideal: defendant_ideal,
-      defendant_max_acceptable: defendant_max
-    )
+      defendant_max_acceptable: defendant_max)
   end
 
   let(:plaintiff_team) { simulation.case.plaintiff_team }
@@ -274,8 +273,7 @@ RSpec.describe ClientRangeValidationService do
           plaintiff_min_acceptable: base_amount * 3,
           plaintiff_ideal: base_amount * 4,
           defendant_ideal: base_amount * 0.5,
-          defendant_max_acceptable: base_amount * 2
-        )
+          defendant_max_acceptable: base_amount * 2)
       end
 
       it "returns false when plaintiff minimum exceeds defendant maximum" do

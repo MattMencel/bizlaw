@@ -10,8 +10,7 @@ RSpec.describe ClientRangeValidationService do
       plaintiff_min_acceptable: 150_000,
       plaintiff_ideal: 300_000,
       defendant_ideal: 75_000,
-      defendant_max_acceptable: 250_000
-    )
+      defendant_max_acceptable: 250_000)
   end
 
   let(:plaintiff_team) { simulation.case.plaintiff_team }
@@ -37,7 +36,7 @@ RSpec.describe ClientRangeValidationService do
             satisfaction_score: 82,
             strategic_guidance: "Continue with confident approach while remaining open to creative settlement structures.",
             source: "ai",
-            contextual_factors: [ "strong_legal_position", "market_timing", "negotiation_dynamics" ]
+            contextual_factors: ["strong_legal_position", "market_timing", "negotiation_dynamics"]
           }
         end
 
@@ -52,7 +51,7 @@ RSpec.describe ClientRangeValidationService do
           expect(result).to be_a(described_class::ValidationResult)
           expect(result.positioning).to be_present
           expect(result.satisfaction_score).to be_between(70, 95)
-          expect(result.mood).to be_in([ "satisfied", "very_satisfied" ])
+          expect(result.mood).to be_in(["satisfied", "very_satisfied"])
           expect(result.feedback_theme).to be_present
         end
 
@@ -69,7 +68,7 @@ RSpec.describe ClientRangeValidationService do
         it "maintains pressure level assessment with AI context" do
           result = service.validate_offer(plaintiff_team, plaintiff_offer_amount)
 
-          expect(result.pressure_level).to be_in([ :low, :moderate ])
+          expect(result.pressure_level).to be_in([:low, :moderate])
           expect(result.positioning).to be_in([
             :strategic_positioning, :reasonable_opening, :strong_position
           ])
@@ -316,8 +315,8 @@ RSpec.describe ClientRangeValidationService do
 
         expect(result).to be_a(described_class::GapAnalysis)
         expect(result.gap_size).to eq(gap_size)
-        expect(result.gap_category).to be_in([ :negotiable_gap, :moderate_gap ])
-        expect(result.settlement_likelihood).to be_in([ :possible, :challenging ])
+        expect(result.gap_category).to be_in([:negotiable_gap, :moderate_gap])
+        expect(result.settlement_likelihood).to be_in([:possible, :challenging])
       end
 
       it "incorporates AI creative solutions into guidance" do
@@ -347,7 +346,7 @@ RSpec.describe ClientRangeValidationService do
     end
 
     context "when gap is small (settlement zone)" do
-      let(:small_gap_amounts) { [ 175_000, 170_000 ] }  # 5k gap
+      let(:small_gap_amounts) { [175_000, 170_000] }  # 5k gap
 
       it "recognizes settlement zone with AI insights" do
         result = service.analyze_settlement_gap(small_gap_amounts[0], small_gap_amounts[1])
@@ -359,7 +358,7 @@ RSpec.describe ClientRangeValidationService do
     end
 
     context "when gap is large" do
-      let(:large_gap_amounts) { [ 400_000, 100_000 ] }  # 300k gap
+      let(:large_gap_amounts) { [400_000, 100_000] }  # 300k gap
 
       it "identifies large gap requiring significant work" do
         result = service.analyze_settlement_gap(large_gap_amounts[0], large_gap_amounts[1])
@@ -389,7 +388,7 @@ RSpec.describe ClientRangeValidationService do
       it "incorporates personality factors into pressure calculation" do
         pressure_level = service.calculate_pressure_level(plaintiff_team, 200_000)
 
-        expect(pressure_level).to be_in([ :low, :moderate, :high, :extreme ])
+        expect(pressure_level).to be_in([:low, :moderate, :high, :extreme])
       end
 
       it "adjusts pressure based on team role and amount" do
@@ -447,7 +446,7 @@ RSpec.describe ClientRangeValidationService do
         result = service.validate_offer(plaintiff_team, 250_000)
 
         expect(result.satisfaction_score).to be > 70
-        expect(result.mood).to be_in([ "satisfied", "very_satisfied" ])
+        expect(result.mood).to be_in(["satisfied", "very_satisfied"])
       end
     end
 
@@ -468,7 +467,7 @@ RSpec.describe ClientRangeValidationService do
 
   describe "AI consistency and personality maintenance" do
     context "when validating multiple offers from same team" do
-      let(:offer_sequence) { [ 200_000, 225_000, 210_000 ] }  # Some back and forth
+      let(:offer_sequence) { [200_000, 225_000, 210_000] }  # Some back and forth
 
       before do
         allow(mock_ai_service).to receive(:enabled?).and_return(true)
@@ -480,7 +479,7 @@ RSpec.describe ClientRangeValidationService do
           ai_response = {
             feedback_text: "Client maintaining analytical approach to settlement evaluation.",
             mood_level: "neutral",
-            satisfaction_score: 65 + rand(-5..5),  # Small variation around baseline
+            satisfaction_score: rand(60..70),  # Small variation around baseline
             source: "ai"
           }
           allow(mock_ai_service).to receive(:generate_settlement_feedback).and_return(ai_response)
@@ -504,8 +503,8 @@ RSpec.describe ClientRangeValidationService do
           # Mock progressive AI responses
           satisfaction_trend = 65 + (index * 5)  # Gradual improvement
           ai_response = {
-            feedback_text: "Client showing #{index > 0 ? 'continued' : 'initial'} engagement with settlement discussions.",
-            mood_level: satisfaction_trend > 70 ? "satisfied" : "neutral",
+            feedback_text: "Client showing #{(index > 0) ? "continued" : "initial"} engagement with settlement discussions.",
+            mood_level: (satisfaction_trend > 70) ? "satisfied" : "neutral",
             satisfaction_score: satisfaction_trend,
             source: "ai"
           }

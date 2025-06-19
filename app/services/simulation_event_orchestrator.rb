@@ -85,9 +85,9 @@ class SimulationEventOrchestrator
   # Get events triggered in a specific round
   def get_round_events(round_number)
     simulation.simulation_events
-              .where(trigger_round: round_number)
-              .triggered
-              .order(:triggered_at)
+      .where(trigger_round: round_number)
+      .triggered
+      .order(:triggered_at)
   end
 
   # Schedule future events
@@ -126,9 +126,9 @@ class SimulationEventOrchestrator
   def check_scheduled_events(round_number)
     # Get events that were scheduled for this round and should trigger now
     scheduled = simulation.simulation_events
-                          .where(trigger_round: round_number)
-                          .where("triggered_at <= ?", Time.current)
-                          .where.not(event_data: nil)
+      .where(trigger_round: round_number)
+      .where("triggered_at <= ?", Time.current)
+      .where.not(event_data: nil)
 
     # Filter out already applied events
     scheduled.reject { |event| event.event_data["applied"] == true }
@@ -178,8 +178,8 @@ class SimulationEventOrchestrator
 
   def check_argument_quality_triggers
     recent_offers = SettlementOffer.joins(:negotiation_round)
-                                  .where(negotiation_rounds: { simulation: simulation })
-                                  .where("negotiation_rounds.round_number >= ?", simulation.current_round - 1)
+      .where(negotiation_rounds: {simulation: simulation})
+      .where("negotiation_rounds.round_number >= ?", simulation.current_round - 1)
 
     return [] if recent_offers.empty?
 
@@ -444,7 +444,7 @@ class SimulationEventOrchestrator
     simulation.simulation_events.create!(
       event_type: :additional_evidence,
       trigger_round: media_event.trigger_round,
-      triggered_at: Time.current + 2.hours,
+      triggered_at: 2.hours.from_now,
       impact_description: "Media coverage prompts company stakeholders to push for quick resolution",
       event_data: {
         "cascade_event" => true,
@@ -463,7 +463,7 @@ class SimulationEventOrchestrator
     simulation.simulation_events.create!(
       event_type: :additional_evidence,
       trigger_round: ipo_event.trigger_round,
-      triggered_at: Time.current + 1.hour,
+      triggered_at: 1.hour.from_now,
       impact_description: "Board of directors requests immediate resolution to protect business interests",
       event_data: {
         "cascade_event" => true,
@@ -481,7 +481,7 @@ class SimulationEventOrchestrator
     # Generate client feedback for affected teams
     feedback_service = ClientFeedbackService.new(simulation)
 
-    affected_teams = [ simulation.plaintiff_team, simulation.defendant_team ].compact
+    affected_teams = [simulation.plaintiff_team, simulation.defendant_team].compact
     feedback_service.generate_event_feedback!(event, affected_teams)
   end
 
@@ -508,10 +508,10 @@ class SimulationEventOrchestrator
 
     # Higher probability if settlement gap is large
     current_round = simulation.current_negotiation_round
-    if current_round&.settlement_gap && current_round.settlement_gap > 100000
-      rand < 0.4
+    rand < if current_round&.settlement_gap && current_round.settlement_gap > 100000
+      0.4
     else
-      rand < 0.2
+      0.2
     end
   end
 
@@ -521,11 +521,11 @@ class SimulationEventOrchestrator
 
     # More likely if plaintiff offers are conservative
     recent_plaintiff_offers = SettlementOffer.joins(:negotiation_round)
-                                            .joins(:team)
-                                            .joins("JOIN case_teams ON teams.id = case_teams.team_id")
-                                            .where(case_teams: { role: :plaintiff })
-                                            .where(negotiation_rounds: { simulation: simulation })
-                                            .where("negotiation_rounds.round_number >= ?", round_number - 1)
+      .joins(:team)
+      .joins("JOIN case_teams ON teams.id = case_teams.team_id")
+      .where(case_teams: {role: :plaintiff})
+      .where(negotiation_rounds: {simulation: simulation})
+      .where("negotiation_rounds.round_number >= ?", round_number - 1)
 
     if recent_plaintiff_offers.any?
       avg_offer = recent_plaintiff_offers.average(:amount)

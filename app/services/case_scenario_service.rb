@@ -35,7 +35,7 @@ class CaseScenarioService
         event_probabilities: {
           media_attention: {
             base_probability: 0.6,
-            case_type_modifiers: { "sexual_harassment" => 1.3 }
+            case_type_modifiers: {"sexual_harassment" => 1.3}
           },
           witness_change: {
             base_probability: 0.5,
@@ -46,7 +46,7 @@ class CaseScenarioService
           },
           ipo_delay: {
             base_probability: 0.55,
-            case_type_modifiers: { "sexual_harassment" => 1.2 }
+            case_type_modifiers: {"sexual_harassment" => 1.2}
           },
           court_deadline: {
             base_probability: 0.8,
@@ -55,10 +55,10 @@ class CaseScenarioService
           }
         },
         round_triggers: {
-          "2" => { "media_attention" => true },
-          "3" => { "witness_change" => true },
-          "4" => { "ipo_delay" => true },
-          "5" => { "court_deadline" => true }
+          "2" => {"media_attention" => true},
+          "3" => {"witness_change" => true},
+          "4" => {"ipo_delay" => true},
+          "5" => {"court_deadline" => true}
         }
       }
     },
@@ -96,7 +96,7 @@ class CaseScenarioService
         event_probabilities: {
           media_attention: {
             base_probability: 0.3,
-            case_type_modifiers: { "contract_dispute" => 0.5 }
+            case_type_modifiers: {"contract_dispute" => 0.5}
           },
           witness_change: {
             base_probability: 0.6,
@@ -107,7 +107,7 @@ class CaseScenarioService
           },
           ipo_delay: {
             base_probability: 0.2,
-            case_type_modifiers: { "contract_dispute" => 0.3 }
+            case_type_modifiers: {"contract_dispute" => 0.3}
           },
           court_deadline: {
             base_probability: 0.9,
@@ -116,10 +116,10 @@ class CaseScenarioService
           }
         },
         round_triggers: {
-          "2" => { "witness_change" => true },
-          "3" => { "media_attention" => true },
-          "4" => { "court_deadline" => true },
-          "5" => { "court_deadline" => true }
+          "2" => {"witness_change" => true},
+          "3" => {"media_attention" => true},
+          "4" => {"court_deadline" => true},
+          "5" => {"court_deadline" => true}
         }
       }
     },
@@ -157,7 +157,7 @@ class CaseScenarioService
         event_probabilities: {
           media_attention: {
             base_probability: 0.7,
-            case_type_modifiers: { "discrimination" => 1.2 }
+            case_type_modifiers: {"discrimination" => 1.2}
           },
           witness_change: {
             base_probability: 0.4,
@@ -168,7 +168,7 @@ class CaseScenarioService
           },
           ipo_delay: {
             base_probability: 0.15,
-            case_type_modifiers: { "discrimination" => 0.2 }
+            case_type_modifiers: {"discrimination" => 0.2}
           },
           court_deadline: {
             base_probability: 0.85,
@@ -177,10 +177,10 @@ class CaseScenarioService
           }
         },
         round_triggers: {
-          "2" => { "media_attention" => true },
-          "3" => { "witness_change" => true },
-          "4" => { "court_deadline" => true },
-          "5" => { "court_deadline" => true }
+          "2" => {"media_attention" => true},
+          "3" => {"witness_change" => true},
+          "4" => {"court_deadline" => true},
+          "5" => {"court_deadline" => true}
         }
       }
     },
@@ -218,7 +218,7 @@ class CaseScenarioService
         event_probabilities: {
           media_attention: {
             base_probability: 0.8,
-            case_type_modifiers: { "intellectual_property" => 1.4 }
+            case_type_modifiers: {"intellectual_property" => 1.4}
           },
           witness_change: {
             base_probability: 0.7,
@@ -229,7 +229,7 @@ class CaseScenarioService
           },
           ipo_delay: {
             base_probability: 0.4,
-            case_type_modifiers: { "intellectual_property" => 0.8 }
+            case_type_modifiers: {"intellectual_property" => 0.8}
           },
           court_deadline: {
             base_probability: 0.75,
@@ -238,12 +238,12 @@ class CaseScenarioService
           }
         },
         round_triggers: {
-          "2" => { "media_attention" => true },
-          "3" => { "witness_change" => true },
-          "4" => { "ipo_delay" => true },
-          "5" => { "court_deadline" => true },
-          "6" => { "court_deadline" => true },
-          "7" => { "court_deadline" => true }
+          "2" => {"media_attention" => true},
+          "3" => {"witness_change" => true},
+          "4" => {"ipo_delay" => true},
+          "5" => {"court_deadline" => true},
+          "6" => {"court_deadline" => true},
+          "7" => {"court_deadline" => true}
         }
       }
     },
@@ -281,7 +281,7 @@ class CaseScenarioService
         event_probabilities: {
           media_attention: {
             base_probability: 0.5,
-            case_type_modifiers: { "wrongful_termination" => 1.1 }
+            case_type_modifiers: {"wrongful_termination" => 1.1}
           },
           witness_change: {
             base_probability: 0.55,
@@ -292,7 +292,7 @@ class CaseScenarioService
           },
           ipo_delay: {
             base_probability: 0.25,
-            case_type_modifiers: { "wrongful_termination" => 0.4 }
+            case_type_modifiers: {"wrongful_termination" => 0.4}
           },
           court_deadline: {
             base_probability: 0.8,
@@ -301,10 +301,10 @@ class CaseScenarioService
           }
         },
         round_triggers: {
-          "2" => { "media_attention" => true },
-          "3" => { "witness_change" => true },
-          "4" => { "court_deadline" => true },
-          "5" => { "court_deadline" => true }
+          "2" => {"media_attention" => true},
+          "3" => {"witness_change" => true},
+          "4" => {"court_deadline" => true},
+          "5" => {"court_deadline" => true}
         }
       }
     }

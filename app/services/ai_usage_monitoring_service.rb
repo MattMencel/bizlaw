@@ -28,11 +28,11 @@ class AiUsageMonitoringService
   end
 
   def daily_request_count(date = Date.current)
-    AiUsageLog.where(created_at: date.beginning_of_day..date.end_of_day).count
+    AiUsageLog.where(created_at: date.all_day).count
   end
 
   def daily_cost(date = Date.current)
-    AiUsageLog.where(created_at: date.beginning_of_day..date.end_of_day).sum(:cost)
+    AiUsageLog.where(created_at: date.all_day).sum(:cost)
   end
 
   def hourly_request_count(time = Time.current)
@@ -66,7 +66,7 @@ class AiUsageMonitoringService
 
     result = {
       allowed: current_cost < limit,
-      remaining_budget: [ limit - current_cost, 0 ].max,
+      remaining_budget: [limit - current_cost, 0].max,
       percentage_used: percentage_used,
       daily_cost: current_cost,
       daily_limit: limit
@@ -130,7 +130,7 @@ class AiUsageMonitoringService
     logs = AiUsageLog.where(created_at: start_date.beginning_of_day..end_date.end_of_day)
 
     daily_breakdown = (start_date..end_date).map do |date|
-      day_logs = logs.where(created_at: date.beginning_of_day..date.end_of_day)
+      day_logs = logs.where(created_at: date.all_day)
 
       {
         date: date,
@@ -282,11 +282,11 @@ class AiUsageMonitoringService
   def find_peak_hour(logs)
     hourly_counts = logs.group_by_hour(:created_at).count
     peak = hourly_counts.max_by { |_, count| count }
-    peak ? { hour: peak[0].hour, requests: peak[1] } : { hour: 0, requests: 0 }
+    peak ? {hour: peak[0].hour, requests: peak[1]} : {hour: 0, requests: 0}
   end
 
   def find_peak_day(daily_breakdown)
     peak = daily_breakdown.max_by { |day| day[:requests] }
-    peak || { date: Date.current, requests: 0 }
+    peak || {date: Date.current, requests: 0}
   end
 end

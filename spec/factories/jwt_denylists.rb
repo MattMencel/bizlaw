@@ -22,10 +22,10 @@ FactoryBot.define do
     end
 
     # Factory for testing bulk operations
-    factory :jwt_denylist_batch, class: 'Array' do
+    factory :jwt_denylist_batch, class: "Array" do
       transient do
         count { 5 }
-        base_jti { 'batch-token' }
+        base_jti { "batch-token" }
         exp_range { (1.hour.ago..1.hour.from_now) }
       end
 
@@ -33,14 +33,13 @@ FactoryBot.define do
         (1..count).map do |i|
           create(:jwt_denylist,
             jti: "#{base_jti}-#{i}",
-            exp: exp_range.min + (exp_range.size * i / count)
-          )
+            exp: exp_range.min + (exp_range.size * i / count))
         end
       end
     end
 
     # Factory for testing cleanup scenarios
-    factory :jwt_denylist_cleanup_scenario, class: 'Hash' do
+    factory :jwt_denylist_cleanup_scenario, class: "Hash" do
       transient do
         expired_count { 3 }
         active_count { 2 }

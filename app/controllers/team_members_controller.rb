@@ -4,7 +4,7 @@ class TeamMembersController < ApplicationController
   include ImpersonationReadOnly
 
   before_action :set_team
-  before_action :set_team_member, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_team_member, only: [:show, :edit, :update, :destroy]
   before_action :authorize_team_access!
 
   def index
@@ -97,6 +97,6 @@ class TeamMembersController < ApplicationController
     existing_member_ids = @team.team_members.pluck(:user_id)
 
     User.where(id: enrolled_user_ids - existing_member_ids)
-        .order(:last_name, :first_name)
+      .order(:last_name, :first_name)
   end
 end

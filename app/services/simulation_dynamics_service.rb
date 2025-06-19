@@ -161,8 +161,8 @@ class SimulationDynamicsService
     # This is handled by individual SimulationEvent instances
     # We just aggregate their cumulative effect here
     recent_events = simulation.simulation_events
-                             .where("trigger_round <= ?", round_number)
-                             .where("triggered_at <= ?", Time.current)
+      .where("trigger_round <= ?", round_number)
+      .where("triggered_at <= ?", Time.current)
 
     total_plaintiff_adjustment = recent_events.sum do |event|
       event.pressure_adjustment["plaintiff_min_increase"]&.to_f || 0
@@ -183,8 +183,8 @@ class SimulationDynamicsService
 
     # Get completed rounds up to current point
     completed_rounds = simulation.negotiation_rounds
-                                .where("round_number < ?", round_number)
-                                .where(status: :completed)
+      .where("round_number < ?", round_number)
+      .where(status: :completed)
 
     return adjustments if completed_rounds.empty?
 
@@ -193,7 +193,7 @@ class SimulationDynamicsService
     offer_count = 0
 
     completed_rounds.each do |round|
-      [ round.plaintiff_offer, round.defendant_offer ].compact.each do |offer|
+      [round.plaintiff_offer, round.defendant_offer].compact.each do |offer|
         total_quality += offer.quality_score || 50
         offer_count += 1
       end
@@ -220,8 +220,8 @@ class SimulationDynamicsService
 
   def calculate_media_pressure_adjustments(round_number)
     media_events = simulation.simulation_events
-                            .where(event_type: :media_attention)
-                            .where("trigger_round <= ?", round_number)
+      .where(event_type: :media_attention)
+      .where("trigger_round <= ?", round_number)
 
     return {} if media_events.empty?
 
@@ -259,7 +259,7 @@ class SimulationDynamicsService
     if defendant_total_change.abs > 1000
       new_max = simulation.defendant_max_acceptable + defendant_total_change
       # Ensure it doesn't go below ideal
-      new_max = [ new_max, simulation.defendant_ideal ].max
+      new_max = [new_max, simulation.defendant_ideal].max
       simulation.update!(defendant_max_acceptable: new_max)
     end
 
@@ -287,15 +287,13 @@ class SimulationDynamicsService
     quality_score = settlement_offer.final_quality_score
     quality_percentage = quality_score / 125.0
 
-    impact = {
+    {
       quality_score: quality_score,
       quality_percentage: (quality_percentage * 100).round(1),
       impact_level: determine_quality_impact_level(quality_percentage),
       range_adjustments: calculate_single_offer_quality_adjustments(settlement_offer),
       team_confidence_impact: calculate_team_confidence_impact(settlement_offer)
     }
-
-    impact
   end
 
   # Apply argument quality adjustments when instructor scores an offer
@@ -429,7 +427,7 @@ class SimulationDynamicsService
 
     if total_defendant_change.abs > 500
       new_max = simulation.defendant_max_acceptable + total_defendant_change
-      new_max = [ new_max, simulation.defendant_ideal ].max
+      new_max = [new_max, simulation.defendant_ideal].max
       simulation.update!(defendant_max_acceptable: new_max)
     end
 
@@ -480,39 +478,51 @@ class SimulationDynamicsService
 
   def calculate_media_pressure_factor(round_number)
     media_events = simulation.simulation_events
-                            .where(event_type: :media_attention)
-                            .where("trigger_round <= ?", round_number)
+      .where(event_type: :media_attention)
+      .where("trigger_round <= ?", round_number)
 
     {
       media_events_count: media_events.count,
-      pressure_level: media_events.count > 2 ? "high" : (media_events.count > 0 ? "moderate" : "none")
+      pressure_level: if media_events.count > 2
+                        "high"
+                      else
+                        ((media_events.count > 0) ? "moderate" : "none")
+                      end
     }
   end
 
   def calculate_average_quality_pressure
     offers = simulation.settlement_offers.where.not(final_quality_score: nil)
-    return { average_quality: 0, pressure_level: "none" } if offers.empty?
+    return {average_quality: 0, pressure_level: "none"} if offers.empty?
 
     avg_quality = offers.average(:final_quality_score)
 
     {
       average_quality: avg_quality.round(1),
       total_scored_offers: offers.count,
-      pressure_level: avg_quality > 90 ? "high_performance" : (avg_quality > 70 ? "moderate_performance" : "low_performance")
+      pressure_level: if avg_quality > 90
+                        "high_performance"
+                      else
+                        ((avg_quality > 70) ? "moderate_performance" : "low_performance")
+                      end
     }
   end
 
   def calculate_event_pressure_factor(round_number)
     events = simulation.simulation_events
-                      .where("trigger_round <= ?", round_number)
-                      .where.not(event_type: :additional_evidence)
+      .where("trigger_round <= ?", round_number)
+      .where.not(event_type: :additional_evidence)
 
-    high_impact_events = events.where(event_type: [ :witness_change, :ipo_delay, :court_deadline ])
+    high_impact_events = events.where(event_type: [:witness_change, :ipo_delay, :court_deadline])
 
     {
       total_events: events.count,
       high_impact_events: high_impact_events.count,
-      pressure_level: high_impact_events.count > 2 ? "high" : (events.count > 3 ? "moderate" : "low")
+      pressure_level: if high_impact_events.count > 2
+                        "high"
+                      else
+                        ((events.count > 3) ? "moderate" : "low")
+                      end
     }
   end
 
@@ -608,8 +618,8 @@ class SimulationDynamicsService
     if event_config["round_escalation"]
       round_factor = event_config["round_escalation_factor"] || 1.1
       current_round = simulation.current_round
-      escalated_probability = base_probability * (round_factor ** (current_round - 4))
-      rand < [ escalated_probability, 1.0 ].min
+      escalated_probability = base_probability * (round_factor**(current_round - 4))
+      rand < [escalated_probability, 1.0].min
     else
       rand < base_probability
     end
@@ -703,12 +713,12 @@ class SimulationDynamicsService
 
   def calculate_event_pressure_factor
     event_count = simulation.simulation_events.triggered.count
-    [ event_count * 0.15, 0.3 ].min # Max 30% pressure from events
+    [event_count * 0.15, 0.3].min # Max 30% pressure from events
   end
 
   def calculate_media_pressure_factor
     media_events = simulation.simulation_events.where(event_type: :media_attention).triggered.count
-    [ media_events * 0.2, 0.25 ].min # Max 25% pressure from media
+    [media_events * 0.2, 0.25].min # Max 25% pressure from media
   end
 
   def calculate_overlap_zone
@@ -738,10 +748,10 @@ class SimulationDynamicsService
   # Default round triggers if not configured in scenario
   def default_round_triggers
     {
-      "2" => { "media_attention" => true },
-      "3" => { "witness_change" => true },
-      "4" => { "ipo_delay" => true },
-      "5" => { "court_deadline" => true }
+      "2" => {"media_attention" => true},
+      "3" => {"witness_change" => true},
+      "4" => {"ipo_delay" => true},
+      "5" => {"court_deadline" => true}
     }
   end
 end

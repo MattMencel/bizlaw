@@ -8,18 +8,18 @@ module AccessibilityHelpers
   end
 
   def expect_accessible_form
-    expect(page).to be_accessible.according_to(:wcag2a, :wcag2aa).within('form')
+    expect(page).to be_accessible.according_to(:wcag2a, :wcag2aa).within("form")
   end
 
   def expect_accessible_navigation
-    expect(page).to be_accessible.according_to(:wcag2a, :wcag2aa).within('nav')
+    expect(page).to be_accessible.according_to(:wcag2a, :wcag2aa).within("nav")
   end
 
   # Skip certain rules that might not apply in test environment
   def accessibility_rules_to_skip
     [
-      'color-contrast', # Can be flaky in test environment due to CSS loading
-      'landmark-one-main' # Sometimes problematic with test layouts
+      "color-contrast", # Can be flaky in test environment due to CSS loading
+      "landmark-one-main" # Sometimes problematic with test layouts
     ]
   end
 

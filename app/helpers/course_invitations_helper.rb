@@ -4,8 +4,8 @@ module CourseInvitationsHelper
   def qr_code_image_tag(invitation, size: 200, alt: "QR Code for course invitation")
     # Use SVG instead of PNG for better compatibility and visibility
     content_tag :div,
-                class: "qr-code-container border border-gray-200 rounded-lg inline-block p-4 bg-white",
-                style: "width: #{size + 32}px; height: #{size + 32}px;" do
+      class: "qr-code-container border border-gray-200 rounded-lg inline-block p-4 bg-white",
+      style: "width: #{size + 32}px; height: #{size + 32}px;" do
       qr_code_svg(invitation, size: size, css_class: "qr-code w-full h-full")
     end
   end
@@ -21,10 +21,10 @@ module CourseInvitationsHelper
     text ||= "Download QR Code (#{format.upcase})"
 
     link_to text,
-            qr_code_course_invitation_path(invitation.token, format: format, size: size),
-            class: css_class,
-            target: "_blank",
-            data: { turbo: false }
+      qr_code_course_invitation_path(invitation.token, format: format, size: size),
+      class: css_class,
+      target: "_blank",
+      data: {turbo: false}, rel: "noopener"
   end
 
   def invitation_sharing_options(invitation)
@@ -36,24 +36,24 @@ module CourseInvitationsHelper
         concat content_tag(:div, class: "flex items-center space-x-2") do
           concat content_tag(:label, "Link:", class: "text-sm font-medium text-gray-700 w-16")
           concat text_field_tag("invitation_url", invitation.invitation_url,
-                               readonly: true,
-                               class: "flex-1 px-3 py-1 border border-gray-300 rounded text-sm",
-                               onclick: "this.select();")
+            readonly: true,
+            class: "flex-1 px-3 py-1 border border-gray-300 rounded text-sm",
+            onclick: "this.select();")
           concat button_tag("Copy",
-                           onclick: "navigator.clipboard.writeText('#{invitation.invitation_url}'); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 2000);",
-                           class: "px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700")
+            onclick: "navigator.clipboard.writeText('#{invitation.invitation_url}'); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 2000);",
+            class: "px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700")
         end
 
         # Invitation Code
         concat content_tag(:div, class: "flex items-center space-x-2") do
           concat content_tag(:label, "Code:", class: "text-sm font-medium text-gray-700 w-16")
           concat text_field_tag("invitation_code", invitation.token,
-                               readonly: true,
-                               class: "w-32 px-3 py-1 border border-gray-300 rounded text-sm font-mono text-center",
-                               onclick: "this.select();")
+            readonly: true,
+            class: "w-32 px-3 py-1 border border-gray-300 rounded text-sm font-mono text-center",
+            onclick: "this.select();")
           concat button_tag("Copy",
-                           onclick: "navigator.clipboard.writeText('#{invitation.token}'); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 2000);",
-                           class: "px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700")
+            onclick: "navigator.clipboard.writeText('#{invitation.token}'); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 2000);",
+            class: "px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700")
         end
       end
     end

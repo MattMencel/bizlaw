@@ -5,19 +5,19 @@ class CaseSerializer
   include JSONAPI::Serializer
 
   attributes :title,
-             :description,
-             :reference_number,
-             :status,
-             :difficulty_level,
-             :case_type,
-             :plaintiff_info,
-             :defendant_info,
-             :legal_issues,
-             :due_date,
-             :published_at,
-             :archived_at,
-             :created_at,
-             :updated_at
+    :description,
+    :reference_number,
+    :status,
+    :difficulty_level,
+    :case_type,
+    :plaintiff_info,
+    :defendant_info,
+    :legal_issues,
+    :due_date,
+    :published_at,
+    :archived_at,
+    :created_at,
+    :updated_at
 
   attribute :started, &:started?
   attribute :completed, &:completed?

@@ -6,25 +6,25 @@ class MetricsService
       StatsD.measure(
         "api.request.duration",
         duration,
-        tags: { endpoint: endpoint, version: version, status: status }
+        tags: {endpoint: endpoint, version: version, status: status}
       )
 
       # Track response status codes
       StatsD.increment(
         "api.response.status",
-        tags: { endpoint: endpoint, version: version, status: status }
+        tags: {endpoint: endpoint, version: version, status: status}
       )
 
       # Track error rates
       if status >= 500
         StatsD.increment(
           "api.errors.server",
-          tags: { endpoint: endpoint, version: version, status: status }
+          tags: {endpoint: endpoint, version: version, status: status}
         )
       elsif status >= 400
         StatsD.increment(
           "api.errors.client",
-          tags: { endpoint: endpoint, version: version, status: status }
+          tags: {endpoint: endpoint, version: version, status: status}
         )
       end
     end
@@ -32,7 +32,7 @@ class MetricsService
     def track_throttle(endpoint:, version:, ip:)
       StatsD.increment(
         "api.request.throttled",
-        tags: { endpoint: endpoint, version: version, ip: anonymize_ip(ip) }
+        tags: {endpoint: endpoint, version: version, ip: anonymize_ip(ip)}
       )
     end
 
@@ -40,14 +40,14 @@ class MetricsService
       StatsD.gauge(
         "api.rate_limit.remaining",
         remaining,
-        tags: { endpoint: endpoint, version: version, ip: anonymize_ip(ip) }
+        tags: {endpoint: endpoint, version: version, ip: anonymize_ip(ip)}
       )
     end
 
     def track_auth_failure(reason:, version:)
       StatsD.increment(
         "api.auth.failure",
-        tags: { reason: reason, version: version }
+        tags: {reason: reason, version: version}
       )
     end
 
@@ -55,7 +55,7 @@ class MetricsService
       StatsD.histogram(
         "api.response.size",
         size,
-        tags: { endpoint: endpoint, version: version }
+        tags: {endpoint: endpoint, version: version}
       )
     end
 
@@ -63,13 +63,13 @@ class MetricsService
       StatsD.count(
         "api.database.queries",
         query_count,
-        tags: { endpoint: endpoint, version: version }
+        tags: {endpoint: endpoint, version: version}
       )
 
       StatsD.measure(
         "api.database.duration",
         query_duration,
-        tags: { endpoint: endpoint, version: version }
+        tags: {endpoint: endpoint, version: version}
       )
     end
 
@@ -77,7 +77,7 @@ class MetricsService
       StatsD.gauge(
         "api.memory.usage",
         memory,
-        tags: { endpoint: endpoint, version: version }
+        tags: {endpoint: endpoint, version: version}
       )
     end
 
@@ -85,14 +85,14 @@ class MetricsService
       StatsD.measure(
         "jobs.duration",
         duration,
-        tags: { job: job_class, queue: queue, status: status }
+        tags: {job: job_class, queue: queue, status: status}
       )
     end
 
     def track_cache_metrics(action:, key:, hit:)
       StatsD.increment(
         "cache.#{action}",
-        tags: { key: key, hit: hit }
+        tags: {key: key, hit: hit}
       )
     end
 

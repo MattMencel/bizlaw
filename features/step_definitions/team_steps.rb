@@ -148,7 +148,7 @@ end
 Given("the team {string} has activity") do |team_name|
   team = Team.find_by!(name: team_name)
   # Create some team activity/events
-  create_list(:case_event, 5, data: { team_id: team.id, action: 'team_activity' })
+  create_list(:case_event, 5, data: {team_id: team.id, action: "team_activity"})
 end
 
 When("I navigate to team creation page") do
@@ -272,76 +272,76 @@ end
 
 Then("the team should be created successfully") do
   success_present = page.has_content?("Team created successfully") ||
-                    page.has_content?("successfully created") ||
-                    page.has_css?(".alert-success")
+    page.has_content?("successfully created") ||
+    page.has_css?(".alert-success")
   expect(success_present).to be true
 end
 
 Then("the team should be updated successfully") do
   success_present = page.has_content?("Team updated successfully") ||
-                    page.has_content?("successfully updated") ||
-                    page.has_css?(".alert-success")
+    page.has_content?("successfully updated") ||
+    page.has_css?(".alert-success")
   expect(success_present).to be true
 end
 
 Then("the team should be deleted successfully") do
   success_present = page.has_content?("Team deleted successfully") ||
-                    page.has_content?("successfully deleted") ||
-                    page.has_css?(".alert-success")
+    page.has_content?("successfully deleted") ||
+    page.has_css?(".alert-success")
   expect(success_present).to be true
 end
 
 Then("I should see a message about joining the team") do
   join_present = page.has_content?("joined") ||
-                 page.has_content?("Welcome to the team") ||
-                 page.has_css?(".alert-success")
+    page.has_content?("Welcome to the team") ||
+    page.has_css?(".alert-success")
   expect(join_present).to be true
 end
 
 Then("I should see a message about leaving the team") do
   leave_present = page.has_content?("left") ||
-                  page.has_content?("removed from") ||
-                  page.has_css?(".alert-success")
+    page.has_content?("removed from") ||
+    page.has_css?(".alert-success")
   expect(leave_present).to be true
 end
 
 Then("I should see the team is full") do
   full_indicated = page.has_content?("Team is full") ||
-                   page.has_content?("No available spots") ||
-                   !page.has_link?("Join Team")
+    page.has_content?("No available spots") ||
+    !page.has_link?("Join Team")
   expect(full_indicated).to be true
 end
 
 Then("I should see team activity") do
   activity_present = page.has_content?("Activity") ||
-                     page.has_css?(".activity-timeline") ||
-                     page.has_css?(".team-events")
+    page.has_css?(".activity-timeline") ||
+    page.has_css?(".team-events")
   expect(activity_present).to be true
 end
 
 Then("an invitation should be sent to {string}") do |user_email|
   # This would check email delivery in a real scenario
   invitation_sent = page.has_content?("Invitation sent") ||
-                    page.has_content?("invited")
+    page.has_content?("invited")
   expect(invitation_sent).to be true
 end
 
 Then("the team should be archived") do
   archived_present = page.has_content?("Team archived") ||
-                     page.has_content?("archived successfully")
+    page.has_content?("archived successfully")
   expect(archived_present).to be true
 end
 
 Then("I should see a cloned team") do
   cloned_present = page.has_content?("Team cloned") ||
-                   page.has_content?("Copy of")
+    page.has_content?("Copy of")
   expect(cloned_present).to be true
 end
 
 Then("I should be redirected to the teams page") do
-  expect(page.current_path).to eq(teams_path)
+  expect(page).to have_current_path(teams_path, ignore_query: true)
 end
 
 Then("I should be redirected to the team page") do
-  expect(page.current_path).to match(%r{/teams/[\w-]+})
+  expect(page).to have_current_path(%r{/teams/[\w-]+})
 end

@@ -5,10 +5,10 @@ class TeamSerializer
   include JSONAPI::Serializer
 
   attributes :name,
-             :description,
-             :max_members,
-             :created_at,
-             :updated_at
+    :description,
+    :max_members,
+    :created_at,
+    :updated_at
 
   attribute :member_count, &:member_count
   attribute :is_full, &:full?

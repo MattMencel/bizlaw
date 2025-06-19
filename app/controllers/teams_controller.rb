@@ -3,8 +3,8 @@
 class TeamsController < ApplicationController
   include ImpersonationReadOnly
 
-  before_action :set_course, only: [ :new, :create, :edit, :update, :destroy ]
-  before_action :set_team, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_course, only: [:new, :create, :edit, :update, :destroy]
+  before_action :set_team, only: [:show, :edit, :update, :destroy]
 
   def index
     @teams = Team.all
@@ -21,9 +21,9 @@ class TeamsController < ApplicationController
       format.html do
         if turbo_frame_request?
           if params[:section] == "members"
-            render partial: "team_members", locals: { team: @team }
+            render partial: "team_members", locals: {team: @team}
           elsif params[:section] == "activity"
-            render partial: "activity", locals: { team: @team }
+            render partial: "activity", locals: {team: @team}
           else
             render
           end
@@ -85,10 +85,10 @@ class TeamsController < ApplicationController
   end
 
   def set_team
-    if @course
-      @team = @course.teams.find(params[:id])
+    @team = if @course
+      @course.teams.find(params[:id])
     else
-      @team = Team.find(params[:id])
+      Team.find(params[:id])
     end
   end
 

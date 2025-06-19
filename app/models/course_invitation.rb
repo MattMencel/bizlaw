@@ -16,8 +16,8 @@ class CourseInvitation < ApplicationRecord
   validates :token, presence: true, uniqueness: true
   validates :course_id, presence: true
   validates :current_uses, presence: true,
-                          numericality: { greater_than_or_equal_to: 0 }
-  validates :max_uses, numericality: { greater_than: 0 }, allow_nil: true
+    numericality: {greater_than_or_equal_to: 0}
+  validates :max_uses, numericality: {greater_than: 0}, allow_nil: true
   validate :max_uses_not_exceeded
   validate :not_expired
 
@@ -66,7 +66,7 @@ class CourseInvitation < ApplicationRecord
 
   def remaining_uses
     return Float::INFINITY if max_uses.nil?
-    [ max_uses - current_uses, 0 ].max
+    [max_uses - current_uses, 0].max
   end
 
   def can_be_used?
@@ -92,7 +92,7 @@ class CourseInvitation < ApplicationRecord
 
   def extend_expiration(duration)
     new_expiration = if expires_at.present?
-      [ expires_at + duration, Time.current + duration ].max
+      [expires_at + duration, Time.current + duration].max
     else
       Time.current + duration
     end

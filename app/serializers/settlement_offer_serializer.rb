@@ -4,7 +4,7 @@ class SettlementOfferSerializer
   include JSONAPI::Serializer
 
   attributes :amount, :justification, :non_monetary_terms, :offer_type,
-             :submitted_at, :quality_score, :created_at, :updated_at
+    :submitted_at, :quality_score, :created_at, :updated_at
 
   # Computed attributes
   attribute :within_client_expectations do |offer|
@@ -39,9 +39,9 @@ class SettlementOfferSerializer
 
     # Only show strategic analysis to the team that submitted this offer
     user_team = params[:current_user].teams
-                                    .joins(:case_teams)
-                                    .where(case_teams: { case: offer.case })
-                                    .first
+      .joins(:case_teams)
+      .where(case_teams: {case: offer.case})
+      .first
 
     next nil unless user_team == offer.team
 
@@ -83,10 +83,10 @@ class SettlementOfferSerializer
 
     # Strategic positioning recommendations
     unless offer.within_client_expectations?
-      if offer.is_plaintiff_offer?
-        recommendations << "Consider if demand aligns with client's minimum expectations"
+      recommendations << if offer.is_plaintiff_offer?
+        "Consider if demand aligns with client's minimum expectations"
       else
-        recommendations << "Verify offer stays within authorized settlement range"
+        "Verify offer stays within authorized settlement range"
       end
     end
 

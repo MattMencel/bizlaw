@@ -16,16 +16,16 @@ class Course < ApplicationRecord
   has_many :cases, dependent: :destroy
 
   # Validations
-  validates :title, presence: true, length: { maximum: 255 }
+  validates :title, presence: true, length: {maximum: 255}
   validates :course_code, presence: true,
-                         length: { maximum: 20 },
-                         uniqueness: { scope: :organization_id, case_sensitive: false }
+    length: {maximum: 20},
+    uniqueness: {scope: :organization_id, case_sensitive: false}
   validates :instructor_id, presence: true
   validates :year, presence: true,
-                  numericality: {
-                    greater_than: 2000,
-                    less_than_or_equal_to: -> { Date.current.year + 5 }
-                  }
+    numericality: {
+      greater_than: 2000,
+      less_than_or_equal_to: -> { Date.current.year + 5 }
+    }
   validate :instructor_must_be_instructor_or_admin
   validate :end_date_after_start_date
 
@@ -37,7 +37,7 @@ class Course < ApplicationRecord
   scope :for_instructor, ->(user) { where(instructor: user) }
   scope :current_semester, -> {
     # Courses with terms that are currently active
-    term_courses = joins(:term).where(terms: { start_date: ..Date.current, end_date: Date.current.. })
+    term_courses = joins(:term).where(terms: {start_date: ..Date.current, end_date: Date.current..})
 
     # Legacy courses without terms - fall back to year
     legacy_courses = where(term_id: nil, year: Date.current.year)
@@ -48,7 +48,7 @@ class Course < ApplicationRecord
   scope :for_term, ->(term) { where(term: term) }
   scope :for_academic_year, ->(year) {
     # Courses with terms for the given academic year
-    term_courses = joins(:term).where(terms: { academic_year: year })
+    term_courses = joins(:term).where(terms: {academic_year: year})
 
     # Legacy courses without terms
     legacy_courses = where(term_id: nil, year: year)
@@ -144,9 +144,9 @@ class Course < ApplicationRecord
 
     # Get all students in the organization who are not already enrolled
     organization.students
-                .active
-                .where.not(id: students.select(:id))
-                .order(:last_name, :first_name)
+      .active
+      .where.not(id: students.select(:id))
+      .order(:last_name, :first_name)
   end
 
   def assign_student_directly!(user)

@@ -10,7 +10,7 @@ FactoryBot.define do
 
     after(:build) do |team|
       # Ensure the owner is enrolled in the course
-      create(:course_enrollment, user: team.owner, course: team.course, status: 'active')
+      create(:course_enrollment, user: team.owner, course: team.course, status: "active")
     end
 
     trait :with_members do

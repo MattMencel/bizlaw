@@ -3,11 +3,11 @@
 FactoryBot.define do
   factory :invitation do
     email { Faker::Internet.email }
-    role { 'student' }
+    role { "student" }
     association :invited_by, factory: :user, strategy: :create
     association :organization
     token { SecureRandom.urlsafe_base64(32) }
-    status { 'pending' }
+    status { "pending" }
     expires_at { 7.days.from_now }
     shareable { false }
     org_admin { false }
@@ -18,16 +18,16 @@ FactoryBot.define do
     end
 
     trait :for_instructor do
-      role { 'instructor' }
+      role { "instructor" }
     end
 
     trait :for_admin do
-      role { 'admin' }
+      role { "admin" }
       organization { nil }
     end
 
     trait :org_admin do
-      role { 'instructor' }
+      role { "instructor" }
       org_admin { true }
     end
 
@@ -38,16 +38,16 @@ FactoryBot.define do
 
     trait :expired do
       expires_at { 1.day.ago }
-      status { 'expired' }
+      status { "expired" }
     end
 
     trait :accepted do
-      status { 'accepted' }
+      status { "accepted" }
       accepted_at { Time.current }
     end
 
     trait :revoked do
-      status { 'revoked' }
+      status { "revoked" }
     end
 
     trait :deleted do

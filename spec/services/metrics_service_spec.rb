@@ -31,12 +31,12 @@ RSpec.describe MetricsService do
       expect(StatsD).to have_received(:measure).with(
         "api.request.duration",
         duration,
-        tags: { endpoint: endpoint, version: version, status: status }
+        tags: {endpoint: endpoint, version: version, status: status}
       )
 
       expect(StatsD).to have_received(:increment).with(
         "api.response.status",
-        tags: { endpoint: endpoint, version: version, status: status }
+        tags: {endpoint: endpoint, version: version, status: status}
       )
     end
 
@@ -48,7 +48,7 @@ RSpec.describe MetricsService do
 
         expect(StatsD).to have_received(:increment).with(
           "api.errors.server",
-          tags: { endpoint: endpoint, version: version, status: status }
+          tags: {endpoint: endpoint, version: version, status: status}
         )
       end
     end
@@ -61,7 +61,7 @@ RSpec.describe MetricsService do
 
         expect(StatsD).to have_received(:increment).with(
           "api.errors.client",
-          tags: { endpoint: endpoint, version: version, status: status }
+          tags: {endpoint: endpoint, version: version, status: status}
         )
       end
     end
@@ -82,13 +82,13 @@ RSpec.describe MetricsService do
       expect(StatsD).to have_received(:count).with(
         "api.database.queries",
         query_count,
-        tags: { endpoint: endpoint, version: version }
+        tags: {endpoint: endpoint, version: version}
       )
 
       expect(StatsD).to have_received(:measure).with(
         "api.database.duration",
         query_duration,
-        tags: { endpoint: endpoint, version: version }
+        tags: {endpoint: endpoint, version: version}
       )
     end
   end
@@ -106,7 +106,7 @@ RSpec.describe MetricsService do
       expect(StatsD).to have_received(:gauge).with(
         "api.memory.usage",
         memory,
-        tags: { endpoint: endpoint, version: version }
+        tags: {endpoint: endpoint, version: version}
       )
     end
   end
@@ -116,8 +116,8 @@ RSpec.describe MetricsService do
     let(:error_data) do
       {
         message: "Internal Server Error",
-        backtrace: [ "line1", "line2" ],
-        params: { id: 1 }
+        backtrace: ["line1", "line2"],
+        params: {id: 1}
       }
     end
 

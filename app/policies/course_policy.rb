@@ -16,7 +16,7 @@ class CoursePolicy < ApplicationPolicy
 
   def update?
     user.admin? || user.can_manage_organization?(record.organization) ||
-    record.instructor_id == user.id
+      record.instructor_id == user.id
   end
 
   def destroy?

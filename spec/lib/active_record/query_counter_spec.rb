@@ -67,7 +67,7 @@ RSpec.describe ActiveRecord::QueryCounter do
     let(:start) { Time.current }
     let(:finish) { start + 2.seconds }
     let(:event_id) { SecureRandom.hex }
-    let(:payload) { { name: query_name, sql: "SELECT * FROM users", binds: [] } }
+    let(:payload) { {name: query_name, sql: "SELECT * FROM users", binds: []} }
     let(:event) do
       ActiveSupport::Notifications::Event.new(
         event_name, start, finish, event_id, payload

@@ -16,17 +16,17 @@ class PerformanceScore < ApplicationRecord
 
   # Validations
   validates :total_score, presence: true,
-                         numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
+    numericality: {greater_than_or_equal_to: 0, less_than_or_equal_to: 100}
   validates :scored_at, presence: true
-  validates :score_type, presence: true, inclusion: { in: %w[individual team] }
+  validates :score_type, presence: true, inclusion: {in: %w[individual team]}
   validates :score_breakdown, presence: true
 
-  validates :settlement_quality_score, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 40 }, allow_nil: true
-  validates :legal_strategy_score, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 30 }, allow_nil: true
-  validates :collaboration_score, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 20 }, allow_nil: true
-  validates :efficiency_score, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 10 }, allow_nil: true
-  validates :speed_bonus, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 10 }, allow_nil: true
-  validates :creative_terms_score, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 10 }, allow_nil: true
+  validates :settlement_quality_score, numericality: {greater_than_or_equal_to: 0, less_than_or_equal_to: 40}, allow_nil: true
+  validates :legal_strategy_score, numericality: {greater_than_or_equal_to: 0, less_than_or_equal_to: 30}, allow_nil: true
+  validates :collaboration_score, numericality: {greater_than_or_equal_to: 0, less_than_or_equal_to: 20}, allow_nil: true
+  validates :efficiency_score, numericality: {greater_than_or_equal_to: 0, less_than_or_equal_to: 10}, allow_nil: true
+  validates :speed_bonus, numericality: {greater_than_or_equal_to: 0, less_than_or_equal_to: 10}, allow_nil: true
+  validates :creative_terms_score, numericality: {greater_than_or_equal_to: 0, less_than_or_equal_to: 10}, allow_nil: true
 
   validate :user_present_for_individual_scores
   validate :user_absent_for_team_scores
@@ -60,7 +60,7 @@ class PerformanceScore < ApplicationRecord
     base_total = components.sum
     adjustment = instructor_adjustment || 0
 
-    self.total_score = [ base_total + adjustment, 0 ].max # Ensure non-negative
+    self.total_score = [base_total + adjustment, 0].max # Ensure non-negative
     self.score_breakdown = build_score_breakdown
     save!
   end
@@ -87,13 +87,13 @@ class PerformanceScore < ApplicationRecord
 
   def rank_in_simulation
     PerformanceScore.where(simulation: simulation, score_type: score_type)
-                   .where("total_score > ?", total_score)
-                   .count + 1
+      .where("total_score > ?", total_score)
+      .count + 1
   end
 
   def percentile_in_simulation
     total_scores = PerformanceScore.where(simulation: simulation, score_type: score_type)
-                                  .pluck(:total_score)
+      .pluck(:total_score)
     return 100 if total_scores.length <= 1
 
     below_count = total_scores.count { |score| score < total_score }

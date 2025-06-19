@@ -17,11 +17,11 @@ class ClientFeedback < ApplicationRecord
   validates :feedback_type, presence: true
   validates :mood_level, presence: true
   validates :satisfaction_score, presence: true,
-                                numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
+    numericality: {greater_than_or_equal_to: 0, less_than_or_equal_to: 100}
   validates :feedback_text, presence: true,
-                           length: { minimum: 10, maximum: 500 }
+    length: {minimum: 10, maximum: 500}
   validates :triggered_by_round, presence: true,
-                                numericality: { greater_than: 0 }
+    numericality: {greater_than: 0}
 
   validate :team_assigned_to_case
 
@@ -44,8 +44,8 @@ class ClientFeedback < ApplicationRecord
   # Scopes
   scope :recent_feedback, -> { order(created_at: :desc) }
   scope :for_round, ->(round) { where(triggered_by_round: round) }
-  scope :positive_feedback, -> { where(mood_level: [ :satisfied, :very_satisfied ]) }
-  scope :negative_feedback, -> { where(mood_level: [ :very_unhappy, :unhappy ]) }
+  scope :positive_feedback, -> { where(mood_level: [:satisfied, :very_satisfied]) }
+  scope :negative_feedback, -> { where(mood_level: [:very_unhappy, :unhappy]) }
   scope :by_type, ->(type) { where(feedback_type: type) }
 
   # Instance methods
@@ -160,7 +160,7 @@ class ClientFeedback < ApplicationRecord
   # Class methods for feedback calculation
   def self.calculate_offer_reaction(simulation, team, settlement_offer)
     case_team = team.case_teams.find_by(case: simulation.case)
-    return [ "neutral", 50, "Unable to assess offer" ] unless case_team
+    return ["neutral", 50, "Unable to assess offer"] unless case_team
 
     if case_team.role == "plaintiff"
       calculate_plaintiff_reaction(simulation, settlement_offer)
@@ -175,15 +175,15 @@ class ClientFeedback < ApplicationRecord
     ideal = simulation.plaintiff_ideal
 
     if amount >= ideal
-      [ "very_satisfied", 95, "Client thrilled with this ambitious opening position. This sets us up well for negotiations." ]
+      ["very_satisfied", 95, "Client thrilled with this ambitious opening position. This sets us up well for negotiations."]
     elsif amount >= min_acceptable * 1.2
-      [ "satisfied", 80, "Client pleased with this reasonable demand. Shows we're serious but willing to negotiate." ]
+      ["satisfied", 80, "Client pleased with this reasonable demand. Shows we're serious but willing to negotiate."]
     elsif amount >= min_acceptable
-      [ "neutral", 60, "Client cautiously optimistic. This is acceptable but we may need to justify the amount carefully." ]
+      ["neutral", 60, "Client cautiously optimistic. This is acceptable but we may need to justify the amount carefully."]
     elsif amount >= min_acceptable * 0.8
-      [ "unhappy", 40, "Client concerned this demand may be too low. We should consider our bargaining position." ]
+      ["unhappy", 40, "Client concerned this demand may be too low. We should consider our bargaining position."]
     else
-      [ "very_unhappy", 20, "Client frustrated with this weak opening. This undervalues the harm suffered." ]
+      ["very_unhappy", 20, "Client frustrated with this weak opening. This undervalues the harm suffered."]
     end
   end
 
@@ -193,15 +193,15 @@ class ClientFeedback < ApplicationRecord
     ideal = simulation.defendant_ideal
 
     if amount <= ideal
-      [ "very_satisfied", 95, "Client very pleased with this conservative offer. This shows we can resolve this efficiently." ]
+      ["very_satisfied", 95, "Client very pleased with this conservative offer. This shows we can resolve this efficiently."]
     elsif amount <= ideal * 1.5
-      [ "satisfied", 80, "Client satisfied with this measured approach. We're positioned well for settlement discussions." ]
+      ["satisfied", 80, "Client satisfied with this measured approach. We're positioned well for settlement discussions."]
     elsif amount <= max_acceptable
-      [ "neutral", 60, "Client willing to consider this amount but hopes to negotiate downward." ]
+      ["neutral", 60, "Client willing to consider this amount but hopes to negotiate downward."]
     elsif amount <= max_acceptable * 1.2
-      [ "unhappy", 40, "Client concerned this offer is getting expensive but still within range." ]
+      ["unhappy", 40, "Client concerned this offer is getting expensive but still within range."]
     else
-      [ "very_unhappy", 20, "Client worried this offer will be seen as insulting and damage negotiations." ]
+      ["very_unhappy", 20, "Client worried this offer will be seen as insulting and damage negotiations."]
     end
   end
 
@@ -230,14 +230,14 @@ class ClientFeedback < ApplicationRecord
     message = base_messages.dig(event_type, role) || "External pressures are affecting the case dynamics."
 
     if role == "plaintiff"
-      [ "satisfied", 75, message ]
+      ["satisfied", 75, message]
     else
-      [ "unhappy", 45, message ]
+      ["unhappy", 45, message]
     end
   end
 
   def self.calculate_strategy_guidance(simulation, team, round_number)
-    case_team = team.case_teams.find_by(case: simulation.case)
+    team.case_teams.find_by(case: simulation.case)
 
     if round_number <= 2
       mood = "neutral"
@@ -253,6 +253,6 @@ class ClientFeedback < ApplicationRecord
       message = "Time pressure mounting. Client wants resolution soon. Consider final positioning carefully."
     end
 
-    [ mood, satisfaction, message ]
+    [mood, satisfaction, message]
   end
 end

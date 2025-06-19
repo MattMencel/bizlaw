@@ -14,7 +14,7 @@ class PersonalityService
       ],
       "communication_style" => {
         "tone" => "assertive, demanding",
-        "language_patterns" => [ "demand", "insist", "require", "unacceptable", "insufficient", "must" ],
+        "language_patterns" => ["demand", "insist", "require", "unacceptable", "insufficient", "must"],
         "negotiation_approach" => "confrontational, high-pressure"
       },
       "satisfaction_modifiers" => {
@@ -35,7 +35,7 @@ class PersonalityService
       ],
       "communication_style" => {
         "tone" => "measured, careful",
-        "language_patterns" => [ "consider", "evaluate", "review", "careful", "thoughtful", "analyze" ],
+        "language_patterns" => ["consider", "evaluate", "review", "careful", "thoughtful", "analyze"],
         "negotiation_approach" => "methodical, thorough analysis"
       },
       "satisfaction_modifiers" => {
@@ -56,7 +56,7 @@ class PersonalityService
       ],
       "communication_style" => {
         "tone" => "expressive, feeling-based",
-        "language_patterns" => [ "feel", "emotional", "upset", "frustrated", "concerned", "worried" ],
+        "language_patterns" => ["feel", "emotional", "upset", "frustrated", "concerned", "worried"],
         "negotiation_approach" => "emotion-driven, relationship-focused"
       },
       "satisfaction_modifiers" => {
@@ -77,7 +77,7 @@ class PersonalityService
       ],
       "communication_style" => {
         "tone" => "practical, business-like",
-        "language_patterns" => [ "practical", "realistic", "business", "sensible", "reasonable", "efficient" ],
+        "language_patterns" => ["practical", "realistic", "business", "sensible", "reasonable", "efficient"],
         "negotiation_approach" => "results-oriented, compromise-willing"
       },
       "satisfaction_modifiers" => {
@@ -98,7 +98,7 @@ class PersonalityService
       ],
       "communication_style" => {
         "tone" => "exacting, critical",
-        "language_patterns" => [ "perfect", "optimal", "precise", "inadequate", "substandard", "excellence" ],
+        "language_patterns" => ["perfect", "optimal", "precise", "inadequate", "substandard", "excellence"],
         "negotiation_approach" => "meticulous, high-standard"
       },
       "satisfaction_modifiers" => {
@@ -122,7 +122,7 @@ class PersonalityService
 
       # Ensure different personalities for plaintiff and defendant
       plaintiff_personality = available_types.sample(random: random)
-      remaining_types = available_types - [ plaintiff_personality ]
+      remaining_types = available_types - [plaintiff_personality]
       defendant_personality = remaining_types.sample(random: random)
 
       {
@@ -143,10 +143,10 @@ class PersonalityService
       modifiers = traits["satisfaction_modifiers"]
 
       # Adjust based on personality threshold
-      if base_satisfaction >= modifiers["base_threshold"]
-        adjusted = (base_satisfaction * modifiers["positive_multiplier"]).round
+      adjusted = if base_satisfaction >= modifiers["base_threshold"]
+        (base_satisfaction * modifiers["positive_multiplier"]).round
       else
-        adjusted = (base_satisfaction * modifiers["negative_multiplier"]).round
+        (base_satisfaction * modifiers["negative_multiplier"]).round
       end
 
       # Role-specific adjustments
@@ -169,7 +169,7 @@ class PersonalityService
       end
 
       # Ensure satisfaction stays within bounds
-      [ [ adjusted, 0 ].max, 100 ].min
+      [[adjusted, 0].max, 100].min
     end
 
     def get_mood_adjustment(personality_type, base_mood, context:)
@@ -218,14 +218,14 @@ class PersonalityService
         - This is a sexual harassment lawsuit negotiation simulation
         - Team role: #{role}
         - Settlement offer: #{amount_formatted}
-        - Client personality: #{traits['name']} (#{personality_type})
+        - Client personality: #{traits["name"]} (#{personality_type})
 
         Client Personality Traits:
-        #{traits['traits'].map { |trait| "- #{trait}" }.join("\n")}
+        #{traits["traits"].map { |trait| "- #{trait}" }.join("\n")}
 
         Communication Style:
-        - Tone: #{traits['communication_style']['tone']}
-        - Approach: #{traits['communication_style']['negotiation_approach']}
+        - Tone: #{traits["communication_style"]["tone"]}
+        - Approach: #{traits["communication_style"]["negotiation_approach"]}
 
         #{personality_context}
 
@@ -242,14 +242,12 @@ class PersonalityService
     end
 
     def track_consistency(case_instance, personality_type, responses)
-      tracker = PersonalityConsistencyTracker.create!(
+      PersonalityConsistencyTracker.create!(
         case: case_instance,
         personality_type: personality_type,
         response_history: responses,
         consistency_score: calculate_consistency_score(personality_type, responses)
       )
-
-      tracker
     end
 
     def validate_personality_consistency(personality_type, previous_responses, new_response)
@@ -257,7 +255,7 @@ class PersonalityService
       expected_patterns = traits["communication_style"]["language_patterns"]
 
       # Analyze consistency
-      all_responses = previous_responses + [ new_response ]
+      all_responses = previous_responses + [new_response]
       consistency_score = calculate_consistency_score(personality_type, all_responses)
 
       {
@@ -271,16 +269,16 @@ class PersonalityService
     private
 
     def upgrade_mood(mood)
-      mood_hierarchy = [ "very_unhappy", "unhappy", "neutral", "satisfied", "very_satisfied" ]
+      mood_hierarchy = ["very_unhappy", "unhappy", "neutral", "satisfied", "very_satisfied"]
       current_index = mood_hierarchy.index(mood) || 2
-      new_index = [ current_index + 1, mood_hierarchy.length - 1 ].min
+      new_index = [current_index + 1, mood_hierarchy.length - 1].min
       mood_hierarchy[new_index]
     end
 
     def downgrade_mood(mood)
-      mood_hierarchy = [ "very_unhappy", "unhappy", "neutral", "satisfied", "very_satisfied" ]
+      mood_hierarchy = ["very_unhappy", "unhappy", "neutral", "satisfied", "very_satisfied"]
       current_index = mood_hierarchy.index(mood) || 2
-      new_index = [ current_index - 1, 0 ].max
+      new_index = [current_index - 1, 0].max
       mood_hierarchy[new_index]
     end
 
@@ -325,13 +323,13 @@ class PersonalityService
     def analyze_tone_consistency(responses, expected_tone)
       # Simple tone analysis based on word patterns
       tone_indicators = {
-        "assertive" => [ "demand", "insist", "must", "require" ],
-        "demanding" => [ "unacceptable", "insufficient", "inadequate" ],
-        "measured" => [ "consider", "evaluate", "thoughtful" ],
-        "careful" => [ "cautious", "prudent", "careful" ],
-        "expressive" => [ "feel", "emotional", "heart" ],
-        "practical" => [ "realistic", "practical", "business" ],
-        "critical" => [ "inadequate", "substandard", "disappointing" ]
+        "assertive" => ["demand", "insist", "must", "require"],
+        "demanding" => ["unacceptable", "insufficient", "inadequate"],
+        "measured" => ["consider", "evaluate", "thoughtful"],
+        "careful" => ["cautious", "prudent", "careful"],
+        "expressive" => ["feel", "emotional", "heart"],
+        "practical" => ["realistic", "practical", "business"],
+        "critical" => ["inadequate", "substandard", "disappointing"]
       }
 
       expected_tones = expected_tone.split(", ")

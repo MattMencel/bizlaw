@@ -10,16 +10,16 @@ end
 
 Given("the following documents exist:") do |table|
   table.hashes.each do |doc_data|
-    user = User.find_by(email: doc_data['Owner']) || @current_user
-    documentable = Case.find_by(title: doc_data['Case']) || Team.find_by(name: doc_data['Team'])
+    user = User.find_by(email: doc_data["Owner"]) || @current_user
+    documentable = Case.find_by(title: doc_data["Case"]) || Team.find_by(name: doc_data["Team"])
 
     create(:document,
-           title: doc_data['Title'],
-           description: doc_data['Description'],
-           document_type: doc_data['Type']&.downcase || 'evidence',
-           status: doc_data['Status']&.downcase || 'draft',
-           documentable: documentable,
-           created_by: user)
+      title: doc_data["Title"],
+      description: doc_data["Description"],
+      document_type: doc_data["Type"]&.downcase || "evidence",
+      status: doc_data["Status"]&.downcase || "draft",
+      documentable: documentable,
+      created_by: user)
   end
 end
 
@@ -27,24 +27,24 @@ Given("I have a document {string} in my case") do |document_title|
   @current_user ||= create(:user, role: :student)
   @case ||= create(:case)
   @document = create(:document,
-                    title: document_title,
-                    documentable: @case,
-                    created_by: @current_user)
+    title: document_title,
+    documentable: @case,
+    created_by: @current_user)
 end
 
 Given("there is a document {string} shared with my team") do |document_title|
   @current_user ||= create(:user, role: :student)
   @team ||= create(:team)
   @document = create(:document,
-                    title: document_title,
-                    documentable: @team,
-                    created_by: @current_user)
+    title: document_title,
+    documentable: @team,
+    created_by: @current_user)
 end
 
 Given("the document {string} has {int} versions") do |document_title, version_count|
   @document = Document.find_by(title: document_title)
   # Note: Version tracking would need to be implemented in the Document model
-  @document.update(metadata: { version_count: version_count })
+  @document.update(metadata: {version_count: version_count})
 end
 
 When("I navigate to the document management page") do
@@ -75,7 +75,7 @@ When("I upload a document with the following details:") do |table|
 
   # Handle file upload if specified
   if details["File"]
-    attach_file "File", Rails.root.join("spec/fixtures/files/#{details['File']}")
+    attach_file "File", Rails.root.join("spec/fixtures/files/#{details["File"]}")
   end
 
   if page.has_button?("Upload")
@@ -147,7 +147,7 @@ When("I add a comment to the document:") do |comment_text|
 end
 
 When("I share the document with {string}") do |user_email|
-  user = User.find_by!(email: user_email)
+  User.find_by!(email: user_email)
 
   click_link "Share Document"
   fill_in "User Email", with: user_email
@@ -187,7 +187,7 @@ When("I restore the archived document") do
 end
 
 When("I set document permissions for {string} to {string}") do |user_email, permission_level|
-  user = User.find_by!(email: user_email)
+  User.find_by!(email: user_email)
 
   click_link "Manage Permissions"
   within("[data-user-email='#{user_email}']") do
@@ -228,22 +228,22 @@ end
 
 Then("the document should be uploaded successfully") do
   success_present = page.has_content?("successfully uploaded") ||
-                    page.has_content?("Document created") ||
-                    page.has_css?(".alert-success")
+    page.has_content?("Document created") ||
+    page.has_css?(".alert-success")
   expect(success_present).to be true
 end
 
 Then("the document should be updated successfully") do
   success_present = page.has_content?("successfully updated") ||
-                    page.has_content?("Document updated") ||
-                    page.has_css?(".alert-success")
+    page.has_content?("Document updated") ||
+    page.has_css?(".alert-success")
   expect(success_present).to be true
 end
 
 Then("the document should be deleted successfully") do
   success_present = page.has_content?("successfully deleted") ||
-                    page.has_content?("Document removed") ||
-                    page.has_css?(".alert-success")
+    page.has_content?("Document removed") ||
+    page.has_css?(".alert-success")
   expect(success_present).to be true
 end
 
@@ -259,18 +259,18 @@ end
 
 Then("the document should be downloaded") do
   # This would check for file download in a real browser
-  expect(page.response_headers['Content-Disposition']).to include('attachment') if page.respond_to?(:response_headers)
+  expect(page.response_headers["Content-Disposition"]).to include("attachment") if page.respond_to?(:response_headers)
 end
 
 Then("I should see the comment in the document") do
   comment_present = page.has_content?("Comment added successfully") ||
-                    page.has_css?(".document-comment")
+    page.has_css?(".document-comment")
   expect(comment_present).to be true
 end
 
 Then("the document should be shared with {string}") do |user_email|
   shared_present = page.has_content?("Shared with #{user_email}") ||
-                   page.has_content?("Document shared successfully")
+    page.has_content?("Document shared successfully")
   expect(shared_present).to be true
 end
 
@@ -284,59 +284,59 @@ end
 
 Then("the document should be finalized") do
   finalized_present = page.has_content?("final") ||
-                      page.has_content?("finalized") ||
-                      page.has_content?("Document finalized successfully")
+    page.has_content?("finalized") ||
+    page.has_content?("Document finalized successfully")
   expect(finalized_present).to be true
 end
 
 Then("the document should be archived") do
   archived_present = page.has_content?("archived") ||
-                     page.has_content?("Document archived successfully")
+    page.has_content?("Document archived successfully")
   expect(archived_present).to be true
 end
 
 Then("the document should be restored") do
   restored_present = page.has_content?("restored") ||
-                     page.has_content?("Document restored successfully")
+    page.has_content?("Document restored successfully")
   expect(restored_present).to be true
 end
 
 Then("the user should have {string} access to the document") do |access_level|
   access_present = page.has_content?(access_level) ||
-                   page.has_content?("Permissions updated")
+    page.has_content?("Permissions updated")
   expect(access_present).to be true
 end
 
 Then("the documents should be organized into the {string} folder") do |folder_name|
   organized_present = page.has_content?("Documents moved to #{folder_name}") ||
-                      page.has_content?("Organization updated")
+    page.has_content?("Organization updated")
   expect(organized_present).to be true
 end
 
 Then("the selected documents should be deleted") do
   deleted_present = page.has_content?("Documents deleted successfully") ||
-                    page.has_content?("Bulk delete completed")
+    page.has_content?("Bulk delete completed")
   expect(deleted_present).to be true
 end
 
 Then("I should receive a PDF export") do
-  expect(page.response_headers['Content-Type']).to include('pdf') if page.respond_to?(:response_headers)
+  expect(page.response_headers["Content-Type"]).to include("pdf") if page.respond_to?(:response_headers)
 end
 
 Then("I should receive a Word export") do
-  expect(page.response_headers['Content-Type']).to include('word') if page.respond_to?(:response_headers)
+  expect(page.response_headers["Content-Type"]).to include("word") if page.respond_to?(:response_headers)
 end
 
 Then("I should see an access denied message") do
   denied_present = page.has_content?("Access denied") ||
-                   page.has_content?("You don't have permission")
+    page.has_content?("You don't have permission")
   expect(denied_present).to be true
 end
 
 Then("I should see a validation error") do
   error_present = page.has_content?("error") ||
-                  page.has_css?(".alert-danger") ||
-                  page.has_css?(".field_with_errors")
+    page.has_css?(".alert-danger") ||
+    page.has_css?(".field_with_errors")
   expect(error_present).to be true
 end
 

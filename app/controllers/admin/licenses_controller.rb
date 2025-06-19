@@ -3,12 +3,12 @@
 class Admin::LicensesController < ApplicationController
   before_action :authenticate_user!
   before_action :ensure_admin!
-  before_action :set_license, only: [ :show, :edit, :update, :destroy, :activate, :deactivate ]
+  before_action :set_license, only: [:show, :edit, :update, :destroy, :activate, :deactivate]
 
   def index
     @licenses = License.includes(:organization)
-                      .order(created_at: :desc)
-                      .page(params[:page])
+      .order(created_at: :desc)
+      .page(params[:page])
 
     if params[:search].present?
       @licenses = @licenses.where(
@@ -95,7 +95,7 @@ class Admin::LicensesController < ApplicationController
         }
       }
     else
-      render json: { valid: false, error: "Invalid or expired license key" }
+      render json: {valid: false, error: "Invalid or expired license key"}
     end
   end
 

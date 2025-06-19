@@ -4,7 +4,7 @@ class NegotiationRoundSerializer
   include JSONAPI::Serializer
 
   attributes :round_number, :status, :deadline, :started_at, :completed_at,
-             :created_at, :updated_at
+    :created_at, :updated_at
 
   # Computed attributes
   attribute :time_remaining do |round|
@@ -45,9 +45,9 @@ class NegotiationRoundSerializer
     next nil unless params[:current_user]
 
     user_team = params[:current_user].teams
-                                    .joins(:case_teams)
-                                    .where(case_teams: { case: round.case })
-                                    .first
+      .joins(:case_teams)
+      .where(case_teams: {case: round.case})
+      .first
 
     next nil unless user_team
 
@@ -65,9 +65,9 @@ class NegotiationRoundSerializer
     next nil unless params[:current_user]
 
     user_team = params[:current_user].teams
-                                    .joins(:case_teams)
-                                    .where(case_teams: { case: round.case })
-                                    .first
+      .joins(:case_teams)
+      .where(case_teams: {case: round.case})
+      .first
 
     next nil unless user_team
 
@@ -75,9 +75,9 @@ class NegotiationRoundSerializer
     team_role = case_team&.role
 
     opposing_offer = if team_role == "plaintiff"
-                      round.defendant_offer
+      round.defendant_offer
     elsif team_role == "defendant"
-                      round.plaintiff_offer
+      round.plaintiff_offer
     end
 
     next nil unless opposing_offer

@@ -155,8 +155,7 @@ RSpec.describe ActivityHelper, type: :helper do
         instance_double("CaseEvent",
           user: user,
           event_type: "created",
-          respond_to?: true
-        )
+          respond_to?: true)
       end
 
       before do
@@ -262,8 +261,7 @@ RSpec.describe ActivityHelper, type: :helper do
           action_type: "created",
           target_type: "Team",
           target: instance_double("Target", user: target_user),
-          respond_to?: false
-        )
+          respond_to?: false)
       end
 
       before do
@@ -374,9 +372,9 @@ RSpec.describe ActivityHelper, type: :helper do
 
   describe "icon styling consistency" do
     let(:all_action_types) do
-      [ :created, :updated, :deleted, :member_removed, :team_member_removed,
-       :member_added, :team_member_added, :status_changed, :document_added,
-       :document_removed, :comment_added, :unknown_action ]
+      [:created, :updated, :deleted, :member_removed, :team_member_removed,
+        :member_added, :team_member_added, :status_changed, :document_added,
+        :document_removed, :comment_added, :unknown_action]
     end
 
     it "ensures all icons have consistent CSS classes" do

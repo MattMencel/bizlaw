@@ -43,7 +43,7 @@ class AiCacheManagementJob < ApplicationJob
 
       Rails.logger.info "Global cache cleanup completed: #{total_cleaned} entries cleaned"
     end
-  rescue StandardError => e
+  rescue => e
     Rails.logger.error "AI cache cleanup failed: #{e.message}"
     raise e
   end
@@ -63,7 +63,7 @@ class AiCacheManagementJob < ApplicationJob
     if options[:recurring] && Rails.application.config.ai_cache_warming_enabled
       self.class.set(wait: 24.hours).perform_later(:warm_cache, simulation_id, options)
     end
-  rescue StandardError => e
+  rescue => e
     Rails.logger.error "Cache warming failed for simulation #{simulation_id}: #{e.message}"
     raise e
   end
@@ -78,7 +78,7 @@ class AiCacheManagementJob < ApplicationJob
     invalidated_count = cache_service.invalidate_cache_for_event(event_type)
 
     Rails.logger.info "Cache invalidation completed: #{invalidated_count} entries invalidated"
-  rescue StandardError => e
+  rescue => e
     Rails.logger.error "Cache invalidation failed for simulation #{simulation_id}: #{e.message}"
     raise e
   end
@@ -115,15 +115,15 @@ class AiCacheManagementJob < ApplicationJob
 
       total_requests = global_stats[:total_hits] + global_stats[:total_misses]
       global_stats[:average_hit_rate] = if total_requests > 0
-                                         (global_stats[:total_hits].to_f / total_requests * 100).round(2)
+        (global_stats[:total_hits].to_f / total_requests * 100).round(2)
       else
-                                         0.0
+        0.0
       end
 
       Rails.logger.info "Global cache statistics: #{global_stats}"
       global_stats
     end
-  rescue StandardError => e
+  rescue => e
     Rails.logger.error "Cache statistics generation failed: #{e.message}"
     raise e
   end

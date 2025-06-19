@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
+require "rails_helper"
 
-RSpec.describe 'admin/organizations/show.html.erb', type: :view do
-  let(:organization) { create(:organization, name: 'Test University', domain: 'test.edu') }
+RSpec.describe "admin/organizations/show.html.erb", type: :view do
+  let(:organization) { create(:organization, name: "Test University", domain: "test.edu") }
   let(:recent_users) { create_list(:user, 3, organization: organization) }
   let(:recent_courses) { create_list(:course, 2, organization: organization) }
 
@@ -17,62 +17,62 @@ RSpec.describe 'admin/organizations/show.html.erb', type: :view do
     render
   end
 
-  it 'displays organization name' do
+  it "displays organization name" do
     expect(rendered).to include(organization.name)
   end
 
-  it 'displays organization domain' do
+  it "displays organization domain" do
     expect(rendered).to include(organization.domain)
   end
 
-  it 'displays organization status' do
+  it "displays organization status" do
     if organization.active?
-      expect(rendered).to include('Active')
+      expect(rendered).to include("Active")
     else
-      expect(rendered).to include('Inactive')
+      expect(rendered).to include("Inactive")
     end
   end
 
-  it 'displays user count' do
-    expect(rendered).to include('10')
-    expect(rendered).to include('Users')
+  it "displays user count" do
+    expect(rendered).to include("10")
+    expect(rendered).to include("Users")
   end
 
-  it 'displays course count' do
-    expect(rendered).to include('5')
-    expect(rendered).to include('Courses')
+  it "displays course count" do
+    expect(rendered).to include("5")
+    expect(rendered).to include("Courses")
   end
 
-  it 'displays recent users' do
+  it "displays recent users" do
     recent_users.each do |user|
       expect(rendered).to include(user.email)
     end
   end
 
-  it 'displays recent courses' do
+  it "displays recent courses" do
     recent_courses.each do |course|
       expect(rendered).to include(course.name)
     end
   end
 
-  it 'includes action buttons' do
-    expect(rendered).to include('Edit Organization')
-    expect(rendered).to include('Back to Organizations')
+  it "includes action buttons" do
+    expect(rendered).to include("Edit Organization")
+    expect(rendered).to include("Back to Organizations")
   end
 
-  context 'when organization is active' do
+  context "when organization is active" do
     let(:organization) { create(:organization, active: true) }
 
-    it 'shows deactivate button' do
-      expect(rendered).to include('Deactivate')
+    it "shows deactivate button" do
+      expect(rendered).to include("Deactivate")
     end
   end
 
-  context 'when organization is inactive' do
+  context "when organization is inactive" do
     let(:organization) { create(:organization, active: false) }
 
-    it 'shows activate button' do
-      expect(rendered).to include('Activate')
+    it "shows activate button" do
+      expect(rendered).to include("Activate")
     end
   end
 end

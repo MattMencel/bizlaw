@@ -15,9 +15,9 @@ class SimulationEvent < ApplicationRecord
   validates :event_type, presence: true
   validates :triggered_at, presence: true
   validates :impact_description, presence: true,
-                                length: { minimum: 10, maximum: 500 }
+    length: {minimum: 10, maximum: 500}
   validates :trigger_round, presence: true,
-                           numericality: { greater_than: 0 }
+    numericality: {greater_than: 0}
   validates :event_data, presence: true
   validates :pressure_adjustment, presence: true
 

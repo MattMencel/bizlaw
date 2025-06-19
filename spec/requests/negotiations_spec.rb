@@ -220,7 +220,7 @@ RSpec.describe "Negotiations", type: :request do
       context "when consulting client" do
         it "redirects to client consultation" do
           post create_offer_case_negotiation_path(case_instance, negotiation_round),
-               params: valid_offer_params.merge(consult_client: "1")
+            params: valid_offer_params.merge(consult_client: "1")
 
           expect(response).to redirect_to(client_consultation_case_negotiation_path(case_instance, negotiation_round))
         end
@@ -353,7 +353,7 @@ RSpec.describe "Negotiations", type: :request do
           allow_any_instance_of(NegotiationsController).to receive(:submit_offer_via_api).and_return(true)
 
           post consult_client_case_negotiation_path(case_instance, negotiation_round),
-               params: consultation_params.merge(proceed_with_offer: "1")
+            params: consultation_params.merge(proceed_with_offer: "1")
 
           expect(response).to redirect_to(case_negotiations_path(case_instance))
           expect(flash[:notice]).to include("submitted after client consultation")

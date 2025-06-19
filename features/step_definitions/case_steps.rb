@@ -84,10 +84,10 @@ Given("I have a case due in {int} days") do |days|
 end
 
 Given("I have completed multiple cases") do
-  case_types = [ :sexual_harassment, :discrimination, :wrongful_termination ]
+  case_types = [:sexual_harassment, :discrimination, :wrongful_termination]
 
   3.times do |i|
-    case_attributes = { case_type: case_types[i] }
+    case_attributes = {case_type: case_types[i]}
     case_record = create(:case, case_attributes.merge(status: :completed))
 
     # Associate with team if exists
@@ -272,8 +272,8 @@ Given("the following case types exist:") do |table|
   table.hashes.each do |case_type_data|
     if defined?(CaseType)
       create(:case_type,
-             title: case_type_data['Title'],
-             description: case_type_data['Description'])
+        title: case_type_data["Title"],
+        description: case_type_data["Description"])
     else
       # For enum-based case types, we just ensure the enum values exist
       # The actual enum values are defined in the Case model
@@ -310,8 +310,8 @@ Then("I should see a success message") do
   ]
 
   success_present = success_indicators.any? { |indicator| page.has_content?(indicator) } ||
-                    page.has_css?(".alert-success") ||
-                    page.has_css?(".notice")
+    page.has_css?(".alert-success") ||
+    page.has_css?(".notice")
 
   expect(success_present).to be true
 end
@@ -341,19 +341,19 @@ end
 
 Then("I should see an error message") do
   error_present = page.has_css?(".alert-danger") ||
-                  page.has_css?(".error") ||
-                  page.has_content?("error") ||
-                  page.has_content?("invalid")
+    page.has_css?(".error") ||
+    page.has_content?("error") ||
+    page.has_content?("invalid")
   expect(error_present).to be true
 end
 
 Then("I should be redirected to the cases page") do
-  expect(page.current_path).to eq(cases_path)
+  expect(page).to have_current_path(cases_path, ignore_query: true)
 end
 
 Then("I should be redirected to the case details page") do
   case_to_check = @case || Case.last
-  expect(page.current_path).to eq(case_path(case_to_check))
+  expect(page).to have_current_path(case_path(case_to_check), ignore_query: true)
 end
 
 # Case assignment and team management
@@ -370,8 +370,8 @@ When("I view team assignments") do
   visit case_path(case_to_view)
 
   assignments_present = page.has_content?("Team Assignments") ||
-                        page.has_content?("Plaintiff Team") ||
-                        page.has_content?("Defendant Team")
+    page.has_content?("Plaintiff Team") ||
+    page.has_content?("Defendant Team")
   expect(assignments_present).to be true
 end
 
@@ -402,15 +402,15 @@ end
 # Helper method to map case type titles to enum values
 def map_case_type_title_to_enum(title)
   case title.downcase
-  when 'sexual harassment'
+  when "sexual harassment"
     :sexual_harassment
-  when 'discrimination'
+  when "discrimination"
     :discrimination
-  when 'wrongful termination'
+  when "wrongful termination"
     :wrongful_termination
-  when 'contract dispute'
+  when "contract dispute"
     :contract_dispute
-  when 'intellectual property'
+  when "intellectual property"
     :intellectual_property
   else
     :sexual_harassment # default fallback

@@ -21,17 +21,17 @@ class Simulation < ApplicationRecord
   # Validations
   validates :start_date, presence: true
   validates :total_rounds, presence: true,
-                          numericality: { greater_than: 0, less_than_or_equal_to: 10 }
+    numericality: {greater_than: 0, less_than_or_equal_to: 10}
   validates :current_round, presence: true,
-                           numericality: { greater_than_or_equal_to: 1 }
+    numericality: {greater_than_or_equal_to: 1}
   validates :plaintiff_min_acceptable, presence: true,
-                                      numericality: { greater_than: 0 }
+    numericality: {greater_than: 0}
   validates :plaintiff_ideal, presence: true,
-                             numericality: { greater_than: 0 }
+    numericality: {greater_than: 0}
   validates :defendant_max_acceptable, presence: true,
-                                      numericality: { greater_than: 0 }
+    numericality: {greater_than: 0}
   validates :defendant_ideal, presence: true,
-                             numericality: { greater_than_or_equal_to: 0 }
+    numericality: {greater_than_or_equal_to: 0}
   validates :simulation_config, presence: true
 
   validate :current_round_within_total_rounds
@@ -54,9 +54,9 @@ class Simulation < ApplicationRecord
   }, prefix: :pressure
 
   # Scopes
-  scope :active_simulations, -> { where(status: [ :active, :paused ]) }
-  scope :completed_simulations, -> { where(status: [ :completed, :arbitration ]) }
-  scope :ready_for_next_round, -> { where.not(status: [ :setup, :completed, :arbitration ]) }
+  scope :active_simulations, -> { where(status: [:active, :paused]) }
+  scope :completed_simulations, -> { where(status: [:completed, :arbitration]) }
+  scope :ready_for_next_round, -> { where.not(status: [:setup, :completed, :arbitration]) }
 
   # Instance methods
   def active?
@@ -91,8 +91,8 @@ class Simulation < ApplicationRecord
 
   def settlement_reached?
     settlement_offers.joins(:negotiation_round)
-                    .where(negotiation_rounds: { status: :completed })
-                    .exists?
+      .where(negotiation_rounds: {status: :completed})
+      .exists?
   end
 
   def should_trigger_events?

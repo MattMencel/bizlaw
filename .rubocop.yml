@@ -1,55 +1,37 @@
-# Omakase Ruby styling for Rails
-inherit_gem: { rubocop-rails-omakase: rubocop.yml }
+---
+inherit_mode:
+  merge:
+    - Exclude
 
-# Overwrite or add rules to create your own house style
-#
-# # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
-# Layout/SpaceInsideArrayLiteralBrackets:
-#   Enabled: false
+require:
+  - standard
 
 plugins:
+  - standard-custom
+  - standard-performance
+  - rubocop-performance
   - rubocop-rails
-  - rubocop-rspec
+
+inherit_gem:
+  standard: config/base.yml
+  standard-performance: config/base.yml
+  standard-custom: config/base.yml
+  standard-rails: config/base.yml
+
+inherit_from:
+  - .rubocop/rspec.yml
+  - .rubocop/minitest.yml
+  - .rubocop/strict.yml
 
 AllCops:
-  NewCops: enable
-  TargetRubyVersion: 3.2
+  NewCops: disable
+  SuggestExtensions: false
+  TargetRubyVersion: 3.4
   Exclude:
-    - "db/**/*"
-    - "config/**/*"
-    - "script/**/*"
-    - "bin/**/*"
-    - "vendor/**/*"
-    - "tmp/**/*"
-    - "node_modules/**/*"
-
-Style/Documentation:
-  Enabled: false
-
-Style/FrozenStringLiteralComment:
-  Enabled: false
-
-Metrics/BlockLength:
-  Exclude:
-    - "spec/**/*"
-    - "test/**/*"
-    - "config/environments/*"
-    - "lib/tasks/**/*"
-
-Metrics/MethodLength:
-  Max: 20
-
-Metrics/AbcSize:
-  Max: 30
-
-Layout/LineLength:
-  Max: 120
-
-Style/ClassAndModuleChildren:
-  Enabled: false
-
-Rails/FilePath:
-  Enabled: false
-
-Rails/I18nLocaleTexts:
-  Enabled: false
+    - bin/**/*
+    - build/**/*
+    - db/**/*
+    - frontend/**/*
+    - node_modules/**/*
+    - tmp/**/*
+    - vendor/**/*

@@ -13,7 +13,7 @@ class ApiVersionHeader
       headers["X-API-Deprecated"] = "false"
     end
 
-    [ status, headers, response ]
+    [status, headers, response]
   end
 
   private

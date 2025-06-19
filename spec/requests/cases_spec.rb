@@ -31,7 +31,7 @@ RSpec.describe "Cases", type: :request do
       end
 
       it "supports pagination" do
-        get course_cases_path(course), params: { page: 1 }
+        get course_cases_path(course), params: {page: 1}
         expect(response).to have_http_status(:success)
       end
     end
@@ -114,8 +114,8 @@ RSpec.describe "Cases", type: :request do
       it "loads scenarios for selection" do
         # Mock CaseScenarioService
         allow(CaseScenarioService).to receive(:all).and_return([
-          { id: "scenario1", title: "Sample Scenario 1" },
-          { id: "scenario2", title: "Sample Scenario 2" }
+          {id: "scenario1", title: "Sample Scenario 1"},
+          {id: "scenario2", title: "Sample Scenario 2"}
         ])
 
         get new_course_case_path(course)
@@ -148,7 +148,7 @@ RSpec.describe "Cases", type: :request do
       end
 
       it "builds case from scenario" do
-        get new_course_case_path(course), params: { scenario_id: scenario_id }
+        get new_course_case_path(course), params: {scenario_id: scenario_id}
 
         expect(response).to have_http_status(:success)
         expect(CaseScenarioService).to have_received(:build_case_from_scenario).with(
@@ -159,7 +159,7 @@ RSpec.describe "Cases", type: :request do
       end
 
       it "loads selected scenario" do
-        get new_course_case_path(course), params: { scenario_id: scenario_id }
+        get new_course_case_path(course), params: {scenario_id: scenario_id}
 
         expect(assigns(:selected_scenario)).to eq(mock_scenario)
         expect(CaseScenarioService).to have_received(:find).with(scenario_id)
@@ -169,7 +169,7 @@ RSpec.describe "Cases", type: :request do
         team1 = create(:team, course: course)
         team2 = create(:team, course: course)
 
-        get new_course_case_path(course), params: { scenario_id: scenario_id }
+        get new_course_case_path(course), params: {scenario_id: scenario_id}
 
         expect(assigns(:teams)).to contain_exactly(team1, team2)
       end
@@ -183,10 +183,10 @@ RSpec.describe "Cases", type: :request do
         description: "A test case description",
         case_type: "sexual_harassment",
         difficulty_level: "intermediate",
-        plaintiff_info_keys: [ "name", "position" ],
-        plaintiff_info_values: [ "John Doe", "Manager" ],
-        defendant_info_keys: [ "company", "type" ],
-        defendant_info_values: [ "TechCorp", "Corporation" ]
+        plaintiff_info_keys: ["name", "position"],
+        plaintiff_info_values: ["John Doe", "Manager"],
+        defendant_info_keys: ["company", "type"],
+        defendant_info_values: ["TechCorp", "Corporation"]
       }
     end
 
@@ -205,12 +205,12 @@ RSpec.describe "Cases", type: :request do
     context "with valid parameters" do
       it "creates a new case" do
         expect {
-          post course_cases_path(course), params: { case: valid_case_params }
+          post course_cases_path(course), params: {case: valid_case_params}
         }.to change(Case, :count).by(1)
       end
 
       it "assigns case to course and user" do
-        post course_cases_path(course), params: { case: valid_case_params }
+        post course_cases_path(course), params: {case: valid_case_params}
 
         created_case = Case.last
         expect(created_case.course).to eq(course)
@@ -219,29 +219,29 @@ RSpec.describe "Cases", type: :request do
       end
 
       it "converts info keys/values to JSON" do
-        post course_cases_path(course), params: { case: valid_case_params }
+        post course_cases_path(course), params: {case: valid_case_params}
 
         created_case = Case.last
-        expect(created_case.plaintiff_info).to eq({ "name" => "John Doe", "position" => "Manager" })
-        expect(created_case.defendant_info).to eq({ "company" => "TechCorp", "type" => "Corporation" })
+        expect(created_case.plaintiff_info).to eq({"name" => "John Doe", "position" => "Manager"})
+        expect(created_case.defendant_info).to eq({"company" => "TechCorp", "type" => "Corporation"})
       end
 
       it "redirects to case show page" do
-        post course_cases_path(course), params: { case: valid_case_params }
+        post course_cases_path(course), params: {case: valid_case_params}
 
         created_case = Case.last
         expect(response).to redirect_to(course_case_path(course, created_case))
       end
 
       it "sets success notice" do
-        post course_cases_path(course), params: { case: valid_case_params }
+        post course_cases_path(course), params: {case: valid_case_params}
         follow_redirect!
         expect(response.body).to include("Case was successfully created")
       end
 
       context "with JSON format" do
         it "returns created case as JSON" do
-          post course_cases_path(course), params: { case: valid_case_params }, as: :json
+          post course_cases_path(course), params: {case: valid_case_params}, as: :json
 
           expect(response).to have_http_status(:created)
           expect(response.content_type).to include("application/json")
@@ -256,12 +256,12 @@ RSpec.describe "Cases", type: :request do
     context "with invalid parameters" do
       it "does not create a case" do
         expect {
-          post course_cases_path(course), params: { case: invalid_case_params }
+          post course_cases_path(course), params: {case: invalid_case_params}
         }.not_to change(Case, :count)
       end
 
       it "renders new template with errors" do
-        post course_cases_path(course), params: { case: invalid_case_params }
+        post course_cases_path(course), params: {case: invalid_case_params}
 
         expect(response).to have_http_status(:unprocessable_entity)
         expect(response.body).to include("New Legal Case") # Form title
@@ -269,7 +269,7 @@ RSpec.describe "Cases", type: :request do
 
       context "with JSON format" do
         it "returns validation errors as JSON" do
-          post course_cases_path(course), params: { case: invalid_case_params }, as: :json
+          post course_cases_path(course), params: {case: invalid_case_params}, as: :json
 
           expect(response).to have_http_status(:unprocessable_entity)
           expect(response.content_type).to include("application/json")
@@ -321,7 +321,7 @@ RSpec.describe "Cases", type: :request do
 
     context "with valid parameters" do
       it "updates the case" do
-        patch course_case_path(course, case_instance), params: { case: updated_params }
+        patch course_case_path(course, case_instance), params: {case: updated_params}
 
         case_instance.reload
         expect(case_instance.title).to eq("Updated Case Title")
@@ -330,19 +330,19 @@ RSpec.describe "Cases", type: :request do
       end
 
       it "redirects to case show page" do
-        patch course_case_path(course, case_instance), params: { case: updated_params }
+        patch course_case_path(course, case_instance), params: {case: updated_params}
         expect(response).to redirect_to(course_case_path(course, case_instance))
       end
 
       it "sets success notice" do
-        patch course_case_path(course, case_instance), params: { case: updated_params }
+        patch course_case_path(course, case_instance), params: {case: updated_params}
         follow_redirect!
         expect(response.body).to include("Case was successfully updated")
       end
 
       context "with JSON format" do
         it "returns updated case as JSON" do
-          patch course_case_path(course, case_instance), params: { case: updated_params }, as: :json
+          patch course_case_path(course, case_instance), params: {case: updated_params}, as: :json
 
           expect(response).to have_http_status(:success)
           json_response = JSON.parse(response.body)
@@ -352,24 +352,24 @@ RSpec.describe "Cases", type: :request do
     end
 
     context "with invalid parameters" do
-      let(:invalid_update_params) { { title: "" } }
+      let(:invalid_update_params) { {title: ""} }
 
       it "does not update the case" do
         original_title = case_instance.title
-        patch course_case_path(course, case_instance), params: { case: invalid_update_params }
+        patch course_case_path(course, case_instance), params: {case: invalid_update_params}
 
         case_instance.reload
         expect(case_instance.title).to eq(original_title)
       end
 
       it "renders edit template with errors" do
-        patch course_case_path(course, case_instance), params: { case: invalid_update_params }
+        patch course_case_path(course, case_instance), params: {case: invalid_update_params}
         expect(response).to have_http_status(:unprocessable_entity)
       end
 
       context "with JSON format" do
         it "returns validation errors as JSON" do
-          patch course_case_path(course, case_instance), params: { case: invalid_update_params }, as: :json
+          patch course_case_path(course, case_instance), params: {case: invalid_update_params}, as: :json
 
           expect(response).to have_http_status(:unprocessable_entity)
           json_response = JSON.parse(response.body)
@@ -449,11 +449,11 @@ RSpec.describe "Cases", type: :request do
       it "handles empty key-value arrays" do
         params_with_empty_arrays = {
           title: "Test Case",
-          plaintiff_info_keys: [ "" ],
-          plaintiff_info_values: [ "" ]
+          plaintiff_info_keys: [""],
+          plaintiff_info_values: [""]
         }
 
-        post course_cases_path(course), params: { case: params_with_empty_arrays }
+        post course_cases_path(course), params: {case: params_with_empty_arrays}
         created_case = Case.last
         expect(created_case.plaintiff_info).to eq({})
       end
@@ -461,11 +461,11 @@ RSpec.describe "Cases", type: :request do
       it "handles mismatched key-value array lengths" do
         params_with_mismatch = {
           title: "Test Case",
-          plaintiff_info_keys: [ "name", "position", "extra" ],
-          plaintiff_info_values: [ "John", "Manager" ] # Missing value for "extra"
+          plaintiff_info_keys: ["name", "position", "extra"],
+          plaintiff_info_values: ["John", "Manager"] # Missing value for "extra"
         }
 
-        post course_cases_path(course), params: { case: params_with_mismatch }
+        post course_cases_path(course), params: {case: params_with_mismatch}
         created_case = Case.last
         expect(created_case.plaintiff_info).to eq({
           "name" => "John",
@@ -477,11 +477,11 @@ RSpec.describe "Cases", type: :request do
       it "skips blank keys" do
         params_with_blank_keys = {
           title: "Test Case",
-          plaintiff_info_keys: [ "name", "", "position" ],
-          plaintiff_info_values: [ "John", "ignored", "Manager" ]
+          plaintiff_info_keys: ["name", "", "position"],
+          plaintiff_info_values: ["John", "ignored", "Manager"]
         }
 
-        post course_cases_path(course), params: { case: params_with_blank_keys }
+        post course_cases_path(course), params: {case: params_with_blank_keys}
         created_case = Case.last
         expect(created_case.plaintiff_info).to eq({
           "name" => "John",
@@ -497,7 +497,7 @@ RSpec.describe "Cases", type: :request do
 
       it "checks authorization" do
         expect_any_instance_of(CasesController).to receive(:authorize)
-        post course_cases_path(course), params: { case: { title: "Test" } }
+        post course_cases_path(course), params: {case: {title: "Test"}}
       end
     end
 

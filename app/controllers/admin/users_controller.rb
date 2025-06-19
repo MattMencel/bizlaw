@@ -2,7 +2,7 @@
 
 class Admin::UsersController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_user, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_user, only: [:show, :edit, :update, :destroy]
 
   def index
     authorize User
@@ -17,11 +17,11 @@ class Admin::UsersController < ApplicationController
     sort_column = "first_name" unless valid_sort_columns.include?(sort_column)
     sort_direction = "asc" unless %w[asc desc].include?(sort_direction)
 
-    case sort_column
+    @users = case sort_column
     when "first_name", "last_name", "email", "role", "created_at"
-      @users = @users.order("#{sort_column} #{sort_direction}")
+      @users.order("#{sort_column} #{sort_direction}")
     else
-      @users = @users.order(:first_name, :last_name)
+      @users.order(:first_name, :last_name)
     end
 
     # Filter by search query if provided
@@ -59,7 +59,7 @@ class Admin::UsersController < ApplicationController
     authorize @user
     if @user.update(user_params)
       redirect_to admin_user_path(@user),
-                  notice: "User was successfully updated."
+        notice: "User was successfully updated."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -69,14 +69,13 @@ class Admin::UsersController < ApplicationController
     authorize @user
     if @user.teams.exists?
       redirect_to admin_users_path,
-                  alert: "Cannot delete user with existing team memberships. Please remove from teams first."
+        alert: "Cannot delete user with existing team memberships. Please remove from teams first."
     else
       @user.destroy
       redirect_to admin_users_path,
-                  notice: "User was successfully deleted."
+        notice: "User was successfully deleted."
     end
   end
-
 
   private
 

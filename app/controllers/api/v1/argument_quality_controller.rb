@@ -3,16 +3,16 @@
 class Api::V1::ArgumentQualityController < Api::V1::BaseController
   before_action :authenticate_user!
   before_action :set_case
-  before_action :set_settlement_offer, only: [ :show, :update ]
+  before_action :set_settlement_offer, only: [:show, :update]
   before_action :ensure_instructor_or_admin
 
   # GET /api/v1/cases/:case_id/argument_quality
   # List all settlement offers in the case with their quality scores
   def index
     @settlement_offers = @case.simulation.settlement_offers
-                              .includes(:team, :negotiation_round, :submitted_by)
-                              .joins(:negotiation_round)
-                              .order("negotiation_rounds.round_number ASC, settlement_offers.submitted_at ASC")
+      .includes(:team, :negotiation_round, :submitted_by)
+      .joins(:negotiation_round)
+      .order("negotiation_rounds.round_number ASC, settlement_offers.submitted_at ASC")
 
     render json: {
       data: @settlement_offers.map do |offer|
@@ -116,7 +116,7 @@ class Api::V1::ArgumentQualityController < Api::V1::BaseController
         }
       end
     rescue ActiveRecord::RecordInvalid => e
-      render json: { error: e.message }, status: :unprocessable_entity
+      render json: {error: e.message}, status: :unprocessable_entity
     end
   end
 
@@ -207,7 +207,7 @@ class Api::V1::ArgumentQualityController < Api::V1::BaseController
 
   def ensure_instructor_or_admin
     unless current_user.role_instructor? || current_user.role_admin?
-      render json: { error: "Access denied. Instructor or admin role required." }, status: :forbidden
+      render json: {error: "Access denied. Instructor or admin role required."}, status: :forbidden
     end
   end
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe "Evidence Vault", type: :request do
   include Devise::Test::IntegrationHelpers
@@ -37,11 +37,11 @@ RSpec.describe "Evidence Vault", type: :request do
       end
 
       it "displays accessible documents" do
-        document = create(:document,
-                         title: "Employee Handbook",
-                         category: "company_policies",
-                         access_level: "case_teams",
-                         documentable: case_instance)
+        create(:document,
+          title: "Employee Handbook",
+          category: "company_policies",
+          access_level: "case_teams",
+          documentable: case_instance)
 
         get case_evidence_vault_index_path(case_instance)
         expect(response.body).to include("Employee Handbook")
@@ -49,10 +49,10 @@ RSpec.describe "Evidence Vault", type: :request do
       end
 
       it "hides instructor-only documents" do
-        instructor_doc = create(:document,
-                               title: "Confidential Financial Records",
-                               access_level: "instructor_only",
-                               documentable: case_instance)
+        create(:document,
+          title: "Confidential Financial Records",
+          access_level: "instructor_only",
+          documentable: case_instance)
 
         get case_evidence_vault_index_path(case_instance)
         expect(response.body).not_to include("Confidential Financial Records")
@@ -63,10 +63,10 @@ RSpec.describe "Evidence Vault", type: :request do
       before { sign_in instructor }
 
       it "shows all documents including instructor-only" do
-        instructor_doc = create(:document,
-                               title: "Confidential Financial Records",
-                               access_level: "instructor_only",
-                               documentable: case_instance)
+        create(:document,
+          title: "Confidential Financial Records",
+          access_level: "instructor_only",
+          documentable: case_instance)
 
         get case_evidence_vault_index_path(case_instance)
         expect(response.body).to include("Confidential Financial Records")
@@ -88,19 +88,19 @@ RSpec.describe "Evidence Vault", type: :request do
   describe "GET /cases/:id/evidence_vault/search" do
     let!(:documents) do
       [
-        create(:document, title: "Employee Handbook", tags: [ "harassment", "policy" ],
-               category: "company_policies", access_level: "case_teams", documentable: case_instance),
-        create(:document, title: "Email Chain", tags: [ "evidence", "harassment" ],
-               category: "communications", access_level: "case_teams", documentable: case_instance),
-        create(:document, title: "Financial Records", tags: [ "financials" ],
-               category: "financial_records", access_level: "instructor_only", documentable: case_instance)
+        create(:document, title: "Employee Handbook", tags: ["harassment", "policy"],
+          category: "company_policies", access_level: "case_teams", documentable: case_instance),
+        create(:document, title: "Email Chain", tags: ["evidence", "harassment"],
+          category: "communications", access_level: "case_teams", documentable: case_instance),
+        create(:document, title: "Financial Records", tags: ["financials"],
+          category: "financial_records", access_level: "instructor_only", documentable: case_instance)
       ]
     end
 
     before { sign_in student1 }
 
     it "searches by query term" do
-      get case_evidence_vault_search_path(case_instance), params: { q: "harassment" }
+      get case_evidence_vault_search_path(case_instance), params: {q: "harassment"}
 
       expect(response).to have_http_status(:success)
       expect(response.content_type).to include("application/json")
@@ -113,7 +113,7 @@ RSpec.describe "Evidence Vault", type: :request do
     end
 
     it "filters by category" do
-      get case_evidence_vault_search_path(case_instance), params: { category: "communications" }
+      get case_evidence_vault_search_path(case_instance), params: {category: "communications"}
 
       results = JSON.parse(response.body)
       expect(results["documents"].size).to eq(1)
@@ -121,7 +121,7 @@ RSpec.describe "Evidence Vault", type: :request do
     end
 
     it "filters by tags" do
-      get case_evidence_vault_search_path(case_instance), params: { tags: [ "policy" ] }
+      get case_evidence_vault_search_path(case_instance), params: {tags: ["policy"]}
 
       results = JSON.parse(response.body)
       expect(results["documents"].size).to eq(1)
@@ -130,7 +130,7 @@ RSpec.describe "Evidence Vault", type: :request do
 
     it "combines search query with filters" do
       get case_evidence_vault_search_path(case_instance),
-          params: { q: "harassment", category: "company_policies" }
+        params: {q: "harassment", category: "company_policies"}
 
       results = JSON.parse(response.body)
       expect(results["documents"].size).to eq(1)
@@ -138,7 +138,7 @@ RSpec.describe "Evidence Vault", type: :request do
     end
 
     it "returns empty results for no matches" do
-      get case_evidence_vault_search_path(case_instance), params: { q: "nonexistent" }
+      get case_evidence_vault_search_path(case_instance), params: {q: "nonexistent"}
 
       results = JSON.parse(response.body)
       expect(results["documents"]).to be_empty
@@ -146,7 +146,7 @@ RSpec.describe "Evidence Vault", type: :request do
     end
 
     it "includes metadata in search response" do
-      get case_evidence_vault_search_path(case_instance), params: { q: "harassment" }
+      get case_evidence_vault_search_path(case_instance), params: {q: "harassment"}
 
       results = JSON.parse(response.body)
       expect(results["total_results"]).to eq(2)
@@ -267,13 +267,13 @@ RSpec.describe "Evidence Vault", type: :request do
   end
 
   describe "PUT /cases/:id/evidence_vault/:document_id/tags" do
-    let(:document) { create(:document, title: "Test Doc", tags: [ "original" ], documentable: case_instance, access_level: "case_teams") }
+    let(:document) { create(:document, title: "Test Doc", tags: ["original"], documentable: case_instance, access_level: "case_teams") }
 
     before { sign_in student1 }
 
     it "updates document tags successfully" do
       put update_tags_case_evidence_vault_path(case_instance, document), params: {
-        tags: [ "original", "updated", "new-tag" ]
+        tags: ["original", "updated", "new-tag"]
       }
 
       expect(response).to have_http_status(:success)
@@ -284,17 +284,17 @@ RSpec.describe "Evidence Vault", type: :request do
 
     it "removes old tags not in new list" do
       put update_tags_case_evidence_vault_path(case_instance, document), params: {
-        tags: [ "completely-new" ]
+        tags: ["completely-new"]
       }
 
       document.reload
-      expect(document.tags).to eq([ "completely-new" ])
+      expect(document.tags).to eq(["completely-new"])
       expect(document.tags).not_to include("original")
     end
 
     it "validates tag format" do
       put update_tags_case_evidence_vault_path(case_instance, document), params: {
-        tags: [ "valid", "", "  ", "also-valid" ]
+        tags: ["valid", "", "  ", "also-valid"]
       }
 
       expect(response).to have_http_status(:unprocessable_entity)
@@ -314,7 +314,7 @@ RSpec.describe "Evidence Vault", type: :request do
       post case_evidence_vault_bundles_path(case_instance), params: {
         bundle: {
           name: "Harassment Evidence Package",
-          document_ids: [ doc1.id, doc2.id ]
+          document_ids: [doc1.id, doc2.id]
         }
       }
 
@@ -330,7 +330,7 @@ RSpec.describe "Evidence Vault", type: :request do
       post case_evidence_vault_bundles_path(case_instance), params: {
         bundle: {
           name: "",
-          document_ids: [ doc1.id ]
+          document_ids: [doc1.id]
         }
       }
 
@@ -357,7 +357,7 @@ RSpec.describe "Evidence Vault", type: :request do
       post case_evidence_vault_bundles_path(case_instance), params: {
         bundle: {
           name: "Mixed Bundle",
-          document_ids: [ doc1.id, restricted_doc.id ]
+          document_ids: [doc1.id, restricted_doc.id]
         }
       }
 
@@ -386,7 +386,7 @@ RSpec.describe "Evidence Vault", type: :request do
       end
 
       it "paginates search results" do
-        get case_evidence_vault_search_path(case_instance), params: { page: 1, per_page: 20 }
+        get case_evidence_vault_search_path(case_instance), params: {page: 1, per_page: 20}
 
         results = JSON.parse(response.body)
         expect(results["documents"].size).to eq(20)
@@ -401,7 +401,7 @@ RSpec.describe "Evidence Vault", type: :request do
     it "prevents SQL injection in search" do
       malicious_query = "'; DROP TABLE documents; --"
 
-      get case_evidence_vault_search_path(case_instance), params: { q: malicious_query }
+      get case_evidence_vault_search_path(case_instance), params: {q: malicious_query}
 
       expect(response).to have_http_status(:success)
       expect(Document.count).to be > 0 # Table still exists

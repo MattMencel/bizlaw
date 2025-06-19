@@ -1,9 +1,9 @@
 class CasesController < ApplicationController
   include ImpersonationReadOnly
 
-  before_action :set_course, only: [ :new, :create, :edit, :update, :destroy ]
-  before_action :set_case, only: [ :show, :edit, :update, :destroy ]
-  before_action :authorize_case, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_course, only: [:new, :create, :edit, :update, :destroy]
+  before_action :set_case, only: [:show, :edit, :update, :destroy]
+  before_action :authorize_case, only: [:show, :edit, :update, :destroy]
 
   def index
     if params[:course_id]
@@ -95,10 +95,10 @@ class CasesController < ApplicationController
 
   def case_params
     permitted_params = params.require(:case).permit(:title, :description, :case_type, :difficulty_level,
-                                                    :plaintiff_info, :defendant_info, :legal_issues,
-                                                    :reference_number, team_ids: [],
-                                                    plaintiff_info_keys: [], plaintiff_info_values: [],
-                                                    defendant_info_keys: [], defendant_info_values: [])
+      :plaintiff_info, :defendant_info, :legal_issues,
+      :reference_number, team_ids: [],
+      plaintiff_info_keys: [], plaintiff_info_values: [],
+      defendant_info_keys: [], defendant_info_values: [])
 
     # Convert key-value arrays to JSON if they exist
     if permitted_params[:plaintiff_info_keys].present? && permitted_params[:plaintiff_info_values].present?

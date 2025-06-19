@@ -15,8 +15,8 @@ class NegotiationRound < ApplicationRecord
 
   # Validations
   validates :round_number, presence: true,
-                          numericality: { greater_than: 0 },
-                          uniqueness: { scope: :simulation_id }
+    numericality: {greater_than: 0},
+    uniqueness: {scope: :simulation_id}
   validates :deadline, presence: true
 
   validate :deadline_in_future, on: :create
@@ -33,7 +33,7 @@ class NegotiationRound < ApplicationRecord
   }, prefix: :status
 
   # Scopes
-  scope :active_rounds, -> { where(status: [ :active, :plaintiff_submitted, :defendant_submitted, :both_submitted ]) }
+  scope :active_rounds, -> { where(status: [:active, :plaintiff_submitted, :defendant_submitted, :both_submitted]) }
   scope :overdue, -> { where("deadline < ?", Time.current) }
   scope :by_round_number, -> { order(:round_number) }
 
@@ -50,16 +50,16 @@ class NegotiationRound < ApplicationRecord
 
   def plaintiff_offer
     settlement_offers.joins(:team)
-                    .joins("JOIN case_teams ON teams.id = case_teams.team_id")
-                    .where(case_teams: { role: :plaintiff })
-                    .first
+      .joins("JOIN case_teams ON teams.id = case_teams.team_id")
+      .where(case_teams: {role: :plaintiff})
+      .first
   end
 
   def defendant_offer
     settlement_offers.joins(:team)
-                    .joins("JOIN case_teams ON teams.id = case_teams.team_id")
-                    .where(case_teams: { role: :defendant })
-                    .first
+      .joins("JOIN case_teams ON teams.id = case_teams.team_id")
+      .where(case_teams: {role: :defendant})
+      .first
   end
 
   def has_plaintiff_offer?

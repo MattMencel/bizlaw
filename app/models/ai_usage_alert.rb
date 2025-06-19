@@ -30,7 +30,7 @@ class AiUsageAlert < ApplicationRecord
   scope :active_alerts, -> { where(status: :active) }
   scope :recent, -> { order(created_at: :desc) }
   scope :by_type, ->(type) { where(alert_type: type) }
-  scope :today, -> { where(created_at: Date.current.beginning_of_day..Date.current.end_of_day) }
+  scope :today, -> { where(created_at: Date.current.all_day) }
 
   def acknowledge!(user = nil)
     update!(

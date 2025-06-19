@@ -13,8 +13,7 @@ RSpec.describe "AiResponseCacheService" do
       plaintiff_min_acceptable: 150_000,
       plaintiff_ideal: 300_000,
       defendant_ideal: 75_000,
-      defendant_max_acceptable: 250_000
-    )
+      defendant_max_acceptable: 250_000)
   end
 
   let(:plaintiff_team) { simulation.case.plaintiff_team }
@@ -25,8 +24,7 @@ RSpec.describe "AiResponseCacheService" do
     create(:settlement_offer,
       team: plaintiff_team,
       negotiation_round: negotiation_round,
-      amount: 275_000
-    )
+      amount: 275_000)
   end
 
   # Mock cache service for testing
@@ -230,8 +228,8 @@ RSpec.describe "AiResponseCacheService" do
   describe "cache invalidation" do
     before do
       # Populate cache with several responses
-      [ "plaintiff", "defendant" ].each do |role|
-        [ 200_000, 250_000, 300_000 ].each do |amount|
+      ["plaintiff", "defendant"].each do |role|
+        [200_000, 250_000, 300_000].each do |amount|
           cache_key = generate_cache_key(settlement_offer, role, amount, 1)
           response = {
             feedback_text: "Response for #{role} #{amount}",
@@ -273,12 +271,11 @@ RSpec.describe "AiResponseCacheService" do
   describe "cache performance optimization" do
     it "implements LRU eviction when cache is full" do
       # Simulate cache size limit
-      max_cache_size = 5
 
       # Fill cache beyond limit
       (1..7).each do |i|
         cache_key = "test_key_#{i}"
-        Rails.cache.write(cache_key, { data: "response_#{i}" })
+        Rails.cache.write(cache_key, {data: "response_#{i}"})
       end
 
       # In real implementation, LRU eviction would occur
@@ -291,8 +288,8 @@ RSpec.describe "AiResponseCacheService" do
       popular_key = generate_cache_key(settlement_offer, "plaintiff", 250_000, 1)
       unpopular_key = generate_cache_key(settlement_offer, "defendant", 125_000, 1)
 
-      Rails.cache.write(popular_key, { data: "popular" })
-      Rails.cache.write(unpopular_key, { data: "unpopular" })
+      Rails.cache.write(popular_key, {data: "popular"})
+      Rails.cache.write(unpopular_key, {data: "unpopular"})
 
       # Access popular item multiple times
       5.times { Rails.cache.read(popular_key) }
@@ -309,7 +306,7 @@ RSpec.describe "AiResponseCacheService" do
       # Simulate mixed cache activity
       5.times { |i|
         cache_key = "hit_key_#{i}"
-        Rails.cache.write(cache_key, { data: "cached" })
+        Rails.cache.write(cache_key, {data: "cached"})
         Rails.cache.read(cache_key)  # Generate hit
       }
 
@@ -343,10 +340,10 @@ RSpec.describe "AiResponseCacheService" do
   describe "cache warming" do
     let(:common_scenarios) do
       [
-        { role: "plaintiff", amount_range: "200k-249k", round: 1 },
-        { role: "plaintiff", amount_range: "250k-299k", round: 1 },
-        { role: "defendant", amount_range: "100k-149k", round: 1 },
-        { role: "defendant", amount_range: "150k-199k", round: 1 }
+        {role: "plaintiff", amount_range: "200k-249k", round: 1},
+        {role: "plaintiff", amount_range: "250k-299k", round: 1},
+        {role: "defendant", amount_range: "100k-149k", round: 1},
+        {role: "defendant", amount_range: "150k-199k", round: 1}
       ]
     end
 
@@ -381,7 +378,7 @@ RSpec.describe "AiResponseCacheService" do
         warming_requests += 1
 
         cache_key = "warmed_#{scenario[:role]}_#{scenario[:amount_range]}"
-        Rails.cache.write(cache_key, { data: "warmed", requests_used: warming_requests })
+        Rails.cache.write(cache_key, {data: "warmed", requests_used: warming_requests})
       end
 
       expect(warming_requests).to be <= max_warming_requests

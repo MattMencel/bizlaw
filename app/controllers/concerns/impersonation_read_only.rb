@@ -5,7 +5,7 @@ module ImpersonationReadOnly
 
   included do
     before_action :enforce_read_only_during_impersonation,
-                  except: [ :show, :index, :impersonate, :stop_impersonation, :enable_full_permissions, :disable_full_permissions ]
+      except: [:show, :index, :impersonate, :stop_impersonation, :enable_full_permissions, :disable_full_permissions]
   end
 
   private

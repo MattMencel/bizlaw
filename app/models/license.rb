@@ -11,11 +11,11 @@ class License < ApplicationRecord
   # Validations
   validates :license_key, presence: true, uniqueness: true
   validates :organization_name, presence: true
-  validates :contact_email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :contact_email, presence: true, format: {with: URI::MailTo::EMAIL_REGEXP}
   validates :license_type, presence: true
   validates :signature, presence: true
   validates :max_instructors, :max_students, :max_courses,
-            presence: true, numericality: { greater_than: 0 }
+    presence: true, numericality: {greater_than: 0}
 
   # Enums
   enum :license_type, {
@@ -57,8 +57,6 @@ class License < ApplicationRecord
     if license.valid_signature?
       license.touch(:last_validated_at)
       license
-    else
-      nil
     end
   end
 
@@ -212,7 +210,7 @@ class License < ApplicationRecord
     # Use a combination of HMAC and timestamp for reasonable security
     # In production, you'd want to use RSA or ECDSA with a private key
     secret_key = Rails.application.credentials.license_signing_key ||
-                 Rails.application.secret_key_base
+      Rails.application.secret_key_base
 
     timestamp = Time.current.to_i
     payload = "#{data.to_json}|#{timestamp}"

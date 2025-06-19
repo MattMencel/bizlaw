@@ -5,7 +5,7 @@ RSpec.configure do |config|
   config.before(:each, type: :view) do
     # Mock current_user helper
     allow(view).to receive(:current_user).and_return(
-      create(:user, role: 'admin')
+      create(:user, role: "admin")
     )
 
     # Mock sortable_column_header helper

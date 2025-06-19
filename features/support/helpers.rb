@@ -8,7 +8,7 @@ module TestHelpers
       # Fallback to UI sign-in
       visit new_user_session_path
       fill_in "Email", with: user.email
-      fill_in "Password", with: user.password || 'password123'
+      fill_in "Password", with: user.password || "password123"
       click_button "Log in"
     end
   end
@@ -27,20 +27,20 @@ module TestHelpers
 
   def create_user(attributes = {})
     default_attributes = {
-      email: 'test@example.com',
-      password: 'password123',
-      password_confirmation: 'password123',
+      email: "test@example.com",
+      password: "password123",
+      password_confirmation: "password123",
       role: :student,
       confirmed_at: Time.current
     }
     create(:user, default_attributes.merge(attributes))
   end
 
-  def mock_google_oauth(email: 'test@example.com', name: 'Test User')
+  def mock_google_oauth(email: "test@example.com", name: "Test User")
     OmniAuth.config.test_mode = true
     OmniAuth.config.mock_auth[:google_oauth2] = OmniAuth::AuthHash.new({
-      provider: 'google_oauth2',
-      uid: '123456789',
+      provider: "google_oauth2",
+      uid: "123456789",
       info: {
         email: email,
         name: name,
@@ -48,8 +48,8 @@ module TestHelpers
         last_name: name.split.last
       },
       credentials: {
-        token: 'mock_token',
-        refresh_token: 'mock_refresh_token'
+        token: "mock_token",
+        refresh_token: "mock_refresh_token"
       }
     })
   end
@@ -106,23 +106,23 @@ module TestHelpers
 
   # Path helpers for common routes
   def dashboard_path
-    '/dashboard'
+    "/dashboard"
   end
 
   def account_path
-    '/profiles/show'
+    "/profiles/show"
   end
 
   def case_analytics_path
-    '/cases/analytics'
+    "/cases/analytics"
   end
 
   def new_case_path
-    '/cases/new'
+    "/cases/new"
   end
 
   def cases_path
-    '/cases'
+    "/cases"
   end
 
   def case_path(case_record)
@@ -134,11 +134,11 @@ module TestHelpers
   end
 
   def new_team_path
-    '/teams/new'
+    "/teams/new"
   end
 
   def teams_path
-    '/teams'
+    "/teams"
   end
 
   def team_path(team)
@@ -158,7 +158,7 @@ module TestHelpers
   end
 
   def documents_path
-    '/documents'
+    "/documents"
   end
 
   def document_path(document)
@@ -166,7 +166,7 @@ module TestHelpers
   end
 
   def new_document_path
-    '/documents/new'
+    "/documents/new"
   end
 
   def edit_document_path(document)
@@ -184,8 +184,8 @@ module TestHelpers
   # Factory creation helpers
   def create_case_with_teams
     instructor = create(:user, role: :instructor)
-    plaintiff_team = create(:team, name: 'Plaintiff Team')
-    defendant_team = create(:team, name: 'Defendant Team')
+    plaintiff_team = create(:team, name: "Plaintiff Team")
+    defendant_team = create(:team, name: "Defendant Team")
 
     case_record = create(:case, created_by: instructor)
     create(:case_team, case: case_record, team: plaintiff_team, role: :plaintiff)

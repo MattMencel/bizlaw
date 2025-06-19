@@ -6,12 +6,12 @@ class AiUsageLog < ApplicationRecord
 
   # Validations
   validates :model, presence: true
-  validates :cost, presence: true, numericality: { greater_than_or_equal_to: 0 }
-  validates :response_time_ms, presence: true, numericality: { greater_than_or_equal_to: 0 }
+  validates :cost, presence: true, numericality: {greater_than_or_equal_to: 0}
+  validates :response_time_ms, presence: true, numericality: {greater_than_or_equal_to: 0}
   validates :request_type, presence: true
 
   # Scopes
-  scope :today, -> { where(created_at: Date.current.beginning_of_day..Date.current.end_of_day) }
+  scope :today, -> { where(created_at: Date.current.all_day) }
   scope :last_hour, -> { where(created_at: 1.hour.ago..Time.current) }
   scope :last_n_days, ->(days) { where(created_at: days.days.ago..Time.current) }
   scope :by_model, ->(model) { where(model: model) }
@@ -21,7 +21,7 @@ class AiUsageLog < ApplicationRecord
   scope :recent, -> { order(created_at: :desc) }
 
   def self.daily_stats(date = Date.current)
-    logs = where(created_at: date.beginning_of_day..date.end_of_day)
+    logs = where(created_at: date.all_day)
 
     {
       total_requests: logs.count,
@@ -40,7 +40,7 @@ class AiUsageLog < ApplicationRecord
   end
 
   def self.hourly_breakdown(date = Date.current)
-    logs = where(created_at: date.beginning_of_day..date.end_of_day)
+    logs = where(created_at: date.all_day)
 
     (0..23).map do |hour|
       hour_logs = logs.where(created_at: date.beginning_of_day + hour.hours..date.beginning_of_day + (hour + 1).hours)

@@ -2,7 +2,7 @@
 
 Rails.application.routes.draw do
   # Quick fix for favicon requests during testing
-  get '/favicon.ico', to: proc { [404, {}, []] }
+  get "/favicon.ico", to: proc { [404, {}, []] }
   # Course management routes
   resources :courses do
     resources :teams, except: [:index]
@@ -17,7 +17,7 @@ Rails.application.routes.draw do
   end
 
   # Course invitation routes
-  resources :course_invitations, only: [ :show ], param: :token do
+  resources :course_invitations, only: [:show], param: :token do
     member do
       post :join
       get :qr_code
@@ -30,7 +30,7 @@ Rails.application.routes.draw do
   mount Rswag::Ui::Engine => "/api-docs"
   mount Rswag::Api::Engine => "/api-docs"
   # API routes
-  namespace :api, defaults: { format: :json } do
+  namespace :api, defaults: {format: :json} do
     # Version 1 routes (current)
     namespace :v1, constraints: ApiVersionConstraint.new(version: 1, default: true) do
       # Authentication routes
@@ -39,10 +39,10 @@ Rails.application.routes.draw do
       post "/signup", to: "registrations#create"
 
       # Profile routes
-      resource :profile, only: [ :show, :update ]
+      resource :profile, only: [:show, :update]
 
       # Context switching routes
-      resource :context, only: [], controller: 'context' do
+      resource :context, only: [], controller: "context" do
         get :current
         patch :switch_case
         patch :switch_team
@@ -68,11 +68,11 @@ Rails.application.routes.draw do
 
       # Case endpoints
       resources :cases do
-        resources :events, controller: "case_events", only: [ :index, :create ]
+        resources :events, controller: "case_events", only: [:index, :create]
         resources :documents, controller: "case_documents", shallow: true
-        
+
         # Case materials management
-        resources :case_materials, only: [ :index, :show, :create, :update, :destroy ] do
+        resources :case_materials, only: [:index, :show, :create, :update, :destroy] do
           member do
             get :download
             post :annotate
@@ -82,27 +82,27 @@ Rails.application.routes.draw do
             get :categories
           end
         end
-        
+
         # Simulation endpoints
-        resources :negotiation_rounds, only: [ :index, :show, :create, :update ]
-        
+        resources :negotiation_rounds, only: [:index, :show, :create, :update]
+
         # Simulation status endpoints
-        resource :simulation_status, only: [ :show ], controller: "simulation_status" do
+        resource :simulation_status, only: [:show], controller: "simulation_status" do
           get :client_mood
           get :pressure_status
           get :negotiation_history
           get :events_feed
         end
-        
+
         # Argument quality scoring endpoints (instructor only)
-        resources :argument_quality, only: [ :index, :show, :update ] do
+        resources :argument_quality, only: [:index, :show, :update] do
           collection do
             get :rubric
           end
         end
-        
+
         # Evidence release schedule endpoints
-        resources :evidence_releases, only: [ :index, :show, :create ] do
+        resources :evidence_releases, only: [:index, :show, :create] do
           member do
             put :approve
             put :deny
@@ -131,7 +131,7 @@ Rails.application.routes.draw do
   get "dashboard", to: "dashboard#index", as: :dashboard
 
   # Health check endpoint
-  get "up" => "rails/health#show", as: :rails_health_check
+  get "up" => "rails/health#show", :as => :rails_health_check
   get "/health", to: "health#check"
 
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
@@ -155,7 +155,7 @@ Rails.application.routes.draw do
         post :bundles, action: :create_bundle
       end
     end
-    
+
     # Negotiation interface
     resources :negotiations, only: [:index, :show, :new, :create, :edit, :update] do
       member do
@@ -174,7 +174,7 @@ Rails.application.routes.draw do
     end
   end
   resources :teams, only: [:index, :show] do
-    resources :team_members, path: 'members'
+    resources :team_members, path: "members"
   end
 
   # Static pages
@@ -182,8 +182,8 @@ Rails.application.routes.draw do
   get "pricing", to: "pages#pricing"
 
   # User profile and settings
-  resource :profile, only: [ :show, :update ]
-  resource :settings, only: [ :show, :update ]
+  resource :profile, only: [:show, :update]
+  resource :settings, only: [:show, :update]
 
   # Invitation routes
   resources :invitations, except: [:show] do
@@ -192,23 +192,23 @@ Rails.application.routes.draw do
       patch :revoke
     end
     collection do
-      get :shareable, to: 'invitations#new_shareable'
+      get :shareable, to: "invitations#new_shareable"
       post :create_shareable
     end
   end
 
   # Invitation acceptance routes
-  get 'accept/:token', to: 'invitation_acceptance#show', as: :accept_invitation
-  post 'accept/:token', to: 'invitation_acceptance#accept', as: :process_invitation
-  get 'join/:token', to: 'invitation_acceptance#show_shareable', as: :accept_shareable_invitation
-  post 'join/:token', to: 'invitation_acceptance#accept_shareable', as: :process_shareable_invitation
+  get "accept/:token", to: "invitation_acceptance#show", as: :accept_invitation
+  post "accept/:token", to: "invitation_acceptance#accept", as: :process_invitation
+  get "join/:token", to: "invitation_acceptance#show_shareable", as: :accept_shareable_invitation
+  post "join/:token", to: "invitation_acceptance#accept_shareable", as: :process_shareable_invitation
 
   # Admin routes
   namespace :admin do
-    get :dashboard, to: 'dashboard#index'
-    
+    get :dashboard, to: "dashboard#index"
+
     resources :settings, only: [:index, :show, :update]
-    
+
     resources :licenses do
       member do
         patch :activate
@@ -235,7 +235,7 @@ Rails.application.routes.draw do
   end
 
   # License management routes
-  resource :license_status, only: [:show], controller: 'license_status' do
+  resource :license_status, only: [:show], controller: "license_status" do
     member do
       post :activate_license
       post :request_trial
@@ -250,7 +250,7 @@ Rails.application.routes.draw do
     post :export_report
     patch :update_score
   end
-  
+
   # Alias for instructor dashboard
   get "instructor_scoring_dashboard", to: "scoring_dashboard#index"
 

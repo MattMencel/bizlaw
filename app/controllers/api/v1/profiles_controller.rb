@@ -5,7 +5,7 @@ module Api
     class ProfilesController < BaseController
       def show
         render json: {
-          status: { code: 200, message: "Profile retrieved successfully." },
+          status: {code: 200, message: "Profile retrieved successfully."},
           data: UserSerializer.new(current_user).serializable_hash[:data][:attributes]
         }
       end
@@ -13,7 +13,7 @@ module Api
       def update
         if current_user.update(profile_params)
           render json: {
-            status: { code: 200, message: "Profile updated successfully." },
+            status: {code: 200, message: "Profile updated successfully."},
             data: UserSerializer.new(current_user).serializable_hash[:data][:attributes]
           }
         else
