@@ -27,7 +27,7 @@ repos:
       - id: hadolint
 
   - repo: https://github.com/gruntwork-io/pre-commit
-    rev: v0.1.25
+    rev: v0.1.29
     hooks:
       - id: helmlint
 
@@ -37,7 +37,7 @@ repos:
       - id: actionlint
 
   - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: 'v4.0.0'
+    rev: "v4.2.0"
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
@@ -46,3 +46,20 @@ repos:
     rev: v0.10.0
     hooks:
       - id: shellcheck
+
+  - repo: local
+    hooks:
+      - id: rubocop
+        name: Rubocop
+        entry: bundle exec rubocop
+        language: system
+        types: [ruby]
+        files: \.rb$
+        additional_dependencies: []
+      - id: brakeman
+        name: Brakeman
+        entry: bundle exec brakeman --no-exit-on-warn --no-pager
+        language: system
+        pass_filenames: false
+        always_run: true
+        additional_dependencies: []
