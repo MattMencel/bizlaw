@@ -59,7 +59,7 @@ gem "thruster", require: false
 # gem "image_processing", "~> 1.2"
 
 # QR Code generation for invitations
-gem "rqrcode", "~> 2.2"
+gem "rqrcode", "~> 3.1"
 gem "chunky_png", "~> 1.4"
 
 # PDF generation
