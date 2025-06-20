@@ -2,16 +2,16 @@
   <div class="bg-white overflow-hidden shadow rounded-lg">
     <div class="px-4 py-5 sm:p-6">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg leading-6 font-medium text-gray-900">Add Team Member</h3>
-        <%= link_to "Cancel", @team, class: "text-gray-400 hover:text-gray-600" do %>
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Add Team Members</h3>
+        <%= link_to @team, class: "text-gray-400 hover:text-gray-600" do %>
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         <% end %>
       </div>
 
-      <%= form_with model: [@team, @team_member], local: true, data: { turbo_frame: "new_team_member" } do |form| %>
-        <% if @team_member.errors.any? %>
+      <%= form_with url: bulk_create_team_team_members_path(@team), method: :post, data: { turbo_frame: "new_team_member", controller: "bulk-add-members" } do |form| %>
+        <% if flash[:error] %>
           <div class="rounded-md bg-red-50 p-4 mb-4">
             <div class="flex">
               <div class="flex-shrink-0">
@@ -20,15 +20,9 @@
                 </svg>
               </div>
               <div class="ml-3">
-                <h3 class="text-sm font-medium text-red-800">
-                  There <%= @team_member.errors.count == 1 ? 'was' : 'were' %> <%= pluralize(@team_member.errors.count, 'error') %> with your submission:
-                </h3>
+                <h3 class="text-sm font-medium text-red-800">Error:</h3>
                 <div class="mt-2 text-sm text-red-700">
-                  <ul role="list" class="list-disc pl-5 space-y-1">
-                    <% @team_member.errors.full_messages.each do |message| %>
-                      <li><%= message %></li>
-                    <% end %>
-                  </ul>
+                  <%= flash[:error] %>
                 </div>
               </div>
             </div>
@@ -36,18 +30,32 @@
         <% end %>
 
         <div class="space-y-4">
-          <div>
-            <%= form.label :user_id, "Student", class: "block text-sm font-medium text-gray-700" %>
-            <%= form.select :user_id, 
-                options_from_collection_for_select(@available_users, :id, :full_name, @team_member.user_id),
-                { prompt: 'Select a student...' },
-                { class: "mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" } %>
+          <div class="flex items-center justify-between">
+            <label class="block text-sm font-medium text-gray-700">Select Students</label>
+            <div class="flex items-center space-x-2">
+              <button type="button" data-action="click->bulk-add-members#selectAll" class="text-sm text-indigo-600 hover:text-indigo-500">Select All</button>
+              <span class="text-gray-300">|</span>
+              <button type="button" data-action="click->bulk-add-members#selectNone" class="text-sm text-indigo-600 hover:text-indigo-500">Select None</button>
+            </div>
+          </div>
+
+          <div class="max-h-64 overflow-y-auto border border-gray-300 rounded-md p-2">
+            <% @available_users.each do |user| %>
+              <div class="flex items-center py-2">
+                <%= form.check_box :user_ids,
+                    { multiple: true, data: { action: "change->bulk-add-members#updateButton", bulk_add_members_target: "checkbox" } },
+                    user.id, nil %>
+                <%= form.label "user_ids_#{user.id}", class: "ml-2 text-sm text-gray-900" do %>
+                  <%= user.full_name %> <span class="text-gray-500">(<%= user.email %>)</span>
+                <% end %>
+              </div>
+            <% end %>
           </div>
 
           <div>
-            <%= form.label :role, "Role", class: "block text-sm font-medium text-gray-700" %>
-            <%= form.select :role, 
-                options_for_select([['Member', 'member'], ['Manager', 'manager']], @team_member.role),
+            <%= form.label :role, "Default Role for Selected Members", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.select :role,
+                options_for_select([['Member', 'member'], ['Manager', 'manager']], 'member'),
                 {},
                 { class: "mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" } %>
           </div>
@@ -56,8 +64,9 @@
         <div class="mt-6 flex justify-end space-x-3">
           <%= link_to "Cancel", @team,
               class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
-          <%= form.submit "Add Member",
-              class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+          <%= form.submit "Add Selected Members", data: { bulk_add_members_target: "submitButton" },
+              class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50",
+              disabled: true %>
         </div>
       <% end %>
     </div>

@@ -1,0 +1,307 @@
+<% content_for :title, "Edit Simulation - #{@case.title}" %>
+
+<div class="max-w-4xl mx-auto">
+  <div class="bg-white shadow-lg rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Edit Simulation</h1>
+          <p class="mt-1 text-sm text-gray-600">
+            Configure simulation for <span class="font-medium"><%= @case.title %></span>
+          </p>
+        </div>
+        <div class="flex items-center space-x-3">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%=
+            case @simulation.status
+            when 'setup' then 'bg-yellow-100 text-yellow-800'
+            when 'active' then 'bg-green-100 text-green-800'
+            when 'paused' then 'bg-orange-100 text-orange-800'
+            when 'completed' then 'bg-blue-100 text-blue-800'
+            when 'arbitration' then 'bg-purple-100 text-purple-800'
+            else 'bg-gray-100 text-gray-800'
+            end %>">
+            <%= @simulation.status.humanize %>
+          </span>
+          <%= link_to "Back to Case", course_case_path(@case.course, @case),
+                      class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" %>
+        </div>
+      </div>
+    </div>
+
+    <% if @simulation.status_active? || @simulation.status_paused? %>
+      <div class="px-6 py-4 bg-yellow-50 border-b border-yellow-200">
+        <div class="flex items-start">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-yellow-800">Simulation is <%= @simulation.status.humanize %></h3>
+            <p class="mt-1 text-sm text-yellow-700">
+              Some changes may require pausing the simulation first. Financial parameters cannot be changed once the simulation is active.
+            </p>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <%= form_with model: @simulation, url: course_case_simulation_path(@case.course, @case), local: true, class: "p-6" do |form| %>
+      <% if @simulation.errors.any? %>
+        <div class="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-red-800">
+                Please correct the following errors:
+              </h3>
+              <div class="mt-2 text-sm text-red-700">
+                <ul class="list-disc list-inside space-y-1">
+                  <% @simulation.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="space-y-8">
+        <!-- Current Status Section -->
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Simulation Status</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white p-4 rounded-lg border">
+              <dt class="text-sm font-medium text-gray-500">Current Round</dt>
+              <dd class="mt-1 text-2xl font-semibold text-gray-900">
+                <%= @simulation.current_round %> / <%= @simulation.total_rounds %>
+              </dd>
+            </div>
+            <div class="bg-white p-4 rounded-lg border">
+              <dt class="text-sm font-medium text-gray-500">Start Date</dt>
+              <dd class="mt-1 text-sm text-gray-900">
+                <%= @simulation.start_date&.strftime("%B %d, %Y") || "Not started" %>
+              </dd>
+            </div>
+            <div class="bg-white p-4 rounded-lg border">
+              <dt class="text-sm font-medium text-gray-500">Active Rounds</dt>
+              <dd class="mt-1 text-sm text-gray-900">
+                <%= @simulation.negotiation_rounds.count %> created
+              </dd>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Assignments Section -->
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Team Assignments</h3>
+          <% if @simulation.status_setup? %>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <%= form.label :plaintiff_team_id, "Plaintiff Team", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                <%= form.select :plaintiff_team_id,
+                                options_from_collection_for_select(@available_teams, :id, :name, @simulation.plaintiff_team_id),
+                                { prompt: "Select plaintiff team..." },
+                                { class: "w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" } %>
+              </div>
+
+              <div>
+                <%= form.label :defendant_team_id, "Defendant Team", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                <%= form.select :defendant_team_id,
+                                options_from_collection_for_select(@available_teams, :id, :name, @simulation.defendant_team_id),
+                                { prompt: "Select defendant team..." },
+                                { class: "w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" } %>
+              </div>
+            </div>
+          <% else %>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="bg-white p-4 rounded-lg border">
+                <dt class="text-sm font-medium text-gray-500">Plaintiff Team</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900">
+                  <%= @simulation.plaintiff_team&.name || "Not assigned" %>
+                </dd>
+              </div>
+              <div class="bg-white p-4 rounded-lg border">
+                <dt class="text-sm font-medium text-gray-500">Defendant Team</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900">
+                  <%= @simulation.defendant_team&.name || "Not assigned" %>
+                </dd>
+              </div>
+            </div>
+            <p class="mt-2 text-sm text-gray-500">
+              Team assignments cannot be changed once the simulation is active.
+            </p>
+          <% end %>
+        </div>
+
+        <!-- Financial Parameters Section -->
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Financial Parameters</h3>
+          <% if @simulation.status_setup? %>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Plaintiff Parameters -->
+              <div class="space-y-4">
+                <h4 class="font-medium text-gray-800">Plaintiff Parameters</h4>
+
+                <div>
+                  <%= form.label :plaintiff_min_acceptable, "Minimum Acceptable Amount", class: "block text-sm font-medium text-gray-700 mb-1" %>
+                  <div class="relative">
+                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                    <%= form.number_field :plaintiff_min_acceptable,
+                                          step: 1000, min: 0,
+                                          class: "w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
+                  </div>
+                </div>
+
+                <div>
+                  <%= form.label :plaintiff_ideal, "Ideal Amount", class: "block text-sm font-medium text-gray-700 mb-1" %>
+                  <div class="relative">
+                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                    <%= form.number_field :plaintiff_ideal,
+                                          step: 1000, min: 0,
+                                          class: "w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Defendant Parameters -->
+              <div class="space-y-4">
+                <h4 class="font-medium text-gray-800">Defendant Parameters</h4>
+
+                <div>
+                  <%= form.label :defendant_ideal, "Ideal Amount", class: "block text-sm font-medium text-gray-700 mb-1" %>
+                  <div class="relative">
+                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                    <%= form.number_field :defendant_ideal,
+                                          step: 1000, min: 0,
+                                          class: "w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
+                  </div>
+                </div>
+
+                <div>
+                  <%= form.label :defendant_max_acceptable, "Maximum Acceptable Amount", class: "block text-sm font-medium text-gray-700 mb-1" %>
+                  <div class="relative">
+                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                    <%= form.number_field :defendant_max_acceptable,
+                                          step: 1000, min: 0,
+                                          class: "w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% else %>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div class="bg-white p-4 rounded-lg border">
+                <dt class="text-sm font-medium text-gray-500">Plaintiff Min</dt>
+                <dd class="mt-1 text-lg font-semibold text-green-600">
+                  <%= number_to_currency(@simulation.plaintiff_min_acceptable, precision: 0) %>
+                </dd>
+              </div>
+              <div class="bg-white p-4 rounded-lg border">
+                <dt class="text-sm font-medium text-gray-500">Plaintiff Ideal</dt>
+                <dd class="mt-1 text-lg font-semibold text-green-600">
+                  <%= number_to_currency(@simulation.plaintiff_ideal, precision: 0) %>
+                </dd>
+              </div>
+              <div class="bg-white p-4 rounded-lg border">
+                <dt class="text-sm font-medium text-gray-500">Defendant Ideal</dt>
+                <dd class="mt-1 text-lg font-semibold text-red-600">
+                  <%= number_to_currency(@simulation.defendant_ideal, precision: 0) %>
+                </dd>
+              </div>
+              <div class="bg-white p-4 rounded-lg border">
+                <dt class="text-sm font-medium text-gray-500">Defendant Max</dt>
+                <dd class="mt-1 text-lg font-semibold text-red-600">
+                  <%= number_to_currency(@simulation.defendant_max_acceptable, precision: 0) %>
+                </dd>
+              </div>
+            </div>
+            <p class="mt-2 text-sm text-gray-500">
+              Financial parameters cannot be changed once the simulation is active.
+            </p>
+          <% end %>
+        </div>
+
+        <!-- Simulation Configuration Section -->
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Simulation Configuration</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <%= form.label :total_rounds, "Total Rounds", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.number_field :total_rounds,
+                                    min: 1, max: 10,
+                                    disabled: !@simulation.status_setup?,
+                                    class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 #{'bg-gray-100' unless @simulation.status_setup?}" %>
+              <% unless @simulation.status_setup? %>
+                <p class="mt-1 text-xs text-gray-500">Cannot change total rounds once simulation is active</p>
+              <% end %>
+            </div>
+
+            <div>
+              <%= form.label :pressure_escalation_rate, "Pressure Escalation", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.select :pressure_escalation_rate,
+                              options_for_select([
+                                ["Low - Gradual pressure increase", "low"],
+                                ["Moderate - Standard pressure increase", "moderate"],
+                                ["High - Intense pressure increase", "high"]
+                              ], @simulation.pressure_escalation_rate),
+                              {},
+                              { class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" } %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Advanced Options Section -->
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Advanced Options</h3>
+          <div class="space-y-4">
+            <div class="flex items-start">
+              <%= form.hidden_field "simulation_config[client_mood_enabled]", value: "false" %>
+              <%= form.check_box "simulation_config[client_mood_enabled]",
+                                 { checked: @simulation.simulation_config&.dig("client_mood_enabled") != "false",
+                                   class: "h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" },
+                                 "true", "false" %>
+              <%= form.label "simulation_config[client_mood_enabled]", "Enable Client Mood Tracking", class: "ml-2 text-sm text-gray-700" %>
+            </div>
+
+            <div class="flex items-start">
+              <%= form.hidden_field "simulation_config[pressure_escalation_enabled]", value: "false" %>
+              <%= form.check_box "simulation_config[pressure_escalation_enabled]",
+                                 { checked: @simulation.simulation_config&.dig("pressure_escalation_enabled") != "false",
+                                   class: "h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" },
+                                 "true", "false" %>
+              <%= form.label "simulation_config[pressure_escalation_enabled]", "Enable Pressure Escalation", class: "ml-2 text-sm text-gray-700" %>
+            </div>
+
+            <div class="flex items-start">
+              <%= form.hidden_field "simulation_config[settlement_range_hints]", value: "false" %>
+              <%= form.check_box "simulation_config[settlement_range_hints]",
+                                 { checked: @simulation.simulation_config&.dig("settlement_range_hints") == "true",
+                                   class: "h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" },
+                                 "true", "false" %>
+              <%= form.label "simulation_config[settlement_range_hints]", "Show Settlement Range Hints", class: "ml-2 text-sm text-gray-700" %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="mt-8 flex items-center justify-between pt-6 border-t border-gray-200">
+        <div>
+          <%= link_to "Cancel", course_case_path(@case.course, @case),
+                      class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" %>
+        </div>
+        <div class="flex items-center space-x-3">
+          <%= form.submit "Update Simulation",
+                          class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
+                          data: { disable_with: "Updating..." } %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

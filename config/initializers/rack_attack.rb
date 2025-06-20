@@ -41,7 +41,7 @@ class Rack::Attack
     now = Time.now.utc
     match_data = request.env["rack.attack.match_data"]
     version = request.path.match(/\/api\/v(\d+)/)&.[](1) || "1"
-    endpoint = request.path.split("/")[2..3].join("/")
+    endpoint = request.path.split("/")[2..3]&.join("/") || "unknown"
 
     # Track throttling metrics
     MetricsService.track_throttle(
@@ -67,11 +67,15 @@ class Rack::Attack
 end
 
 # Track successful requests and rate limit remaining
-ActiveSupport::Notifications.subscribe("rack.attack") do |_name, _start, _finish, _id, request|
+ActiveSupport::Notifications.subscribe("rack.attack") do |_name, _start, _finish, _id, payload|
+  request = payload[:request]
+  # Skip if request doesn't have env (e.g., during tests or edge cases)
+  next unless request.respond_to?(:env) && request.env
+
   if request.env["rack.attack.match_type"] == :throttle
     match_data = request.env["rack.attack.match_data"]
     version = request.path.match(/\/api\/v(\d+)/)&.[](1) || "1"
-    endpoint = request.path.split("/")[2..3].join("/")
+    endpoint = request.path.split("/")[2..3]&.join("/") || "unknown"
 
     MetricsService.track_rate_limit_remaining(
       endpoint: endpoint,

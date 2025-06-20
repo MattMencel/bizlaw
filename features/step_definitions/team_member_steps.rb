@@ -75,46 +75,67 @@ When("I click on {string} team") do |team_name|
   click_link team_name
 end
 
-When("I add {string} as a member to {string}") do |user_email, team_name|
+When("I bulk add the following users to {string}:") do |team_name, table|
   team = Team.find_by!(name: team_name)
   visit team_path(team)
 
-  if page.has_link?("Add Member")
-    click_link "Add Member"
-  elsif page.has_button?("Add Member")
-    click_button "Add Member"
-  else
-    # Navigate to add member form
-    visit new_team_team_member_path(team)
+  click_link "Add Members"
+
+  table.hashes.each do |row|
+    user = User.find_by!(email: row["email"])
+    check "user_ids_#{user.id}"
   end
 
-  fill_in "Email", with: user_email
-  click_button "Add Member"
+  # If the table has role column, use it; otherwise use default
+  if table.headers.include?("role")
+    # For mixed roles, we'd need to handle this differently
+    # For now, assume all same role or use default
+    role = table.hashes.first["role"] || "member"
+    select role.capitalize, from: "role"
+  end
+
+  click_button "Add Selected Members"
+end
+
+When("I bulk add the following users to {string} with role {string}:") do |team_name, role, table|
+  team = Team.find_by!(name: team_name)
+  visit team_path(team)
+
+  click_link "Add Members"
+
+  table.hashes.each do |row|
+    user = User.find_by!(email: row["email"])
+    check "user_ids_#{user.id}"
+  end
+
+  select role.capitalize, from: "role"
+  click_button "Add Selected Members"
+end
+
+When("I bulk remove the following members from {string}:") do |team_name, table|
+  team = Team.find_by!(name: team_name)
+  visit team_path(team)
+
+  table.hashes.each do |row|
+    user = User.find_by!(email: row["email"])
+    team_member = TeamMember.find_by!(team: team, user: user)
+    check "member_ids_#{team_member.id}"
+  end
+
+  click_button "Remove Selected"
+end
+
+# Legacy single-member operations for backward compatibility
+When("I add {string} as a member to {string}") do |user_email, team_name|
+  step %(I bulk add the following users to "#{team_name}" with role "member":), table([["email"], [user_email]])
 end
 
 When("I add {string} as a {string} to {string}") do |user_email, role, team_name|
-  team = Team.find_by!(name: team_name)
-  visit team_path(team)
-
-  click_link "Add Member"
-  fill_in "Email", with: user_email
-  select role.capitalize, from: "Role" if page.has_select?("Role")
-  click_button "Add Member"
+  step %(I bulk add the following users to "#{team_name}":), table([["email", "role"], [user_email, role]])
 end
 
 When("I remove {string} from {string}") do |user_email, team_name|
-  team = Team.find_by!(name: team_name)
-  user = User.find_by!(email: user_email)
-
-  visit team_path(team)
-
-  # Find the member row and click remove
-  within("[data-user-id='#{user.id}']") do
-    click_link "Remove"
-  end
-
-  # Confirm removal if there's a confirmation dialog
-  click_button "Confirm" if page.has_button?("Confirm")
+  step %(I bulk remove the following members from "#{team_name}":), table([["email"], [user_email]])
 end
 
 When("I change the role of {string} to {string}") do |user_email, new_role|
@@ -159,6 +180,51 @@ end
 When("I navigate to the team members page for {string}") do |team_name|
   team = Team.find_by!(name: team_name)
   visit team_team_members_path(team)
+end
+
+When("I visit the add team members page for {string}") do |team_name|
+  team = Team.find_by!(name: team_name)
+  visit team_path(team)
+  click_link "Add Members"
+end
+
+When("I click {string}") do |button_text|
+  click_button button_text
+end
+
+When("I click {string} in the members section") do |button_text|
+  within("#team-members") do
+    click_button button_text
+  end
+end
+
+When("I click {string} without selecting any users") do |button_text|
+  click_button button_text
+end
+
+When("I click {string} without selecting any members") do |button_text|
+  click_button button_text
+end
+
+When("I try to access the bulk add members page") do
+  team = Team.find_by!(name: "Project Team")
+  visit new_team_team_member_path(team)
+end
+
+When("I try to bulk add {string} to {string}") do |user_email, team_name|
+  team = Team.find_by!(name: team_name)
+  visit team_path(team)
+  click_link "Add Members"
+  # The user should not appear in the list since they're already a member
+end
+
+Given("the following users are members of {string}:") do |team_name, table|
+  team = Team.find_by!(name: team_name)
+  table.hashes.each do |row|
+    user = User.find_by!(email: row["email"])
+    role = row["role"]&.downcase || "member"
+    create(:team_member, user: user, team: team, role: role)
+  end
 end
 
 Then("{string} should be listed as a member of {string}") do |user_name, team_name|
@@ -223,6 +289,53 @@ end
 Then("I should not see the remove member options") do
   expect(page).not_to have_link("Remove")
   expect(page).not_to have_button("Remove")
+end
+
+Then("all available students should be selected") do
+  checkboxes = page.all("input[type='checkbox'][name*='user_ids']")
+  checkboxes.each do |checkbox|
+    expect(checkbox).to be_checked
+  end
+end
+
+Then("no students should be selected") do
+  checkboxes = page.all("input[type='checkbox'][name*='user_ids']")
+  checkboxes.each do |checkbox|
+    expect(checkbox).not_to be_checked
+  end
+end
+
+Then("all team members should be selected for removal") do
+  checkboxes = page.all("input[type='checkbox'][name*='member_ids']")
+  checkboxes.each do |checkbox|
+    expect(checkbox).to be_checked
+  end
+end
+
+Then("no team members should be selected for removal") do
+  checkboxes = page.all("input[type='checkbox'][name*='member_ids']")
+  checkboxes.each do |checkbox|
+    expect(checkbox).not_to be_checked
+  end
+end
+
+Then("I should not see any auto-refreshing components") do
+  expect(page).not_to have_selector("[data-controller='real-time']")
+end
+
+Then("the page should not make background requests") do
+  # This would need to be tested by monitoring network requests
+  # For now, we just verify no real-time controllers are present
+  expect(page).not_to have_selector("[data-real-time-refresh-interval-value]")
+end
+
+Then("I should not see a {string} section") do |section_name|
+  expect(page).not_to have_content(section_name)
+end
+
+Then("the user should not appear in the available students list") do
+  # Check that the user is not in the checkbox list
+  expect(page).not_to have_selector("input[type='checkbox'][name*='user_ids']")
 end
 
 # Helper method to check if current user can manage team

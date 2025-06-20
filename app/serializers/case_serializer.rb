@@ -24,12 +24,11 @@ class CaseSerializer
   attribute :can_submit, &:can_submit?
   attribute :can_review, &:can_review?
 
-  belongs_to :team
+  belongs_to :course
   belongs_to :created_by, serializer: UserSerializer
   belongs_to :updated_by, serializer: UserSerializer
-  belongs_to :case_type
   has_many :case_teams
   has_many :teams, through: :case_teams
   has_many :documents
-  has_many :case_events
+  # has_many :case_events  # No serializer for this yet
 end

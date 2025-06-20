@@ -45,7 +45,7 @@ class DashboardController < ApplicationController
 
   def load_student_data
     @my_teams = current_user.teams.includes(cases: [:simulation, :documents])
-    @my_cases = current_user.cases.includes(:documents, :simulation, :case_teams)
+    @my_cases = current_user.cases.includes(:documents, :simulation)
 
     # Simulation-specific data for dashboard
     @active_simulations = current_user.teams

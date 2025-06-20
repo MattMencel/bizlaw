@@ -78,6 +78,35 @@ class CasesController < ApplicationController
     end
   end
 
+  def background
+    if params[:id]
+      set_case
+      authorize_case
+    else
+      @cases = Case.accessible_by(current_user).page(params[:page])
+    end
+  end
+
+  def timeline
+    if params[:id]
+      set_case
+      authorize_case
+      @events = @case.case_events.order(:created_at)
+    else
+      @cases = Case.accessible_by(current_user).page(params[:page])
+    end
+  end
+
+  def events
+    if params[:id]
+      set_case
+      authorize_case
+      @events = @case.case_events.order(:created_at)
+    else
+      @cases = Case.accessible_by(current_user).page(params[:page])
+    end
+  end
+
   private
 
   def set_course
@@ -95,9 +124,8 @@ class CasesController < ApplicationController
 
   def case_params
     permitted_params = params.require(:case).permit(:title, :description, :case_type, :difficulty_level,
-      :plaintiff_info, :defendant_info, :legal_issues,
-      :reference_number, team_ids: [],
-      plaintiff_info_keys: [], plaintiff_info_values: [],
+      :plaintiff_info, :defendant_info, :reference_number, team_ids: [],
+      legal_issues: [], plaintiff_info_keys: [], plaintiff_info_values: [],
       defendant_info_keys: [], defendant_info_values: [])
 
     # Convert key-value arrays to JSON if they exist
@@ -110,6 +138,11 @@ class CasesController < ApplicationController
       permitted_params[:plaintiff_info] = plaintiff_data
       permitted_params.delete(:plaintiff_info_keys)
       permitted_params.delete(:plaintiff_info_values)
+    elsif permitted_params[:plaintiff_info_keys].present? || permitted_params[:plaintiff_info_values].present?
+      # Handle case where keys/values exist but are empty or blank
+      permitted_params[:plaintiff_info] = {}
+      permitted_params.delete(:plaintiff_info_keys)
+      permitted_params.delete(:plaintiff_info_values)
     end
 
     if permitted_params[:defendant_info_keys].present? && permitted_params[:defendant_info_values].present?
@@ -119,6 +152,11 @@ class CasesController < ApplicationController
         defendant_data[key] = permitted_params[:defendant_info_values][index] || ""
       end
       permitted_params[:defendant_info] = defendant_data
+      permitted_params.delete(:defendant_info_keys)
+      permitted_params.delete(:defendant_info_values)
+    elsif permitted_params[:defendant_info_keys].present? || permitted_params[:defendant_info_values].present?
+      # Handle case where keys/values exist but are empty or blank
+      permitted_params[:defendant_info] = {}
       permitted_params.delete(:defendant_info_keys)
       permitted_params.delete(:defendant_info_values)
     end

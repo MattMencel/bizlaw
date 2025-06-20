@@ -6,13 +6,40 @@ Rails.application.routes.draw do
   # Course management routes
   resources :courses do
     resources :teams, except: [:index]
-    resources :cases
+    resources :cases do
+      # Simulation management routes (nested under course cases)
+      resource :simulation, except: [:destroy] do
+        member do
+          post :start
+          post :pause
+          post :resume
+          post :complete
+          post :trigger_arbitration
+          post :advance_round
+          get :status
+        end
+      end
+    end
     member do
       get :manage_invitations
       post :create_invitation
       get :assign_students
       post :assign_student
       delete :remove_student
+    end
+  end
+
+  # Direct case access routes (without course context)
+  resources :cases, only: [:show, :index] do
+    collection do
+      get :background
+      get :timeline
+      get :events
+    end
+    member do
+      get :background
+      get :timeline
+      get :events
     end
   end
 
@@ -143,7 +170,53 @@ Rails.application.routes.draw do
 
   # Main resources
   resources :terms
+
+  # Document and evidence management routes
+  resources :annotations, only: [:index, :show, :create, :edit, :update, :destroy] do
+    collection do
+      get :search
+    end
+  end
+
+  resources :document_search, only: [:index] do
+    collection do
+      get :advanced
+      post :search
+    end
+  end
+
+  # Client relations routes
+  resources :mood_tracking, only: [:index, :show, :create] do
+    member do
+      patch :update_mood
+    end
+    collection do
+      get :history
+      get :analytics
+    end
+  end
+
+  resources :feedback_history, only: [:index, :show] do
+    collection do
+      get :search
+      get :export
+    end
+  end
+
   resources :cases, only: [:index] do
+    # Simulation management routes (direct case access)
+    resource :simulation, except: [:destroy] do
+      member do
+        post :start
+        post :pause
+        post :resume
+        post :complete
+        post :trigger_arbitration
+        post :advance_round
+        get :status
+      end
+    end
+
     # Evidence vault interface
     resources :evidence_vault, only: [:index, :show] do
       member do
@@ -174,7 +247,12 @@ Rails.application.routes.draw do
     end
   end
   resources :teams, only: [:index, :show] do
-    resources :team_members, path: "members"
+    resources :team_members, path: "members" do
+      collection do
+        post :bulk_create
+        patch :bulk_update
+      end
+    end
   end
 
   # Static pages

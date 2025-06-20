@@ -15,14 +15,14 @@ class CaseScenarioService
         position: "Software Engineer",
         employment_duration: "3 years",
         background: "Experienced software engineer with strong performance record"
-      }.to_json,
+      },
       defendant_info: {
         name: "TechFlow Industries",
         type: "Corporation",
         industry: "Software Development",
         size: "Mid-sized company (~200 employees)",
         background: "Growing tech company preparing for IPO"
-      }.to_json,
+      },
       reference_number: "CASE-2024-001",
       negotiation_parameters: {
         plaintiff_min_acceptable: 150000,
@@ -76,14 +76,14 @@ class CaseScenarioService
         type: "Contractor",
         industry: "Software Development",
         background: "Small consulting firm specializing in enterprise software"
-      }.to_json,
+      },
       defendant_info: {
         name: "DigiTech Corp",
         type: "Corporation",
         industry: "Financial Services",
         size: "Large company (500+ employees)",
         background: "Established financial services company with complex IT needs"
-      }.to_json,
+      },
       reference_number: "CASE-2024-002",
       negotiation_parameters: {
         plaintiff_min_acceptable: 85000,
@@ -137,14 +137,14 @@ class CaseScenarioService
         position: "Senior Vice President",
         employment_duration: "12 years",
         background: "Veteran banking executive with excellent performance record"
-      }.to_json,
+      },
       defendant_info: {
         name: "Global Bank Holdings",
         type: "Corporation",
         industry: "Banking",
         size: "Large corporation (10,000+ employees)",
         background: "Major financial institution with recent restructuring initiatives"
-      }.to_json,
+      },
       reference_number: "CASE-2024-003",
       negotiation_parameters: {
         plaintiff_min_acceptable: 200000,
@@ -198,14 +198,14 @@ class CaseScenarioService
         type: "Technology Startup",
         industry: "Artificial Intelligence",
         background: "AI research company with 15 patents in machine learning"
-      }.to_json,
+      },
       defendant_info: {
         name: "TechGiant Inc",
         type: "Corporation",
         industry: "Technology",
         size: "Large corporation (50,000+ employees)",
         background: "Major technology company with extensive R&D operations"
-      }.to_json,
+      },
       reference_number: "CASE-2024-004",
       negotiation_parameters: {
         plaintiff_min_acceptable: 2500000,
@@ -261,14 +261,14 @@ class CaseScenarioService
         position: "Operations Manager",
         employment_duration: "7 years",
         background: "Dedicated employee who reported safety violations before termination"
-      }.to_json,
+      },
       defendant_info: {
         name: "RetailCorp Systems",
         type: "Corporation",
         industry: "Retail Technology",
         size: "Medium company (1,000 employees)",
         background: "Retail technology company facing regulatory scrutiny"
-      }.to_json,
+      },
       reference_number: "CASE-2024-005",
       negotiation_parameters: {
         plaintiff_min_acceptable: 125000,
@@ -327,7 +327,7 @@ class CaseScenarioService
       description: scenario[:description],
       case_type: scenario[:case_type],
       difficulty_level: scenario[:difficulty_level],
-      legal_issues: scenario[:legal_issues],
+      legal_issues: scenario[:legal_issues].is_a?(String) ? [scenario[:legal_issues]] : scenario[:legal_issues],
       plaintiff_info: scenario[:plaintiff_info],
       defendant_info: scenario[:defendant_info],
       reference_number: generate_reference_number,

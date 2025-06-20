@@ -12,16 +12,16 @@
        data-real-time-url-value="<%= local_assigns[:url] %>"
        data-real-time-refresh-interval-value="<%= local_assigns[:interval] || 0 %>"
        class="bg-white shadow rounded-lg p-4">
-    <% if content_for?(:title) %>
+    <% if local_assigns[:title].present? %>
       <div class="border-b border-gray-200 pb-4 mb-4">
         <h3 class="text-lg font-medium leading-6 text-gray-900">
-          <%= content_for(:title) %>
+          <%= local_assigns[:title] %>
         </h3>
       </div>
     <% end %>
 
     <div data-real-time-target="content">
-      <%= content_for?(:content) ? content_for(:content) : yield %>
+      <%= local_assigns[:content] || yield %>
     </div>
   </div>
 <% end %>

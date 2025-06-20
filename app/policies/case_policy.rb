@@ -25,6 +25,35 @@ class CasePolicy < ApplicationPolicy
     user_can_manage_case?
   end
 
+  # Simulation management permissions
+  def manage_simulation?
+    user_can_manage_case?
+  end
+
+  def start_simulation?
+    manage_simulation?
+  end
+
+  def pause_simulation?
+    manage_simulation?
+  end
+
+  def resume_simulation?
+    manage_simulation?
+  end
+
+  def complete_simulation?
+    manage_simulation?
+  end
+
+  def trigger_arbitration?
+    manage_simulation?
+  end
+
+  def advance_round?
+    manage_simulation?
+  end
+
   private
 
   def user_can_access_case?

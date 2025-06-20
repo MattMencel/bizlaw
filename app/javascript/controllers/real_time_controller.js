@@ -30,6 +30,11 @@ export default class extends Controller {
   }
 
   async refresh() {
+    // Don't refresh if there are active forms to avoid interrupting user input
+    if (this.hasActiveForms()) {
+      return;
+    }
+
     try {
       const response = await fetch(this.urlValue);
       if (response.ok) {
@@ -40,5 +45,14 @@ export default class extends Controller {
     catch (error) {
       console.error('Error refreshing content:', error);
     }
+  }
+
+  hasActiveForms() {
+    // Check for any forms, input fields that have focus, or turbo frames with forms
+    const activeForms = this.element.querySelectorAll('form');
+    const activeInputs = this.element.querySelectorAll('input:focus, select:focus, textarea:focus');
+    const turboFramesWithForms = this.element.querySelectorAll('turbo-frame form');
+
+    return activeForms.length > 0 || activeInputs.length > 0 || turboFramesWithForms.length > 0;
   }
 }

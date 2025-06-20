@@ -18,19 +18,7 @@ class TeamsController < ApplicationController
 
   def show
     respond_to do |format|
-      format.html do
-        if turbo_frame_request?
-          if params[:section] == "members"
-            render partial: "team_members", locals: {team: @team}
-          elsif params[:section] == "activity"
-            render partial: "activity", locals: {team: @team}
-          else
-            render
-          end
-        else
-          render
-        end
-      end
+      format.html
       format.json { render json: TeamSerializer.new(@team).serializable_hash }
     end
   end

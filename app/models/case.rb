@@ -202,9 +202,16 @@ class Case < ApplicationRecord
 
   # Callbacks
   before_validation :set_updated_by, if: :changed?
+  before_validation :set_reference_number, on: :create
 
   def set_updated_by
     self.updated_by_id = created_by_id if created_by_id_changed?
+  end
+
+  def set_reference_number
+    return if reference_number.present?
+
+    self.reference_number = "CASE-#{Date.current.year}-#{SecureRandom.hex(3).upcase}"
   end
 
   def must_have_plaintiff_and_defendant_teams

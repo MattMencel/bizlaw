@@ -1,111 +1,111 @@
 <%# Hierarchical Menu Sections %>
 <div class="flex-1 overflow-y-auto px-4 py-4 space-y-1" data-controller="navigation-menu">
-  
+
   <%# Legal Workspace Section %>
   <div class="navigation-section" data-navigation-menu-target="section">
-    <%= render 'shared/navigation/section_header', 
-               title: 'Legal Workspace', 
+    <%= render 'shared/navigation/section_header',
+               title: 'Legal Workspace',
                icon: 'home',
                section_id: 'legal-workspace' %>
-    
+
     <div class="ml-6 space-y-1" data-navigation-menu-target="sectionContent" id="legal-workspace-content">
-      <%= render 'shared/navigation/nav_item', 
-                 title: 'Simulation Dashboard', 
-                 path: dashboard_path, 
+      <%= render 'shared/navigation/nav_item',
+                 title: 'Simulation Dashboard',
+                 path: dashboard_path,
                  icon: 'chart-bar' %>
-      <%= render 'shared/navigation/nav_item', 
-                 title: 'Case Status', 
-                 path: cases_path, 
+      <%= render 'shared/navigation/nav_item',
+                 title: 'Case Status',
+                 path: cases_path,
                  icon: 'status-online' %>
-      <%= render 'shared/navigation/nav_item', 
-                 title: 'Deadlines & Alerts', 
-                 path: dashboard_path, 
+      <%= render 'shared/navigation/nav_item',
+                 title: 'Deadlines & Alerts',
+                 path: dashboard_path,
                  icon: 'bell' %>
     </div>
   </div>
 
   <%# Case Files Section %>
   <div class="navigation-section" data-navigation-menu-target="section">
-    <%= render 'shared/navigation/section_header', 
-               title: 'Case Files', 
+    <%= render 'shared/navigation/section_header',
+               title: 'Case Files',
                icon: 'folder',
                section_id: 'case-files' %>
-    
+
     <div class="ml-6 space-y-1" data-navigation-menu-target="sectionContent" id="case-files-content">
-      <%= render 'shared/navigation/nav_item', 
-                 title: 'Case Background', 
-                 path: cases_path, 
+      <%= render 'shared/navigation/nav_item',
+                 title: 'Case Background',
+                 path: background_cases_path,
                  icon: 'document-text' %>
-      
+
       <%# Evidence Management Subsection %>
       <div class="navigation-subsection">
-        <%= render 'shared/navigation/subsection_header', 
-                   title: 'Evidence Management', 
+        <%= render 'shared/navigation/subsection_header',
+                   title: 'Evidence Management',
                    subsection_id: 'evidence-management' %>
-        
+
         <div class="ml-4 space-y-1" data-navigation-menu-target="subsectionContent" id="evidence-management-content">
-          <%= render 'shared/navigation/nav_item', 
-                     title: 'Document Vault', 
-                     path: safe_nav_path('case_evidence_vault_index_path', current_user_case), 
+          <%= render 'shared/navigation/nav_item',
+                     title: 'Document Vault',
+                     path: case_evidence_vault_index_path(case_id: 'current'),
                      icon: 'archive',
                      size: 'sm' %>
-          <%= render 'shared/navigation/nav_item', 
-                     title: 'Evidence Bundles', 
-                     path: safe_nav_path('bundles_case_evidence_vault_index_path', current_user_case), 
+          <%= render 'shared/navigation/nav_item',
+                     title: 'Evidence Bundles',
+                     path: case_evidence_vault_index_path(case_id: 'current'),
                      icon: 'collection',
                      size: 'sm' %>
-          <%= render 'shared/navigation/nav_item', 
-                     title: 'Annotations', 
-                     path: safe_nav_path('case_evidence_vault_index_path', current_user_case), 
+          <%= render 'shared/navigation/nav_item',
+                     title: 'Annotations',
+                     path: annotations_path,
                      icon: 'annotation',
                      size: 'sm' %>
-          <%= render 'shared/navigation/nav_item', 
-                     title: 'Document Search', 
-                     path: safe_nav_path('search_case_evidence_vault_index_path', current_user_case), 
+          <%= render 'shared/navigation/nav_item',
+                     title: 'Document Search',
+                     path: document_search_index_path,
                      icon: 'search',
                      size: 'sm' %>
         </div>
       </div>
 
-      <%= render 'shared/navigation/nav_item', 
-                 title: 'Timeline & Events', 
-                 path: cases_path, 
+      <%= render 'shared/navigation/nav_item',
+                 title: 'Timeline & Events',
+                 path: timeline_cases_path,
                  icon: 'clock' %>
-      <%= render 'shared/navigation/nav_item', 
-                 title: 'Team Assignments', 
-                 path: teams_path, 
+      <%= render 'shared/navigation/nav_item',
+                 title: 'Team Assignments',
+                 path: teams_path,
                  icon: 'user-group' %>
     </div>
   </div>
 
   <%# Negotiations Section %>
   <div class="navigation-section" data-navigation-menu-target="section">
-    <%= render 'shared/navigation/section_header', 
-               title: 'Negotiations', 
+    <%= render 'shared/navigation/section_header',
+               title: 'Negotiations',
                icon: 'scale',
                section_id: 'negotiations' %>
-    
+
     <div class="ml-6 space-y-1" data-navigation-menu-target="sectionContent" id="negotiations-content">
       <%# Settlement Portal Subsection %>
       <div class="navigation-subsection">
-        <%= render 'shared/navigation/subsection_header', 
-                   title: 'Settlement Portal', 
+        <%= render 'shared/navigation/subsection_header',
+                   title: 'Settlement Portal',
                    subsection_id: 'settlement-portal' %>
-        
+
         <div class="ml-4 space-y-1" data-navigation-menu-target="subsectionContent" id="settlement-portal-content">
-          <%= render 'shared/navigation/nav_item', 
-                     title: 'Submit Offers', 
-                     path: safe_nav_path('case_negotiations_path', current_user_case), 
+          <%= render 'shared/navigation/nav_item',
+                     title: 'Submit Offers',
+                     path: case_negotiations_path(case_id: 'current'),
                      icon: 'paper-airplane',
                      size: 'sm' %>
-          <%= render 'shared/navigation/nav_item', 
-                     title: 'Offer Templates', 
-                     path: safe_nav_path('templates_case_negotiations_path', current_user_case), 
+          <%= render 'shared/navigation/nav_item',
+                     title: 'Offer Templates',
+                     path: templates_case_negotiations_path(case_id: 'current'),
                      icon: 'template',
                      size: 'sm' %>
-          <%= render 'shared/navigation/nav_item', 
-                     title: 'Damage Calculator', 
-                     path: safe_nav_path('calculator_case_negotiations_path', current_user_case), 
+          <%= render 'shared/navigation/nav_item',
+                     title: 'Damage Calculator',
+                     path: calculator_case_negotiations_path(case_id: 'current'),
                      icon: 'calculator',
                      size: 'sm' %>
         </div>
@@ -113,32 +113,32 @@
 
       <%# Client Relations Subsection %>
       <div class="navigation-subsection">
-        <%= render 'shared/navigation/subsection_header', 
-                   title: 'Client Relations', 
+        <%= render 'shared/navigation/subsection_header',
+                   title: 'Client Relations',
                    subsection_id: 'client-relations' %>
-        
+
         <div class="ml-4 space-y-1" data-navigation-menu-target="subsectionContent" id="client-relations-content">
-          <%= render 'shared/navigation/nav_item', 
-                     title: 'Client Consultation', 
-                     path: safe_nav_path('client_consultation_case_negotiation_path', current_user_case, current_user_case&.teams&.first), 
+          <%= render 'shared/navigation/nav_item',
+                     title: 'Client Consultation',
+                     path: client_consultation_case_negotiation_path(case_id: 'current', id: 'current'),
                      icon: 'chat',
                      size: 'sm' %>
-          <%= render 'shared/navigation/nav_item', 
-                     title: 'Mood Tracking', 
-                     path: safe_nav_path('client_mood_api_case_simulation_status_path', current_user_case), 
+          <%= render 'shared/navigation/nav_item',
+                     title: 'Mood Tracking',
+                     path: mood_tracking_index_path,
                      icon: 'emotion-happy',
                      size: 'sm' %>
-          <%= render 'shared/navigation/nav_item', 
-                     title: 'Feedback History', 
-                     path: '#', 
+          <%= render 'shared/navigation/nav_item',
+                     title: 'Feedback History',
+                     path: feedback_history_index_path,
                      icon: 'chat-alt',
                      size: 'sm' %>
         </div>
       </div>
 
-      <%= render 'shared/navigation/nav_item', 
-                 title: 'Negotiation History', 
-                 path: safe_nav_path('history_case_negotiations_path', current_user_case), 
+      <%= render 'shared/navigation/nav_item',
+                 title: 'Negotiation History',
+                 path: history_case_negotiations_path(case_id: 'current'),
                  icon: 'clock' %>
     </div>
   </div>
@@ -146,39 +146,39 @@
   <%# Administration Section (Role-based) %>
   <% if current_user&.admin? || current_user&.org_admin? || current_user&.instructor? %>
     <div class="navigation-section" data-navigation-menu-target="section">
-      <%= render 'shared/navigation/section_header', 
-                 title: 'Administration', 
+      <%= render 'shared/navigation/section_header',
+                 title: 'Administration',
                  icon: 'cog',
                  section_id: 'administration' %>
-      
+
       <div class="ml-6 space-y-1" data-navigation-menu-target="sectionContent" id="administration-content">
         <% if current_user&.admin? %>
-          <%= render 'shared/navigation/nav_item', 
-                     title: 'Admin Dashboard', 
-                     path: admin_dashboard_path, 
+          <%= render 'shared/navigation/nav_item',
+                     title: 'Admin Dashboard',
+                     path: admin_dashboard_path,
                      icon: 'view-grid' %>
-          <%= render 'shared/navigation/nav_item', 
-                     title: 'Organization', 
-                     path: admin_organizations_path, 
+          <%= render 'shared/navigation/nav_item',
+                     title: 'Organization',
+                     path: admin_organizations_path,
                      icon: 'office-building' %>
-          <%= render 'shared/navigation/nav_item', 
-                     title: 'License Management', 
-                     path: admin_licenses_path, 
+          <%= render 'shared/navigation/nav_item',
+                     title: 'License Management',
+                     path: admin_licenses_path,
                      icon: 'key' %>
-          <%= render 'shared/navigation/nav_item', 
-                     title: 'System Settings', 
-                     path: admin_settings_path, 
+          <%= render 'shared/navigation/nav_item',
+                     title: 'System Settings',
+                     path: admin_settings_path,
                      icon: 'adjustments' %>
         <% end %>
-        
+
         <% if current_user&.admin? || current_user&.org_admin? %>
-          <%= render 'shared/navigation/nav_item', 
-                     title: 'Academic Structure', 
-                     path: courses_path, 
+          <%= render 'shared/navigation/nav_item',
+                     title: 'Academic Structure',
+                     path: courses_path,
                      icon: 'academic-cap' %>
-          <%= render 'shared/navigation/nav_item', 
-                     title: 'User Management', 
-                     path: admin_users_path, 
+          <%= render 'shared/navigation/nav_item',
+                     title: 'User Management',
+                     path: admin_users_path,
                      icon: 'users' %>
         <% end %>
       </div>
@@ -187,25 +187,25 @@
 
   <%# Personal Section %>
   <div class="navigation-section" data-navigation-menu-target="section">
-    <%= render 'shared/navigation/section_header', 
-               title: 'Personal', 
+    <%= render 'shared/navigation/section_header',
+               title: 'Personal',
                icon: 'user',
                section_id: 'personal' %>
-    
+
     <div class="ml-6 space-y-1" data-navigation-menu-target="sectionContent" id="personal-content">
-      <%= render 'shared/navigation/nav_item', 
-                 title: 'Profile', 
-                 path: safe_nav_path('profile_path'), 
+      <%= render 'shared/navigation/nav_item',
+                 title: 'Profile',
+                 path: safe_nav_path('profile_path'),
                  icon: 'user-circle' %>
       <% if current_user&.admin? || current_user&.org_admin? %>
-        <%= render 'shared/navigation/nav_item', 
-                   title: 'Invitations', 
-                   path: safe_nav_path('invitations_path'), 
+        <%= render 'shared/navigation/nav_item',
+                   title: 'Invitations',
+                   path: safe_nav_path('invitations_path'),
                    icon: 'mail' %>
       <% end %>
-      <%= render 'shared/navigation/nav_item', 
-                 title: 'Help', 
-                 path: safe_nav_path('about_path'), 
+      <%= render 'shared/navigation/nav_item',
+                 title: 'Help',
+                 path: safe_nav_path('about_path'),
                  icon: 'question-mark-circle' %>
     </div>
   </div>

@@ -36,29 +36,15 @@
       </div>
     </div>
 
-    <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div class="mt-8">
       <!-- Team Members Section -->
-      <div>
-        <%= real_time_frame(
-              id: "team-members",
-              url: team_path(@team, section: 'members'),
-              interval: 5000,
-              title: "Team Members"
-            ) do %>
+      <div id="team-members">
+        <div class="bg-white shadow rounded-lg p-4">
+          <div class="border-b border-gray-200 pb-4 mb-4">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">Team Members</h3>
+          </div>
           <%= render "team_members", team: @team %>
-        <% end %>
-      </div>
-
-      <!-- Team Activity Section -->
-      <div>
-        <%= real_time_frame(
-              id: "team-activity",
-              url: team_path(@team, section: 'activity'),
-              interval: 10000,
-              title: "Recent Activity"
-            ) do %>
-          <%= render "activity", team: @team %>
-        <% end %>
+        </div>
       </div>
     </div>
   </div>

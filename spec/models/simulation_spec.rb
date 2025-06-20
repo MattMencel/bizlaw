@@ -149,5 +149,134 @@ RSpec.describe Simulation, type: :model do
         end
       end
     end
+
+    describe "#start!" do
+      let(:simulation) { create(:simulation, status: :setup) }
+
+      it "transitions from setup to active" do
+        expect { simulation.start! }.to change { simulation.status }.from("setup").to("active")
+      end
+
+      it "sets start_date when starting" do
+        freeze_time do
+          simulation.start!
+          expect(simulation.start_date).to eq(Time.current)
+        end
+      end
+
+      context "when already active" do
+        let(:simulation) { create(:simulation, status: :active) }
+
+        it "returns false and doesn't change status" do
+          original_status = simulation.status
+          expect(simulation.start!).to be false
+          expect(simulation.status).to eq(original_status)
+        end
+      end
+    end
+
+    describe "#pause!" do
+      let(:simulation) { create(:simulation, status: :active) }
+
+      it "transitions from active to paused" do
+        expect { simulation.pause! }.to change { simulation.status }.from("active").to("paused")
+      end
+
+      context "when not active" do
+        let(:simulation) { create(:simulation, status: :setup) }
+
+        it "returns false and doesn't change status" do
+          expect(simulation.pause!).to be false
+          expect(simulation.status).to eq("setup")
+        end
+      end
+    end
+
+    describe "#resume!" do
+      let(:simulation) { create(:simulation, status: :paused) }
+
+      it "transitions from paused to active" do
+        expect { simulation.resume! }.to change { simulation.status }.from("paused").to("active")
+      end
+
+      context "when not paused" do
+        let(:simulation) { create(:simulation, status: :setup) }
+
+        it "returns false and doesn't change status" do
+          expect(simulation.resume!).to be false
+          expect(simulation.status).to eq("setup")
+        end
+      end
+    end
+  end
+
+  describe "status predicates" do
+    describe "#active?" do
+      it "returns true for active status" do
+        simulation.status = :active
+        expect(simulation).to be_active
+      end
+
+      it "returns true for paused status" do
+        simulation.status = :paused
+        expect(simulation).to be_active
+      end
+
+      it "returns false for setup status" do
+        simulation.status = :setup
+        expect(simulation).not_to be_active
+      end
+
+      it "returns false for completed status" do
+        simulation.status = :completed
+        expect(simulation).not_to be_active
+      end
+
+      it "returns false for arbitration status" do
+        simulation.status = :arbitration
+        expect(simulation).not_to be_active
+      end
+    end
+
+    describe "#completed?" do
+      it "returns true for completed status" do
+        simulation.status = :completed
+        expect(simulation).to be_completed
+      end
+
+      it "returns true for arbitration status" do
+        simulation.status = :arbitration
+        expect(simulation).to be_completed
+      end
+
+      it "returns false for active status" do
+        simulation.status = :active
+        expect(simulation).not_to be_completed
+      end
+
+      it "returns false for setup status" do
+        simulation.status = :setup
+        expect(simulation).not_to be_completed
+      end
+    end
+
+    describe "#running?" do
+      it "returns true for active status" do
+        simulation.status = :active
+        expect(simulation).to be_running
+      end
+
+      it "returns false for paused status" do
+        simulation.status = :paused
+        expect(simulation).not_to be_running
+      end
+
+      it "returns false for other statuses" do
+        [:setup, :completed, :arbitration].each do |status|
+          simulation.status = status
+          expect(simulation).not_to be_running
+        end
+      end
+    end
   end
 end

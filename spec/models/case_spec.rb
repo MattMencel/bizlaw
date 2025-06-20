@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Case, type: :model do
-  subject(:kase) { build(:case) }
+  subject(:kase) { create(:case) }
 
   # Test concerns
   it_behaves_like "has_uuid"
@@ -14,11 +14,13 @@ RSpec.describe Case, type: :model do
   describe "associations" do
     it { is_expected.to belong_to(:created_by).class_name("User") }
     it { is_expected.to belong_to(:updated_by).class_name("User") }
-    it { is_expected.to belong_to(:course).optional }
-    it { is_expected.to belong_to(:team) }
-    it { is_expected.to belong_to(:case_type) }
+    it { is_expected.to belong_to(:course) }
+    it { is_expected.to have_many(:case_teams).dependent(:destroy) }
+    it { is_expected.to have_many(:assigned_teams).through(:case_teams) }
+    it { is_expected.to have_many(:teams).through(:case_teams) }
     it { is_expected.to have_many(:documents).dependent(:destroy) }
     it { is_expected.to have_many(:case_events).dependent(:destroy) }
+    it { is_expected.to have_one(:simulation).dependent(:destroy) }
   end
 
   # Validations
@@ -30,8 +32,11 @@ RSpec.describe Case, type: :model do
     it { is_expected.to validate_presence_of(:difficulty_level) }
     it { is_expected.to validate_presence_of(:created_by_id) }
     it { is_expected.to validate_presence_of(:updated_by_id) }
-    it { is_expected.to validate_presence_of(:team) }
-    it { is_expected.to validate_presence_of(:case_type) }
+    it { is_expected.to validate_presence_of(:reference_number) }
+    it { is_expected.to validate_presence_of(:plaintiff_info) }
+    it { is_expected.to validate_presence_of(:defendant_info) }
+    it { is_expected.to validate_presence_of(:legal_issues) }
+    it { is_expected.to validate_presence_of(:course_id) }
   end
 
   # Enums
@@ -43,24 +48,26 @@ RSpec.describe Case, type: :model do
         submitted: "submitted",
         reviewed: "reviewed",
         completed: "completed"
-      ).with_prefix(true)
+      ).backed_by_column_of_type(:string).with_prefix(true)
     }
 
-    it { is_expected.to define_enum_for(:difficulty_level).with_values(beginner: "beginner", intermediate: "intermediate", advanced: "advanced").with_prefix(true) }
+    it { is_expected.to define_enum_for(:difficulty_level).with_values(beginner: "beginner", intermediate: "intermediate", advanced: "advanced").backed_by_column_of_type(:string).with_prefix(true) }
+
+    it { is_expected.to define_enum_for(:case_type).with_values(sexual_harassment: "sexual_harassment", discrimination: "discrimination", wrongful_termination: "wrongful_termination", contract_dispute: "contract_dispute", intellectual_property: "intellectual_property").backed_by_column_of_type(:string).with_prefix(true) }
   end
 
   # Scopes
   describe "scopes" do
-    let!(:draft_case) { create(:case, :draft) }
-    let!(:published_case) { create(:case, :published) }
-    let!(:archived_case) { create(:case, :archived) }
-    let!(:beginner_case) { create(:case, :beginner) }
-    let!(:advanced_case) { create(:case, :advanced) }
+    let!(:not_started_case) { create(:case, status: :not_started) }
+    let!(:in_progress_case) { create(:case, status: :in_progress) }
+    let!(:completed_case) { create(:case, status: :completed) }
+    let!(:beginner_case) { create(:case, difficulty_level: :beginner) }
+    let!(:advanced_case) { create(:case, difficulty_level: :advanced) }
 
     describe ".by_status" do
       it "returns cases with specified status" do
-        expect(described_class.by_status(:draft)).to include(draft_case)
-        expect(described_class.by_status(:draft)).not_to include(published_case, archived_case)
+        expect(described_class.by_status(:not_started)).to include(not_started_case)
+        expect(described_class.by_status(:not_started)).not_to include(in_progress_case, completed_case)
       end
     end
 
@@ -72,19 +79,19 @@ RSpec.describe Case, type: :model do
     end
 
     describe "status scopes" do
-      it "filters by published status" do
-        expect(described_class.published).to include(published_case)
-        expect(described_class.published).not_to include(draft_case, archived_case)
+      it "filters by in_progress status" do
+        expect(described_class.in_progress_cases).to include(in_progress_case)
+        expect(described_class.in_progress_cases).not_to include(not_started_case, completed_case)
       end
 
-      it "filters by draft status" do
-        expect(described_class.drafts).to include(draft_case)
-        expect(described_class.drafts).not_to include(published_case, archived_case)
+      it "filters by completed status" do
+        expect(described_class.completed_cases).to include(completed_case)
+        expect(described_class.completed_cases).not_to include(not_started_case, in_progress_case)
       end
 
-      it "filters by archived status" do
-        expect(described_class.archived).to include(archived_case)
-        expect(described_class.archived).not_to include(draft_case, published_case)
+      it "filters active cases (non-completed)" do
+        expect(described_class.active).to include(not_started_case, in_progress_case)
+        expect(described_class.active).not_to include(completed_case)
       end
     end
 
@@ -124,86 +131,57 @@ RSpec.describe Case, type: :model do
   end
 
   # Instance methods
-  describe "#publish!" do
-    context "when case is draft" do
-      before { kase.status = :draft }
-
-      it "publishes the case" do
-        freeze_time do
-          expect(kase.publish!).to be true
-          expect(kase).to be_published
-          expect(kase.published_at).to eq(Time.current)
-        end
-      end
-    end
-
-    context "when case is not draft" do
-      before { kase.status = :published }
-
-      it "returns false" do
-        expect(kase.publish!).to be false
-      end
-    end
-  end
-
   describe "#archive!" do
-    context "when case is published" do
-      before { kase.status = :published }
-
-      it "archives the case" do
-        freeze_time do
-          expect(kase.archive!).to be true
-          expect(kase).to be_archived
-          expect(kase.archived_at).to eq(Time.current)
-        end
-      end
-    end
-
-    context "when case is not published" do
-      before { kase.status = :draft }
-
-      it "returns false" do
-        expect(kase.archive!).to be false
+    it "archives the case" do
+      freeze_time do
+        expect(kase.archive!).to be true
+        expect(kase).to be_archived
+        expect(kase.archived_at).to eq(Time.current)
       end
     end
   end
 
   describe "status predicates" do
-    it "correctly identifies draft status" do
-      kase.status = :draft
-      expect(kase).to be_draft
+    it "correctly identifies not_started status" do
+      kase.status = :not_started
+      expect(kase).to be_status_not_started
       expect(kase).not_to be_published
       expect(kase).not_to be_archived
     end
 
-    it "correctly identifies published status" do
-      kase.status = :published
-      expect(kase).to be_published
-      expect(kase).not_to be_draft
+    it "correctly identifies in_progress status" do
+      kase.status = :in_progress
+      expect(kase).to be_status_in_progress
+      expect(kase).not_to be_status_not_started
       expect(kase).not_to be_archived
     end
 
-    it "correctly identifies archived status" do
-      kase.status = :archived
-      expect(kase).to be_archived
-      expect(kase).not_to be_draft
-      expect(kase).not_to be_published
+    it "correctly identifies completed status" do
+      kase.status = :completed
+      expect(kase).to be_status_completed
+      expect(kase).not_to be_status_not_started
+      expect(kase).not_to be_status_in_progress
     end
   end
 
   describe "#editable?" do
-    it "returns true for draft cases" do
-      kase.status = :draft
+    it "returns true for not_started cases" do
+      kase.status = :not_started
       expect(kase).to be_editable
     end
 
-    it "returns true for published cases" do
-      kase.status = :published
+    it "returns true for in_progress cases" do
+      kase.status = :in_progress
       expect(kase).to be_editable
     end
 
     it "returns false for archived cases" do
-      kase.status = :archived
+      kase.archived_at = Time.current
+      expect(kase).not_to be_editable
+    end
+
+    it "returns false for completed cases" do
+      kase.status = :completed
       expect(kase).not_to be_editable
     end
   end
@@ -276,6 +254,101 @@ RSpec.describe Case, type: :model do
       it "returns false when not submitted" do
         case_instance.status = :in_progress
         expect(case_instance).not_to be_can_review
+      end
+    end
+  end
+
+  describe "status transitions" do
+    let(:case_instance) { create(:case, status: :not_started) }
+
+    describe "#start!" do
+      context "when case is not started" do
+        it "transitions to in_progress and sets published_at" do
+          freeze_time do
+            expect(case_instance.start!).to be true
+            expect(case_instance.status).to eq("in_progress")
+            expect(case_instance.published_at).to eq(Time.current)
+          end
+        end
+      end
+
+      context "when case is already started" do
+        it "returns false and doesn't change status" do
+          case_instance.update!(status: :in_progress)
+          expect(case_instance.start!).to be false
+          expect(case_instance.status).to eq("in_progress")
+        end
+      end
+    end
+
+    describe "#submit!" do
+      context "when case is in progress" do
+        it "transitions to submitted" do
+          case_instance.update!(status: :in_progress)
+          expect(case_instance.submit!).to be true
+          expect(case_instance.status).to eq("submitted")
+        end
+      end
+
+      context "when case is not in progress" do
+        it "returns false and doesn't change status" do
+          expect(case_instance.submit!).to be false
+          expect(case_instance.status).to eq("not_started")
+        end
+      end
+    end
+
+    describe "#complete!" do
+      context "when case is reviewed" do
+        it "transitions to completed" do
+          case_instance.update!(status: :reviewed)
+          expect(case_instance.complete!).to be true
+          expect(case_instance.status).to eq("completed")
+        end
+      end
+
+      context "when case is not reviewed" do
+        it "returns false and doesn't change status" do
+          case_instance.update!(status: :submitted)
+          expect(case_instance.complete!).to be false
+          expect(case_instance.status).to eq("submitted")
+        end
+      end
+    end
+  end
+
+  describe "status helper methods" do
+    let(:case_instance) { create(:case) }
+
+    describe "#editable? (detailed)" do
+      it "returns true for not_started cases that are not archived" do
+        case_instance.update!(status: :not_started, archived_at: nil)
+        expect(case_instance).to be_editable
+      end
+
+      it "returns true for in_progress cases that are not archived" do
+        case_instance.update!(status: :in_progress, archived_at: nil)
+        expect(case_instance).to be_editable
+      end
+
+      it "returns false for archived cases" do
+        case_instance.update!(status: :not_started, archived_at: Time.current)
+        expect(case_instance).not_to be_editable
+      end
+
+      it "returns false for submitted cases" do
+        case_instance.update!(status: :submitted)
+        expect(case_instance).not_to be_editable
+      end
+
+      it "returns false for reviewed cases" do
+        case_instance.update!(status: :reviewed)
+        expect(case_instance).not_to be_editable
+      end
+
+      it "returns false for completed cases" do
+        case_instance.update!(status: :completed)
+        expect(case_instance).not_to be_editable
       end
     end
   end

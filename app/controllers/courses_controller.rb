@@ -21,9 +21,9 @@ class CoursesController < ApplicationController
 
   def show
     @course_invitation = @course.course_invitations.active.first
-    @students = @course.students.includes(:course_enrollments)
+    @students = @course.students
     @teams = @course.teams.includes(:team_members, :owner)
-    @cases = @course.cases.includes(:assigned_teams).recent_first.limit(5)
+    @cases = @course.cases.recent_first.limit(5)
     @recent_enrollments = @course.course_enrollments.recent.limit(10).includes(:user)
   end
 
@@ -108,7 +108,7 @@ class CoursesController < ApplicationController
     # Apply pagination if Kaminari is available
     @available_students = @available_students.page(params[:page]).per(20) if defined?(Kaminari)
 
-    @enrolled_students = @course.students.includes(:course_enrollments).order(:last_name, :first_name)
+    @enrolled_students = @course.students.order(:last_name, :first_name)
   end
 
   def assign_student

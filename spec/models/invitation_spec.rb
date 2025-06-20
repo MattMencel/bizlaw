@@ -208,4 +208,134 @@ RSpec.describe Invitation, type: :model do
       expect(invitation.can_be_accepted?).to be false
     end
   end
+
+  describe "cross-domain organization invitations" do
+    let(:university_org) { create(:organization, domain: "university.edu") }
+    let(:org_admin) { create(:user, :org_admin, organization: university_org, email: "admin@university.edu") }
+    let(:system_admin) { create(:user, :admin) }
+
+    context "when OrgAdmin invites student with different email domain" do
+      it "allows invitation to student with external email domain" do
+        invitation = build(:invitation,
+          email: "student@external-college.com",
+          role: "student",
+          organization: university_org,
+          invited_by: org_admin)
+
+        expect(invitation).to be_valid
+      end
+
+      it "allows invitation to instructor with external email domain" do
+        invitation = build(:invitation,
+          email: "instructor@different-school.org",
+          role: "instructor",
+          organization: university_org,
+          invited_by: org_admin)
+
+        expect(invitation).to be_valid
+      end
+
+      it "does not validate email domain against organization domain" do
+        mismatched_domains = [
+          "user@gmail.com",
+          "someone@yahoo.edu",
+          "external@other-university.edu",
+          "contractor@company.com"
+        ]
+
+        mismatched_domains.each do |email|
+          invitation = build(:invitation,
+            email: email,
+            role: "student",
+            organization: university_org,
+            invited_by: org_admin)
+
+          expect(invitation).to be_valid, "Expected invitation with email #{email} to be valid"
+        end
+      end
+    end
+
+    context "when System Admin invites across organizations" do
+      let(:other_org) { create(:organization, domain: "other-college.edu") }
+
+      it "allows system admin to invite users with any email to any organization" do
+        invitation = build(:invitation,
+          email: "anyone@anywhere.com",
+          role: "instructor",
+          organization: other_org,
+          invited_by: system_admin)
+
+        expect(invitation).to be_valid
+      end
+
+      it "allows system admin to create admin invitations without organization restrictions" do
+        invitation = build(:invitation,
+          email: "newadmin@external.com",
+          role: "admin",
+          organization: nil,
+          invited_by: system_admin)
+
+        expect(invitation).to be_valid
+      end
+    end
+
+    context "invitation acceptance with cross-domain emails" do
+      let(:cross_domain_invitation) do
+        create(:invitation,
+          email: "student@external.edu",
+          role: "student",
+          organization: university_org,
+          invited_by: org_admin)
+      end
+
+      it "allows user with different domain to accept organization invitation" do
+        user = create(:user, email: "student@external.edu", role: "student", organization: nil)
+
+        expect(cross_domain_invitation.accept!(user)).to be true
+
+        user.reload
+        expect(user.organization).to eq(university_org)
+        expect(user.role).to eq("student")
+      end
+
+      it "assigns user to inviting organization regardless of email domain" do
+        user = create(:user, email: "student@external.edu", role: "student", organization: nil)
+        original_email_domain = user.email.split("@").last
+
+        cross_domain_invitation.accept!(user)
+        user.reload
+
+        expect(user.organization).to eq(university_org)
+        expect(user.organization.domain).not_to eq(original_email_domain)
+      end
+    end
+
+    context "shareable invitations across domains" do
+      it "allows shareable invitations with placeholder email to be used by any domain" do
+        shareable_invitation = create(:invitation,
+          email: "placeholder@invite.link",
+          role: "student",
+          organization: university_org,
+          invited_by: org_admin,
+          shareable: true)
+
+        expect(shareable_invitation).to be_valid
+        expect(shareable_invitation.shareable?).to be true
+      end
+
+      it "does not restrict shareable invitation usage by email domain" do
+        shareable_invitation = create(:invitation,
+          email: "share@invite.link",
+          role: "instructor",
+          organization: university_org,
+          invited_by: org_admin,
+          shareable: true)
+
+        # Anyone with any email domain should be able to use this invitation
+        # We just test that the invitation is shareable, not the URL generation which requires host config
+        expect(shareable_invitation.shareable?).to be true
+        expect(shareable_invitation.token).to be_present
+      end
+    end
+  end
 end

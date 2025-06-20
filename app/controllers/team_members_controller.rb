@@ -33,10 +33,18 @@ class TeamMembersController < ApplicationController
 
     respond_to do |format|
       if @team_member.save
+        format.turbo_stream {
+          flash.now[:notice] = "Team member was successfully added."
+          render turbo_stream: [
+            turbo_stream.replace("new_team_member", ""),
+            turbo_stream.update("team-members", partial: "teams/team_members", locals: {team: @team})
+          ]
+        }
         format.html { redirect_to @team, notice: "Team member was successfully added." }
         format.json { render json: TeamMemberSerializer.new(@team_member).serializable_hash, status: :created }
       else
         @available_users = available_users_for_team
+        format.turbo_stream { render :new, status: :unprocessable_entity }
         format.html { render :new, status: :unprocessable_entity }
         format.json { render json: @team_member.errors, status: :unprocessable_entity }
       end
@@ -64,8 +72,81 @@ class TeamMembersController < ApplicationController
     @team_member.destroy
 
     respond_to do |format|
+      format.turbo_stream {
+        flash.now[:notice] = "Team member was successfully removed."
+        render turbo_stream: [
+          turbo_stream.remove(dom_id(@team_member)),
+          turbo_stream.update("team-members", partial: "teams/team_members", locals: {team: @team})
+        ]
+      }
       format.html { redirect_to @team, notice: "Team member was successfully removed." }
       format.json { head :no_content }
+    end
+  end
+
+  def bulk_create
+    user_ids = params[:user_ids]&.reject(&:blank?) || []
+    role = params[:role] || "member"
+
+    if user_ids.empty?
+      flash[:error] = "Please select at least one student."
+      @team_member = @team.team_members.build
+      @available_users = available_users_for_team
+      render :new, status: :unprocessable_entity
+      return
+    end
+
+    created_count = 0
+    errors = []
+
+    user_ids.each do |user_id|
+      team_member = @team.team_members.build(user_id: user_id, role: role)
+      if team_member.save
+        created_count += 1
+      else
+        user = User.find(user_id)
+        errors << "#{user.full_name}: #{team_member.errors.full_messages.join(", ")}"
+      end
+    end
+
+    respond_to do |format|
+      if errors.empty?
+        format.turbo_stream {
+          flash.now[:notice] = "Successfully added #{created_count} team member#{"s" if created_count != 1}."
+          render turbo_stream: [
+            turbo_stream.replace("new_team_member", ""),
+            turbo_stream.update("team-members", partial: "teams/team_members", locals: {team: @team})
+          ]
+        }
+        format.html { redirect_to @team, notice: "Successfully added #{created_count} team member#{"s" if created_count != 1}." }
+      else
+        flash[:error] = "Some members could not be added: #{errors.join("; ")}"
+        @team_member = @team.team_members.build
+        @available_users = available_users_for_team
+        format.turbo_stream { render :new, status: :unprocessable_entity }
+        format.html { render :new, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  def bulk_update
+    action = params[:action_type] || params[:action]
+    member_ids = params[:member_ids]&.reject(&:blank?) || []
+
+    if member_ids.empty?
+      redirect_to @team, alert: "Please select at least one team member."
+      return
+    end
+
+    case action
+    when "remove"
+      team_members = @team.team_members.where(id: member_ids)
+      removed_count = team_members.count
+      team_members.destroy_all
+
+      redirect_to @team, notice: "Successfully removed #{removed_count} team member#{"s" if removed_count != 1}."
+    else
+      redirect_to @team, alert: "Invalid action."
     end
   end
 

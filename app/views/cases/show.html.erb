@@ -137,17 +137,212 @@
         </div>
       <% end %>
 
+      <!-- Simulation Management Section -->
+      <% if policy(@case).manage_simulation? %>
+        <div class="mb-8 bg-gray-50 rounded-lg p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-900">Simulation Management</h2>
+            <% if @case.simulation.present? %>
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                <%= case @case.simulation.status
+                    when 'setup' then 'bg-yellow-100 text-yellow-800'
+                    when 'active' then 'bg-green-100 text-green-800'
+                    when 'paused' then 'bg-orange-100 text-orange-800'
+                    when 'completed' then 'bg-blue-100 text-blue-800'
+                    when 'arbitration' then 'bg-purple-100 text-purple-800'
+                    else 'bg-gray-100 text-gray-800'
+                    end %>">
+                <svg class="w-2 h-2 mr-1.5 fill-current" viewBox="0 0 8 8">
+                  <circle cx="4" cy="4" r="3"/>
+                </svg>
+                <%= @case.simulation.status.humanize %>
+              </span>
+            <% end %>
+          </div>
+
+          <% if @case.simulation.nil? %>
+            <!-- No Simulation State -->
+            <div class="text-center py-8">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No simulation exists</h3>
+              <p class="mt-1 text-sm text-gray-500">Create a simulation to enable team negotiations for this case.</p>
+              <div class="mt-6">
+                <%= link_to "Create Simulation", new_course_case_simulation_path(@case.course, @case),
+                            class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+              </div>
+            </div>
+
+          <% elsif @case.simulation.status_setup? %>
+            <!-- Setup State -->
+            <div class="bg-white rounded-lg border border-yellow-200 p-4">
+              <div class="flex items-start">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3 flex-1">
+                  <h3 class="text-sm font-medium text-yellow-800">Simulation Ready for Configuration</h3>
+                  <div class="mt-2 text-sm text-yellow-700">
+                    <p>The simulation has been created but needs to be configured before it can be started.</p>
+                  </div>
+                  <div class="mt-4 flex flex-wrap gap-3">
+                    <%= link_to "Configure Simulation", edit_course_case_simulation_path(@case.course, @case),
+                                class: "inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-yellow-800 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500" %>
+
+                    <% service = SimulationOrchestrationService.new(@case.simulation) %>
+                    <% validation_errors = service.send(:validate_simulation_readiness) rescue ["Validation unavailable"] %>
+
+                    <% if validation_errors.empty? %>
+                      <%= link_to "Start Simulation", start_course_case_simulation_path(@case.course, @case),
+                                  method: :post,
+                                  class: "inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500",
+                                  confirm: "Are you sure you want to start this simulation? This action cannot be undone." %>
+                    <% else %>
+                      <span class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-500 bg-gray-100 cursor-not-allowed"
+                            title="Simulation has validation errors: #{validation_errors.join(', ')}">
+                        Start Simulation (Issues Found)
+                      </span>
+                    <% end %>
+                  </div>
+
+                  <% if validation_errors.any? %>
+                    <div class="mt-3 text-sm text-red-600">
+                      <p class="font-medium">Please fix these issues before starting:</p>
+                      <ul class="mt-1 list-disc list-inside">
+                        <% validation_errors.each do |error| %>
+                          <li><%= error %></li>
+                        <% end %>
+                      </ul>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+
+          <% elsif @case.simulation.status_active? %>
+            <!-- Active State -->
+            <div class="bg-white rounded-lg border border-green-200 p-4">
+              <div class="flex items-start justify-between">
+                <div class="flex items-start">
+                  <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <h3 class="text-sm font-medium text-green-800">Simulation Active</h3>
+                    <div class="mt-2 text-sm text-green-700">
+                      <p>Round <%= @case.simulation.current_round %> of <%= @case.simulation.total_rounds %> is currently active.</p>
+                      <% if @case.simulation.start_date %>
+                        <p class="mt-1">Started <%= time_ago_in_words(@case.simulation.start_date) %> ago</p>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+                <div class="ml-4 flex flex-col sm:flex-row gap-2">
+                  <%= link_to "Manage Rounds", edit_course_case_simulation_path(@case.course, @case),
+                              class: "inline-flex items-center px-3 py-2 border border-green-300 text-sm leading-4 font-medium rounded-md text-green-800 bg-green-50 hover:bg-green-100" %>
+                  <%= link_to "Pause Simulation", pause_course_case_simulation_path(@case.course, @case),
+                              method: :post,
+                              class: "inline-flex items-center px-3 py-2 border border-orange-300 text-sm leading-4 font-medium rounded-md text-orange-800 bg-orange-50 hover:bg-orange-100",
+                              confirm: "Are you sure you want to pause the simulation?" %>
+                  <%= link_to "Complete Simulation", complete_course_case_simulation_path(@case.course, @case),
+                              method: :post,
+                              class: "inline-flex items-center px-3 py-2 border border-blue-300 text-sm leading-4 font-medium rounded-md text-blue-800 bg-blue-50 hover:bg-blue-100",
+                              confirm: "Are you sure you want to complete the simulation? This will end all negotiations." %>
+                </div>
+              </div>
+            </div>
+
+          <% elsif @case.simulation.status_paused? %>
+            <!-- Paused State -->
+            <div class="bg-white rounded-lg border border-orange-200 p-4">
+              <div class="flex items-start justify-between">
+                <div class="flex items-start">
+                  <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <h3 class="text-sm font-medium text-orange-800">Simulation Paused</h3>
+                    <div class="mt-2 text-sm text-orange-700">
+                      <p>Round <%= @case.simulation.current_round %> of <%= @case.simulation.total_rounds %> is paused.</p>
+                      <p class="mt-1">Teams cannot submit new offers until resumed.</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="ml-4 flex flex-col sm:flex-row gap-2">
+                  <%= link_to "Resume Simulation", resume_course_case_simulation_path(@case.course, @case),
+                              method: :post,
+                              class: "inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700" %>
+                  <%= link_to "Complete Simulation", complete_course_case_simulation_path(@case.course, @case),
+                              method: :post,
+                              class: "inline-flex items-center px-3 py-2 border border-blue-300 text-sm leading-4 font-medium rounded-md text-blue-800 bg-blue-50 hover:bg-blue-100",
+                              confirm: "Are you sure you want to complete the simulation?" %>
+                </div>
+              </div>
+            </div>
+
+          <% elsif @case.simulation.status_completed? %>
+            <!-- Completed State -->
+            <div class="bg-white rounded-lg border border-blue-200 p-4">
+              <div class="flex items-start">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-blue-800">Simulation Completed</h3>
+                  <div class="mt-2 text-sm text-blue-700">
+                    <p>The simulation has been completed successfully.</p>
+                    <% if @case.simulation.end_date %>
+                      <p class="mt-1">Ended <%= time_ago_in_words(@case.simulation.end_date) %> ago</p>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          <% elsif @case.simulation.status_arbitration? %>
+            <!-- Arbitration State -->
+            <div class="bg-white rounded-lg border border-purple-200 p-4">
+              <div class="flex items-start">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM15.657 6.343a1 1 0 011.414 0A9.972 9.972 0 0119 12a9.972 9.972 0 01-1.929 5.657 1 1 0 11-1.414-1.414A7.971 7.971 0 0017 12c0-2.21-.895-4.21-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 12a5.984 5.984 0 01-.757 2.829 1 1 0 11-1.415-1.414A3.984 3.984 0 0013 12a3.983 3.983 0 00-.172-1.172 1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-purple-800">Arbitration Concluded</h3>
+                  <div class="mt-2 text-sm text-purple-700">
+                    <p>The simulation was concluded through arbitration.</p>
+                    <% if @case.simulation.end_date %>
+                      <p class="mt-1">Arbitration completed <%= time_ago_in_words(@case.simulation.end_date) %> ago</p>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
       <!-- Case Actions -->
       <div class="border-t border-gray-200 pt-6">
         <div class="flex justify-between items-center">
           <div class="flex space-x-4">
             <% if policy(@case).edit? %>
-              <%= link_to "Edit Case", edit_course_case_path(@case.course, @case), 
+              <%= link_to "Edit Case", edit_course_case_path(@case.course, @case),
                   class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
             <% end %>
-            <%= link_to "Evidence Vault", case_evidence_vault_index_path(@case), 
+            <%= link_to "Evidence Vault", case_evidence_vault_index_path(@case),
                 class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
-            <%= link_to "Negotiations", case_negotiations_path(@case), 
+            <%= link_to "Negotiations", case_negotiations_path(@case),
                 class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" %>
           </div>
           <div class="text-sm text-gray-500">

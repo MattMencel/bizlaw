@@ -103,6 +103,9 @@ group :development, :test do
 
   # Accessibility testing
   gem "axe-core-rspec", "~> 4.10"
+
+  # Rails controller testing helpers
+  gem "rails-controller-testing"
 end
 
 group :development do

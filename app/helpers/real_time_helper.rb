@@ -9,8 +9,7 @@ module RealTimeHelper
   end
 
   def real_time_frame(id:, url: nil, interval: 0, title: nil, &)
-    content_for :title, title if title.present?
-    content_for :content, capture(&) if block_given?
-    render "shared/real_time_component", id: id, url: url, interval: interval
+    content = capture(&) if block_given?
+    render "shared/real_time_component", id: id, url: url, interval: interval, title: title, content: content
   end
 end

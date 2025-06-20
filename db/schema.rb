@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_18_231317) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_20_031719) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -509,15 +509,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_18_231317) do
 
   create_table "simulations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "case_id", null: false
-    t.datetime "start_date", null: false
+    t.datetime "start_date"
     t.datetime "end_date"
     t.integer "total_rounds", default: 6, null: false
     t.integer "current_round", default: 1, null: false
     t.enum "status", default: "setup", null: false, enum_type: "simulation_status"
-    t.decimal "plaintiff_min_acceptable", precision: 12, scale: 2, null: false
-    t.decimal "plaintiff_ideal", precision: 12, scale: 2, null: false
-    t.decimal "defendant_max_acceptable", precision: 12, scale: 2, null: false
-    t.decimal "defendant_ideal", precision: 12, scale: 2, null: false
+    t.decimal "plaintiff_min_acceptable", precision: 12, scale: 2
+    t.decimal "plaintiff_ideal", precision: 12, scale: 2
+    t.decimal "defendant_max_acceptable", precision: 12, scale: 2
+    t.decimal "defendant_ideal", precision: 12, scale: 2
     t.enum "pressure_escalation_rate", default: "moderate", null: false, enum_type: "pressure_escalation"
     t.jsonb "simulation_config", default: {}, null: false
     t.boolean "auto_events_enabled", default: true, null: false
@@ -525,9 +525,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_18_231317) do
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.uuid "plaintiff_team_id"
+    t.uuid "defendant_team_id"
     t.index ["case_id"], name: "index_simulations_on_case_id"
     t.index ["current_round"], name: "index_simulations_on_current_round"
+    t.index ["defendant_team_id"], name: "index_simulations_on_defendant_team_id"
     t.index ["deleted_at"], name: "index_simulations_on_deleted_at"
+    t.index ["plaintiff_team_id"], name: "index_simulations_on_plaintiff_team_id"
     t.index ["start_date"], name: "index_simulations_on_start_date"
     t.index ["status"], name: "index_simulations_on_status"
   end
@@ -660,6 +664,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_18_231317) do
   add_foreign_key "settlement_offers", "users", column: "submitted_by_id"
   add_foreign_key "simulation_events", "simulations"
   add_foreign_key "simulations", "cases"
+  add_foreign_key "simulations", "teams", column: "defendant_team_id"
+  add_foreign_key "simulations", "teams", column: "plaintiff_team_id"
   add_foreign_key "team_members", "teams", on_delete: :cascade
   add_foreign_key "team_members", "users"
   add_foreign_key "teams", "courses"

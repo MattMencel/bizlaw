@@ -15,28 +15,41 @@ class Simulation < ApplicationRecord
   has_one :arbitration_outcome, dependent: :destroy
   has_many :evidence_releases, dependent: :destroy
 
+  # Direct team associations
+  belongs_to :plaintiff_team, class_name: "Team", optional: true
+  belongs_to :defendant_team, class_name: "Team", optional: true
+
   # Delegated associations through case
-  delegate :plaintiff_team, :defendant_team, :assigned_teams, to: :case
+  delegate :assigned_teams, to: :case
 
   # Validations
-  validates :start_date, presence: true
+  validates :start_date, presence: true, if: -> { status_active? || status_paused? || status_completed? || status_arbitration? }
   validates :total_rounds, presence: true,
     numericality: {greater_than: 0, less_than_or_equal_to: 10}
   validates :current_round, presence: true,
     numericality: {greater_than_or_equal_to: 1}
+
+  # Financial validations only required when not in setup
   validates :plaintiff_min_acceptable, presence: true,
-    numericality: {greater_than: 0}
+    numericality: {greater_than: 0},
+    if: -> { status_active? || status_paused? || status_completed? || status_arbitration? }
   validates :plaintiff_ideal, presence: true,
-    numericality: {greater_than: 0}
+    numericality: {greater_than: 0},
+    if: -> { status_active? || status_paused? || status_completed? || status_arbitration? }
   validates :defendant_max_acceptable, presence: true,
-    numericality: {greater_than: 0}
+    numericality: {greater_than: 0},
+    if: -> { status_active? || status_paused? || status_completed? || status_arbitration? }
   validates :defendant_ideal, presence: true,
-    numericality: {greater_than_or_equal_to: 0}
+    numericality: {greater_than_or_equal_to: 0},
+    if: -> { status_active? || status_paused? || status_completed? || status_arbitration? }
   validates :simulation_config, presence: true
+  validates :plaintiff_team_id, presence: true, if: -> { status_active? || status_paused? || status_completed? || status_arbitration? }
+  validates :defendant_team_id, presence: true, if: -> { status_active? || status_paused? || status_completed? || status_arbitration? }
 
   validate :current_round_within_total_rounds
   validate :plaintiff_amounts_logical
   validate :defendant_amounts_logical
+  validate :teams_are_different
 
   # Enums
   enum :status, {
@@ -137,6 +150,14 @@ class Simulation < ApplicationRecord
 
     if defendant_ideal > defendant_max_acceptable
       errors.add(:defendant_ideal, "cannot be greater than maximum acceptable amount")
+    end
+  end
+
+  def teams_are_different
+    return unless plaintiff_team_id.present? && defendant_team_id.present?
+
+    if plaintiff_team_id == defendant_team_id
+      errors.add(:defendant_team_id, "cannot be the same as plaintiff team")
     end
   end
 end

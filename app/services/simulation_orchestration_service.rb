@@ -178,8 +178,8 @@ class SimulationOrchestrationService
     end
 
     # Check for settlement possibility
-    if simulation.plaintiff_min_accessible && simulation.defendant_max_acceptable &&
-        simulation.plaintiff_min_accessible > simulation.defendant_max_acceptable
+    if simulation.plaintiff_min_acceptable && simulation.defendant_max_acceptable &&
+        simulation.plaintiff_min_acceptable > simulation.defendant_max_acceptable
       errors << "Warning: Current ranges make settlement impossible - consider adjustment"
     end
 
@@ -188,6 +188,11 @@ class SimulationOrchestrationService
 
   # Start a simulation
   def start_simulation!
+    # Check if simulation is already active
+    unless simulation.status_setup?
+      raise StandardError, "Can only start simulations in setup status. Current status: #{simulation.status}"
+    end
+
     errors = validate_simulation_readiness
     raise StandardError, "Simulation validation failed: #{errors.join(", ")}" if errors.any?
 
@@ -200,14 +205,58 @@ class SimulationOrchestrationService
       status: :active
     )
 
-    # Schedule initial events
-    event_orchestrator = SimulationEventOrchestrator.new(simulation)
-    event_orchestrator.schedule_future_events!(2, 24) # Schedule round 2 events 24 hours ahead
+    # Schedule initial events if event orchestrator is available
+    if defined?(SimulationEventOrchestrator)
+      event_orchestrator = SimulationEventOrchestrator.new(simulation)
+      event_orchestrator.schedule_future_events!(2, 24) # Schedule round 2 events 24 hours ahead
+    end
 
     {
       simulation_started: true,
       initial_round: initial_round,
       start_time: simulation.start_date
+    }
+  end
+
+  # Pause a simulation
+  def pause_simulation!
+    simulation.update!(status: :paused)
+  end
+
+  # Resume a simulation
+  def resume_simulation!
+    simulation.update!(status: :active)
+  end
+
+  # Complete a simulation
+  def complete_simulation!
+    simulation.update!(status: :completed, end_date: Time.current)
+  end
+
+  # Trigger arbitration
+  def trigger_arbitration!
+    simulation.update!(status: :arbitration, end_date: Time.current)
+  end
+
+  # Advance to next round
+  def advance_round!
+    unless simulation.can_advance_round?
+      raise StandardError, "Cannot advance round - conditions not met"
+    end
+
+    simulation.next_round!
+
+    # Create new negotiation round
+    new_round = simulation.negotiation_rounds.create!(
+      round_number: simulation.current_round,
+      deadline: 48.hours.from_now,
+      status: :active
+    )
+
+    {
+      round_advanced: true,
+      new_round: new_round,
+      current_round: simulation.current_round
     }
   end
 
