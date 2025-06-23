@@ -78,7 +78,7 @@ class PerformanceReportGenerator
       summary_data = [
         ["Total Score", "#{current_performance_score.total_score}/100"],
         ["Grade", current_performance_score.performance_grade],
-        ["Class Rank", "#{current_performance_score.rank_in_simulation}"],
+        ["Class Rank", current_performance_score.rank_in_simulation.to_s],
         ["Percentile", "#{current_performance_score.percentile_in_simulation}th"],
         ["Last Updated", current_performance_score.scored_at.strftime("%B %d, %Y")]
       ]

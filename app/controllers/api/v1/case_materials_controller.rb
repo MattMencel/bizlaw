@@ -451,6 +451,6 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
 
   def sanitize_tags(tags)
     return [] unless tags.is_a?(Array)
-    tags.map(&:to_s).reject(&:blank?) # Ensure tags are strings and not empty
+    tags.map(&:to_s).compact_blank # Ensure tags are strings and not empty
   end
 end

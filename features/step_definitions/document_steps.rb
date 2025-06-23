@@ -346,7 +346,7 @@ def check_all_documents
   check "Select All" if page.has_field?("Select All")
 
   # If no "Select All" checkbox, check individual documents
-  page.all('input[type="checkbox"][name*="document"]').each do |checkbox|
+  page.all('input[type="checkbox"][name*="document"]').find_each do |checkbox|
     checkbox.check
   end
 end

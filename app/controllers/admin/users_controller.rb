@@ -80,7 +80,7 @@ class Admin::UsersController < ApplicationController
   private
 
   def set_user
-    @user = User.find(params[:id])
+    @user = policy_scope(User).find(params[:id])
   end
 
   def user_params
@@ -88,7 +88,7 @@ class Admin::UsersController < ApplicationController
 
     # Clean up empty values from roles array
     if permitted_params[:roles]
-      permitted_params[:roles] = permitted_params[:roles].reject(&:blank?)
+      permitted_params[:roles] = permitted_params[:roles].compact_blank
     end
 
     permitted_params

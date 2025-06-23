@@ -113,9 +113,7 @@ module NavigationHelper
       nil
     when "deadlines"
       # Count approaching deadlines
-      if current_user_case
-        current_user_case.upcoming_deadlines.count
-      end
+      current_user_case&.upcoming_deadlines&.count
     end
   end
 

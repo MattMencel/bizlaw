@@ -301,7 +301,7 @@ class SettlementOffer < ApplicationRecord
   end
 
   def calculate_justification_quality
-    return 0 unless justification.present?
+    return 0 if justification.blank?
 
     score = 0
 
@@ -346,7 +346,7 @@ class SettlementOffer < ApplicationRecord
   end
 
   def calculate_creativity_score
-    return 0 unless non_monetary_terms.present?
+    return 0 if non_monetary_terms.blank?
 
     score = 0
 

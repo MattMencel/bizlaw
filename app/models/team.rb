@@ -20,8 +20,6 @@ class Team < ApplicationRecord
     length: {maximum: 255},
     uniqueness: {scope: [:course_id, :owner_id], case_sensitive: false} # rubocop:disable Rails/UniqueValidationWithoutIndex
   validates :description, presence: true
-  validates :owner_id, presence: true
-  validates :course_id, presence: true
   validates :max_members, presence: true, numericality: {greater_than: 0}
   validate :validate_member_limit, on: :create
   validate :owner_must_be_enrolled_in_course

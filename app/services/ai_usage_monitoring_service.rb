@@ -73,19 +73,13 @@ class AiUsageMonitoringService
     }
 
     if current_cost >= limit
-      result.merge!(
-        exceeded: true,
-        message: "Daily budget exceeded: $#{current_cost.round(3)} / $#{limit}"
-      )
+      result[:exceeded] = true
+      result[:message] = "Daily budget exceeded: $#{current_cost.round(3)} / $#{limit}"
     elsif percentage_used >= (BUDGET_WARNING_THRESHOLD * 100)
-      result.merge!(
-        warning: true,
-        message: "Approaching daily budget limit: #{percentage_used}% used"
-      )
+      result[:warning] = true
+      result[:message] = "Approaching daily budget limit: #{percentage_used}% used"
     else
-      result.merge!(
-        message: "Budget OK: $#{current_cost.round(3)} / $#{limit} (#{percentage_used}%)"
-      )
+      result[:message] = "Budget OK: $#{current_cost.round(3)} / $#{limit} (#{percentage_used}%)"
     end
 
     result

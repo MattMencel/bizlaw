@@ -32,13 +32,10 @@ class Case < ApplicationRecord
   validates :description, presence: true
   validates :status, presence: true
   validates :difficulty_level, presence: true
-  validates :created_by_id, presence: true
-  validates :updated_by_id, presence: true
   validates :reference_number, presence: true, uniqueness: true
   validates :plaintiff_info, presence: true
   validates :defendant_info, presence: true
   validates :legal_issues, presence: true
-  validates :course_id, presence: true
   # validate :must_have_plaintiff_and_defendant_teams
 
   # Enums

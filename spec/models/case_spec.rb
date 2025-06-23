@@ -487,26 +487,26 @@ RSpec.describe Case, type: :model do
     let!(:simulation1) { create(:simulation, case: case_instance, status: :setup, created_at: 1.day.ago) }
     let!(:simulation2) {
       create(:simulation,
-             case: case_instance,
-             status: :active,
-             created_at: 2.hours.ago,
-             start_date: 3.hours.ago,
-             plaintiff_min_acceptable: 100000,
-             plaintiff_ideal: 200000,
-             defendant_max_acceptable: 150000,
-             defendant_ideal: 50000)
+        case: case_instance,
+        status: :active,
+        created_at: 2.hours.ago,
+        start_date: 3.hours.ago,
+        plaintiff_min_acceptable: 100000,
+        plaintiff_ideal: 200000,
+        defendant_max_acceptable: 150000,
+        defendant_ideal: 50000)
     }
     let!(:simulation3) {
       create(:simulation,
-             case: case_instance,
-             status: :completed,
-             created_at: 1.hour.ago,
-             start_date: 2.hours.ago,
-             end_date: 30.minutes.ago,
-             plaintiff_min_acceptable: 80000,
-             plaintiff_ideal: 180000,
-             defendant_max_acceptable: 140000,
-             defendant_ideal: 40000)
+        case: case_instance,
+        status: :completed,
+        created_at: 1.hour.ago,
+        start_date: 2.hours.ago,
+        end_date: 30.minutes.ago,
+        plaintiff_min_acceptable: 80000,
+        plaintiff_ideal: 180000,
+        defendant_max_acceptable: 140000,
+        defendant_ideal: 40000)
     }
 
     describe "#active_simulation" do

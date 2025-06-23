@@ -180,7 +180,7 @@ class Organization < ApplicationRecord
   private
 
   def normalize_slug
-    return unless name.present?
+    return if name.blank?
 
     self.slug = self.class.generate_slug_from_name(name) if slug.blank?
     self.slug = slug.downcase.strip

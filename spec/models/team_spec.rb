@@ -87,7 +87,6 @@ RSpec.describe Team, type: :model do
         expect(described_class.with_role("manager")).not_to include(active_team)
       end
     end
-
   end
 
   # Instance methods

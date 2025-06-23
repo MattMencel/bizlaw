@@ -464,7 +464,7 @@ class ClientFeedbackService
     weights = [0.2, 0.3, 0.5] # oldest to newest
     mood_scores = recent_feedbacks.map { |f| mood_to_score(f.mood_level) }
 
-    weighted_score = mood_scores.zip(weights[-mood_scores.length..-1]).sum { |score, weight| score * weight }
+    weighted_score = mood_scores.zip(weights[-mood_scores.length..]).sum { |score, weight| score * weight }
     score_to_mood(weighted_score)
   end
 

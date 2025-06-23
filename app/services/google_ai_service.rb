@@ -655,7 +655,7 @@ class GoogleAiService
   end
 
   def track_personality_consistency(settlement_offer, result)
-    return unless result[:personality_type].present?
+    return if result[:personality_type].blank?
 
     simulation = settlement_offer.negotiation_round.simulation
     case_instance = simulation.case

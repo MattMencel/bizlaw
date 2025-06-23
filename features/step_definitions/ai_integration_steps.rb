@@ -373,7 +373,7 @@ When("I submit a counteroffer of ${int}") do |amount|
 end
 
 When("I provide justification: {string}") do |justification|
-  @settlement_offer.update!(justification: justification) if @settlement_offer
+  @settlement_offer&.update!(justification: justification)
 end
 
 When("the AI service generates feedback for my offer") do
@@ -1101,11 +1101,11 @@ Given("both teams have submitted offers in round {int}") do |round_number|
 end
 
 Given("the plaintiff offer is ${int}") do |amount|
-  @plaintiff_offer.update!(amount: amount) if @plaintiff_offer
+  @plaintiff_offer&.update!(amount: amount)
 end
 
 Given("the defendant offer is ${int}") do |amount|
-  @defendant_offer.update!(amount: amount) if @defendant_offer
+  @defendant_offer&.update!(amount: amount)
 end
 
 Given("the {string} event has recently triggered") do |event_type|
@@ -1686,7 +1686,7 @@ When("the cache cleanup process runs") do
 
   @mock_cache.keys.each do |key|
     response = @mock_cache[key]
-    if response[:cached_at] && Time.parse(response[:cached_at]) < 2.hours.ago
+    if response[:cached_at] && Time.zone.parse(response[:cached_at]) < 2.hours.ago
       @mock_cache.delete(key)
       @cleanup_results[:expired_removed] += 1
     else

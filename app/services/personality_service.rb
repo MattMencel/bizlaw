@@ -118,7 +118,7 @@ class PersonalityService
       # Use case ID as seed for deterministic assignment
       random = Random.new(case_instance.id.hash)
 
-      available_types = PERSONALITY_DEFINITIONS.map { |p| p["type"] }
+      available_types = PERSONALITY_DEFINITIONS.pluck("type")
 
       # Ensure different personalities for plaintiff and defendant
       plaintiff_personality = available_types.sample(random: random)

@@ -10,8 +10,6 @@ class CourseEnrollment < ApplicationRecord
   belongs_to :course
 
   # Validations
-  validates :user_id, presence: true
-  validates :course_id, presence: true
   validates :status, presence: true, inclusion: {in: %w[active inactive withdrawn]}
   validates :enrolled_at, presence: true
   validates :user_id, uniqueness: {scope: :course_id, message: "is already enrolled in this course"}

@@ -11,8 +11,6 @@ class TeamMember < ApplicationRecord
   has_many :documents, as: :documentable, dependent: :destroy
 
   # Validations
-  validates :team_id, presence: true
-  validates :user_id, presence: true
   validates :role, presence: true
   validates :user_id, uniqueness: {
     scope: :team_id,
@@ -46,7 +44,7 @@ class TeamMember < ApplicationRecord
   private
 
   def team_not_full
-    if team && team.full? && team.team_members.where.not(id: id).exists?
+    if team&.full? && team.team_members.where.not(id: id).exists?
       errors.add(:base, "Team has reached maximum member capacity")
     end
   end

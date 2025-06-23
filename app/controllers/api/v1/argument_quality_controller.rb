@@ -209,8 +209,8 @@ class Api::V1::ArgumentQualityController < Api::V1::BaseController
     @settlement_offer = @case.active_simulation&.settlement_offers&.find(params[:id])
 
     unless @settlement_offer
-      render json: { error: "Settlement offer not found in active simulation" }, status: :not_found
-      return
+      render json: {error: "Settlement offer not found in active simulation"}, status: :not_found
+      nil
     end
   end
 
@@ -232,7 +232,7 @@ class Api::V1::ArgumentQualityController < Api::V1::BaseController
   end
 
   def calculate_simulation_impact
-    return {} unless @settlement_offer.instructor_quality_score.present?
+    return {} if @settlement_offer.instructor_quality_score.blank?
 
     dynamics_service = SimulationDynamicsService.new(@case.active_simulation)
 

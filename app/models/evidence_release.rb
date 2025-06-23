@@ -122,7 +122,7 @@ class EvidenceRelease < ApplicationRecord
   end
 
   def document_is_case_material
-    return unless document.present?
+    return if document.blank?
 
     unless document.case_material? && document.documentable == simulation.case
       errors.add(:document, "must be a case material for this simulation's case")

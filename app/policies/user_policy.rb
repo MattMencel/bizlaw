@@ -6,7 +6,14 @@ class UserPolicy < ApplicationPolicy
   end
 
   def show?
-    user.admin? || user.instructor? || user == record
+    return true if user.admin? || user == record
+
+    if user.org_admin? && !user.admin?
+      return false unless user.organization_id && record.organization_id
+      return user.organization_id == record.organization_id
+    end
+
+    user.instructor?
   end
 
   def create?
@@ -14,7 +21,14 @@ class UserPolicy < ApplicationPolicy
   end
 
   def update?
-    user.admin? || user == record
+    return true if user.admin? || user == record
+
+    if user.org_admin? && !user.admin?
+      return false unless user.organization_id && record.organization_id
+      return user.organization_id == record.organization_id
+    end
+
+    false
   end
 
   def destroy?
@@ -49,6 +63,9 @@ class UserPolicy < ApplicationPolicy
 
   class Scope < Scope
     def resolve
+      # Check if user has any valid roles
+      return scope.none if user.roles.blank?
+
       # Org admins are restricted to their organization users only (unless they're also regular admins)
       if user.org_admin? && !user.admin?
         return scope.none unless user.organization_id
@@ -62,7 +79,8 @@ class UserPolicy < ApplicationPolicy
         when "student"
           # Students can only see themselves and their teammates
           teammate_ids = user.teams.joins(:team_members).pluck("team_members.user_id")
-          scope.where(id: [user.id] + teammate_ids)
+          all_ids = ([user.id] + teammate_ids).uniq
+          scope.where(id: all_ids)
         else
           scope.none
         end

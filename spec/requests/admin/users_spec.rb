@@ -92,7 +92,7 @@ RSpec.describe "Admin::Users", type: :request do
       end
 
       it "filters correctly when searching within their organization" do
-        get admin_users_path, params: { search: same_org_student.first_name }
+        get admin_users_path, params: {search: same_org_student.first_name}
 
         expect(response).to have_http_status(:ok)
         expect(response.body).to include(same_org_student.full_name)
@@ -100,7 +100,7 @@ RSpec.describe "Admin::Users", type: :request do
       end
 
       it "shows organization filter but only includes their organization users" do
-        get admin_users_path, params: { organization_id: organization1.id }
+        get admin_users_path, params: {organization_id: organization1.id}
 
         expect(response).to have_http_status(:ok)
         expect(response.body).to include(same_org_student.full_name)
@@ -108,7 +108,7 @@ RSpec.describe "Admin::Users", type: :request do
       end
 
       it "does not show users from other organizations even when filtered" do
-        get admin_users_path, params: { organization_id: organization2.id }
+        get admin_users_path, params: {organization_id: organization2.id}
 
         expect(response).to have_http_status(:ok)
         expect(response.body).not_to include(other_org_student.full_name)
@@ -118,6 +118,7 @@ RSpec.describe "Admin::Users", type: :request do
 
     context "when org_admin has no organization" do
       let(:org_admin_no_org) { create(:user, :org_admin, organization: nil) }
+
       before { sign_in org_admin_no_org }
 
       it "returns no users" do
@@ -166,7 +167,7 @@ RSpec.describe "Admin::Users", type: :request do
       it "denies viewing users in different organization" do
         expect {
           get admin_user_path(other_org_student)
-        }.to raise_error(Pundit::NotAuthorizedError)
+        }.to raise_error(ActiveRecord::RecordNotFound)
       end
     end
   end
@@ -177,7 +178,7 @@ RSpec.describe "Admin::Users", type: :request do
 
       it "allows updating users in same organization" do
         patch admin_user_path(same_org_student), params: {
-          user: { first_name: "Updated Name" }
+          user: {first_name: "Updated Name"}
         }
 
         expect(response).to have_http_status(:redirect)
@@ -187,9 +188,9 @@ RSpec.describe "Admin::Users", type: :request do
       it "denies updating users in different organization" do
         expect {
           patch admin_user_path(other_org_student), params: {
-            user: { first_name: "Updated Name" }
+            user: {first_name: "Updated Name"}
           }
-        }.to raise_error(Pundit::NotAuthorizedError)
+        }.to raise_error(ActiveRecord::RecordNotFound)
       end
     end
   end

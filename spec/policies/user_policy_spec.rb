@@ -261,8 +261,9 @@ RSpec.describe UserPolicy, type: :policy do
       end
     end
 
-    describe "when user is instructor" do
-      let(:policy_scope) { UserPolicy::Scope.new(instructor, scope) }
+    describe "when user is instructor (without org_admin role)" do
+      let(:regular_instructor) { create(:user, :instructor, organization: organization1) }
+      let(:policy_scope) { UserPolicy::Scope.new(regular_instructor, scope) }
 
       it "returns all users" do
         resolved_users = policy_scope.resolve
@@ -314,8 +315,9 @@ RSpec.describe UserPolicy, type: :policy do
       let(:team) { create(:team, course: course, owner: student) }
 
       before do
-        # Enroll the student in the course first
+        # Enroll both students in the course first
         create(:course_enrollment, user: student, course: course, status: :active)
+        create(:course_enrollment, user: same_org_student, course: course, status: :active)
 
         # Create team memberships
         create(:team_member, user: student, team: team)
@@ -337,7 +339,8 @@ RSpec.describe UserPolicy, type: :policy do
       before do
         # Manually clear roles to simulate having no roles (testing edge case)
         no_role_user.update_column(:roles, [])
-        no_role_user.update_column(:role, nil)
+        # Set role to student to satisfy not-null constraint but roles array empty
+        no_role_user.update_column(:role, "student")
       end
 
       it "returns no users" do
