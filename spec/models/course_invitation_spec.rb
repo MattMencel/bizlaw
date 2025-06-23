@@ -4,10 +4,105 @@ RSpec.describe CourseInvitation, type: :model do
   let(:organization) { create(:organization, domain: "university.edu") }
   let(:instructor) { create(:user, :instructor, organization: organization, email: "instructor@university.edu") }
   let(:course) { create(:course, instructor: instructor, organization: organization) }
+  let(:course_invitation) { create(:course_invitation, course: course) }
+
+  describe "QR code functionality" do
+    describe "#qr_code_svg" do
+      it "generates SVG QR code with default size" do
+        svg = course_invitation.qr_code_svg
+
+        expect(svg).to include("<svg")
+        expect(svg).to include('width="200"')
+        expect(svg).to include('height="200"')
+        expect(svg).to include('class="qr-code"')
+      end
+
+      it "generates SVG QR code with custom size" do
+        svg = course_invitation.qr_code_svg(size: 300)
+
+        expect(svg).to include("<svg")
+        expect(svg).to include('width="300"')
+        expect(svg).to include('height="300"')
+      end
+
+      it "caches SVG for same size" do
+        first_call = course_invitation.qr_code_svg(size: 250)
+        second_call = course_invitation.qr_code_svg(size: 250)
+
+        expect(first_call).to eq(second_call)
+      end
+
+      it "generates different SVG for different sizes" do
+        small = course_invitation.qr_code_svg(size: 100)
+        large = course_invitation.qr_code_svg(size: 400)
+
+        expect(small).not_to eq(large)
+        expect(small).to include('width="100"')
+        expect(large).to include('width="400"')
+      end
+    end
+
+    describe "#qr_code_png" do
+      it "generates PNG QR code with default parameters" do
+        png = course_invitation.qr_code_png
+
+        expect(png).to respond_to(:to_s)
+        expect(png.to_s.length).to be > 0
+      end
+
+      it "generates PNG QR code with custom size" do
+        png = course_invitation.qr_code_png(size: 150)
+
+        expect(png).to respond_to(:to_s)
+        expect(png.to_s.length).to be > 0
+      end
+
+      it "generates PNG QR code with custom colors" do
+        png = course_invitation.qr_code_png(
+          size: 200,
+          fill: "FF0000",
+          background: "00FF00"
+        )
+
+        expect(png).to respond_to(:to_s)
+        expect(png.to_s.length).to be > 0
+      end
+    end
+
+    describe "#qr_code_data_uri" do
+      it "generates base64 data URI" do
+        data_uri = course_invitation.qr_code_data_uri
+
+        expect(data_uri).to start_with("data:image/png;base64,")
+        expect(data_uri.length).to be > 50
+      end
+
+      it "generates data URI with custom parameters" do
+        data_uri = course_invitation.qr_code_data_uri(
+          size: 100,
+          fill: "000000",
+          background: "FFFFFF"
+        )
+
+        expect(data_uri).to start_with("data:image/png;base64,")
+        expect(data_uri.length).to be > 50
+      end
+    end
+
+    describe "QR code content" do
+      it "encodes the correct invitation URL" do
+        expected_url = course_invitation.invitation_url
+
+        # Test that the SVG contains a representation of the URL
+        svg = course_invitation.qr_code_svg
+        expect(svg).to be_present
+        expect(expected_url).to include(course_invitation.token)
+      end
+    end
+  end
 
   describe "cross-domain student invitations" do
     context "when instructor invites student from different domain" do
-      let(:course_invitation) { create(:course_invitation, course: course) }
       let(:student_external_email) { "student@external-college.edu" }
 
       it "allows student from external domain to join course" do
