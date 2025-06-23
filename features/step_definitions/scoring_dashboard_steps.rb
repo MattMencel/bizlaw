@@ -120,7 +120,6 @@ Given("I have earned the following bonus points:") do |table|
       creative_terms_score: bonus_details["creative_solution"]&.dig("points") || 0,
       bonus_details: bonus_details
     )
-    @performance_score.calculate_total_score!
   else
     @performance_score = create(:performance_score,
       simulation: simulation,
@@ -130,8 +129,8 @@ Given("I have earned the following bonus points:") do |table|
       creative_terms_score: (bonus_details["creative_solution"]&.dig("points") || 0) +
                            (bonus_details["legal_research"]&.dig("points") || 0),
       bonus_details: bonus_details)
-    @performance_score.calculate_total_score!
   end
+  @performance_score.calculate_total_score!
 end
 
 Given("my course has {int} students across {int} teams") do |student_count, team_count|

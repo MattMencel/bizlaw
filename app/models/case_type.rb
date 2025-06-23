@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class CaseType < ActiveRecord::Base
+class CaseType < ApplicationRecord
   # CaseType doesn't follow the standard pattern - it uses integer IDs and no soft deletion
   include HasTimestamps
 

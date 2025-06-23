@@ -363,11 +363,11 @@ class CaseScenarioService
   end
 
   def self.case_types
-    SCENARIOS.map { |scenario| scenario[:case_type] }.uniq
+    SCENARIOS.distinct.pluck(:case_type)
   end
 
   def self.difficulty_levels
-    SCENARIOS.map { |scenario| scenario[:difficulty_level] }.uniq
+    SCENARIOS.distinct.pluck(:difficulty_level)
   end
 
   private

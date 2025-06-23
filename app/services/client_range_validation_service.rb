@@ -485,7 +485,7 @@ class ClientRangeValidationService
   end
 
   def combine_gap_guidance(base_guidance, ai_analysis)
-    if ai_analysis[:creative_options] && ai_analysis[:creative_options].any?
+    if ai_analysis[:creative_options]&.any?
       # Extract top creative options from AI
       top_options = ai_analysis[:creative_options].first(2)
       creative_text = top_options.join("; ")

@@ -282,7 +282,7 @@ class SimulationDynamicsService
 
   # Calculate impact of specific settlement offer quality on simulation dynamics
   def calculate_quality_impact(settlement_offer)
-    return {} unless settlement_offer.final_quality_score.present?
+    return {} if settlement_offer.final_quality_score.blank?
 
     quality_score = settlement_offer.final_quality_score
     quality_percentage = quality_score / 125.0
@@ -298,7 +298,7 @@ class SimulationDynamicsService
 
   # Apply argument quality adjustments when instructor scores an offer
   def apply_argument_quality_adjustments!(settlement_offer)
-    return unless settlement_offer.final_quality_score.present?
+    return if settlement_offer.final_quality_score.blank?
 
     quality_impact = calculate_quality_impact(settlement_offer)
     adjustments = quality_impact[:range_adjustments]

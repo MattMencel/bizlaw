@@ -488,7 +488,7 @@ module Api
       def calculate_convergence_rate(rounds)
         return 0 if rounds.length < 2
 
-        gaps = rounds.map { |r| r[:settlement_gap] }.compact
+        gaps = rounds.pluck(:settlement_gap).compact
         return 0 if gaps.length < 2
 
         initial_gap = gaps.first
@@ -513,7 +513,7 @@ module Api
 
       def calculate_gap_closing_rate
         rounds = negotiation_rounds_summary
-        gaps = rounds.map { |r| r[:settlement_gap] }.compact
+        gaps = rounds.pluck(:settlement_gap).compact
 
         return 0 if gaps.length < 2
 

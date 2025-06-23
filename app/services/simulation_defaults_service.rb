@@ -89,7 +89,7 @@ class SimulationDefaultsService
   private
 
   def find_scenario_for_case_type
-    return nil unless case_record.case_type.present?
+    return nil if case_record.case_type.blank?
 
     CaseScenarioService.all.find do |scenario|
       scenario[:case_type] == case_record.case_type
@@ -153,12 +153,12 @@ class SimulationDefaultsService
   end
 
   def create_team_for_role(role)
-    team_name = role == :plaintiff ? "Plaintiff Team" : "Defendant Team"
-    description = role == :plaintiff ? "Default team for plaintiff side" : "Default team for defendant side"
+    team_name = (role == :plaintiff) ? "Plaintiff Team" : "Defendant Team"
+    description = (role == :plaintiff) ? "Default team for plaintiff side" : "Default team for defendant side"
 
     # Ensure owner is enrolled in the course
-    unless case_record.course.course_enrollments.exists?(user: case_record.created_by, status: 'active')
-      case_record.course.course_enrollments.create!(user: case_record.created_by, status: 'active')
+    unless case_record.course.course_enrollments.exists?(user: case_record.created_by, status: "active")
+      case_record.course.course_enrollments.create!(user: case_record.created_by, status: "active")
     end
 
     team = Team.create!(

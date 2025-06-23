@@ -109,7 +109,7 @@ class Term < ApplicationRecord
   end
 
   def normalize_slug
-    return unless slug.present?
+    return if slug.blank?
 
     self.slug = slug.downcase
       .gsub(/[^\w\-]/, "").squeeze("-")        # Replace multiple hyphens with single

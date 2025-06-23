@@ -14,7 +14,6 @@ class CourseInvitation < ApplicationRecord
 
   # Validations
   validates :token, presence: true, uniqueness: true
-  validates :course_id, presence: true
   validates :current_uses, presence: true,
     numericality: {greater_than_or_equal_to: 0}
   validates :max_uses, numericality: {greater_than: 0}, allow_nil: true
@@ -188,7 +187,7 @@ class CourseInvitation < ApplicationRecord
   end
 
   def not_expired
-    return unless expires_at.present?
+    return if expires_at.blank?
 
     if expires_at <= Time.current
       errors.add(:expires_at, "cannot be in the past")

@@ -224,10 +224,10 @@ class SimulationsController < ApplicationController
   end
 
   def set_simulation
-    if params[:id]
-      @simulation = @case.simulations.find(params[:id])
+    @simulation = if params[:id]
+      @case.simulations.find(params[:id])
     else
-      @simulation = @case.active_simulation
+      @case.active_simulation
     end
 
     unless @simulation

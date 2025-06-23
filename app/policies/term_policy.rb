@@ -29,10 +29,8 @@ class TermPolicy < ApplicationPolicy
         scope.all
       when "instructor"
         if user.org_admin?
-          scope.where(organization: user.organization)
-        else
-          scope.where(organization: user.organization)
         end
+        scope.where(organization: user.organization)
       when "student"
         scope.where(organization: user.organization)
       else

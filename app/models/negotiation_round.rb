@@ -121,7 +121,7 @@ class NegotiationRound < ApplicationRecord
   private
 
   def deadline_in_future
-    return unless deadline.present?
+    return if deadline.blank?
 
     errors.add(:deadline, "must be in the future") if deadline <= Time.current
   end

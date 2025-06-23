@@ -22,7 +22,7 @@ class EvidenceVaultController < ApplicationController
   def search
     @search_query = params[:q]&.strip
     @category_filter = params[:category]
-    @tag_filters = Array(params[:tags]).reject(&:blank?)
+    @tag_filters = Array(params[:tags]).compact_blank
     @page = [params[:page]&.to_i || 1, 1].max
     @per_page = [params[:per_page]&.to_i || 25, 100].min
 
@@ -116,7 +116,7 @@ class EvidenceVaultController < ApplicationController
   def update_tags
     authorize @document, :update?
 
-    new_tags = Array(params[:tags]).map(&:strip).reject(&:blank?).uniq
+    new_tags = Array(params[:tags]).map(&:strip).compact_blank.uniq
 
     if new_tags.any? { |tag| tag.match?(/\A\s*\z/) }
       return render json: {errors: ["Tags cannot be blank"]}, status: :unprocessable_entity
@@ -148,7 +148,7 @@ class EvidenceVaultController < ApplicationController
       return render json: {errors: ["Bundle name cannot be blank"]}, status: :unprocessable_entity
     end
 
-    document_ids = Array(bundle_params[:document_ids]).reject(&:blank?)
+    document_ids = Array(bundle_params[:document_ids]).compact_blank
     if document_ids.empty?
       return render json: {errors: ["Bundle must contain at least one document"]}, status: :unprocessable_entity
     end
@@ -202,7 +202,7 @@ class EvidenceVaultController < ApplicationController
     @team_membership = current_user.team_members
       .joins(:team)
       .joins("JOIN case_teams ON case_teams.team_id = teams.id")
-      .where("case_teams.case_id = ?", @case.id)
+      .where(case_teams: {case_id: @case.id})
       .first
   end
 

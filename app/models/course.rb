@@ -20,7 +20,6 @@ class Course < ApplicationRecord
   validates :course_code, presence: true,
     length: {maximum: 20},
     uniqueness: {scope: :organization_id, case_sensitive: false}
-  validates :instructor_id, presence: true
   validates :year, presence: true,
     numericality: {
       greater_than: 2000,

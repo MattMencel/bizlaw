@@ -82,8 +82,8 @@ RSpec.describe "Client Consultation", type: :system do
 
       # Check for range comparison update (this will depend on the simulation's range values)
       expect(page).to have_content("Within acceptable range", wait: 2) ||
-             have_content("Below minimum acceptable", wait: 2) ||
-             have_content("Exceeds client's ideal target", wait: 2)
+        have_content("Below minimum acceptable", wait: 2) ||
+        have_content("Exceeds client's ideal target", wait: 2)
     end
 
     it "validates settlement amount before making AI request" do
@@ -105,7 +105,7 @@ RSpec.describe "Client Consultation", type: :system do
         fill_in "settlement_amount", with: "150000"
 
         # Mock the AI response to avoid actual API calls in tests
-        page.execute_script("""
+        page.execute_script("
           window.originalFetch = window.fetch;
           window.fetch = function(url, options) {
             return new Promise((resolve) => {
@@ -124,7 +124,7 @@ RSpec.describe "Client Consultation", type: :system do
               }, 100);
             });
           };
-        """)
+        ")
 
         click_button "Get Client Reaction"
 
@@ -137,7 +137,7 @@ RSpec.describe "Client Consultation", type: :system do
         fill_in "settlement_justification", with: "Fair compensation for damages"
 
         # Mock successful AI response
-        page.execute_script("""
+        page.execute_script("
           window.fetch = function(url, options) {
             return Promise.resolve({
               ok: true,
@@ -152,7 +152,7 @@ RSpec.describe "Client Consultation", type: :system do
               })
             });
           };
-        """)
+        ")
 
         click_button "Get Client Reaction"
 
@@ -166,19 +166,19 @@ RSpec.describe "Client Consultation", type: :system do
         fill_in "settlement_amount", with: "150000"
 
         # Mock failed AI response
-        page.execute_script("""
+        page.execute_script("
           window.fetch = function(url, options) {
             return Promise.reject(new Error('AI service unavailable'));
           };
-        """)
+        ")
 
         click_button "Get Client Reaction"
 
         # Should show fallback reaction
         expect(page).to have_content("Client Reaction:", wait: 5)
         expect(page).to have_content("pleased", wait: 5) ||
-               have_content("neutral", wait: 5) ||
-               have_content("concerned", wait: 5)
+          have_content("neutral", wait: 5) ||
+          have_content("concerned", wait: 5)
       end
     end
 
@@ -187,7 +187,7 @@ RSpec.describe "Client Consultation", type: :system do
         fill_in "settlement_amount", with: "300000" # High amount for plaintiff
 
         # Mock appropriate high amount response
-        page.execute_script("""
+        page.execute_script("
           window.fetch = function(url, options) {
             return Promise.resolve({
               ok: true,
@@ -200,7 +200,7 @@ RSpec.describe "Client Consultation", type: :system do
               })
             });
           };
-        """)
+        ")
 
         click_button "Get Client Reaction"
 
@@ -211,7 +211,7 @@ RSpec.describe "Client Consultation", type: :system do
         fill_in "settlement_amount", with: "25000" # Low amount for plaintiff
 
         # Mock appropriate low amount response
-        page.execute_script("""
+        page.execute_script("
           window.fetch = function(url, options) {
             return Promise.resolve({
               ok: true,
@@ -224,7 +224,7 @@ RSpec.describe "Client Consultation", type: :system do
               })
             });
           };
-        """)
+        ")
 
         click_button "Get Client Reaction"
 
@@ -316,11 +316,11 @@ RSpec.describe "Client Consultation", type: :system do
       fill_in "settlement_amount", with: "150000"
 
       # Mock network error
-      page.execute_script("""
+      page.execute_script("
         window.fetch = function(url, options) {
           return Promise.reject(new Error('Network error'));
         };
-      """)
+      ")
 
       click_button "Get Client Reaction"
 
@@ -332,7 +332,7 @@ RSpec.describe "Client Consultation", type: :system do
       fill_in "settlement_amount", with: "150000"
 
       # Mock invalid server response
-      page.execute_script("""
+      page.execute_script("
         window.fetch = function(url, options) {
           return Promise.resolve({
             ok: false,
@@ -340,7 +340,7 @@ RSpec.describe "Client Consultation", type: :system do
             statusText: 'Internal Server Error'
           });
         };
-      """)
+      ")
 
       click_button "Get Client Reaction"
 

@@ -611,8 +611,8 @@ RSpec.describe "Negotiations", type: :request do
       context "with valid parameters" do
         it "returns successful JSON response" do
           post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
-               params: ai_reaction_params,
-               headers: { 'Accept' => 'application/json' }
+            params: ai_reaction_params,
+            headers: {"Accept" => "application/json"}
 
           expect(response).to have_http_status(:success)
           expect(response.content_type).to include("application/json")
@@ -633,8 +633,8 @@ RSpec.describe "Negotiations", type: :request do
           })
 
           post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
-               params: ai_reaction_params,
-               headers: { 'Accept' => 'application/json' }
+            params: ai_reaction_params,
+            headers: {"Accept" => "application/json"}
 
           json_response = JSON.parse(response.body)
           expect(json_response).to have_key("reaction")
@@ -650,8 +650,8 @@ RSpec.describe "Negotiations", type: :request do
           allow(ai_service_mock).to receive(:enabled?).and_return(false)
 
           post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
-               params: ai_reaction_params,
-               headers: { 'Accept' => 'application/json' }
+            params: ai_reaction_params,
+            headers: {"Accept" => "application/json"}
 
           json_response = JSON.parse(response.body)
           expect(json_response).to have_key("reaction")
@@ -663,8 +663,8 @@ RSpec.describe "Negotiations", type: :request do
           high_amount_params = ai_reaction_params.merge(amount: 300000)
 
           post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
-               params: high_amount_params,
-               headers: { 'Accept' => 'application/json' }
+            params: high_amount_params,
+            headers: {"Accept" => "application/json"}
 
           json_response = JSON.parse(response.body)
           expect(json_response["reaction"]["reaction"]).to eq("pleased")
@@ -677,8 +677,8 @@ RSpec.describe "Negotiations", type: :request do
           low_amount_params = ai_reaction_params.merge(amount: 50000)
 
           post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
-               params: low_amount_params,
-               headers: { 'Accept' => 'application/json' }
+            params: low_amount_params,
+            headers: {"Accept" => "application/json"}
 
           json_response = JSON.parse(response.body)
           expect(json_response["reaction"]["reaction"]).to eq("pleased")
@@ -690,8 +690,8 @@ RSpec.describe "Negotiations", type: :request do
           invalid_params = ai_reaction_params.except(:amount)
 
           post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
-               params: invalid_params,
-               headers: { 'Accept' => 'application/json' }
+            params: invalid_params,
+            headers: {"Accept" => "application/json"}
 
           expect(response).to have_http_status(:bad_request)
           json_response = JSON.parse(response.body)
@@ -703,8 +703,8 @@ RSpec.describe "Negotiations", type: :request do
           invalid_params = ai_reaction_params.merge(amount: 0)
 
           post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
-               params: invalid_params,
-               headers: { 'Accept' => 'application/json' }
+            params: invalid_params,
+            headers: {"Accept" => "application/json"}
 
           expect(response).to have_http_status(:bad_request)
           json_response = JSON.parse(response.body)
@@ -716,8 +716,8 @@ RSpec.describe "Negotiations", type: :request do
           invalid_params = ai_reaction_params.merge(amount: -1000)
 
           post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
-               params: invalid_params,
-               headers: { 'Accept' => 'application/json' }
+            params: invalid_params,
+            headers: {"Accept" => "application/json"}
 
           expect(response).to have_http_status(:bad_request)
           json_response = JSON.parse(response.body)
@@ -734,8 +734,8 @@ RSpec.describe "Negotiations", type: :request do
           allow(ai_service_mock).to receive(:generate_settlement_feedback).and_raise(StandardError, "AI service error")
 
           post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
-               params: ai_reaction_params,
-               headers: { 'Accept' => 'application/json' }
+            params: ai_reaction_params,
+            headers: {"Accept" => "application/json"}
 
           expect(response).to have_http_status(:internal_server_error)
           json_response = JSON.parse(response.body)
@@ -759,8 +759,8 @@ RSpec.describe "Negotiations", type: :request do
           })
 
           post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
-               params: ai_reaction_params,
-               headers: { 'Accept' => 'application/json' }
+            params: ai_reaction_params,
+            headers: {"Accept" => "application/json"}
 
           json_response = JSON.parse(response.body)
           expect(json_response["reaction"]["reaction"]).to eq("pleased")
@@ -773,8 +773,8 @@ RSpec.describe "Negotiations", type: :request do
           })
 
           post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
-               params: ai_reaction_params,
-               headers: { 'Accept' => 'application/json' }
+            params: ai_reaction_params,
+            headers: {"Accept" => "application/json"}
 
           json_response = JSON.parse(response.body)
           expect(json_response["reaction"]["reaction"]).to eq("concerned")
@@ -785,7 +785,7 @@ RSpec.describe "Negotiations", type: :request do
     context "when user is not authenticated" do
       it "redirects to sign in" do
         post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
-             params: ai_reaction_params
+          params: ai_reaction_params
 
         expect(response).to redirect_to(new_user_session_path)
       end
@@ -799,7 +799,7 @@ RSpec.describe "Negotiations", type: :request do
 
       it "redirects with error message" do
         post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
-             params: ai_reaction_params
+          params: ai_reaction_params
 
         expect(response).to redirect_to(cases_path)
         expect(flash[:alert]).to include("not assigned to a team")
