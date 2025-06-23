@@ -98,4 +98,6 @@ class SettlementOfferSerializer
 
     recommendations
   end
+
+  private_class_method :analyze_movement, :generate_recommendations
 end

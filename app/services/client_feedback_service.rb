@@ -890,7 +890,7 @@ class ClientFeedbackService
       base_score -= 20
     end
 
-    [[base_score, 100].min, 0].max
+    base_score.clamp(0, 100)
   end
 
   def generate_ai_enhanced_settlement_feedback(team_offer, settlement_amount, role)

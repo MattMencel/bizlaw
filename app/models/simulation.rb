@@ -193,4 +193,6 @@ class Simulation < ApplicationRecord
     self.defendant_max_acceptable = randomized[:defendant_max_acceptable]
     self.defendant_ideal = randomized[:defendant_ideal]
   end
+
+  private_class_method :build_with_defaults, :create_with_defaults
 end

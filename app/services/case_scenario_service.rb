@@ -375,4 +375,6 @@ class CaseScenarioService
   def self.generate_reference_number
     "CASE-#{Date.current.year}-#{SecureRandom.hex(3).upcase}"
   end
+
+  private_class_method :generate_reference_number
 end

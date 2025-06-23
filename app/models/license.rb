@@ -218,4 +218,6 @@ class License < ApplicationRecord
     signature = OpenSSL::HMAC.hexdigest("SHA256", secret_key, payload)
     Base64.strict_encode64("#{signature}|#{timestamp}")
   end
+
+  private_class_method :sign_license_data
 end

@@ -4,8 +4,10 @@ module ImpersonationReadOnly
   extend ActiveSupport::Concern
 
   included do
+    # rubocop:disable Rails/LexicallyScopedActionFilter
     before_action :enforce_read_only_during_impersonation,
       except: [:show, :index, :impersonate, :stop_impersonation, :enable_full_permissions, :disable_full_permissions]
+    # rubocop:enable Rails/LexicallyScopedActionFilter
   end
 
   private

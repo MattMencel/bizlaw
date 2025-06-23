@@ -239,17 +239,17 @@ end
 
 Then("the {string} section should collapse") do |section_name|
   section_id = section_name.downcase.tr(" ", "-")
-  expect(page).to have_css("##{section_id}-content", visible: false)
+  expect(page).to have_css("##{section_id}-content", visible: :hidden)
 end
 
 Then("the {string} section should expand") do |section_name|
   section_id = section_name.downcase.tr(" ", "-")
-  expect(page).to have_css("##{section_id}-content", visible: true)
+  expect(page).to have_css("##{section_id}-content", visible: :visible)
 end
 
 Then("the {string} section should remain collapsed") do |section_name|
   section_id = section_name.downcase.tr(" ", "-")
-  expect(page).to have_css("##{section_id}-content", visible: false)
+  expect(page).to have_css("##{section_id}-content", visible: :hidden)
 end
 
 When("I click on the context switcher") do
@@ -257,7 +257,7 @@ When("I click on the context switcher") do
 end
 
 Then("I should see the context switcher dropdown") do
-  expect(page).to have_css('[data-context-switcher-target="dropdown"]', visible: true)
+  expect(page).to have_css('[data-context-switcher-target="dropdown"]', visible: :visible)
 end
 
 Then("I should see {string} as an option") do |option_text|
@@ -312,7 +312,7 @@ When("I press the Escape key") do
 end
 
 Then("any open dropdowns should close") do
-  expect(page).not_to have_css('[data-context-switcher-target="dropdown"]', visible: true)
+  expect(page).not_to have_css('[data-context-switcher-target="dropdown"]', visible: :visible)
 end
 
 Then("I should see {string} in the Administration section") do |item_text|
@@ -326,7 +326,7 @@ Then("I should see the mobile navigation toggle") do
 end
 
 Then("the main navigation should be hidden") do
-  expect(page).to have_css("nav", visible: false)
+  expect(page).to have_css("nav", visible: :hidden)
 end
 
 When("I click the mobile navigation toggle") do
@@ -334,7 +334,7 @@ When("I click the mobile navigation toggle") do
 end
 
 Then("the mobile navigation menu should slide out") do
-  expect(page).to have_css('[data-mobile-navigation-target="menu"]', visible: true)
+  expect(page).to have_css('[data-mobile-navigation-target="menu"]', visible: :visible)
 end
 
 When("I click outside the mobile menu") do
@@ -342,7 +342,7 @@ When("I click outside the mobile menu") do
 end
 
 Then("the mobile navigation menu should close") do
-  expect(page).to have_css('[data-mobile-navigation-target="menu"]', visible: false)
+  expect(page).to have_css('[data-mobile-navigation-target="menu"]', visible: :hidden)
 end
 
 When("I type {string} in the search field") do |search_term|
@@ -412,7 +412,7 @@ end
 
 Then("the dropdown should load within {int} seconds") do |seconds|
   using_wait_time(seconds) do
-    expect(page).to have_css('[data-context-switcher-target="dropdown"]', visible: true)
+    expect(page).to have_css('[data-context-switcher-target="dropdown"]', visible: :visible)
   end
 end
 
@@ -476,11 +476,11 @@ When("I resize the browser to mobile width {int}px") do |width|
 end
 
 Then("the navigation should automatically switch to mobile mode") do
-  expect(page).to have_css('[data-mobile-navigation-target="toggle"]', visible: true)
+  expect(page).to have_css('[data-mobile-navigation-target="toggle"]', visible: :visible)
 end
 
 Then("the hamburger menu should be visible") do
-  expect(page).to have_css('[data-mobile-navigation-target="toggle"]', visible: true)
+  expect(page).to have_css('[data-mobile-navigation-target="toggle"]', visible: :visible)
 end
 
 Then("the main content should be fully accessible") do
@@ -495,11 +495,11 @@ When("I resize back to desktop width") do
 end
 
 Then("the navigation should return to desktop mode") do
-  expect(page).to have_css('[data-mobile-navigation-target="toggle"]', visible: false)
+  expect(page).to have_css('[data-mobile-navigation-target="toggle"]', visible: :hidden)
 end
 
 Then("the hamburger menu should be hidden") do
-  expect(page).to have_css('[data-mobile-navigation-target="toggle"]', visible: false)
+  expect(page).to have_css('[data-mobile-navigation-target="toggle"]', visible: :hidden)
 end
 
 Then("the navigation should not occupy more than {int}% of the screen width") do |percentage|

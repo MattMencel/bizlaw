@@ -255,4 +255,8 @@ class ClientFeedback < ApplicationRecord
 
     [mood, satisfaction, message]
   end
+
+  private_class_method :calculate_offer_reaction, :calculate_plaintiff_reaction,
+    :calculate_defendant_reaction, :calculate_pressure_response,
+    :calculate_strategy_guidance
 end

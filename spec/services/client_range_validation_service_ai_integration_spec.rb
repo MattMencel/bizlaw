@@ -590,9 +590,7 @@ RSpec.describe ClientRangeValidationService do
         expect(results.length).to eq(concurrent_validations)
         expect(end_time - start_time).to be < 2.0  # Should complete quickly
 
-        results.each do |result|
-          expect(result).to be_a(described_class::ValidationResult)
-        end
+        expect(results).to all(be_a(described_class::ValidationResult))
       end
     end
   end
