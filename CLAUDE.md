@@ -117,6 +117,79 @@ For browser automation and E2E testing:
 
 These MCPs provide more reliable and feature-rich alternatives to traditional CLI tools for GitHub and browser automation tasks.
 
+## Pull Request Review Guidelines
+
+When reviewing pull requests, follow this systematic approach:
+
+### Review Process
+1. **Checkout and Setup**
+   ```bash
+   git checkout main && git pull origin main
+   git checkout <pr-branch>
+   bundle install  # If dependencies changed
+   ```
+
+2. **Analysis Phase**
+   - Use GitHub MCP tools to fetch PR details and changed files
+   - Review PR description, type (feature/bugfix/dependency), and scope
+   - Identify the primary changes and potential impact areas
+
+3. **Testing Phase**
+   - Run relevant test suites based on changed files:
+     - `bundle exec rspec spec/models/` for model changes
+     - `bundle exec rspec spec/requests/` for API changes
+     - `bundle exec rspec spec/system/` for UI changes
+     - `bundle exec cucumber` for feature changes
+   - For dependency updates: verify bundle install success and run core test suites
+   - Check that existing test failures are pre-existing, not introduced by the PR
+
+4. **Code Quality Checks**
+   ```bash
+   bin/rubocop     # Style and code quality
+   bin/brakeman    # Security analysis
+   ```
+
+### Review Criteria
+
+**✅ APPROVE when:**
+- All relevant tests pass or failures are pre-existing
+- Code follows Rails Omakase conventions and project patterns
+- Security best practices are maintained
+- Dependencies are safe minor/patch updates
+- Documentation is updated if needed
+
+**🔄 REQUEST CHANGES when:**
+- New test failures introduced by the PR
+- Security vulnerabilities or bad practices
+- Breaking changes without proper migration strategy
+- Code doesn't follow project conventions
+- Missing tests for new functionality
+
+**📝 COMMENT for:**
+- Suggestions for improvement
+- Questions about implementation approach
+- Non-blocking style or performance recommendations
+
+### Special Cases
+
+**Dependency Updates (like Dependabot PRs):**
+- Focus on version compatibility and security
+- Check for breaking changes in release notes
+- Verify bundle install succeeds
+- Run core test suite to ensure no regressions
+- Generally safe to approve minor/patch updates from trusted sources
+
+**Feature PRs:**
+- Ensure comprehensive test coverage
+- Check for proper error handling
+- Verify UI/UX follows design patterns
+- Test accessibility compliance if UI changes
+
+**Bugfix PRs:**
+- Verify the fix addresses the root cause
+- Check for regression test coverage
+- Ensure fix doesn't introduce new issues
+
 ## Project Documentation
 
 - **PRDs**: Product Requirements Documents are located in the `.prd/` folder
