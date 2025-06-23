@@ -7,7 +7,7 @@ class TeamsController < ApplicationController
   before_action :set_team, only: [:show, :edit, :update, :destroy]
 
   def index
-    @teams = Team.all
+    @teams = Team.accessible_by(current_user)
 
     respond_to do |format|
       format.html
@@ -58,10 +58,15 @@ class TeamsController < ApplicationController
   end
 
   def destroy
+    authorize @team
     @team.destroy
 
     respond_to do |format|
-      format.html { redirect_to teams_path, notice: "Team was successfully deleted." }
+      if @course
+        format.html { redirect_to course_path(@course), notice: "Team was successfully deleted." }
+      else
+        format.html { redirect_to teams_path, notice: "Team was successfully deleted." }
+      end
       format.json { head :no_content }
     end
   end
@@ -74,9 +79,9 @@ class TeamsController < ApplicationController
 
   def set_team
     @team = if @course
-      @course.teams.find(params[:id])
+      @course.teams.accessible_by(current_user).find(params[:id])
     else
-      Team.find(params[:id])
+      Team.accessible_by(current_user).find(params[:id])
     end
   end
 

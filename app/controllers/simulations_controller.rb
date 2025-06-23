@@ -8,21 +8,33 @@ class SimulationsController < ApplicationController
   before_action :authorize_simulation_management
 
   def new
-    @simulation = @case.build_simulation(
-      status: :setup,
-      total_rounds: 6,
-      current_round: 1,
-      simulation_config: default_simulation_config,
-      pressure_escalation_rate: :moderate
-    )
+    service = SimulationDefaultsService.new(@case)
+    @simulation = service.build_simulation_with_defaults
     load_teams_for_assignment
   end
 
   def create
-    @simulation = @case.build_simulation(simulation_params)
-    @simulation.status = :setup
-    @simulation.current_round = 1
-    @simulation.simulation_config = default_simulation_config.merge(simulation_params[:simulation_config] || {})
+    service = SimulationDefaultsService.new(@case)
+
+    # Check if using defaults or custom parameters
+    if simulation_params[:use_case_defaults] == "true"
+      @simulation = service.build_simulation_with_defaults
+    elsif simulation_params[:use_randomized_defaults] == "true"
+      @simulation = service.build_simulation_with_randomized_defaults
+    else
+      # Manual configuration - use provided parameters
+      @simulation = @case.build_simulation(simulation_params.except(:use_case_defaults, :use_randomized_defaults))
+      @simulation.status = :setup
+      @simulation.current_round = 1
+      @simulation.simulation_config = default_simulation_config.merge(simulation_params[:simulation_config] || {})
+
+      # Ensure teams are set if not provided
+      if @simulation.plaintiff_team_id.blank? || @simulation.defendant_team_id.blank?
+        teams = service.default_teams
+        @simulation.plaintiff_team = teams[:plaintiff_team] if @simulation.plaintiff_team_id.blank?
+        @simulation.defendant_team = teams[:defendant_team] if @simulation.defendant_team_id.blank?
+      end
+    end
 
     respond_to do |format|
       if @simulation.save
@@ -212,7 +224,11 @@ class SimulationsController < ApplicationController
   end
 
   def set_simulation
-    @simulation = @case.simulation
+    if params[:id]
+      @simulation = @case.simulations.find(params[:id])
+    else
+      @simulation = @case.active_simulation
+    end
 
     unless @simulation
       redirect_to course_case_path(@case.course, @case), alert: "No simulation exists for this case. Please create one first."
@@ -225,6 +241,7 @@ class SimulationsController < ApplicationController
       :defendant_ideal, :defendant_max_acceptable,
       :total_rounds, :pressure_escalation_rate,
       :plaintiff_team_id, :defendant_team_id,
+      :use_case_defaults, :use_randomized_defaults,
       simulation_config: {}
     )
   end
@@ -234,7 +251,7 @@ class SimulationsController < ApplicationController
   end
 
   def load_teams_for_assignment
-    @available_teams = @case.course.teams.includes(:users)
+    @available_teams = @case.course.teams
     @assigned_teams = @case.case_teams.includes(:team)
   end
 

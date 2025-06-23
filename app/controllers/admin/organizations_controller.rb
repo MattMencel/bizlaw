@@ -53,7 +53,7 @@ class Admin::OrganizationsController < ApplicationController
     authorize @organization
 
     if @organization.save
-      redirect_to admin_organization_path(@organization),
+      redirect_to admin_organizations_path,
         notice: "Organization was successfully created."
     else
       render :new, status: :unprocessable_entity

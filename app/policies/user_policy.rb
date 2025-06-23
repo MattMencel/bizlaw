@@ -2,7 +2,7 @@
 
 class UserPolicy < ApplicationPolicy
   def index?
-    user.instructor? || user.admin?
+    user.instructor? || user.admin? || user.org_admin?
   end
 
   def show?
@@ -49,17 +49,23 @@ class UserPolicy < ApplicationPolicy
 
   class Scope < Scope
     def resolve
-      case user.role
-      when "admin"
-        scope.all
-      when "instructor"
-        scope.all
-      when "student"
-        # Students can only see themselves and their teammates
-        teammate_ids = user.teams.joins(:team_members).pluck("team_members.user_id")
-        scope.where(id: [user.id] + teammate_ids)
+      # Org admins are restricted to their organization users only (unless they're also regular admins)
+      if user.org_admin? && !user.admin?
+        return scope.none unless user.organization_id
+        scope.where(organization_id: user.organization_id)
       else
-        scope.none
+        case user.role
+        when "admin"
+          scope.all
+        when "instructor"
+          scope.all
+        when "student"
+          # Students can only see themselves and their teammates
+          teammate_ids = user.teams.joins(:team_members).pluck("team_members.user_id")
+          scope.where(id: [user.id] + teammate_ids)
+        else
+          scope.none
+        end
       end
     end
   end

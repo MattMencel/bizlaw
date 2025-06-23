@@ -9,10 +9,14 @@ class Api::V1::ArgumentQualityController < Api::V1::BaseController
   # GET /api/v1/cases/:case_id/argument_quality
   # List all settlement offers in the case with their quality scores
   def index
-    @settlement_offers = @case.simulation.settlement_offers
-      .includes(:team, :negotiation_round, :submitted_by)
-      .joins(:negotiation_round)
-      .order("negotiation_rounds.round_number ASC, settlement_offers.submitted_at ASC")
+    @settlement_offers = if @case.active_simulation
+      @case.active_simulation.settlement_offers
+        .includes(:team, :negotiation_round, :submitted_by)
+        .joins(:negotiation_round)
+        .order("negotiation_rounds.round_number ASC, settlement_offers.submitted_at ASC")
+    else
+      []
+    end
 
     render json: {
       data: @settlement_offers.map do |offer|
@@ -202,7 +206,12 @@ class Api::V1::ArgumentQualityController < Api::V1::BaseController
   end
 
   def set_settlement_offer
-    @settlement_offer = @case.simulation.settlement_offers.find(params[:id])
+    @settlement_offer = @case.active_simulation&.settlement_offers&.find(params[:id])
+
+    unless @settlement_offer
+      render json: { error: "Settlement offer not found in active simulation" }, status: :not_found
+      return
+    end
   end
 
   def ensure_instructor_or_admin
@@ -225,17 +234,17 @@ class Api::V1::ArgumentQualityController < Api::V1::BaseController
   def calculate_simulation_impact
     return {} unless @settlement_offer.instructor_quality_score.present?
 
-    dynamics_service = SimulationDynamicsService.new(@case.simulation)
+    dynamics_service = SimulationDynamicsService.new(@case.active_simulation)
 
     {
       current_ranges: {
         plaintiff_range: {
-          min: @case.simulation.plaintiff_min_acceptable,
-          ideal: @case.simulation.plaintiff_ideal
+          min: @case.active_simulation.plaintiff_min_acceptable,
+          ideal: @case.active_simulation.plaintiff_ideal
         },
         defendant_range: {
-          ideal: @case.simulation.defendant_ideal,
-          max: @case.simulation.defendant_max_acceptable
+          ideal: @case.active_simulation.defendant_ideal,
+          max: @case.active_simulation.defendant_max_acceptable
         }
       },
       quality_impact: dynamics_service.calculate_quality_impact(@settlement_offer),
@@ -244,7 +253,7 @@ class Api::V1::ArgumentQualityController < Api::V1::BaseController
   end
 
   def update_simulation_dynamics!
-    dynamics_service = SimulationDynamicsService.new(@case.simulation)
+    dynamics_service = SimulationDynamicsService.new(@case.active_simulation)
     dynamics_service.apply_argument_quality_adjustments!(@settlement_offer)
   end
 end

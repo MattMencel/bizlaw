@@ -4,7 +4,7 @@
   <!-- Header -->
   <div class="mb-8">
     <div class="flex items-center space-x-4">
-      <%= link_to submit_offer_case_negotiation_path(@case, @current_round), 
+      <%= link_to submit_offer_case_negotiation_path(@case, @current_round),
           class: "text-gray-400 hover:text-gray-500" do %>
         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -20,60 +20,71 @@
   </div>
 
   <!-- Proposed Offer Summary -->
-  <% if @proposed_offer %>
-    <div class="mb-8 bg-blue-50 border border-blue-200 rounded-lg">
-      <div class="px-6 py-4 border-b border-blue-200">
-        <h2 class="text-lg font-medium text-blue-900">Your Proposed Settlement</h2>
-      </div>
-      <div class="p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Settlement Amount</h3>
-            <p class="mt-1 text-3xl font-bold text-blue-900">$<%= number_with_delimiter(@proposed_offer[:amount]) %></p>
+  <div class="mb-8 bg-blue-50 border border-blue-200 rounded-lg">
+    <div class="px-6 py-4 border-b border-blue-200">
+      <h2 class="text-lg font-medium text-blue-900">Your Proposed Settlement</h2>
+      <p class="text-sm text-blue-700 mt-1">Adjust the settlement amount and click "Get Client Reaction" to see how your client responds</p>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="settlement_amount" class="block text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Settlement Amount</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span class="text-gray-500 sm:text-lg">$</span>
+            </div>
+            <input type="number"
+                   id="settlement_amount"
+                   name="settlement_amount"
+                   value="<%= @proposed_offer ? (@proposed_offer[:amount] || @proposed_offer['amount'] || 100000) : 100000 %>"
+                   min="0"
+                   step="1000"
+                   class="block w-full pl-7 pr-3 py-3 text-2xl font-bold text-blue-900 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                   placeholder="100000">
           </div>
+          <p class="mt-1 text-xs text-gray-500">Enter amount in dollars (e.g., 150000 for $150,000)</p>
+        </div>
           <div>
             <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Compared to Client Range</h3>
             <div class="mt-2 space-y-1">
-              <% client_range = @client_data[:acceptable_range] %>
-              <% proposed_amount = @proposed_offer[:amount].to_f %>
               <div class="flex items-center justify-between text-sm">
                 <span>Minimum Acceptable:</span>
-                <span class="font-medium">$<%= number_with_delimiter(client_range[:minimum]) %></span>
+                <span class="font-medium">$<%= number_with_delimiter(@client_data[:acceptable_range][:minimum]) %></span>
               </div>
               <div class="flex items-center justify-between text-sm">
                 <span>Ideal Target:</span>
-                <span class="font-medium">$<%= number_with_delimiter(client_range[:ideal]) %></span>
+                <span class="font-medium">$<%= number_with_delimiter(@client_data[:acceptable_range][:ideal]) %></span>
               </div>
               <div class="mt-2">
-                <% if proposed_amount >= client_range[:ideal] %>
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Exceeds client's ideal target
-                  </span>
-                <% elsif proposed_amount >= client_range[:minimum] %>
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                    Within acceptable range
-                  </span>
-                <% else %>
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                    Below minimum acceptable
-                  </span>
-                <% end %>
+                <span id="range-comparison" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                  Enter amount to see comparison
+                </span>
               </div>
             </div>
           </div>
         </div>
-        
-        <% if @proposed_offer[:justification].present? %>
-          <div class="mt-6">
-            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Your Justification</h3>
-            <div class="mt-2 prose prose-sm text-gray-700 max-w-none">
-              <p class="whitespace-pre-wrap"><%= @proposed_offer[:justification] %></p>
-            </div>
-          </div>
-        <% end %>
+
+        <div class="mt-6">
+          <label for="settlement_justification" class="block text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Your Justification</label>
+          <textarea id="settlement_justification"
+                    name="settlement_justification"
+                    rows="3"
+                    class="block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    placeholder="Provide justification for this settlement amount..."><%= @proposed_offer ? (@proposed_offer[:justification] || @proposed_offer['justification'] || '') : '' %></textarea>
+          <p class="mt-1 text-xs text-gray-500">Explain the reasoning behind your settlement offer</p>
+        </div>
+
+        <div class="mt-6">
+          <label for="settlement_non_monetary_terms" class="block text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Non-Monetary Terms</label>
+          <textarea id="settlement_non_monetary_terms"
+                    name="settlement_non_monetary_terms"
+                    rows="2"
+                    class="block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    placeholder="Any non-monetary terms or conditions..."><%= @proposed_offer ? (@proposed_offer[:non_monetary_terms] || @proposed_offer['non_monetary_terms'] || '') : '' %></textarea>
+          <p class="mt-1 text-xs text-gray-500">Include any additional terms beyond the monetary settlement</p>
+        </div>
       </div>
     </div>
-  <% end %>
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <!-- Client Priorities and Concerns -->
@@ -88,7 +99,7 @@
             <% @client_data[:priorities].each do |priority| %>
               <div class="flex items-start space-x-3">
                 <div class="flex-shrink-0">
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= 
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%=
                     case priority[:importance]
                     when 'High' then 'bg-red-100 text-red-800'
                     when 'Medium' then 'bg-yellow-100 text-yellow-800'
@@ -152,17 +163,17 @@
     <!-- Client Consultation Interface -->
     <div class="space-y-6">
       <!-- Consultation Questions -->
-      <%= form_with url: consult_client_case_negotiation_path(@case, @current_round), 
-          local: true, 
+      <%= form_with url: consult_client_case_negotiation_path(@case, @current_round),
+          local: true,
           method: :post do |form| %>
-        
+
         <!-- Include the proposed offer data -->
         <% if @proposed_offer %>
           <% @proposed_offer.each do |key, value| %>
             <%= hidden_field_tag "settlement_offer[#{key}]", value %>
           <% end %>
         <% end %>
-        
+
         <div class="bg-white shadow rounded-lg">
           <div class="px-6 py-4 border-b border-gray-200">
             <h2 class="text-lg font-medium text-gray-900">Client Consultation Questions</h2>
@@ -175,22 +186,22 @@
               </label>
               <div class="space-y-2">
                 <label class="inline-flex items-center">
-                  <%= radio_button_tag "consultation[overall_reaction]", "very_pleased", false, 
+                  <%= radio_button_tag "consultation[overall_reaction]", "very_pleased", false,
                       class: "border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
                   <span class="ml-2 text-sm text-gray-600">Very pleased - exceeds expectations</span>
                 </label>
                 <label class="inline-flex items-center">
-                  <%= radio_button_tag "consultation[overall_reaction]", "satisfied", false, 
+                  <%= radio_button_tag "consultation[overall_reaction]", "satisfied", false,
                       class: "border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
                   <span class="ml-2 text-sm text-gray-600">Satisfied - meets needs</span>
                 </label>
                 <label class="inline-flex items-center">
-                  <%= radio_button_tag "consultation[overall_reaction]", "concerned", false, 
+                  <%= radio_button_tag "consultation[overall_reaction]", "concerned", false,
                       class: "border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
                   <span class="ml-2 text-sm text-gray-600">Concerned - may not be enough</span>
                 </label>
                 <label class="inline-flex items-center">
-                  <%= radio_button_tag "consultation[overall_reaction]", "disappointed", false, 
+                  <%= radio_button_tag "consultation[overall_reaction]", "disappointed", false,
                       class: "border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
                   <span class="ml-2 text-sm text-gray-600">Disappointed - falls short</span>
                 </label>
@@ -205,7 +216,7 @@
               <div class="space-y-2">
                 <% @client_data[:priorities].each do |priority| %>
                   <label class="inline-flex items-center">
-                    <%= check_box_tag "consultation[priorities_addressed][]", priority[:name], false, 
+                    <%= check_box_tag "consultation[priorities_addressed][]", priority[:name], false,
                         class: "rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
                     <span class="ml-2 text-sm text-gray-600"><%= priority[:name] %></span>
                   </label>
@@ -218,7 +229,7 @@
               <label class="block text-sm font-medium text-gray-700 mb-3">
                 What concerns might your client have about this offer?
               </label>
-              <%= text_area_tag "consultation[client_concerns]", "", 
+              <%= text_area_tag "consultation[client_concerns]", "",
                   rows: 3,
                   class: "mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md",
                   placeholder: "Consider your client's perspective on the proposed settlement..." %>
@@ -231,17 +242,17 @@
               </label>
               <div class="space-y-2">
                 <label class="inline-flex items-center">
-                  <%= radio_button_tag "consultation[recommendation]", "proceed", false, 
+                  <%= radio_button_tag "consultation[recommendation]", "proceed", false,
                       class: "border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
                   <span class="ml-2 text-sm text-gray-600">Proceed with this offer as proposed</span>
                 </label>
                 <label class="inline-flex items-center">
-                  <%= radio_button_tag "consultation[recommendation]", "modify", false, 
+                  <%= radio_button_tag "consultation[recommendation]", "modify", false,
                       class: "border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
                   <span class="ml-2 text-sm text-gray-600">Modify the offer based on client feedback</span>
                 </label>
                 <label class="inline-flex items-center">
-                  <%= radio_button_tag "consultation[recommendation]", "reconsider", false, 
+                  <%= radio_button_tag "consultation[recommendation]", "reconsider", false,
                       class: "border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
                   <span class="ml-2 text-sm text-gray-600">Reconsider strategy before making an offer</span>
                 </label>
@@ -260,7 +271,7 @@
             <div id="client-feedback" class="hidden">
               <!-- Client feedback will be populated via JavaScript -->
             </div>
-            <button type="button" 
+            <button type="button"
                     id="get-feedback-btn"
                     class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
               <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -274,16 +285,16 @@
         <!-- Action Buttons -->
         <div class="flex items-center justify-between pt-6">
           <div>
-            <%= link_to "Back to Offer Form", submit_offer_case_negotiation_path(@case, @current_round), 
+            <%= link_to "Back to Offer Form", submit_offer_case_negotiation_path(@case, @current_round),
                 class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
           </div>
-          
+
           <div class="flex items-center space-x-3">
-            <%= form.submit "Complete Consultation Only", 
+            <%= form.submit "Complete Consultation Only",
                 class: "inline-flex items-center px-4 py-2 border border-indigo-300 shadow-sm text-sm font-medium rounded-md text-indigo-700 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
-            <%= button_tag "Proceed with Offer", 
-                type: "submit", 
-                name: "proceed_with_offer", 
+            <%= button_tag "Proceed with Offer",
+                type: "submit",
+                name: "proceed_with_offer",
                 value: "true",
                 class: "inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
           </div>
@@ -297,30 +308,125 @@
 document.addEventListener('DOMContentLoaded', function() {
   const getFeedbackBtn = document.getElementById('get-feedback-btn');
   const clientFeedbackDiv = document.getElementById('client-feedback');
-  
-  getFeedbackBtn?.addEventListener('click', function() {
-    // Simulate client consultation API call
-    const proposedAmount = <%= @proposed_offer ? @proposed_offer[:amount] : 0 %>;
-    const clientMinAcceptable = <%= @client_data[:acceptable_range][:minimum] %>;
-    const clientIdeal = <%= @client_data[:acceptable_range][:ideal] %>;
-    
-    // Generate simulated feedback
-    let reaction, message, moodClass;
-    
-    if (proposedAmount >= clientIdeal) {
-      reaction = "Pleased";
-      message = "Your client is pleased with this settlement amount. It meets or exceeds their expectations and addresses their primary concerns about financial security.";
-      moodClass = "bg-green-50 border-green-200 text-green-800";
-    } else if (proposedAmount >= clientMinAcceptable) {
-      reaction = "Cautiously Optimistic";
-      message = "Your client finds this settlement acceptable, though they hope for a bit more. They appreciate that it covers their basic needs and are willing to proceed.";
-      moodClass = "bg-yellow-50 border-yellow-200 text-yellow-800";
+  const settlementAmountInput = document.getElementById('settlement_amount');
+  const rangeComparisonSpan = document.getElementById('range-comparison');
+
+  const clientMinAcceptable = parseFloat('<%= @client_data[:acceptable_range][:minimum] %>');
+  const clientIdeal = parseFloat('<%= @client_data[:acceptable_range][:ideal] %>');
+
+  // Update range comparison when amount changes
+  function updateRangeComparison() {
+    const amount = parseFloat(settlementAmountInput.value || '0');
+
+    if (amount <= 0) {
+      rangeComparisonSpan.textContent = 'Enter amount to see comparison';
+      rangeComparisonSpan.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800';
+    } else if (amount >= clientIdeal) {
+      rangeComparisonSpan.textContent = 'Exceeds client\'s ideal target';
+      rangeComparisonSpan.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800';
+    } else if (amount >= clientMinAcceptable) {
+      rangeComparisonSpan.textContent = 'Within acceptable range';
+      rangeComparisonSpan.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800';
     } else {
-      reaction = "Concerned";
-      message = "Your client is concerned that this amount may not adequately address their damages and future needs. They're worried about accepting too little.";
-      moodClass = "bg-red-50 border-red-200 text-red-800";
+      rangeComparisonSpan.textContent = 'Below minimum acceptable';
+      rangeComparisonSpan.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800';
     }
-    
+  }
+
+  // Add event listener for amount input changes
+  settlementAmountInput.addEventListener('input', updateRangeComparison);
+
+  // Update comparison on page load
+  updateRangeComparison();
+
+  getFeedbackBtn?.addEventListener('click', async function() {
+    // Show loading state
+    getFeedbackBtn.disabled = true;
+    getFeedbackBtn.innerHTML = `
+      <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      Generating AI Response...
+    `;
+
+    try {
+      // Get the current values from the form fields
+      const settlementAmountInput = document.getElementById('settlement_amount');
+      const justificationInput = document.getElementById('settlement_justification');
+      const nonMonetaryTermsInput = document.getElementById('settlement_non_monetary_terms');
+
+      const proposedAmount = parseFloat(settlementAmountInput.value || '0');
+      const justification = justificationInput.value || '';
+      const nonMonetaryTerms = nonMonetaryTermsInput.value || '';
+
+      // Validate the amount
+      if (isNaN(proposedAmount) || proposedAmount <= 0) {
+        alert('Please enter a valid settlement amount greater than $0');
+        settlementAmountInput.focus();
+        resetButtonState();
+        return;
+      }
+
+      // Prepare form data for the AI request
+      const formData = new FormData();
+      formData.append('amount', proposedAmount);
+      formData.append('justification', justification);
+      formData.append('non_monetary_terms', nonMonetaryTerms);
+
+      // Add CSRF token
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      if (!csrfToken) {
+        console.warn('CSRF token not found, request may fail');
+      }
+
+      // Build the AI endpoint URL
+      const aiEndpointUrl = '/cases/<%= @case.id %>/negotiations/<%= @current_round.id %>/ai_client_reaction';
+
+      // Make AJAX request to AI endpoint
+      const response = await fetch(aiEndpointUrl, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-Token': csrfToken,
+          'Accept': 'application/json'
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      if (data.reaction) {
+        displayClientReaction(data.reaction);
+      } else if (data.fallback) {
+        displayClientReaction(data.fallback);
+      } else {
+        throw new Error('No reaction data received');
+      }
+
+    } catch (error) {
+      console.error('Error generating client feedback:', error);
+      // Fall back to simple rule-based reaction
+      const settlementAmountInput = document.getElementById('settlement_amount');
+      const fallbackAmount = parseFloat(settlementAmountInput.value || '100000');
+      displayFallbackReaction(fallbackAmount);
+    } finally {
+      // Reset button state
+      resetButtonState();
+    }
+  });
+
+  function displayClientReaction(reaction) {
+    const moodClass = getMoodClass(reaction.reaction);
+    const sourceIndicator = reaction.source === 'ai' ? '🤖 AI-Generated' : '📋 Rule-based';
+
     clientFeedbackDiv.innerHTML = `
       <div class="border rounded-lg p-4 ${moodClass}">
         <div class="flex items-start">
@@ -329,18 +435,71 @@ document.addEventListener('DOMContentLoaded', function() {
               <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
             </svg>
           </div>
-          <div class="ml-3">
-            <h3 class="text-sm font-medium">Client Reaction: ${reaction}</h3>
+          <div class="ml-3 flex-1">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-medium">Client Reaction: ${capitalizeFirst(reaction.reaction)}</h3>
+              <span class="text-xs opacity-75">${sourceIndicator}</span>
+            </div>
             <div class="mt-2 text-sm">
-              <p>${message}</p>
+              <p>${reaction.message}</p>
+              ${reaction.strategic_guidance ? `<p class="mt-2 font-medium">Strategic Guidance: ${reaction.strategic_guidance}</p>` : ''}
+              ${reaction.satisfaction_score ? `<div class="mt-2"><span class="text-xs text-gray-600">Satisfaction: ${reaction.satisfaction_score}/100</span></div>` : ''}
             </div>
           </div>
         </div>
       </div>
     `;
-    
+
     clientFeedbackDiv.classList.remove('hidden');
-    getFeedbackBtn.style.display = 'none';
-  });
+    resetButtonState();
+  }
+
+  function displayFallbackReaction(proposedAmount) {
+    let reaction, message;
+
+    if (proposedAmount >= clientIdeal) {
+      reaction = "pleased";
+      message = "Your client is pleased with this settlement amount. It meets or exceeds their expectations and addresses their primary concerns about financial security.";
+    } else if (proposedAmount >= clientMinAcceptable) {
+      reaction = "neutral";
+      message = "Your client finds this settlement acceptable, though they hope for a bit more. They appreciate that it covers their basic needs and are willing to proceed.";
+    } else {
+      reaction = "concerned";
+      message = "Your client is concerned that this amount may not adequately address their damages and future needs. They're worried about accepting too little.";
+    }
+
+    displayClientReaction({
+      reaction: reaction,
+      message: message,
+      source: 'fallback'
+    });
+  }
+
+  function getMoodClass(reaction) {
+    switch(reaction) {
+      case 'pleased':
+        return 'bg-green-50 border-green-200 text-green-800';
+      case 'neutral':
+        return 'bg-yellow-50 border-yellow-200 text-yellow-800';
+      case 'concerned':
+        return 'bg-red-50 border-red-200 text-red-800';
+      default:
+        return 'bg-gray-50 border-gray-200 text-gray-800';
+    }
+  }
+
+  function capitalizeFirst(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function resetButtonState() {
+    getFeedbackBtn.disabled = false;
+    getFeedbackBtn.innerHTML = `
+      <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+      </svg>
+      Get Client Reaction
+    `;
+  }
 });
 </script>

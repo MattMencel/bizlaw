@@ -73,8 +73,8 @@ class CourseEnrollment < ApplicationRecord
   def user_must_be_student
     return unless user
 
-    unless user.student?
-      errors.add(:user, "must be a student to enroll in courses")
+    unless user.student? || user.instructor? || user.admin?
+      errors.add(:user, "must be a student, instructor, or admin to enroll in courses")
     end
   end
 end

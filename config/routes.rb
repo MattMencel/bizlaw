@@ -238,6 +238,7 @@ Rails.application.routes.draw do
         post :submit_counter_offer
         get :client_consultation
         post :consult_client
+        post :ai_client_reaction
       end
       collection do
         get :history

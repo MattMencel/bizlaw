@@ -4,11 +4,10 @@ class DashboardController < ApplicationController
   before_action :authenticate_user!
 
   def index
-    case current_user.role
-    when "admin"
+    if current_user.admin?
       load_admin_data
       render "admin_dashboard"
-    when "instructor"
+    elsif current_user.instructor?
       load_instructor_data
       render "instructor_dashboard"
     else
@@ -44,24 +43,23 @@ class DashboardController < ApplicationController
   end
 
   def load_student_data
-    @my_teams = current_user.teams.includes(cases: [:simulation, :documents])
-    @my_cases = current_user.cases.includes(:documents, :simulation)
+    @my_teams = current_user.teams.includes(cases: [:simulations, :documents])
+    @my_cases = current_user.cases.includes(:documents, :simulations)
 
     # Simulation-specific data for dashboard
-    @active_simulations = current_user.teams
-      .joins(cases: :simulation)
-      .where(simulations: {status: [:active, :paused]})
-      .includes(:simulation, :case)
+    user_case_ids = current_user.cases.pluck(:id)
 
-    @completed_simulations = current_user.teams
-      .joins(cases: :simulation)
-      .where(simulations: {status: [:completed, :arbitration]})
-      .includes(:simulation, :case)
+    @active_simulations = Simulation
+      .where(case_id: user_case_ids, status: [:active, :paused])
+      .includes(:case)
 
-    @pending_simulations = current_user.teams
-      .joins(cases: :simulation)
-      .where(simulations: {status: :setup})
-      .includes(:simulation, :case)
+    @completed_simulations = Simulation
+      .where(case_id: user_case_ids, status: [:completed, :arbitration])
+      .includes(:case)
+
+    @pending_simulations = Simulation
+      .where(case_id: user_case_ids, status: :setup)
+      .includes(:case)
 
     # Calculate simulation statistics
     @simulation_stats = calculate_simulation_stats
@@ -71,20 +69,19 @@ class DashboardController < ApplicationController
   end
 
   def calculate_simulation_stats
-    total_simulations = current_user.teams.joins(cases: :simulation).count
-    completed_count = current_user.teams
-      .joins(cases: :simulation)
-      .where(simulations: {status: [:completed, :arbitration]})
+    user_case_ids = current_user.cases.pluck(:id)
+
+    total_simulations = Simulation.where(case_id: user_case_ids).count
+    completed_count = Simulation
+      .where(case_id: user_case_ids, status: [:completed, :arbitration])
       .count
 
-    active_count = current_user.teams
-      .joins(cases: :simulation)
-      .where(simulations: {status: [:active, :paused]})
+    active_count = Simulation
+      .where(case_id: user_case_ids, status: [:active, :paused])
       .count
 
-    settlement_count = current_user.teams
-      .joins(cases: :simulation)
-      .where(simulations: {status: :completed})
+    settlement_count = Simulation
+      .where(case_id: user_case_ids, status: :completed)
       .count
 
     settlement_rate = (completed_count > 0) ? (settlement_count.to_f / completed_count * 100).round(1) : 0

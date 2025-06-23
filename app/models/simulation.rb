@@ -50,6 +50,7 @@ class Simulation < ApplicationRecord
   validate :plaintiff_amounts_logical
   validate :defendant_amounts_logical
   validate :teams_are_different
+  validate :settlement_mathematically_possible
 
   # Enums
   enum :status, {
@@ -159,5 +160,37 @@ class Simulation < ApplicationRecord
     if plaintiff_team_id == defendant_team_id
       errors.add(:defendant_team_id, "cannot be the same as plaintiff team")
     end
+  end
+
+  def settlement_mathematically_possible
+    return unless plaintiff_min_acceptable.present? && defendant_max_acceptable.present?
+
+    if plaintiff_min_acceptable > defendant_max_acceptable
+      errors.add(:base, "Settlement impossible: plaintiff minimum (#{plaintiff_min_acceptable}) exceeds defendant maximum (#{defendant_max_acceptable})")
+    end
+  end
+
+  # Class methods for creating simulations with defaults
+  def self.build_with_defaults(case_record)
+    service = SimulationDefaultsService.new(case_record)
+    service.build_simulation_with_defaults
+  end
+
+  def self.create_with_defaults(case_record:)
+    service = SimulationDefaultsService.new(case_record)
+    simulation = service.build_simulation_with_defaults
+    simulation.save!
+    simulation
+  end
+
+  # Instance method for randomizing financial parameters
+  def randomize_financial_parameters!
+    service = SimulationDefaultsService.new(self.case)
+    randomized = service.randomized_financial_parameters
+
+    self.plaintiff_min_acceptable = randomized[:plaintiff_min_acceptable]
+    self.plaintiff_ideal = randomized[:plaintiff_ideal]
+    self.defendant_max_acceptable = randomized[:defendant_max_acceptable]
+    self.defendant_ideal = randomized[:defendant_ideal]
   end
 end

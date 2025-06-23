@@ -20,41 +20,41 @@
               <div class="flex-1">
                 <h3 class="text-lg font-semibold text-gray-900 mb-2"><%= scenario[:title] %></h3>
                 <p class="text-gray-600 mb-4"><%= scenario[:description] %></p>
-                
+
                 <div class="grid grid-cols-2 gap-4 text-sm text-gray-500 mb-4">
                   <div>
-                    <span class="font-medium">Case Type:</span> 
+                    <span class="font-medium">Case Type:</span>
                     <%= scenario[:case_type].humanize %>
                   </div>
                   <div>
-                    <span class="font-medium">Difficulty:</span> 
+                    <span class="font-medium">Difficulty:</span>
                     <%= scenario[:difficulty_level].humanize %>
                   </div>
                 </div>
 
                 <div class="text-sm text-gray-500 mb-4">
-                  <span class="font-medium">Legal Issues:</span> 
+                  <span class="font-medium">Legal Issues:</span>
                   <%= scenario[:legal_issues] %>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 text-sm">
                   <div class="bg-blue-50 p-3 rounded">
                     <div class="font-medium text-blue-900">Plaintiff</div>
-                    <% plaintiff = JSON.parse(scenario[:plaintiff_info]) %>
-                    <%= plaintiff["name"] %> - <%= plaintiff["position"] %>
+                    <% plaintiff = scenario[:plaintiff_info] %>
+                    <%= plaintiff[:name] %> - <%= plaintiff[:position] %>
                   </div>
                   <div class="bg-red-50 p-3 rounded">
                     <div class="font-medium text-red-900">Defendant</div>
-                    <% defendant = JSON.parse(scenario[:defendant_info]) %>
-                    <%= defendant["name"] %> (<%= defendant["type"] %>)
+                    <% defendant = scenario[:defendant_info] %>
+                    <%= defendant[:name] %> (<%= defendant[:type] %>)
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <div class="mt-6 flex justify-end">
-              <%= link_to "Select This Scenario", 
-                  new_course_case_path(@course, scenario_id: scenario[:id]), 
+              <%= link_to "Select This Scenario",
+                  new_course_case_path(@course, scenario_id: scenario[:id]),
                   class: "bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors" %>
             </div>
           </div>
@@ -79,7 +79,7 @@
           </p>
         </div>
       <% end %>
-      
+
       <%= render 'form' %>
     </div>
   <% end %>

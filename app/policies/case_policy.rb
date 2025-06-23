@@ -9,6 +9,10 @@ class CasePolicy < ApplicationPolicy
     user_can_access_case?
   end
 
+  def background?
+    user_can_access_case?
+  end
+
   def create?
     user.instructor? || user.admin?
   end
@@ -85,12 +89,13 @@ class CasePolicy < ApplicationPolicy
 
   class Scope < Scope
     def resolve
-      case user.role
-      when "admin"
-        scope.all
-      when "instructor"
-        scope.all
-      when "student"
+      return scope.all if user.admin?
+
+      if user.instructor?
+        # Instructors can only access cases in courses they teach
+        scope.joins(:course).where(course: {instructor: user})
+      elsif user.student?
+        # Students can only access cases where they are assigned to teams
         scope.joins(:assigned_teams).where(teams: {id: user.team_ids})
       else
         scope.none

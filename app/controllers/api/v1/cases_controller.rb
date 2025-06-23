@@ -41,6 +41,12 @@ module Api
 
       def destroy
         authorize @case
+
+        unless @case.can_be_deleted?
+          render json: {error: @case.deletion_error_message}, status: :unprocessable_entity
+          return
+        end
+
         @case.destroy
         head :no_content
       end

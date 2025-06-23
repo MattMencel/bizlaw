@@ -1,0 +1,54 @@
+<% content_for :title, "Case Background" %>
+
+<div class="max-w-4xl mx-auto p-6">
+  <% if @case %>
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2"><%= @case.title %></h1>
+      <p class="text-sm text-gray-600">Reference: <%= @case.reference_number %></p>
+    </div>
+
+    <div class="bg-white shadow rounded-lg p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Case Background</h2>
+      <div class="prose max-w-none">
+        <%= simple_format(@case.description) %>
+      </div>
+    </div>
+
+    <%= render 'party_information', case_record: @case %>
+
+    <% if @case.legal_issues.present? %>
+      <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Legal Issues</h2>
+        <ul class="list-disc list-inside space-y-1">
+          <% @case.legal_issues.each do |issue| %>
+            <li class="text-gray-700"><%= issue %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="flex justify-between items-center mt-8">
+      <%= link_to 'Back to Case', case_path(@case), class: 'bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700' %>
+      <% if policy(@case).edit? %>
+        <%= link_to 'Edit Case', edit_course_case_path(@case.course, @case), class: 'bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700' %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center py-12">
+      <h1 class="text-2xl font-bold text-gray-900 mb-4">Case Background</h1>
+      <% if @cases.present? %>
+        <div class="grid gap-4">
+          <% @cases.each do |case_item| %>
+            <div class="bg-white shadow rounded-lg p-4">
+              <h3 class="font-semibold text-lg"><%= link_to case_item.title, background_case_path(case_item), class: 'text-blue-600 hover:text-blue-800' %></h3>
+              <p class="text-gray-600 text-sm"><%= case_item.reference_number %></p>
+            </div>
+          <% end %>
+        </div>
+        <%= paginate @cases if respond_to?(:paginate) %>
+      <% else %>
+        <p class="text-gray-600">No cases available.</p>
+      <% end %>
+    </div>
+  <% end %>
+</div>

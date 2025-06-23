@@ -16,7 +16,7 @@
               <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Quick Actions</h3>
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <% if @active_simulations.any? %>
-                  <%= link_to "#", class: "bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200" do %>
+                  <%= link_to case_negotiations_path(@active_simulations.first.case), class: "bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200" do %>
                     Continue Simulation
                   <% end %>
                 <% end %>
@@ -133,42 +133,32 @@
               <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">My Active Simulations</h3>
               <% if @active_simulations.any? %>
                 <div class="space-y-4">
-                  <% @active_simulations.includes(:cases).each do |team| %>
-                    <% team.cases.includes(:simulation).each do |case_item| %>
-                      <% next unless case_item.simulation&.active? || case_item.simulation&.paused? %>
-                      <div class="border border-gray-200 rounded-lg p-4 bg-gradient-to-r from-orange-50 to-red-50">
-                        <div class="flex items-center justify-between">
-                          <div class="flex-1">
-                            <h4 class="text-md font-medium text-gray-900"><%= case_item.name %></h4>
-                            <p class="text-sm text-gray-600 mt-1">Team: <%= team.name %></p>
-                            <div class="flex items-center mt-2 space-x-4">
-                              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                                <%= case_item.simulation.status.humanize %>
-                              </span>
-                              <% if case_item.simulation.respond_to?(:current_round) %>
-                                <span class="text-xs text-gray-500">
-                                  Round <%= case_item.simulation.current_round || 1 %> of <%= case_item.simulation.total_rounds || 6 %>
-                                </span>
-                              <% end %>
-                              <% case_team = case_item.case_teams.find_by(team: team) %>
-                              <% if case_team %>
-                                <span class="text-xs text-gray-500">
-                                  Role: <%= case_team.role.humanize %>
-                                </span>
-                              <% end %>
-                            </div>
-                          </div>
-                          <div class="flex space-x-2 ml-4">
-                            <%= link_to "#", class: "bg-orange-600 hover:bg-orange-700 text-white text-xs font-medium py-2 px-3 rounded-md transition duration-200" do %>
-                              Continue Negotiation
-                            <% end %>
-                            <%= link_to case_path(case_item), class: "text-blue-600 hover:text-blue-900 text-xs font-medium py-2 px-3 border border-blue-300 rounded-md transition duration-200" do %>
-                              View Details
-                            <% end %>
+                  <% @active_simulations.each do |simulation| %>
+                    <% case_item = simulation.case %>
+                    <div class="border border-gray-200 rounded-lg p-4 bg-gradient-to-r from-orange-50 to-red-50">
+                      <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                          <h4 class="text-md font-medium text-gray-900"><%= case_item.title %></h4>
+                          <p class="text-sm text-gray-600 mt-1">Case: <%= case_item.reference_number %></p>
+                          <div class="flex items-center mt-2 space-x-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                              <%= simulation.status.humanize %>
+                            </span>
+                            <span class="text-xs text-gray-500">
+                              Round <%= simulation.current_round || 1 %> of <%= simulation.total_rounds || 6 %>
+                            </span>
                           </div>
                         </div>
+                        <div class="flex space-x-2 ml-4">
+                          <%= link_to case_negotiations_path(case_item), class: "bg-orange-600 hover:bg-orange-700 text-white text-xs font-medium py-2 px-3 rounded-md transition duration-200" do %>
+                            Continue Negotiation
+                          <% end %>
+                          <%= link_to course_case_path(case_item.course, case_item), class: "text-blue-600 hover:text-blue-900 text-xs font-medium py-2 px-3 border border-blue-300 rounded-md transition duration-200" do %>
+                            View Details
+                          <% end %>
+                        </div>
                       </div>
-                    <% end %>
+                    </div>
                   <% end %>
                 </div>
               <% else %>
@@ -248,39 +238,42 @@
           <div class="bg-white shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
               <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">All My Simulations</h3>
-              <% if @my_cases.joins(:simulation).any? %>
+              <% if @my_cases.any? %>
                 <div class="space-y-4">
-                  <% @my_cases.includes(:simulation, :case_teams).joins(:simulation).each do |case_item| %>
-                    <div class="border border-gray-200 rounded-lg p-4">
-                      <div class="flex items-center justify-between">
-                        <div>
-                          <h4 class="text-md font-medium text-gray-900"><%= case_item.name %></h4>
-                          <p class="text-sm text-gray-500"><%= case_item.case_type&.humanize %> Simulation</p>
-                          <div class="flex items-center mt-2 space-x-3">
-                            <% status_color = case_item.simulation.active? ? 'green' : case_item.simulation.completed? ? 'blue' : 'gray' %>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-<%= status_color %>-100 text-<%= status_color %>-800">
-                              <%= case_item.simulation.status.humanize %>
-                            </span>
-                            <% case_team = case_item.case_teams.joins(:team).where(teams: { id: current_user.team_ids }).first %>
-                            <% if case_team %>
-                              <span class="text-xs text-gray-500">
-                                Playing as <%= case_team.role.humanize %>
+                  <% @my_cases.each do |case_item| %>
+                    <% active_simulation = case_item.active_simulation %>
+                    <% if active_simulation %>
+                      <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                          <div>
+                            <h4 class="text-md font-medium text-gray-900"><%= case_item.title %></h4>
+                            <p class="text-sm text-gray-500"><%= case_item.case_type&.humanize %> Simulation</p>
+                            <div class="flex items-center mt-2 space-x-3">
+                              <% status_color = active_simulation.status == 'active' ? 'green' : active_simulation.status == 'completed' ? 'blue' : 'gray' %>
+                              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-<%= status_color %>-100 text-<%= status_color %>-800">
+                                <%= active_simulation.status.humanize %>
                               </span>
+                              <% case_team = case_item.case_teams.joins(:team).where(teams: { id: current_user.team_ids }).first %>
+                              <% if case_team %>
+                                <span class="text-xs text-gray-500">
+                                  Playing as <%= case_team.role.humanize %>
+                                </span>
+                              <% end %>
+                            </div>
+                          </div>
+                          <div class="flex space-x-2">
+                            <% if ['active', 'paused'].include?(active_simulation.status) %>
+                              <%= link_to case_negotiations_path(case_item), class: "bg-orange-600 hover:bg-orange-700 text-white text-xs font-medium py-2 px-3 rounded-md transition duration-200" do %>
+                                Continue
+                              <% end %>
+                            <% end %>
+                            <%= link_to course_case_path(case_item.course, case_item), class: "text-blue-600 hover:text-blue-900 text-xs font-medium py-2 px-3 border border-blue-300 rounded-md transition duration-200" do %>
+                              View Details
                             <% end %>
                           </div>
                         </div>
-                        <div class="flex space-x-2">
-                          <% if case_item.simulation.active? || case_item.simulation.paused? %>
-                            <%= link_to "#", class: "bg-orange-600 hover:bg-orange-700 text-white text-xs font-medium py-2 px-3 rounded-md transition duration-200" do %>
-                              Continue
-                            <% end %>
-                          <% end %>
-                          <%= link_to case_path(case_item), class: "text-blue-600 hover:text-blue-900 text-xs font-medium py-2 px-3 border border-blue-300 rounded-md transition duration-200" do %>
-                            View Details
-                          <% end %>
-                        </div>
                       </div>
-                    </div>
+                    <% end %>
                   <% end %>
                 </div>
               <% else %>

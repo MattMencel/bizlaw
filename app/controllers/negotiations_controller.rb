@@ -38,7 +38,9 @@ class NegotiationsController < ApplicationController
     @settlement_offer = build_new_settlement_offer
 
     if params[:consult_client]
-      redirect_to client_consultation_case_negotiation_path(@case, @current_round)
+      # Pass the settlement offer data to the consultation page
+      consultation_params = offer_params.to_h if offer_params
+      redirect_to client_consultation_case_negotiation_path(@case, @current_round, settlement_offer: consultation_params)
       return
     end
 
@@ -84,7 +86,16 @@ class NegotiationsController < ApplicationController
   def client_consultation
     @settlement_offer = build_new_settlement_offer
     @client_data = fetch_detailed_client_consultation
-    @proposed_offer = offer_params if params[:settlement_offer]
+
+    # Get proposed offer from params (passed from create_offer when consulting client)
+    if params[:settlement_offer]
+      @proposed_offer = params[:settlement_offer].is_a?(ActionController::Parameters) ?
+                        params[:settlement_offer].permit(:amount, :justification, :non_monetary_terms) :
+                        params[:settlement_offer]
+    end
+
+    # Ensure we have a proposed offer for the client reaction functionality
+    @proposed_offer ||= {amount: 100000} # Default amount for demo purposes
   end
 
   def consult_client
@@ -135,6 +146,66 @@ class NegotiationsController < ApplicationController
     end
   end
 
+  def ai_client_reaction
+    # Get proposed offer data
+    proposed_offer_data = {
+      amount: params[:amount]&.to_f,
+      justification: params[:justification],
+      non_monetary_terms: params[:non_monetary_terms]
+    }
+
+    # Validate amount
+    if proposed_offer_data[:amount].nil? || proposed_offer_data[:amount] <= 0
+      render json: {
+        error: "Invalid settlement amount",
+        fallback: generate_fallback_reaction(100000)
+      }, status: :bad_request
+      return
+    end
+
+    # Create a mock settlement offer for AI service
+    mock_offer = OpenStruct.new(
+      amount: proposed_offer_data[:amount],
+      justification: proposed_offer_data[:justification],
+      non_monetary_terms: proposed_offer_data[:non_monetary_terms],
+      team: current_user_team,
+      negotiation_round: OpenStruct.new(
+        round_number: @current_round,
+        simulation: @simulation
+      )
+    )
+
+    # Get AI-powered client reaction
+    ai_service = GoogleAiService.new
+    if ai_service.enabled?
+      ai_feedback = ai_service.generate_settlement_feedback(mock_offer)
+
+      # Convert AI feedback to client reaction format
+      reaction_data = {
+        reaction: map_ai_mood_to_reaction(ai_feedback[:mood_level]),
+        message: ai_feedback[:feedback_text],
+        mood_level: ai_feedback[:mood_level],
+        satisfaction_score: ai_feedback[:satisfaction_score],
+        strategic_guidance: ai_feedback[:strategic_guidance],
+        source: "ai",
+        cost: ai_feedback[:cost],
+        response_time: ai_feedback[:response_time]
+      }
+    else
+      # Fall back to rule-based consultation if AI is unavailable
+      reaction_data = generate_fallback_reaction(proposed_offer_data[:amount])
+      reaction_data[:source] = "fallback"
+    end
+
+    render json: {reaction: reaction_data}
+  rescue => e
+    Rails.logger.error "Error in ai_client_reaction: #{e.message}"
+    render json: {
+      error: "Failed to generate client reaction",
+      fallback: generate_fallback_reaction(params[:amount]&.to_f || 100000)
+    }, status: :internal_server_error
+  end
+
   private
 
   def set_case
@@ -144,7 +215,7 @@ class NegotiationsController < ApplicationController
   end
 
   def set_simulation
-    @simulation = @case.simulation
+    @simulation = @case.active_simulation
 
     unless @simulation
       redirect_to cases_path,
@@ -300,12 +371,18 @@ class NegotiationsController < ApplicationController
   end
 
   def fetch_client_mood
-    # Simulate API call to get client mood
+    # Use proper ClientFeedbackService for consistent mood tracking
+    client_feedback_service = ClientFeedbackService.new(@simulation)
+    mood_indicator = client_feedback_service.get_client_mood_indicator(current_user_team)
+
     {
-      mood: %w[confident anxious concerned pleased desperate].sample,
-      confidence: rand(1..10),
-      satisfaction: rand(1..10),
-      pressure_level: rand(1..5)
+      mood: mood_indicator[:mood_description]&.downcase || "neutral",
+      confidence: map_satisfaction_to_confidence(mood_indicator[:satisfaction_level]),
+      satisfaction: map_satisfaction_to_score(mood_indicator[:satisfaction_level]),
+      pressure_level: calculate_pressure_level,
+      mood_emoji: mood_indicator[:mood_emoji],
+      trend: mood_indicator[:trend],
+      last_updated: mood_indicator[:last_updated]
     }
   end
 
@@ -325,6 +402,38 @@ class NegotiationsController < ApplicationController
     return "High" if rounds_remaining <= 2
     return "Medium" if rounds_remaining <= 3
     "Low"
+  end
+
+  def calculate_pressure_level
+    case calculate_timeline_pressure
+    when "Critical" then 5
+    when "High" then 4
+    when "Medium" then 3
+    when "Low" then 2
+    else 1
+    end
+  end
+
+  def map_satisfaction_to_confidence(satisfaction_level)
+    case satisfaction_level
+    when "Very High" then 9
+    when "High" then 8
+    when "Moderate" then 6
+    when "Low" then 4
+    when "Very Low" then 2
+    else 5
+    end
+  end
+
+  def map_satisfaction_to_score(satisfaction_level)
+    case satisfaction_level
+    when "Very High" then 10
+    when "High" then 8
+    when "Moderate" then 7
+    when "Low" then 5
+    when "Very Low" then 2
+    else 6
+    end
   end
 
   def fetch_client_feedback(round)
@@ -398,7 +507,12 @@ class NegotiationsController < ApplicationController
   def perform_client_consultation
     # Simulate client consultation based on proposed offer
     proposed_amount = offer_params[:amount].to_f
+    generate_fallback_reaction(proposed_amount)
+  end
 
+  private
+
+  def generate_fallback_reaction(proposed_amount)
     if current_user_team == @simulation.plaintiff_team
       if proposed_amount >= @simulation.plaintiff_ideal
         {reaction: "pleased", message: "Client is satisfied with this aggressive position"}
@@ -416,10 +530,23 @@ class NegotiationsController < ApplicationController
     end
   end
 
+  def map_ai_mood_to_reaction(mood_level)
+    case mood_level
+    when "very_satisfied", "satisfied"
+      "pleased"
+    when "neutral"
+      "neutral"
+    when "unhappy", "very_unhappy"
+      "concerned"
+    else
+      "neutral"
+    end
+  end
+
   def build_negotiation_timeline
     timeline = []
 
-    @simulation.negotiation_rounds.includes(settlement_offers: :team).each do |round|
+    @simulation.negotiation_rounds.includes(settlement_offers: :team).find_each do |round|
       round.settlement_offers.each do |offer|
         timeline << {
           round: round.round_number,
@@ -583,6 +710,36 @@ class NegotiationsController < ApplicationController
 
   def perform_damage_calculation
     params[:calculation] || {}
+  end
+
+  def fetch_detailed_client_consultation
+    base_data = fetch_client_consultation_data
+
+    # Add more detailed consultation data for the full consultation page
+    base_data.merge({
+      previous_consultations: fetch_previous_consultations,
+      settlement_history: fetch_settlement_history,
+      risk_assessment: fetch_consultation_risk_assessment
+    })
+  end
+
+  def fetch_previous_consultations
+    # Return previous consultation records for this simulation
+    []
+  end
+
+  def fetch_settlement_history
+    # Return historical settlement data for context
+    []
+  end
+
+  def fetch_consultation_risk_assessment
+    # Return detailed risk assessment for client consultation
+    {
+      trial_risk: "Medium",
+      settlement_recommendation: "Proceed with caution",
+      financial_impact: "Manageable"
+    }
   end
 
   def offer_params

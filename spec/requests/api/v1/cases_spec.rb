@@ -173,14 +173,63 @@ RSpec.describe "Api::V1::Cases", type: :request do
   end
 
   describe "DELETE /api/v1/cases/:id" do
-    it "deletes the case" do
-      delete "/api/v1/cases/#{kase.id}"
-      expect(response).to have_http_status(:no_content)
-      expect(Case.find_by(id: kase.id)).to be_nil
+    context "when case can be deleted" do
+      let(:deletable_case) { create(:case, status: :not_started, created_by: user, case_type: "sexual_harassment") }
+
+      it "deletes the case" do
+        delete "/api/v1/cases/#{deletable_case.id}"
+        expect(response).to have_http_status(:no_content)
+        expect(Case.find_by(id: deletable_case.id)).to be_nil
+      end
+    end
+
+    context "when case cannot be deleted due to status" do
+      let(:in_progress_case) { create(:case, status: :in_progress, created_by: user, case_type: "sexual_harassment") }
+
+      it "returns unprocessable entity with error message" do
+        delete "/api/v1/cases/#{in_progress_case.id}"
+        expect(response).to have_http_status(:unprocessable_entity)
+        json_response = JSON.parse(response.body)
+        expect(json_response["error"]).to eq("Case can only be deleted when in 'Not Started' status")
+      end
+
+      it "does not delete the case" do
+        in_progress_case # Ensure case is created before counting
+        expect {
+          delete "/api/v1/cases/#{in_progress_case.id}"
+        }.not_to change(Case, :count)
+      end
+    end
+
+    context "when case cannot be deleted due to student team members" do
+      let(:student) { create(:user, :student) }
+      let(:instructor) { create(:user, :instructor) }
+      let(:test_course) { create(:course, instructor: instructor) }
+      let(:student_team) { create(:team, course: test_course, owner: student) }
+      let(:case_with_students) { create(:case, status: :not_started, created_by: user, course: test_course, case_type: "sexual_harassment") }
+
+      before do
+        create(:team_member, team: student_team, user: student, role: :member)
+        create(:case_team, case: case_with_students, team: student_team, role: :plaintiff)
+      end
+
+      it "returns unprocessable entity with error message" do
+        delete "/api/v1/cases/#{case_with_students.id}"
+        expect(response).to have_http_status(:unprocessable_entity)
+        json_response = JSON.parse(response.body)
+        expect(json_response["error"]).to eq("Cannot delete case with teams that have student members")
+      end
+
+      it "does not delete the case" do
+        case_with_students # Ensure case is created before counting
+        expect {
+          delete "/api/v1/cases/#{case_with_students.id}"
+        }.not_to change(Case, :count)
+      end
     end
 
     it "returns forbidden for unauthorized user" do
-      other_case = create(:case)
+      other_case = create(:case, case_type: "sexual_harassment")
       delete "/api/v1/cases/#{other_case.id}"
       expect(response).to have_http_status(:forbidden)
     end

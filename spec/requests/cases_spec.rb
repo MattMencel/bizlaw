@@ -393,27 +393,88 @@ RSpec.describe "Cases", type: :request do
       case_instance # Create the case
     end
 
-    it "destroys the case" do
-      expect {
+    context "when case can be deleted" do
+      let(:case_instance) { create(:case, course: course, status: :not_started, created_by: instructor) }
+
+      it "destroys the case" do
+        expect {
+          delete course_case_path(course, case_instance)
+        }.to change(Case, :count).by(-1)
+      end
+
+      it "redirects to cases index" do
         delete course_case_path(course, case_instance)
-      }.to change(Case, :count).by(-1)
+        expect(response).to redirect_to(course_cases_path(course))
+      end
+
+      it "sets success notice" do
+        delete course_case_path(course, case_instance)
+        follow_redirect!
+        expect(response.body).to include("Case was successfully deleted")
+      end
+
+      context "with JSON format" do
+        it "returns no content" do
+          delete course_case_path(course, case_instance), as: :json
+          expect(response).to have_http_status(:no_content)
+        end
+      end
     end
 
-    it "redirects to cases index" do
-      delete course_case_path(course, case_instance)
-      expect(response).to redirect_to(course_cases_path(course))
+    context "when case cannot be deleted due to status" do
+      let(:case_instance) { create(:case, course: course, status: :in_progress, created_by: instructor) }
+
+      it "does not destroy the case" do
+        expect {
+          delete course_case_path(course, case_instance)
+        }.not_to change(Case, :count)
+      end
+
+      it "redirects with error message" do
+        delete course_case_path(course, case_instance)
+        expect(response).to redirect_to(course_cases_path(course))
+        expect(flash[:alert]).to eq("Case can only be deleted when in 'Not Started' status")
+      end
+
+      context "with JSON format" do
+        it "returns unprocessable entity with error" do
+          delete course_case_path(course, case_instance), as: :json
+          expect(response).to have_http_status(:unprocessable_entity)
+          json_response = JSON.parse(response.body)
+          expect(json_response["error"]).to eq("Case can only be deleted when in 'Not Started' status")
+        end
+      end
     end
 
-    it "sets success notice" do
-      delete course_case_path(course, case_instance)
-      follow_redirect!
-      expect(response.body).to include("Case was successfully deleted")
-    end
+    context "when case cannot be deleted due to student team members" do
+      let(:student) { create(:user, :student) }
+      let(:student_team) { create(:team, course: course, owner: student) }
+      let(:case_instance) { create(:case, course: course, status: :not_started, created_by: instructor) }
 
-    context "with JSON format" do
-      it "returns no content" do
-        delete course_case_path(course, case_instance), as: :json
-        expect(response).to have_http_status(:no_content)
+      before do
+        create(:team_member, team: student_team, user: student, role: :member)
+        create(:case_team, case: case_instance, team: student_team, role: :plaintiff)
+      end
+
+      it "does not destroy the case" do
+        expect {
+          delete course_case_path(course, case_instance)
+        }.not_to change(Case, :count)
+      end
+
+      it "redirects with error message" do
+        delete course_case_path(course, case_instance)
+        expect(response).to redirect_to(course_cases_path(course))
+        expect(flash[:alert]).to eq("Cannot delete case with teams that have student members")
+      end
+
+      context "with JSON format" do
+        it "returns unprocessable entity with error" do
+          delete course_case_path(course, case_instance), as: :json
+          expect(response).to have_http_status(:unprocessable_entity)
+          json_response = JSON.parse(response.body)
+          expect(json_response["error"]).to eq("Cannot delete case with teams that have student members")
+        end
       end
     end
   end

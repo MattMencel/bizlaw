@@ -87,6 +87,7 @@ RSpec.describe Team, type: :model do
         expect(described_class.with_role("manager")).not_to include(active_team)
       end
     end
+
   end
 
   # Instance methods
@@ -228,6 +229,62 @@ RSpec.describe Team, type: :model do
 
       expect(team).not_to be_valid
       expect(team.errors[:base]).to include("Team has reached maximum member limit")
+    end
+  end
+
+  describe "#has_student_members?" do
+    let(:instructor) { create(:user, :instructor) }
+    let(:course) { create(:course, instructor: instructor) }
+    let(:student1) { create(:user, :student) }
+    let(:student2) { create(:user, :student) }
+    let(:team) { create(:team, course: course, owner: instructor) }
+
+    context "with no members" do
+      it "returns false" do
+        expect(team.has_student_members?).to be false
+      end
+    end
+
+    context "with only instructor members" do
+      before do
+        create(:team_member, team: team, user: instructor, role: :member)
+      end
+
+      it "returns false" do
+        expect(team.has_student_members?).to be false
+      end
+    end
+
+    context "with student members" do
+      before do
+        create(:team_member, team: team, user: student1, role: :member)
+      end
+
+      it "returns true" do
+        expect(team.has_student_members?).to be true
+      end
+    end
+
+    context "with mixed instructor and student members" do
+      before do
+        create(:team_member, team: team, user: instructor, role: :member)
+        create(:team_member, team: team, user: student1, role: :member)
+      end
+
+      it "returns true when any member is a student" do
+        expect(team.has_student_members?).to be true
+      end
+    end
+
+    context "with multiple students" do
+      before do
+        create(:team_member, team: team, user: student1, role: :member)
+        create(:team_member, team: team, user: student2, role: :manager)
+      end
+
+      it "returns true" do
+        expect(team.has_student_members?).to be true
+      end
     end
   end
 end

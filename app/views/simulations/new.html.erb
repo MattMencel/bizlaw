@@ -15,7 +15,8 @@
       </div>
     </div>
 
-    <%= form_with model: @simulation, url: course_case_simulation_path(@case.course, @case), local: true, class: "p-6" do |form| %>
+    <%= form_with model: @simulation, url: course_case_simulation_path(@case.course, @case), local: true, class: "p-6",
+                  data: { controller: "financial-params", case_type: @case.case_type } do |form| %>
       <% if @simulation.errors.any? %>
         <div class="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
           <div class="flex">
@@ -76,8 +77,51 @@
           <% end %>
         </div>
 
-        <!-- Financial Parameters Section -->
+        <!-- Financial Parameter Options Section -->
         <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Financial Parameter Options</h3>
+          <p class="text-sm text-gray-600 mb-4">Choose how to configure financial parameters for this simulation:</p>
+
+          <div class="space-y-4 mb-6">
+            <div class="flex items-start">
+              <%= form.radio_button :parameter_option, "case_defaults",
+                                    { checked: true,
+                                      class: "h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500",
+                                      data: { action: "change->financial-params#updateParameterOption" } } %>
+              <%= form.label :parameter_option_case_defaults, class: "ml-2" do %>
+                <span class="text-sm font-medium text-gray-700">Use case-type defaults</span>
+                <p class="text-xs text-gray-500">Apply standard financial parameters based on <%= @case.case_type&.humanize || "this case type" %></p>
+              <% end %>
+            </div>
+
+            <div class="flex items-start">
+              <%= form.radio_button :parameter_option, "randomized",
+                                    { class: "h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500",
+                                      data: { action: "change->financial-params#updateParameterOption" } } %>
+              <%= form.label :parameter_option_randomized, class: "ml-2" do %>
+                <span class="text-sm font-medium text-gray-700">Randomize financial parameters</span>
+                <p class="text-xs text-gray-500">Generate varied parameters within realistic ranges for educational diversity</p>
+              <% end %>
+            </div>
+
+            <div class="flex items-start">
+              <%= form.radio_button :parameter_option, "manual",
+                                    { class: "h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500",
+                                      data: { action: "change->financial-params#updateParameterOption" } } %>
+              <%= form.label :parameter_option_manual, class: "ml-2" do %>
+                <span class="text-sm font-medium text-gray-700">Manual configuration</span>
+                <p class="text-xs text-gray-500">Specify exact financial parameters for this simulation</p>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Hidden fields for defaults options -->
+          <%= form.hidden_field :use_case_defaults, value: "false", data: { "financial-params-target": "useCaseDefaults" } %>
+          <%= form.hidden_field :use_randomized_defaults, value: "false", data: { "financial-params-target": "useRandomizedDefaults" } %>
+        </div>
+
+        <!-- Financial Parameters Section -->
+        <div class="bg-gray-50 rounded-lg p-6" data-financial-params-target="parametersSection">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Financial Parameters</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Plaintiff Parameters -->
@@ -91,7 +135,8 @@
                   <%= form.number_field :plaintiff_min_acceptable,
                                         step: 1000, min: 0,
                                         class: "w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500",
-                                        placeholder: "100000" %>
+                                        placeholder: "100000",
+                                        data: { "financial-params-target": "plaintiffMin", action: "input->financial-params#updateSettlementRange" } %>
                 </div>
                 <p class="mt-1 text-xs text-gray-500">Lowest amount plaintiff will accept</p>
               </div>
@@ -103,7 +148,8 @@
                   <%= form.number_field :plaintiff_ideal,
                                         step: 1000, min: 0,
                                         class: "w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500",
-                                        placeholder: "300000" %>
+                                        placeholder: "300000",
+                                        data: { "financial-params-target": "plaintiffIdeal" } %>
                 </div>
                 <p class="mt-1 text-xs text-gray-500">Plaintiff's ideal settlement amount</p>
               </div>
@@ -120,7 +166,8 @@
                   <%= form.number_field :defendant_ideal,
                                         step: 1000, min: 0,
                                         class: "w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500",
-                                        placeholder: "50000" %>
+                                        placeholder: "50000",
+                                        data: { "financial-params-target": "defendantIdeal" } %>
                 </div>
                 <p class="mt-1 text-xs text-gray-500">Defendant's preferred settlement amount</p>
               </div>
@@ -132,7 +179,8 @@
                   <%= form.number_field :defendant_max_acceptable,
                                         step: 1000, min: 0,
                                         class: "w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500",
-                                        placeholder: "200000" %>
+                                        placeholder: "200000",
+                                        data: { "financial-params-target": "defendantMax", action: "input->financial-params#updateSettlementRange" } %>
                 </div>
                 <p class="mt-1 text-xs text-gray-500">Highest amount defendant will pay</p>
               </div>
@@ -140,11 +188,11 @@
           </div>
 
           <!-- Settlement Range Visualization -->
-          <div class="mt-4 p-3 bg-yellow-50 rounded-md">
+          <div class="mt-4 p-3 bg-yellow-50 rounded-md" data-financial-params-target="settlementRange">
             <h4 class="text-sm font-medium text-yellow-800">Settlement Range</h4>
             <p class="mt-1 text-xs text-yellow-700">
-              Ensure there's overlap between plaintiff minimum (<span id="plaintiff-min-display">$100,000</span>)
-              and defendant maximum (<span id="defendant-max-display">$200,000</span>) for successful negotiations.
+              Ensure there's overlap between plaintiff minimum (<span data-financial-params-target="plaintiffMinDisplay">$150,000</span>)
+              and defendant maximum (<span data-financial-params-target="defendantMaxDisplay">$250,000</span>) for successful negotiations.
             </p>
           </div>
         </div>
@@ -226,26 +274,16 @@
   </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Update settlement range display
-  function updateSettlementRange() {
-    const plaintiffMin = document.querySelector('#simulation_plaintiff_min_acceptable').value || '100000';
-    const defendantMax = document.querySelector('#simulation_defendant_max_acceptable').value || '200000';
-
-    document.getElementById('plaintiff-min-display').textContent =
-      new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
-        .format(parseInt(plaintiffMin));
-    document.getElementById('defendant-max-display').textContent =
-      new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
-        .format(parseInt(defendantMax));
-  }
-
-  // Add event listeners
-  document.querySelector('#simulation_plaintiff_min_acceptable')?.addEventListener('input', updateSettlementRange);
-  document.querySelector('#simulation_defendant_max_acceptable')?.addEventListener('input', updateSettlementRange);
-
-  // Initial update
-  updateSettlementRange();
-});
-</script>
+<%= content_for :javascript do %>
+  <script>
+    // Case-type specific defaults
+    const caseDefaults = {
+      "<%= @case.case_type %>": {
+        plaintiff_min_acceptable: <%= @simulation.plaintiff_min_acceptable || 150000 %>,
+        plaintiff_ideal: <%= @simulation.plaintiff_ideal || 300000 %>,
+        defendant_max_acceptable: <%= @simulation.defendant_max_acceptable || 250000 %>,
+        defendant_ideal: <%= @simulation.defendant_ideal || 75000 %>
+      }
+    };
+  </script>
+<% end %>

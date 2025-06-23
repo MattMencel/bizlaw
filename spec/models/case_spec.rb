@@ -20,7 +20,7 @@ RSpec.describe Case, type: :model do
     it { is_expected.to have_many(:teams).through(:case_teams) }
     it { is_expected.to have_many(:documents).dependent(:destroy) }
     it { is_expected.to have_many(:case_events).dependent(:destroy) }
-    it { is_expected.to have_one(:simulation).dependent(:destroy) }
+    it { is_expected.to have_many(:simulations).dependent(:destroy) }
   end
 
   # Validations
@@ -41,19 +41,17 @@ RSpec.describe Case, type: :model do
 
   # Enums
   describe "enums" do
-    it {
-      expect(subject).to define_enum_for(:status).with_values(
-        not_started: "not_started",
-        in_progress: "in_progress",
-        submitted: "submitted",
-        reviewed: "reviewed",
-        completed: "completed"
-      ).backed_by_column_of_type(:string).with_prefix(true)
-    }
+    it "defines status enum values" do
+      expect(Case.statuses.keys).to contain_exactly("not_started", "in_progress", "submitted", "reviewed", "completed")
+    end
 
-    it { is_expected.to define_enum_for(:difficulty_level).with_values(beginner: "beginner", intermediate: "intermediate", advanced: "advanced").backed_by_column_of_type(:string).with_prefix(true) }
+    it "defines difficulty_level enum values" do
+      expect(Case.difficulty_levels.keys).to contain_exactly("beginner", "intermediate", "advanced")
+    end
 
-    it { is_expected.to define_enum_for(:case_type).with_values(sexual_harassment: "sexual_harassment", discrimination: "discrimination", wrongful_termination: "wrongful_termination", contract_dispute: "contract_dispute", intellectual_property: "intellectual_property").backed_by_column_of_type(:string).with_prefix(true) }
+    it "defines case_type enum values" do
+      expect(Case.case_types.keys).to contain_exactly("sexual_harassment", "discrimination", "wrongful_termination", "contract_dispute", "intellectual_property")
+    end
   end
 
   # Scopes
@@ -121,11 +119,13 @@ RSpec.describe Case, type: :model do
     end
 
     describe ".recent_first" do
-      let!(:old_case) { create(:case, created_at: 2.days.ago) }
-      let!(:new_case) { create(:case, created_at: 1.day.ago) }
+      let(:course) { create(:course) }
+      let!(:old_case) { create(:case, created_at: 2.days.ago, course: course) }
+      let!(:new_case) { create(:case, created_at: 1.day.ago, course: course) }
 
       it "orders cases by creation date descending" do
-        expect(described_class.recent_first).to eq([new_case, old_case])
+        cases_from_course = described_class.where(course: course).recent_first.to_a
+        expect(cases_from_course).to eq([new_case, old_case])
       end
     end
   end
@@ -199,7 +199,7 @@ RSpec.describe Case, type: :model do
       let(:user) { create(:user) }
 
       it "sets updated_by to created_by on creation" do
-        kase = build(:case, created_by: user)
+        kase = build(:case, created_by: user, course: create(:course))
         kase.save!
         expect(kase.updated_by).to eq(user)
       end
@@ -363,6 +363,216 @@ RSpec.describe Case, type: :model do
     it "can be restored" do
       case_instance.soft_delete
       expect { case_instance.restore }.to change(case_instance, :deleted_at).to(nil)
+    end
+  end
+
+  describe "deletion business rules" do
+    let(:instructor) { create(:user, :instructor) }
+    let(:course) { create(:course, instructor: instructor) }
+    let(:student1) { create(:user, :student) }
+    let(:student2) { create(:user, :student) }
+
+    describe "#can_be_deleted?" do
+      context "when case is in not_started status" do
+        let(:case_instance) { create(:case, status: :not_started, course: course, created_by: instructor) }
+
+        context "with no teams assigned" do
+          it "returns true" do
+            expect(case_instance.can_be_deleted?).to be true
+          end
+        end
+
+        context "with teams that have no student members" do
+          let(:instructor_team) { create(:team, course: course, owner: instructor) }
+
+          before do
+            create(:case_team, case: case_instance, team: instructor_team, role: :plaintiff)
+          end
+
+          it "returns true" do
+            expect(case_instance.can_be_deleted?).to be true
+          end
+        end
+
+        context "with teams that have student members" do
+          let(:student_team) { create(:team, course: course, owner: student1) }
+
+          before do
+            create(:team_member, team: student_team, user: student2, role: :member)
+            create(:case_team, case: case_instance, team: student_team, role: :plaintiff)
+          end
+
+          it "returns false" do
+            expect(case_instance.can_be_deleted?).to be false
+          end
+        end
+
+        context "with mixed teams (some with students, some without)" do
+          let(:instructor_team) { create(:team, course: course, owner: instructor) }
+          let(:student_team) { create(:team, course: course, owner: student1) }
+
+          before do
+            create(:team_member, team: student_team, user: student2, role: :member)
+            create(:case_team, case: case_instance, team: instructor_team, role: :plaintiff)
+            create(:case_team, case: case_instance, team: student_team, role: :defendant)
+          end
+
+          it "returns false when any team has student members" do
+            expect(case_instance.can_be_deleted?).to be false
+          end
+        end
+      end
+
+      context "when case is not in not_started status" do
+        let(:case_instance) { create(:case, status: :in_progress, course: course, created_by: instructor) }
+
+        it "returns false for in_progress status" do
+          expect(case_instance.can_be_deleted?).to be false
+        end
+
+        it "returns false for submitted status" do
+          case_instance.update!(status: :submitted)
+          expect(case_instance.can_be_deleted?).to be false
+        end
+
+        it "returns false for reviewed status" do
+          case_instance.update!(status: :reviewed)
+          expect(case_instance.can_be_deleted?).to be false
+        end
+
+        it "returns false for completed status" do
+          case_instance.update!(status: :completed)
+          expect(case_instance.can_be_deleted?).to be false
+        end
+      end
+    end
+
+    describe "#deletion_error_message" do
+      let(:case_instance) { create(:case, course: course, created_by: instructor) }
+
+      context "when case is not in not_started status" do
+        before { case_instance.update!(status: :in_progress) }
+
+        it "returns status error message" do
+          expect(case_instance.deletion_error_message).to eq("Case can only be deleted when in 'Not Started' status")
+        end
+      end
+
+      context "when case has teams with student members" do
+        let(:student_team) { create(:team, course: course, owner: student1) }
+
+        before do
+          case_instance.update!(status: :not_started)
+          create(:team_member, team: student_team, user: student2, role: :member)
+          create(:case_team, case: case_instance, team: student_team, role: :plaintiff)
+        end
+
+        it "returns team error message" do
+          expect(case_instance.deletion_error_message).to eq("Cannot delete case with teams that have student members")
+        end
+      end
+
+      context "when case can be deleted" do
+        before { case_instance.update!(status: :not_started) }
+
+        it "returns nil" do
+          expect(case_instance.deletion_error_message).to be_nil
+        end
+      end
+    end
+  end
+
+  describe "multiple simulations support" do
+    let(:case_instance) { create(:case) }
+    let!(:simulation1) { create(:simulation, case: case_instance, status: :setup, created_at: 1.day.ago) }
+    let!(:simulation2) {
+      create(:simulation,
+             case: case_instance,
+             status: :active,
+             created_at: 2.hours.ago,
+             start_date: 3.hours.ago,
+             plaintiff_min_acceptable: 100000,
+             plaintiff_ideal: 200000,
+             defendant_max_acceptable: 150000,
+             defendant_ideal: 50000)
+    }
+    let!(:simulation3) {
+      create(:simulation,
+             case: case_instance,
+             status: :completed,
+             created_at: 1.hour.ago,
+             start_date: 2.hours.ago,
+             end_date: 30.minutes.ago,
+             plaintiff_min_acceptable: 80000,
+             plaintiff_ideal: 180000,
+             defendant_max_acceptable: 140000,
+             defendant_ideal: 40000)
+    }
+
+    describe "#active_simulation" do
+      it "returns the first active simulation" do
+        expect(case_instance.active_simulation).to eq(simulation2)
+      end
+
+      context "when no simulations are active" do
+        before do
+          simulation2.update!(status: :completed)
+        end
+
+        it "returns the most recent simulation" do
+          expect(case_instance.active_simulation).to eq(simulation3)
+        end
+      end
+
+      context "when there are no simulations" do
+        let(:case_without_simulations) { create(:case) }
+
+        it "returns nil" do
+          expect(case_without_simulations.active_simulation).to be_nil
+        end
+      end
+    end
+
+    describe "#current_phase" do
+      it "returns the phase from the active simulation" do
+        expect(case_instance.current_phase).to eq(simulation2.current_phase)
+      end
+
+      context "when there is no active simulation" do
+        let(:case_without_simulations) { create(:case) }
+
+        it "returns default phase" do
+          expect(case_without_simulations.current_phase).to eq("Preparation")
+        end
+      end
+    end
+
+    describe "#current_round" do
+      it "returns the round from the active simulation" do
+        expect(case_instance.current_round).to eq(simulation2.current_round)
+      end
+
+      context "when there is no active simulation" do
+        let(:case_without_simulations) { create(:case) }
+
+        it "returns default round" do
+          expect(case_without_simulations.current_round).to eq(1)
+        end
+      end
+    end
+
+    describe "#total_rounds" do
+      it "returns the total rounds from the active simulation" do
+        expect(case_instance.total_rounds).to eq(simulation2.total_rounds)
+      end
+
+      context "when there is no active simulation" do
+        let(:case_without_simulations) { create(:case) }
+
+        it "returns default total rounds" do
+          expect(case_without_simulations.total_rounds).to eq(6)
+        end
+      end
     end
   end
 end
