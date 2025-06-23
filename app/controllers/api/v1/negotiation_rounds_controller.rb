@@ -98,7 +98,7 @@ module Api
       end
 
       def set_simulation
-        @simulation = @case.simulation
+        @simulation = @case.active_simulation
 
         unless @simulation
           api_error(

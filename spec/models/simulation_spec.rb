@@ -210,6 +210,178 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
+  describe "default financial parameters" do
+    let(:case_record) { create(:case, case_type: :sexual_harassment) }
+
+    describe ".build_with_defaults" do
+      it "creates simulation with case-type specific defaults" do
+        simulation = Simulation.build_with_defaults(case_record)
+
+        expect(simulation.plaintiff_min_acceptable).to eq(150_000)
+        expect(simulation.plaintiff_ideal).to eq(300_000)
+        expect(simulation.defendant_max_acceptable).to eq(250_000)
+        expect(simulation.defendant_ideal).to eq(75_000)
+      end
+
+      it "uses default values for unknown case types" do
+        case_record.update!(case_type: nil)
+        simulation = Simulation.build_with_defaults(case_record)
+
+        expect(simulation.plaintiff_min_acceptable).to eq(150_000)
+        expect(simulation.plaintiff_ideal).to eq(300_000)
+        expect(simulation.defendant_max_acceptable).to eq(250_000)
+        expect(simulation.defendant_ideal).to eq(75_000)
+      end
+
+      it "sets default configuration values" do
+        simulation = Simulation.build_with_defaults(case_record)
+
+        expect(simulation.total_rounds).to eq(6)
+        expect(simulation.current_round).to eq(1)
+        expect(simulation.status).to eq("setup")
+        expect(simulation.pressure_escalation_rate).to eq("moderate")
+      end
+
+      context "with different case types" do
+        it "applies contract dispute defaults" do
+          case_record.update!(case_type: :contract_dispute)
+          simulation = Simulation.build_with_defaults(case_record)
+
+          expect(simulation.plaintiff_min_acceptable).to eq(85_000)
+          expect(simulation.plaintiff_ideal).to eq(175_000)
+          expect(simulation.defendant_max_acceptable).to eq(125_000)
+          expect(simulation.defendant_ideal).to eq(35_000)
+        end
+
+        it "applies discrimination defaults" do
+          case_record.update!(case_type: :discrimination)
+          simulation = Simulation.build_with_defaults(case_record)
+
+          expect(simulation.plaintiff_min_acceptable).to eq(200_000)
+          expect(simulation.plaintiff_ideal).to eq(450_000)
+          expect(simulation.defendant_max_acceptable).to eq(350_000)
+          expect(simulation.defendant_ideal).to eq(125_000)
+        end
+
+        it "applies intellectual property defaults" do
+          case_record.update!(case_type: :intellectual_property)
+          simulation = Simulation.build_with_defaults(case_record)
+
+          expect(simulation.plaintiff_min_acceptable).to eq(2_500_000)
+          expect(simulation.plaintiff_ideal).to eq(8_000_000)
+          expect(simulation.defendant_max_acceptable).to eq(5_500_000)
+          expect(simulation.defendant_ideal).to eq(1_200_000)
+          expect(simulation.total_rounds).to eq(8)
+        end
+
+        it "applies wrongful termination defaults" do
+          case_record.update!(case_type: :wrongful_termination)
+          simulation = Simulation.build_with_defaults(case_record)
+
+          expect(simulation.plaintiff_min_acceptable).to eq(125_000)
+          expect(simulation.plaintiff_ideal).to eq(275_000)
+          expect(simulation.defendant_max_acceptable).to eq(200_000)
+          expect(simulation.defendant_ideal).to eq(65_000)
+        end
+      end
+    end
+
+    describe ".randomize_financial_parameters" do
+      it "generates randomized parameters within realistic ranges" do
+        simulation = Simulation.build_with_defaults(case_record)
+        original_params = [
+          simulation.plaintiff_min_acceptable,
+          simulation.plaintiff_ideal,
+          simulation.defendant_max_acceptable,
+          simulation.defendant_ideal
+        ]
+
+        simulation.randomize_financial_parameters!
+
+        new_params = [
+          simulation.plaintiff_min_acceptable,
+          simulation.plaintiff_ideal,
+          simulation.defendant_max_acceptable,
+          simulation.defendant_ideal
+        ]
+
+        expect(new_params).not_to eq(original_params)
+        expect(simulation.plaintiff_min_acceptable).to be < simulation.plaintiff_ideal
+        expect(simulation.defendant_ideal).to be < simulation.defendant_max_acceptable
+        expect(simulation.plaintiff_min_acceptable).to be <= simulation.defendant_max_acceptable
+      end
+
+      it "maintains mathematical validity" do
+        simulation = Simulation.build_with_defaults(case_record)
+        simulation.randomize_financial_parameters!
+
+        expect(simulation).to be_valid
+      end
+
+      it "generates different values on multiple calls" do
+        simulation1 = Simulation.build_with_defaults(case_record)
+        simulation2 = Simulation.build_with_defaults(case_record)
+
+        simulation1.randomize_financial_parameters!
+        simulation2.randomize_financial_parameters!
+
+        params1 = [simulation1.plaintiff_min_acceptable, simulation1.plaintiff_ideal, simulation1.defendant_max_acceptable, simulation1.defendant_ideal]
+        params2 = [simulation2.plaintiff_min_acceptable, simulation2.plaintiff_ideal, simulation2.defendant_max_acceptable, simulation2.defendant_ideal]
+
+        expect(params1).not_to eq(params2)
+      end
+    end
+  end
+
+  describe "default team creation" do
+    let(:case_record) { create(:case) }
+    let(:course) { case_record.course }
+
+    describe ".create_with_defaults" do
+      it "creates empty plaintiff and defendant teams" do
+        simulation = Simulation.create_with_defaults(case_record: case_record)
+
+        expect(simulation.plaintiff_team).to be_present
+        expect(simulation.defendant_team).to be_present
+        expect(simulation.plaintiff_team.name).to eq("Plaintiff Team")
+        expect(simulation.defendant_team.name).to eq("Defendant Team")
+        expect(simulation.plaintiff_team.users).to be_empty
+        expect(simulation.defendant_team.users).to be_empty
+      end
+
+      it "uses existing case teams if available" do
+        plaintiff_team = create(:team, name: "Existing Plaintiff", course: course)
+        defendant_team = create(:team, name: "Existing Defendant", course: course)
+        create(:case_team, case: case_record, team: plaintiff_team, role: :plaintiff)
+        create(:case_team, case: case_record, team: defendant_team, role: :defendant)
+
+        simulation = Simulation.create_with_defaults(case_record: case_record)
+
+        expect(simulation.plaintiff_team).to eq(plaintiff_team)
+        expect(simulation.defendant_team).to eq(defendant_team)
+      end
+
+      it "creates missing teams when only one exists" do
+        existing_team = create(:team, name: "Existing Plaintiff", course: course)
+        create(:case_team, case: case_record, team: existing_team, role: :plaintiff)
+
+        simulation = Simulation.create_with_defaults(case_record: case_record)
+
+        expect(simulation.plaintiff_team).to eq(existing_team)
+        expect(simulation.defendant_team).to be_present
+        expect(simulation.defendant_team.name).to eq("Defendant Team")
+      end
+
+      it "associates teams with the case" do
+        simulation = Simulation.create_with_defaults(case_record: case_record)
+
+        expect(case_record.case_teams.count).to eq(2)
+        expect(case_record.case_teams.plaintiff.first.team).to eq(simulation.plaintiff_team)
+        expect(case_record.case_teams.defendant.first.team).to eq(simulation.defendant_team)
+      end
+    end
+  end
+
   describe "status predicates" do
     describe "#active?" do
       it "returns true for active status" do

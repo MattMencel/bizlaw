@@ -1,0 +1,46 @@
+<!-- Party Information -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+  <!-- Plaintiff Information -->
+  <div class="bg-blue-50 p-6 rounded-lg">
+    <h3 class="text-lg font-semibold text-blue-900 mb-4">Plaintiff Information</h3>
+    <% if case_record.plaintiff_info.present? %>
+      <% plaintiff_data = case_record.plaintiff_info.is_a?(Hash) ? case_record.plaintiff_info : JSON.parse(case_record.plaintiff_info) rescue {} %>
+      <% if plaintiff_data.any? %>
+        <dl class="space-y-2">
+          <% plaintiff_data.each do |key, value| %>
+            <div>
+              <dt class="text-sm font-medium text-blue-800"><%= key.humanize %>:</dt>
+              <dd class="text-sm text-blue-700 ml-4"><%= value %></dd>
+            </div>
+          <% end %>
+        </dl>
+      <% else %>
+        <p class="text-sm text-blue-700"><%= case_record.plaintiff_info %></p>
+      <% end %>
+    <% else %>
+      <p class="text-sm text-blue-600 italic">No plaintiff information available</p>
+    <% end %>
+  </div>
+
+  <!-- Defendant Information -->
+  <div class="bg-red-50 p-6 rounded-lg">
+    <h3 class="text-lg font-semibold text-red-900 mb-4">Defendant Information</h3>
+    <% if case_record.defendant_info.present? %>
+      <% defendant_data = case_record.defendant_info.is_a?(Hash) ? case_record.defendant_info : JSON.parse(case_record.defendant_info) rescue {} %>
+      <% if defendant_data.any? %>
+        <dl class="space-y-2">
+          <% defendant_data.each do |key, value| %>
+            <div>
+              <dt class="text-sm font-medium text-red-800"><%= key.humanize %>:</dt>
+              <dd class="text-sm text-red-700 ml-4"><%= value %></dd>
+            </div>
+          <% end %>
+        </dl>
+      <% else %>
+        <p class="text-sm text-red-700"><%= case_record.defendant_info %></p>
+      <% end %>
+    <% else %>
+      <p class="text-sm text-red-600 italic">No defendant information available</p>
+    <% end %>
+  </div>
+</div>

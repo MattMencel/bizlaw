@@ -47,6 +47,63 @@ RSpec.describe "Simulations", type: :request do
         expect(simulation.current_round).to eq(1)
         expect(simulation.pressure_escalation_rate).to eq("moderate")
       end
+
+      context "with default financial parameters" do
+        it "applies case-type specific defaults for sexual harassment" do
+          case_instance.update!(case_type: :sexual_harassment)
+          get new_course_case_simulation_path(course, case_instance)
+          simulation = assigns(:simulation)
+
+          expect(simulation.plaintiff_min_acceptable).to eq(150_000)
+          expect(simulation.plaintiff_ideal).to eq(300_000)
+          expect(simulation.defendant_max_acceptable).to eq(250_000)
+          expect(simulation.defendant_ideal).to eq(75_000)
+        end
+
+        it "applies case-type specific defaults for contract dispute" do
+          case_instance.update!(case_type: :contract_dispute)
+          get new_course_case_simulation_path(course, case_instance)
+          simulation = assigns(:simulation)
+
+          expect(simulation.plaintiff_min_acceptable).to eq(85_000)
+          expect(simulation.plaintiff_ideal).to eq(175_000)
+          expect(simulation.defendant_max_acceptable).to eq(125_000)
+          expect(simulation.defendant_ideal).to eq(35_000)
+        end
+
+        it "applies case-type specific defaults for intellectual property" do
+          case_instance.update!(case_type: :intellectual_property)
+          get new_course_case_simulation_path(course, case_instance)
+          simulation = assigns(:simulation)
+
+          expect(simulation.plaintiff_min_acceptable).to eq(2_500_000)
+          expect(simulation.plaintiff_ideal).to eq(8_000_000)
+          expect(simulation.defendant_max_acceptable).to eq(5_500_000)
+          expect(simulation.defendant_ideal).to eq(1_200_000)
+          expect(simulation.total_rounds).to eq(8)
+        end
+
+        it "creates default teams when none exist" do
+          get new_course_case_simulation_path(course, case_instance)
+          simulation = assigns(:simulation)
+
+          expect(simulation.plaintiff_team).to be_present
+          expect(simulation.defendant_team).to be_present
+          expect(simulation.plaintiff_team.name).to eq("Plaintiff Team")
+          expect(simulation.defendant_team.name).to eq("Defendant Team")
+        end
+
+        it "uses existing case teams when available" do
+          create(:case_team, case: case_instance, team: plaintiff_team, role: :plaintiff)
+          create(:case_team, case: case_instance, team: defendant_team, role: :defendant)
+
+          get new_course_case_simulation_path(course, case_instance)
+          simulation = assigns(:simulation)
+
+          expect(simulation.plaintiff_team).to eq(plaintiff_team)
+          expect(simulation.defendant_team).to eq(defendant_team)
+        end
+      end
     end
 
     context "when user is student" do
@@ -111,6 +168,55 @@ RSpec.describe "Simulations", type: :request do
           post course_case_simulation_path(course, case_instance), params: valid_params
           expect(response).to redirect_to(course_case_path(course, case_instance))
           expect(flash[:notice]).to include("created successfully")
+        end
+      end
+
+      context "with defaults parameter options" do
+        let(:default_params) do
+          {
+            simulation: {
+              use_case_defaults: "true"
+            }
+          }
+        end
+
+        let(:randomized_params) do
+          {
+            simulation: {
+              use_randomized_defaults: "true"
+            }
+          }
+        end
+
+        it "creates simulation with case-type defaults when requested" do
+          case_instance.update!(case_type: :sexual_harassment)
+          post course_case_simulation_path(course, case_instance), params: default_params
+
+          simulation = case_instance.reload.simulation
+          expect(simulation.plaintiff_min_acceptable).to eq(150_000)
+          expect(simulation.plaintiff_ideal).to eq(300_000)
+          expect(simulation.defendant_max_acceptable).to eq(250_000)
+          expect(simulation.defendant_ideal).to eq(75_000)
+        end
+
+        it "creates simulation with randomized defaults when requested" do
+          case_instance.update!(case_type: :sexual_harassment)
+          post course_case_simulation_path(course, case_instance), params: randomized_params
+
+          simulation = case_instance.reload.simulation
+          expect(simulation.plaintiff_min_acceptable).to be_between(75_000, 225_000)
+          expect(simulation.plaintiff_ideal).to be_between(150_000, 450_000)
+          expect(simulation.defendant_max_acceptable).to be_between(125_000, 375_000)
+          expect(simulation.defendant_ideal).to be_between(37_500, 187_500)
+        end
+
+        it "creates default teams when using defaults" do
+          post course_case_simulation_path(course, case_instance), params: default_params
+
+          simulation = case_instance.reload.simulation
+          expect(simulation.plaintiff_team).to be_present
+          expect(simulation.defendant_team).to be_present
+          expect(case_instance.case_teams.count).to eq(2)
         end
       end
 

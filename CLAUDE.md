@@ -58,6 +58,7 @@ This is a **Legal Education Simulation Platform** built with Rails 8.0.2 for col
 - `User` (students/instructors/admins) with role-based access
 - `Team` (user groups) with many-to-many relationships
 - `Case` (legal simulations) with JSONB metadata for `plaintiff_info`/`defendant_info`
+- `Simulation` (multiple simulations per case) supporting concurrent team negotiations
 - `Document` (file attachments) with polymorphic associations
 - `CaseEvent` (audit trail) for activity tracking
 

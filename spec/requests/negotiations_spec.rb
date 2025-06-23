@@ -595,4 +595,215 @@ RSpec.describe "Negotiations", type: :request do
       expect(client_mood).to have_key(:pressure_level)
     end
   end
+
+  describe "POST /cases/:case_id/negotiations/:id/ai_client_reaction" do
+    let(:ai_reaction_params) do
+      {
+        amount: 150000,
+        justification: "Fair settlement considering damages",
+        non_monetary_terms: "Confidentiality agreement"
+      }
+    end
+
+    context "when user is authenticated and on a team" do
+      before { sign_in student1 }
+
+      context "with valid parameters" do
+        it "returns successful JSON response" do
+          post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
+               params: ai_reaction_params,
+               headers: { 'Accept' => 'application/json' }
+
+          expect(response).to have_http_status(:success)
+          expect(response.content_type).to include("application/json")
+        end
+
+        it "returns AI-generated reaction when AI service is enabled" do
+          # Mock AI service as enabled and returning data
+          ai_service_mock = instance_double(GoogleAiService)
+          allow(GoogleAiService).to receive(:new).and_return(ai_service_mock)
+          allow(ai_service_mock).to receive(:enabled?).and_return(true)
+          allow(ai_service_mock).to receive(:generate_settlement_feedback).and_return({
+            mood_level: "satisfied",
+            feedback_text: "This settlement amount is acceptable to your client.",
+            satisfaction_score: 85,
+            strategic_guidance: "Consider including additional non-monetary terms.",
+            cost: 0.05,
+            response_time: 1.2
+          })
+
+          post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
+               params: ai_reaction_params,
+               headers: { 'Accept' => 'application/json' }
+
+          json_response = JSON.parse(response.body)
+          expect(json_response).to have_key("reaction")
+          expect(json_response["reaction"]["source"]).to eq("ai")
+          expect(json_response["reaction"]["reaction"]).to eq("pleased")
+          expect(json_response["reaction"]["message"]).to include("acceptable")
+        end
+
+        it "returns fallback reaction when AI service is disabled" do
+          # Mock AI service as disabled
+          ai_service_mock = instance_double(GoogleAiService)
+          allow(GoogleAiService).to receive(:new).and_return(ai_service_mock)
+          allow(ai_service_mock).to receive(:enabled?).and_return(false)
+
+          post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
+               params: ai_reaction_params,
+               headers: { 'Accept' => 'application/json' }
+
+          json_response = JSON.parse(response.body)
+          expect(json_response).to have_key("reaction")
+          expect(json_response["reaction"]["source"]).to eq("fallback")
+        end
+
+        it "generates appropriate reaction based on settlement amount for plaintiff team" do
+          # Test with amount above ideal threshold
+          high_amount_params = ai_reaction_params.merge(amount: 300000)
+
+          post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
+               params: high_amount_params,
+               headers: { 'Accept' => 'application/json' }
+
+          json_response = JSON.parse(response.body)
+          expect(json_response["reaction"]["reaction"]).to eq("pleased")
+        end
+
+        it "generates appropriate reaction based on settlement amount for defendant team" do
+          sign_in student2 # Switch to defendant team
+
+          # Test with low amount (good for defendant)
+          low_amount_params = ai_reaction_params.merge(amount: 50000)
+
+          post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
+               params: low_amount_params,
+               headers: { 'Accept' => 'application/json' }
+
+          json_response = JSON.parse(response.body)
+          expect(json_response["reaction"]["reaction"]).to eq("pleased")
+        end
+      end
+
+      context "with invalid parameters" do
+        it "returns error for missing amount" do
+          invalid_params = ai_reaction_params.except(:amount)
+
+          post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
+               params: invalid_params,
+               headers: { 'Accept' => 'application/json' }
+
+          expect(response).to have_http_status(:bad_request)
+          json_response = JSON.parse(response.body)
+          expect(json_response).to have_key("error")
+          expect(json_response["error"]).to include("Invalid settlement amount")
+        end
+
+        it "returns error for zero amount" do
+          invalid_params = ai_reaction_params.merge(amount: 0)
+
+          post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
+               params: invalid_params,
+               headers: { 'Accept' => 'application/json' }
+
+          expect(response).to have_http_status(:bad_request)
+          json_response = JSON.parse(response.body)
+          expect(json_response).to have_key("error")
+          expect(json_response["fallback"]).to have_key("reaction")
+        end
+
+        it "returns error for negative amount" do
+          invalid_params = ai_reaction_params.merge(amount: -1000)
+
+          post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
+               params: invalid_params,
+               headers: { 'Accept' => 'application/json' }
+
+          expect(response).to have_http_status(:bad_request)
+          json_response = JSON.parse(response.body)
+          expect(json_response).to have_key("error")
+        end
+      end
+
+      context "when AI service raises an error" do
+        it "falls back to rule-based reaction" do
+          # Mock AI service to raise an error
+          ai_service_mock = instance_double(GoogleAiService)
+          allow(GoogleAiService).to receive(:new).and_return(ai_service_mock)
+          allow(ai_service_mock).to receive(:enabled?).and_return(true)
+          allow(ai_service_mock).to receive(:generate_settlement_feedback).and_raise(StandardError, "AI service error")
+
+          post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
+               params: ai_reaction_params,
+               headers: { 'Accept' => 'application/json' }
+
+          expect(response).to have_http_status(:internal_server_error)
+          json_response = JSON.parse(response.body)
+          expect(json_response).to have_key("error")
+          expect(json_response).to have_key("fallback")
+          expect(json_response["fallback"]).to have_key("reaction")
+        end
+      end
+
+      context "mood mapping functionality" do
+        it "correctly maps AI mood levels to reaction types" do
+          ai_service_mock = instance_double(GoogleAiService)
+          allow(GoogleAiService).to receive(:new).and_return(ai_service_mock)
+          allow(ai_service_mock).to receive(:enabled?).and_return(true)
+
+          # Test very satisfied -> pleased mapping
+          allow(ai_service_mock).to receive(:generate_settlement_feedback).and_return({
+            mood_level: "very_satisfied",
+            feedback_text: "Excellent settlement",
+            satisfaction_score: 95
+          })
+
+          post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
+               params: ai_reaction_params,
+               headers: { 'Accept' => 'application/json' }
+
+          json_response = JSON.parse(response.body)
+          expect(json_response["reaction"]["reaction"]).to eq("pleased")
+
+          # Test unhappy -> concerned mapping
+          allow(ai_service_mock).to receive(:generate_settlement_feedback).and_return({
+            mood_level: "unhappy",
+            feedback_text: "Settlement too low",
+            satisfaction_score: 30
+          })
+
+          post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
+               params: ai_reaction_params,
+               headers: { 'Accept' => 'application/json' }
+
+          json_response = JSON.parse(response.body)
+          expect(json_response["reaction"]["reaction"]).to eq("concerned")
+        end
+      end
+    end
+
+    context "when user is not authenticated" do
+      it "redirects to sign in" do
+        post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
+             params: ai_reaction_params
+
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when user is not on a team" do
+      let(:unassigned_student) { create(:user, :student, organization: organization) }
+      let!(:unassigned_enrollment) { create(:course_enrollment, user: unassigned_student, course: course) }
+
+      before { sign_in unassigned_student }
+
+      it "redirects with error message" do
+        post ai_client_reaction_case_negotiation_path(case_instance, negotiation_round),
+             params: ai_reaction_params
+
+        expect(response).to redirect_to(cases_path)
+        expect(flash[:alert]).to include("not assigned to a team")
+      end
+    end
+  end
 end

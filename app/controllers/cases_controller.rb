@@ -70,6 +70,18 @@ class CasesController < ApplicationController
   end
 
   def destroy
+    unless @case.can_be_deleted?
+      respond_to do |format|
+        format.html do
+          redirect_to course_cases_path(@course), alert: @case.deletion_error_message
+        end
+        format.json do
+          render json: {error: @case.deletion_error_message}, status: :unprocessable_entity
+        end
+      end
+      return
+    end
+
     @case.destroy
 
     respond_to do |format|
@@ -124,7 +136,7 @@ class CasesController < ApplicationController
 
   def case_params
     permitted_params = params.require(:case).permit(:title, :description, :case_type, :difficulty_level,
-      :plaintiff_info, :defendant_info, :reference_number, team_ids: [],
+      :plaintiff_info, :defendant_info, :reference_number, :legal_issues, team_ids: [],
       legal_issues: [], plaintiff_info_keys: [], plaintiff_info_values: [],
       defendant_info_keys: [], defendant_info_values: [])
 
@@ -159,6 +171,14 @@ class CasesController < ApplicationController
       permitted_params[:defendant_info] = {}
       permitted_params.delete(:defendant_info_keys)
       permitted_params.delete(:defendant_info_values)
+    end
+
+    # Convert legal_issues string to array if needed
+    if permitted_params[:legal_issues].is_a?(String) && permitted_params[:legal_issues].present?
+      # Split by commas and clean up whitespace
+      permitted_params[:legal_issues] = permitted_params[:legal_issues].split(",").map(&:strip).compact_blank
+    elsif permitted_params[:legal_issues].blank?
+      permitted_params[:legal_issues] = []
     end
 
     permitted_params

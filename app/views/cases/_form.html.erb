@@ -31,17 +31,17 @@
 
     <div>
       <%= form.label :case_type, class: "block text-sm font-medium text-gray-700" %>
-      <%= form.select :case_type, 
-          options_for_select(Case.case_types.map { |key, value| [key.humanize, key] }, @case.case_type), 
-          { prompt: "Select case type" }, 
+      <%= form.select :case_type,
+          options_for_select(Case.case_types.map { |key, value| [key.humanize, key] }, @case.case_type),
+          { prompt: "Select case type" },
           { class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" } %>
     </div>
 
     <div>
       <%= form.label :difficulty_level, class: "block text-sm font-medium text-gray-700" %>
-      <%= form.select :difficulty_level, 
-          options_for_select(Case.difficulty_levels.map { |key, value| [key.humanize, key] }, @case.difficulty_level), 
-          { prompt: "Select difficulty level" }, 
+      <%= form.select :difficulty_level,
+          options_for_select(Case.difficulty_levels.map { |key, value| [key.humanize, key] }, @case.difficulty_level),
+          { prompt: "Select difficulty level" },
           { class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" } %>
     </div>
 
@@ -57,7 +57,9 @@
 
     <div>
       <%= form.label :legal_issues, "Legal Issues", class: "block text-sm font-medium text-gray-700" %>
-      <%= form.text_area :legal_issues, rows: 3, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+      <p class="mt-1 text-sm text-gray-500">Enter legal issues separated by commas</p>
+      <% legal_issues_value = @case.legal_issues.is_a?(Array) ? @case.legal_issues.join(', ') : @case.legal_issues %>
+      <%= form.text_area :legal_issues, value: legal_issues_value, rows: 3, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
     </div>
 
     <%= render 'dynamic_json_fields', form: form, field_name: 'plaintiff_info', label: 'Plaintiff Information' %>
@@ -70,7 +72,7 @@
         <div class="mt-2 space-y-2">
           <% @teams.each do |team| %>
             <div class="flex items-center">
-              <%= check_box_tag "case[team_ids][]", team.id, @case.team_ids.include?(team.id), 
+              <%= check_box_tag "case[team_ids][]", team.id, @case.team_ids.include?(team.id),
                   id: "case_team_ids_#{team.id}",
                   class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" %>
               <%= label_tag "case_team_ids_#{team.id}", team.name, class: "ml-2 block text-sm text-gray-900" %>

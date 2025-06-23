@@ -9,7 +9,7 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
   # GET /api/v1/cases/:case_id/evidence_releases
   # List evidence releases for a case
   def index
-    @evidence_releases = @case.simulation.evidence_releases
+    @evidence_releases = @case.active_simulation.evidence_releases
       .includes(:document, :requesting_team)
       .order(:release_round, :scheduled_release_at)
 
@@ -46,7 +46,7 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
       meta: {
         total_releases: @evidence_releases.count,
         pending_releases: @evidence_releases.pending_release.count,
-        current_round: @case.simulation.current_round,
+        current_round: @case.active_simulation.current_round,
         evidence_types: EvidenceRelease::EVIDENCE_TYPES
       }
     }
@@ -88,7 +88,7 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
   # Create a team request for evidence release
   def create
     @evidence_release = EvidenceRelease.create_team_request(
-      @case.simulation,
+      @case.active_simulation,
       find_document,
       current_user_team,
       evidence_params[:evidence_type],
@@ -155,7 +155,7 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
   def schedule
     ensure_instructor!
 
-    all_releases = @case.simulation.evidence_releases
+    all_releases = @case.active_simulation.evidence_releases
       .includes(:document, :requesting_team)
       .order(:release_round, :scheduled_release_at)
 
@@ -176,7 +176,7 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
     document = @case.documents.find(params[:document_id])
 
     @evidence_release = EvidenceRelease.schedule_automatic_release(
-      @case.simulation,
+      @case.active_simulation,
       document,
       params[:release_round].to_i,
       params[:evidence_type],
@@ -205,7 +205,7 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
   end
 
   def set_evidence_release
-    @evidence_release = @case.simulation.evidence_releases.find(params[:id])
+    @evidence_release = @case.active_simulation.evidence_releases.find(params[:id])
   end
 
   def ensure_case_access

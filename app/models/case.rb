@@ -15,7 +15,7 @@ class Case < ApplicationRecord
   has_many :users, through: :teams
   has_many :documents, as: :documentable, dependent: :destroy
   has_many :case_events, dependent: :destroy
-  has_one :simulation, dependent: :destroy
+  has_many :simulations, dependent: :destroy
 
   # Helper methods for team roles
   def plaintiff_team
@@ -79,10 +79,13 @@ class Case < ApplicationRecord
   scope :by_type, ->(type) { where(case_type: type) }
   scope :by_course, ->(course_id) { where(course_id: course_id) }
   scope :accessible_by, ->(user) {
-    case user.role
-    when "admin", "instructor"
-      all
-    when "student"
+    return all if user.admin?
+
+    if user.instructor?
+      # Instructors can only access cases in courses they teach
+      joins(:course).where(course: {instructor: user})
+    elsif user.student?
+      # Students can only access cases where they are assigned to teams
       joins(:assigned_teams).where(teams: {id: user.team_ids})
     else
       none
@@ -167,18 +170,24 @@ class Case < ApplicationRecord
   end
 
   def current_phase
-    # This would come from the simulation or case state
-    simulation&.current_phase || "Preparation"
+    # This would come from the active simulation or case state
+    active_simulation&.current_phase || "Preparation"
   end
 
   def current_round
-    # This would come from the simulation
-    simulation&.current_round || 1
+    # This would come from the active simulation
+    active_simulation&.current_round || 1
   end
 
   def total_rounds
-    # This would come from the simulation configuration
-    simulation&.total_rounds || 6
+    # This would come from the active simulation configuration
+    active_simulation&.total_rounds || 6
+  end
+
+  # Helper method to get the active simulation
+  # Returns the first active simulation, or the most recent one if none are active
+  def active_simulation
+    simulations.find { |sim| sim.active? } || simulations.order(:created_at).last
   end
 
   def team_status_for_user(user)
@@ -196,6 +205,20 @@ class Case < ApplicationRecord
     # This would return deadlines for the case
     # For now, return empty array
     []
+  end
+
+  def can_be_deleted?
+    # Business rule: Only cases in 'not_started' status can be deleted
+    return false unless status_not_started?
+
+    # Business rule: Cannot delete if there are teams with student members
+    !assigned_teams.any? { |team| team.has_student_members? }
+  end
+
+  def deletion_error_message
+    return "Case can only be deleted when in 'Not Started' status" unless status_not_started?
+    return "Cannot delete case with teams that have student members" if assigned_teams.any? { |team| team.has_student_members? }
+    nil
   end
 
   private

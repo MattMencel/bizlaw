@@ -18,7 +18,7 @@ class Team < ApplicationRecord
   # Validations
   validates :name, presence: true,
     length: {maximum: 255},
-    uniqueness: {scope: [:course_id, :owner_id], case_sensitive: false}
+    uniqueness: {scope: [:course_id, :owner_id], case_sensitive: false} # rubocop:disable Rails/UniqueValidationWithoutIndex
   validates :description, presence: true
   validates :owner_id, presence: true
   validates :course_id, presence: true
@@ -103,6 +103,10 @@ class Team < ApplicationRecord
   def primary_case
     # Return the first case this team is assigned to
     cases.first
+  end
+
+  def has_student_members?
+    users.students.exists?
   end
 
   private

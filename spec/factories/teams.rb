@@ -8,9 +8,11 @@ FactoryBot.define do
     association :owner, factory: :user
     association :course
 
-    after(:build) do |team|
-      # Ensure the owner is enrolled in the course
-      create(:course_enrollment, user: team.owner, course: team.course, status: "active")
+    after(:create) do |team|
+      # Ensure the owner is enrolled in the course (only for students)
+      if team.owner&.student? && team.course && !team.course.course_enrollments.exists?(user: team.owner)
+        create(:course_enrollment, user: team.owner, course: team.course, status: "active")
+      end
     end
 
     trait :with_members do
