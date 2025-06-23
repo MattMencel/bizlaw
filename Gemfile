@@ -86,7 +86,7 @@ group :development, :test do
 
   # RSpec for Rails testing
 
-  gem "rspec-rails", "~> 8.0.0"
+  gem "rspec-rails", "~> 8.0.1"
 
   # Factory Bot for test data generation
   gem "factory_bot_rails"
