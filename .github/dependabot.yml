@@ -1,12 +1,13 @@
 version: 2
 updates:
+  # Ruby/Rails dependencies
   - package-ecosystem: bundler
     directory: "/"
     schedule:
       interval: daily
     open-pull-requests-limit: 10
     groups:
-      rails:
+      rails-core:
         patterns:
           - "rails"
           - "turbo-rails"
@@ -37,34 +38,94 @@ updates:
           - "statsd-instrument"
           - "dogstatsd-ruby"
           - "bullet"
+      ai-integration:
+        patterns:
+          - "gemini-ai"
+      pdf-generation:
+        patterns:
+          - "prawn"
+          - "prawn-table"
+      qr-code:
+        patterns:
+          - "rqrcode"
+          - "chunky_png"
       development-tools:
         patterns:
           - "web-console"
           - "debug"
           - "dotenv-rails"
           - "brakeman"
-          - "rubocop*"
           - "solargraph"
           - "kamal"
           - "thruster"
           - "dockerfile-rails"
-      test:
+      linting:
+        patterns:
+          - "standard"
+          - "standard-rails"
+          - "rubocop*"
+      test-framework:
         patterns:
           - "rspec-rails"
           - "factory_bot_rails"
           - "faker"
           - "cucumber*"
-          - "capybara"
-          - "selenium-webdriver"
           - "shoulda-matchers"
-          - "database_cleaner-active_record"
+          - "pundit-matchers"
+          - "rails-controller-testing"
+          - "simplecov"
+      test-system:
+        patterns:
+          - "capybara"
           - "capybara-playwright-driver"
+          - "selenium-webdriver"
+      test-utilities:
+        patterns:
+          - "database_cleaner-active_record"
           - "email_spec"
           - "timecop"
+          - "axe-core-rspec"
       storage:
         patterns:
           - "active_storage_validations"
           - "image_processing"
+      database:
+        patterns:
+          - "pg"
+          - "puma"
+
+  # Documentation dependencies
+  - package-ecosystem: npm
+    directory: "/docs"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 5
+    groups:
+      docusaurus:
+        patterns:
+          - "@docusaurus/*"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@mdx-js/*"
+      dev-tools:
+        patterns:
+          - "typescript"
+          - "@types/*"
+      ui-utilities:
+        patterns:
+          - "clsx"
+          - "prism-react-renderer"
+
+  # Docker dependencies
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  # GitHub Actions dependencies
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
