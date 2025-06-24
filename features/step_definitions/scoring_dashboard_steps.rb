@@ -290,7 +290,7 @@ Then("I should see my total score update to reflect the new collaboration points
 end
 
 Then("I should see a brief animation indicating the score change") do
-  expect(page).to have_css(".score-animation", visible: false) # Animation completed
+  expect(page).to have_css(".score-animation", visible: :hidden) # Animation completed
 end
 
 Then("I should see a notification {string}") do |notification_text|

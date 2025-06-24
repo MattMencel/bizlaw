@@ -80,8 +80,7 @@ class ClientRangeValidationService
   def within_settlement_zone?(plaintiff_offer, defendant_offer)
     return false unless ranges_overlap?
 
-    plaintiff_offer >= simulation.plaintiff_min_acceptable &&
-      plaintiff_offer <= simulation.defendant_max_acceptable &&
+    plaintiff_offer.between?(simulation.plaintiff_min_acceptable, simulation.defendant_max_acceptable) &&
       defendant_offer >= simulation.plaintiff_min_acceptable &&
       defendant_offer <= simulation.defendant_max_acceptable
   end

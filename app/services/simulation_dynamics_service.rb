@@ -451,46 +451,6 @@ class SimulationDynamicsService
     )
   end
 
-  def calculate_time_pressure_factor(round_number)
-    total_rounds = simulation.total_rounds
-    progress = round_number.to_f / total_rounds
-
-    {
-      round_number: round_number,
-      total_rounds: total_rounds,
-      progress_percentage: (progress * 100).round(1),
-      pressure_level: determine_time_pressure_level(progress)
-    }
-  end
-
-  def determine_time_pressure_level(progress)
-    case progress
-    when 0.0..0.3
-      "low"
-    when 0.31..0.6
-      "moderate"
-    when 0.61..0.8
-      "high"
-    else
-      "critical"
-    end
-  end
-
-  def calculate_media_pressure_factor(round_number)
-    media_events = simulation.simulation_events
-      .where(event_type: :media_attention)
-      .where("trigger_round <= ?", round_number)
-
-    {
-      media_events_count: media_events.count,
-      pressure_level: if media_events.count > 2
-                        "high"
-                      else
-                        ((media_events.count > 0) ? "moderate" : "none")
-                      end
-    }
-  end
-
   def calculate_average_quality_pressure
     offers = simulation.settlement_offers.where.not(final_quality_score: nil)
     return {average_quality: 0, pressure_level: "none"} if offers.empty?
@@ -504,24 +464,6 @@ class SimulationDynamicsService
                         "high_performance"
                       else
                         ((avg_quality > 70) ? "moderate_performance" : "low_performance")
-                      end
-    }
-  end
-
-  def calculate_event_pressure_factor(round_number)
-    events = simulation.simulation_events
-      .where("trigger_round <= ?", round_number)
-      .where.not(event_type: :additional_evidence)
-
-    high_impact_events = events.where(event_type: [:witness_change, :ipo_delay, :court_deadline])
-
-    {
-      total_events: events.count,
-      high_impact_events: high_impact_events.count,
-      pressure_level: if high_impact_events.count > 2
-                        "high"
-                      else
-                        ((events.count > 3) ? "moderate" : "low")
                       end
     }
   end

@@ -26,14 +26,14 @@ RSpec.describe "Mobile Navigation", :js, type: :system do
         visit dashboard_path
 
         expect(page).to have_css('[data-mobile-navigation-target="toggle"]', :visible)
-        expect(page).to have_css("nav.hidden", visible: false)
+        expect(page).to have_css("nav.hidden", visible: :hidden)
       end
 
       it "toggles navigation menu when hamburger is clicked" do
         visit dashboard_path
 
         # Initially closed
-        expect(page).to have_css('[data-mobile-navigation-target="menu"]', visible: false)
+        expect(page).to have_css('[data-mobile-navigation-target="menu"]', visible: :hidden)
 
         # Click to open
         find('[data-mobile-navigation-target="toggle"]').click
@@ -41,7 +41,7 @@ RSpec.describe "Mobile Navigation", :js, type: :system do
 
         # Click to close
         find('[data-mobile-navigation-target="toggle"]').click
-        expect(page).to have_css('[data-mobile-navigation-target="menu"]', visible: false)
+        expect(page).to have_css('[data-mobile-navigation-target="menu"]', visible: :hidden)
       end
 
       it "closes menu when clicking outside" do
@@ -53,7 +53,7 @@ RSpec.describe "Mobile Navigation", :js, type: :system do
 
         # Click outside (on backdrop)
         find('[data-mobile-navigation-target="backdrop"]').click
-        expect(page).to have_css('[data-mobile-navigation-target="menu"]', visible: false)
+        expect(page).to have_css('[data-mobile-navigation-target="menu"]', visible: :hidden)
       end
 
       it "ensures navigation does not occupy more than 100% of screen width" do
@@ -149,7 +149,7 @@ RSpec.describe "Mobile Navigation", :js, type: :system do
 
       # Close menu with escape
       find("body").send_keys(:escape)
-      expect(page).to have_css('[data-mobile-navigation-target="menu"]', visible: false)
+      expect(page).to have_css('[data-mobile-navigation-target="menu"]', visible: :hidden)
     end
 
     it "traps focus within mobile menu when open" do

@@ -16,9 +16,11 @@ class Team < ApplicationRecord
   has_many :documents, as: :documentable, dependent: :destroy
 
   # Validations
+  # rubocop:disable Rails/UniqueValidationWithoutIndex
   validates :name, presence: true,
     length: {maximum: 255},
-    uniqueness: {scope: [:course_id, :owner_id], case_sensitive: false} # rubocop:disable Rails/UniqueValidationWithoutIndex
+    uniqueness: {scope: [:course_id, :owner_id], case_sensitive: false}
+  # rubocop:enable Rails/UniqueValidationWithoutIndex
   validates :description, presence: true
   validates :max_members, presence: true, numericality: {greater_than: 0}
   validate :validate_member_limit, on: :create

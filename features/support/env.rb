@@ -91,7 +91,7 @@ OmniAuth.config.mock_auth[:google_oauth2] = OmniAuth::AuthHash.new(
 )
 
 # Include Warden test helpers
-include Warden::Test::Helpers
+World(Warden::Test::Helpers)
 Warden.test_mode!
 
 After { Warden.test_reset! }

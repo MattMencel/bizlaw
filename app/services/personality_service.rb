@@ -169,7 +169,7 @@ class PersonalityService
       end
 
       # Ensure satisfaction stays within bounds
-      [[adjusted, 0].max, 100].min
+      adjusted.clamp(0, 100)
     end
 
     def get_mood_adjustment(personality_type, base_mood, context:)

@@ -615,7 +615,7 @@ class NegotiationsController < ApplicationController
     # Adjust based on round number
     pressure_bonus = (@simulation.current_round - 1) * 5
 
-    [[base_probability + pressure_bonus, 95].min, 5].max
+    (base_probability + pressure_bonus).clamp(5, 95)
   end
 
   def load_argument_templates
