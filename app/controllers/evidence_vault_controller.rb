@@ -201,8 +201,8 @@ class EvidenceVaultController < ApplicationController
   def set_team_membership
     @team_membership = current_user.team_members
       .joins(:team)
-      .joins("JOIN case_teams ON case_teams.team_id = teams.id")
-      .where(case_teams: {case_id: @case.id})
+      .joins(simulation: :case)
+      .where(simulations: {case_id: @case.id})
       .first
   end
 

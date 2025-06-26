@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Team, type: :model do
-  subject(:team) { build(:team) }
+  subject(:team) { create(:team) }
 
   # Test concerns
   it_behaves_like "has_uuid"
@@ -13,10 +13,9 @@ RSpec.describe Team, type: :model do
   # Associations
   describe "associations" do
     it { is_expected.to belong_to(:owner).class_name("User") }
-    it { is_expected.to belong_to(:course).optional }
+    it { is_expected.to belong_to(:simulation) }
     it { is_expected.to have_many(:team_members).dependent(:destroy) }
     it { is_expected.to have_many(:users).through(:team_members) }
-    it { is_expected.to have_many(:cases).dependent(:destroy) }
     it { is_expected.to have_many(:documents).dependent(:destroy) }
   end
 
@@ -25,12 +24,14 @@ RSpec.describe Team, type: :model do
     it { is_expected.to validate_presence_of(:name) }
     it { is_expected.to validate_length_of(:name).is_at_most(255) }
     it { is_expected.to validate_presence_of(:description) }
-    it { is_expected.to validate_presence_of(:owner_id) }
+    it { is_expected.to validate_presence_of(:role) }
     it { is_expected.to validate_presence_of(:max_members) }
     it { is_expected.to validate_numericality_of(:max_members).is_greater_than(0) }
 
-    it "validates uniqueness of name scoped to owner" do
-      create(:team, name: "Test Team", owner: team.owner)
+    it "validates uniqueness of name scoped to simulation and owner" do
+      simulation = create(:simulation)
+      create(:team, name: "Test Team", owner: team.owner, simulation: simulation)
+      team.simulation = simulation
       team.name = "Test Team"
       expect(team).not_to be_valid
       expect(team.errors[:name]).to include("has already been taken")
@@ -42,7 +43,7 @@ RSpec.describe Team, type: :model do
     let!(:active_team) { create(:team) }
     let!(:deleted_team) { create(:team, :soft_deleted) }
     let!(:full_team) { create(:team, :full) }
-    let!(:team_with_cases) { create(:team, :with_cases) }
+    let!(:team_with_plaintiff_role) { create(:team, :plaintiff) }
 
     describe ".by_owner" do
       it "returns teams owned by the specified user" do
@@ -79,12 +80,21 @@ RSpec.describe Team, type: :model do
       end
     end
 
-    describe ".with_role" do
+    describe ".with_member_role" do
       let!(:team_with_manager) { create(:team, :with_managers) }
 
       it "returns teams that have members with the specified role" do
-        expect(described_class.with_role("manager")).to include(team_with_manager)
-        expect(described_class.with_role("manager")).not_to include(active_team)
+        expect(described_class.with_member_role("manager")).to include(team_with_manager)
+        expect(described_class.with_member_role("manager")).not_to include(active_team)
+      end
+    end
+
+    describe ".with_case_role" do
+      let!(:team_with_plaintiff_role) { create(:team, :plaintiff) }
+
+      it "returns teams that have the specified case role" do
+        expect(described_class.with_case_role("plaintiff")).to include(team_with_plaintiff_role)
+        expect(described_class.with_case_role("plaintiff")).not_to include(active_team)
       end
     end
   end

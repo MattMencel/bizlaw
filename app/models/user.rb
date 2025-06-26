@@ -14,7 +14,8 @@ class User < ApplicationRecord
   # Associations
   has_many :team_members, dependent: :destroy
   has_many :teams, through: :team_members
-  has_many :cases, through: :teams
+  has_many :simulations, through: :teams
+  has_many :cases, through: :simulations
   has_many :documents, foreign_key: :created_by_id
   has_many :owned_teams, class_name: "Team", foreign_key: :owner_id, dependent: :destroy
 

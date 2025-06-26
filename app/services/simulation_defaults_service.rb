@@ -48,7 +48,6 @@ class SimulationDefaultsService
 
   def build_simulation_with_defaults
     defaults = financial_defaults
-    teams = default_teams
 
     Simulation.new(
       case: case_record,
@@ -60,15 +59,12 @@ class SimulationDefaultsService
       current_round: 1,
       status: :setup,
       pressure_escalation_rate: :moderate,
-      plaintiff_team: teams[:plaintiff_team],
-      defendant_team: teams[:defendant_team],
       simulation_config: default_simulation_config
     )
   end
 
   def build_simulation_with_randomized_defaults
     defaults = randomized_financial_defaults
-    teams = default_teams
 
     Simulation.new(
       case: case_record,
@@ -80,8 +76,6 @@ class SimulationDefaultsService
       current_round: 1,
       status: :setup,
       pressure_escalation_rate: :moderate,
-      plaintiff_team: teams[:plaintiff_team],
-      defendant_team: teams[:defendant_team],
       simulation_config: default_simulation_config
     )
   end
@@ -146,10 +140,9 @@ class SimulationDefaultsService
   end
 
   def find_or_create_team(role)
-    existing_team = case_record.case_teams.find_by(role: role)&.team
-    return existing_team if existing_team
-
-    create_team_for_role(role)
+    # In the new model, teams belong to simulations, not cases
+    # Return nil for now - teams will be created after simulation creation
+    nil
   end
 
   def create_team_for_role(role)
@@ -161,20 +154,16 @@ class SimulationDefaultsService
       case_record.course.course_enrollments.create!(user: case_record.created_by, status: "active")
     end
 
-    team = Team.create!(
+    # Note: This method now returns existing teams or creates placeholder teams
+    # The actual team creation for simulations happens after simulation creation
+    Team.create!(
       name: team_name,
       description: description,
-      course: case_record.course,
+      simulation: nil, # Will be set later when simulation is created
+      role: role,
       max_members: 10,
       owner: case_record.created_by
     )
-
-    case_record.case_teams.create!(
-      team: team,
-      role: role
-    )
-
-    team
   end
 
   def default_simulation_config

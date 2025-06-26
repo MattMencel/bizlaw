@@ -7,24 +7,33 @@ class Team < ApplicationRecord
 
   # Associations
   belongs_to :owner, class_name: "User"
-  belongs_to :course
+  belongs_to :simulation
   has_many :team_members, dependent: :destroy
   has_many :users, through: :team_members
   has_many :members, through: :team_members, source: :user
-  has_many :case_teams, dependent: :destroy
-  has_many :cases, through: :case_teams
   has_many :documents, as: :documentable, dependent: :destroy
+
+  # Delegated associations
+  delegate :case, to: :simulation
+  delegate :course, to: :case
 
   # Validations
   # rubocop:disable Rails/UniqueValidationWithoutIndex
   validates :name, presence: true,
     length: {maximum: 255},
-    uniqueness: {scope: [:course_id, :owner_id], case_sensitive: false}
+    uniqueness: {scope: [:simulation_id, :owner_id], case_sensitive: false}
   # rubocop:enable Rails/UniqueValidationWithoutIndex
   validates :description, presence: true
   validates :max_members, presence: true, numericality: {greater_than: 0}
+  validates :role, presence: true
   validate :validate_member_limit, on: :create
   validate :owner_must_be_enrolled_in_course
+
+  # Enums
+  enum :role, {
+    plaintiff: "plaintiff",
+    defendant: "defendant"
+  }, prefix: :role
 
   # Scopes
   scope :by_owner, ->(user) { where(owner: user) }
@@ -34,8 +43,11 @@ class Team < ApplicationRecord
   scope :with_member, ->(user) {
     joins(:team_members).where(team_members: {user_id: user.id})
   }
-  scope :with_role, ->(role) {
+  scope :with_member_role, ->(role) {
     joins(:team_members).where(team_members: {role: role})
+  }
+  scope :with_case_role, ->(role) {
+    where(role: role)
   }
   scope :accessible_by, ->(user) {
     case user.role
@@ -91,18 +103,15 @@ class Team < ApplicationRecord
   end
 
   def case_role
-    # Get the role from the first case team association
-    # This assumes teams typically have one primary role
-    case_teams.first&.role || "unassigned"
+    role || "unassigned"
   end
 
   def role_in_case(case_obj)
-    case_teams.find_by(case: case_obj)&.role
+    case_obj == self.case ? role : nil
   end
 
   def primary_case
-    # Return the first case this team is assigned to
-    cases.first
+    self.case
   end
 
   def has_student_members?
@@ -125,14 +134,14 @@ class Team < ApplicationRecord
   end
 
   def owner_must_be_enrolled_in_course
-    return unless owner && course
+    return unless owner && simulation&.case&.course
 
-    unless course.enrolled?(owner)
+    unless simulation.case.course.enrolled?(owner)
       errors.add(:owner, "must be enrolled in the course")
     end
   end
 
   def user_enrolled_in_course?(user)
-    course&.enrolled?(user)
+    simulation&.case&.course&.enrolled?(user)
   end
 end

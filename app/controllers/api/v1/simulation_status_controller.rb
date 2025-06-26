@@ -106,8 +106,8 @@ module Api
 
       def current_user_team
         @current_user_team ||= current_user.teams
-          .joins(:case_teams)
-          .where(case_teams: {case: @case})
+          .joins(simulation: :case)
+          .where(simulations: {case_id: @case.id})
           .first
       end
 
@@ -142,8 +142,7 @@ module Api
       end
 
       def team_status_data
-        case_team = current_user_team.case_teams.find_by(case: @case)
-        team_role = case_team&.role
+        team_role = current_user_team&.role
 
         current_round = @simulation.current_negotiation_round
         team_offer = nil

@@ -5,13 +5,14 @@ FactoryBot.define do
     name { Faker::Team.name }
     description { Faker::Lorem.paragraph }
     max_members { 5 }
+    role { "plaintiff" }
     association :owner, factory: :user
-    association :course
+    association :simulation
 
     after(:create) do |team|
       # Ensure the owner is enrolled in the course (only for students)
-      if team.owner&.student? && team.course && !team.course.course_enrollments.exists?(user: team.owner)
-        create(:course_enrollment, user: team.owner, course: team.course, status: "active")
+      if team.owner&.student? && team.simulation&.case&.course && !team.simulation.case.course.course_enrollments.exists?(user: team.owner)
+        create(:course_enrollment, user: team.owner, course: team.simulation.case.course, status: "active")
       end
     end
 
@@ -35,14 +36,12 @@ FactoryBot.define do
       end
     end
 
-    trait :with_cases do
-      transient do
-        cases_count { 1 }
-      end
+    trait :defendant do
+      role { "defendant" }
+    end
 
-      after(:create) do |team, evaluator|
-        create_list(:case, evaluator.cases_count, team: team)
-      end
+    trait :plaintiff do
+      role { "plaintiff" }
     end
 
     trait :full do

@@ -230,7 +230,7 @@ class NegotiationsController < ApplicationController
       return
     end
 
-    unless [@simulation.plaintiff_team, @simulation.defendant_team].include?(current_user_team)
+    unless @simulation.teams.include?(current_user_team)
       redirect_to cases_path,
         alert: "Your team is not participating in this simulation"
     end
@@ -244,8 +244,8 @@ class NegotiationsController < ApplicationController
 
   def current_user_team
     @current_user_team ||= current_user.teams
-      .joins(:case_teams)
-      .where(case_teams: {case: @case})
+      .joins(simulation: :case)
+      .where(simulations: {case_id: @case.id})
       .first
   end
 
@@ -266,8 +266,7 @@ class NegotiationsController < ApplicationController
   end
 
   def opposing_team_offers
-    opposing_team = (current_user_team == @simulation.plaintiff_team) ?
-                   @simulation.defendant_team : @simulation.plaintiff_team
+    opposing_team = find_opposing_team
 
     @simulation.negotiation_rounds
       .joins(:settlement_offers)
@@ -277,15 +276,13 @@ class NegotiationsController < ApplicationController
   end
 
   def opposing_offer_for_round(round)
-    opposing_team = (current_user_team == @simulation.plaintiff_team) ?
-                   @simulation.defendant_team : @simulation.plaintiff_team
+    opposing_team = find_opposing_team
 
     round.settlement_offers.find_by(team: opposing_team)
   end
 
   def find_opposing_team_latest_offer
-    opposing_team = (current_user_team == @simulation.plaintiff_team) ?
-                   @simulation.defendant_team : @simulation.plaintiff_team
+    opposing_team = find_opposing_team
 
     SettlementOffer.joins(:negotiation_round)
       .where(team: opposing_team)
@@ -310,6 +307,14 @@ class NegotiationsController < ApplicationController
       offer.submitted_by = current_user
       offer.submitted_at = Time.current
       offer.offer_type = :counteroffer
+    end
+  end
+
+  def find_opposing_team
+    if current_user_team.role_plaintiff?
+      @simulation.defendant_teams.first
+    else
+      @simulation.plaintiff_teams.first
     end
   end
 

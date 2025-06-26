@@ -39,13 +39,11 @@ class SettlementOffer < ApplicationRecord
   # Scopes
   scope :plaintiff_offers, -> {
     joins(:team)
-      .joins("JOIN case_teams ON teams.id = case_teams.team_id")
-      .where(case_teams: {role: :plaintiff})
+      .where(role: :plaintiff)
   }
   scope :defendant_offers, -> {
     joins(:team)
-      .joins("JOIN case_teams ON teams.id = case_teams.team_id")
-      .where(case_teams: {role: :defendant})
+      .where(role: :defendant)
   }
   scope :by_submission_time, -> { order(:submitted_at) }
   scope :recent_first, -> { order(submitted_at: :desc) }
@@ -57,8 +55,7 @@ class SettlementOffer < ApplicationRecord
 
   # Instance methods
   def team_role
-    case_team = team.case_teams.find_by(case: self.case)
-    case_team&.role
+    team&.role
   end
 
   def is_plaintiff_offer?
@@ -277,7 +274,7 @@ class SettlementOffer < ApplicationRecord
   def team_assigned_to_case
     return unless team.present? && negotiation_round.present?
 
-    unless team.case_teams.exists?(case: self.case)
+    unless team&.simulation&.case == self.case
       errors.add(:team, "is not assigned to this case")
     end
   end

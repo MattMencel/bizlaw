@@ -50,15 +50,13 @@ class NegotiationRound < ApplicationRecord
 
   def plaintiff_offer
     settlement_offers.joins(:team)
-      .joins("JOIN case_teams ON teams.id = case_teams.team_id")
-      .where(case_teams: {role: :plaintiff})
+      .where(role: :plaintiff)
       .first
   end
 
   def defendant_offer
     settlement_offers.joins(:team)
-      .joins("JOIN case_teams ON teams.id = case_teams.team_id")
-      .where(case_teams: {role: :defendant})
+      .where(role: :defendant)
       .first
   end
 

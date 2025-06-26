@@ -7,6 +7,7 @@ class Simulation < ApplicationRecord
 
   # Associations
   belongs_to :case
+  has_many :teams, dependent: :destroy
   has_many :negotiation_rounds, dependent: :destroy
   has_many :settlement_offers, through: :negotiation_rounds
   has_many :simulation_events, dependent: :destroy
@@ -15,12 +16,36 @@ class Simulation < ApplicationRecord
   has_one :arbitration_outcome, dependent: :destroy
   has_many :evidence_releases, dependent: :destroy
 
-  # Direct team associations
-  belongs_to :plaintiff_team, class_name: "Team", optional: true
-  belongs_to :defendant_team, class_name: "Team", optional: true
+  # Team role associations
+  has_many :plaintiff_teams, -> { where(role: :plaintiff) }, class_name: "Team"
+  has_many :defendant_teams, -> { where(role: :defendant) }, class_name: "Team"
+
+  # Backward compatibility methods
+  def plaintiff_team
+    plaintiff_teams.first
+  end
+
+  def defendant_team
+    defendant_teams.first
+  end
 
   # Delegated associations through case
-  delegate :assigned_teams, to: :case
+  delegate :course, to: :case
+
+  # Name and display methods
+  def display_name
+    return name if name.present?
+    default_name
+  end
+
+  def default_name
+    sequence_number = self.case.simulations.where("created_at <= ?", created_at).count
+    "Simulation #{sequence_number}"
+  end
+
+  def short_id
+    id.to_s.first(8)
+  end
 
   # Validations
   validates :start_date, presence: true, if: -> { status_active? || status_paused? || status_completed? || status_arbitration? }
@@ -43,14 +68,16 @@ class Simulation < ApplicationRecord
     numericality: {greater_than_or_equal_to: 0},
     if: -> { status_active? || status_paused? || status_completed? || status_arbitration? }
   validates :simulation_config, presence: true
-  validates :plaintiff_team_id, presence: true, if: -> { status_active? || status_paused? || status_completed? || status_arbitration? }
-  validates :defendant_team_id, presence: true, if: -> { status_active? || status_paused? || status_completed? || status_arbitration? }
+  validate :has_plaintiff_teams, if: -> { status_active? || status_paused? || status_completed? || status_arbitration? }
+  validate :has_defendant_teams, if: -> { status_active? || status_paused? || status_completed? || status_arbitration? }
 
   validate :current_round_within_total_rounds
   validate :plaintiff_amounts_logical
   validate :defendant_amounts_logical
-  validate :teams_are_different
   validate :settlement_mathematically_possible
+
+  # Callbacks
+  after_create :create_default_teams
 
   # Enums
   enum :status, {
@@ -154,11 +181,15 @@ class Simulation < ApplicationRecord
     end
   end
 
-  def teams_are_different
-    return unless plaintiff_team_id.present? && defendant_team_id.present?
+  def has_plaintiff_teams
+    unless plaintiff_teams.exists?
+      errors.add(:base, "must have at least one plaintiff team")
+    end
+  end
 
-    if plaintiff_team_id == defendant_team_id
-      errors.add(:defendant_team_id, "cannot be the same as plaintiff team")
+  def has_defendant_teams
+    unless defendant_teams.exists?
+      errors.add(:base, "must have at least one defendant team")
     end
   end
 
@@ -195,4 +226,26 @@ class Simulation < ApplicationRecord
   end
 
   private_class_method :build_with_defaults, :create_with_defaults
+
+  private
+
+  def create_default_teams
+    # Create plaintiff team
+    teams.create!(
+      name: "Plaintiff Team",
+      description: "Default team for plaintiff side",
+      role: :plaintiff,
+      max_members: 10,
+      owner: self.case.created_by
+    )
+
+    # Create defendant team
+    teams.create!(
+      name: "Defendant Team",
+      description: "Default team for defendant side",
+      role: :defendant,
+      max_members: 10,
+      owner: self.case.created_by
+    )
+  end
 end
