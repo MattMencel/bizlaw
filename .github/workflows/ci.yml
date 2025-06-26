@@ -33,7 +33,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config google-chrome-stable
+        run: |
+          sudo apt-get update && \
+          sudo apt-get install --no-install-recommends -y \
+            build-essential \
+            git \
+            libyaml-dev \
+            pkg-config \
+            google-chrome-stable \
+            postgresql-client
+
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Set up Ruby
@@ -42,7 +51,7 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
       - name: Lint code for consistent style
-        run: bin/rubocop -f github ${{ needs.changed.outputs.all_changed_files }}
+        run: bin/rubocop -f github --only-recognized-file-types ${{ needs.changed.outputs.all_changed_files }}
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager --no-exit-on-warn
       - name: Scan for security vulnerabilities in JavaScript dependencies
