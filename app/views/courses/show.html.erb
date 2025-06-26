@@ -52,7 +52,7 @@
         </div>
       </div>
     </div>
-    
+
     <% if @course.can_be_managed_by?(current_user) %>
       <div class="mt-4 flex space-x-3 md:ml-4 md:mt-0">
         <%= link_to edit_course_path(@course),
@@ -62,7 +62,7 @@
           </svg>
           Edit Course
         <% end %>
-        
+
         <%= link_to manage_invitations_course_path(@course),
             class: "inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600" do %>
           <svg class="-ml-0.5 mr-1.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -258,7 +258,7 @@
             <% end %>
           <% end %>
         </div>
-        
+
         <% if @cases.any? %>
           <div class="space-y-3">
             <% @cases.each do |case_item| %>
@@ -272,13 +272,48 @@
                       <p class="text-xs text-gray-500 mt-1"><%= truncate(case_item.description, length: 100) %></p>
                     <% end %>
                     <div class="flex items-center space-x-4 mt-2">
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= case_item.status == 'completed' ? 'bg-green-100 text-green-800' : case_item.status == 'in_progress' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' %>">
-                        <%= case_item.status.humanize %>
-                      </span>
                       <p class="text-xs text-gray-400">
-                        <%= pluralize(case_item.assigned_teams.count, 'team') %> assigned
+                        <%= pluralize(case_item.simulations.count, 'simulation') %>
                       </p>
                     </div>
+
+                    <!-- Active Simulations -->
+                    <% if case_item.simulations.any? %>
+                      <div class="mt-3 pl-4 border-l-2 border-gray-100">
+                        <div class="text-xs font-medium text-gray-700 mb-2">Active Simulations</div>
+                        <% case_item.simulations.limit(2).each do |simulation| %>
+                          <div class="mb-2 last:mb-0">
+                            <div class="flex items-center justify-between">
+                              <div class="text-xs text-gray-600">
+                                <%= simulation.display_name %>
+                                <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium <%= simulation.status == 'active' ? 'bg-green-100 text-green-700' : simulation.status == 'completed' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700' %>">
+                                  <%= simulation.status.humanize %>
+                                </span>
+                              </div>
+                            </div>
+                            <% if simulation.teams.any? %>
+                              <div class="mt-1 flex flex-wrap gap-1">
+                                <% simulation.plaintiff_teams.limit(1).each do |team| %>
+                                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-50 text-blue-700">
+                                    <%= team.name %> (Plaintiff)
+                                  </span>
+                                <% end %>
+                                <% simulation.defendant_teams.limit(1).each do |team| %>
+                                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-red-50 text-red-700">
+                                    <%= team.name %> (Defendant)
+                                  </span>
+                                <% end %>
+                              </div>
+                            <% end %>
+                          </div>
+                        <% end %>
+                        <% if case_item.simulations.count > 2 %>
+                          <div class="text-xs text-gray-400">
+                            + <%= case_item.simulations.count - 2 %> more simulations
+                          </div>
+                        <% end %>
+                      </div>
+                    <% end %>
                   </div>
                   <div class="flex space-x-2">
                     <%= link_to course_case_path(@course, case_item),
@@ -341,7 +376,7 @@
             <% end %>
           <% end %>
         </div>
-        
+
         <% if @teams.any? %>
           <div class="space-y-3">
             <% @teams.each do |team| %>

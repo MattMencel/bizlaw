@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_20_031719) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_25_032042) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -107,20 +107,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_20_031719) do
     t.index ["deleted_at"], name: "index_case_events_on_deleted_at"
     t.index ["event_type"], name: "index_case_events_on_event_type"
     t.index ["user_id"], name: "index_case_events_on_user_id"
-  end
-
-  create_table "case_teams", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "case_id", null: false
-    t.uuid "team_id", null: false
-    t.string "role", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.datetime "deleted_at"
-    t.index ["case_id", "role"], name: "index_case_teams_on_case_id_and_role", unique: true
-    t.index ["case_id", "team_id"], name: "index_case_teams_on_case_id_and_team_id", unique: true
-    t.index ["case_id"], name: "index_case_teams_on_case_id"
-    t.index ["deleted_at"], name: "index_case_teams_on_deleted_at"
-    t.index ["team_id"], name: "index_case_teams_on_team_id"
   end
 
   create_table "case_types", force: :cascade do |t|
@@ -525,13 +511,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_20_031719) do
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.uuid "plaintiff_team_id"
-    t.uuid "defendant_team_id"
+    t.string "name"
     t.index ["case_id"], name: "index_simulations_on_case_id"
     t.index ["current_round"], name: "index_simulations_on_current_round"
-    t.index ["defendant_team_id"], name: "index_simulations_on_defendant_team_id"
     t.index ["deleted_at"], name: "index_simulations_on_deleted_at"
-    t.index ["plaintiff_team_id"], name: "index_simulations_on_plaintiff_team_id"
     t.index ["start_date"], name: "index_simulations_on_start_date"
     t.index ["status"], name: "index_simulations_on_status"
   end
@@ -560,12 +543,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_20_031719) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
-    t.uuid "course_id"
     t.integer "team_members_count", default: 0, null: false
-    t.index ["course_id"], name: "index_teams_on_course_id"
+    t.uuid "simulation_id", null: false
+    t.string "role"
     t.index ["deleted_at"], name: "index_teams_on_deleted_at"
     t.index ["name", "owner_id"], name: "index_teams_on_name_and_owner_id", unique: true
     t.index ["owner_id"], name: "index_teams_on_owner_id"
+    t.index ["simulation_id", "role"], name: "index_teams_on_simulation_id_and_role"
+    t.index ["simulation_id"], name: "index_teams_on_simulation_id"
   end
 
   create_table "terms", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -632,8 +617,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_20_031719) do
   add_foreign_key "arbitration_outcomes", "simulations"
   add_foreign_key "case_events", "cases", on_delete: :cascade
   add_foreign_key "case_events", "users"
-  add_foreign_key "case_teams", "cases"
-  add_foreign_key "case_teams", "teams"
   add_foreign_key "cases", "courses"
   add_foreign_key "cases", "users", column: "created_by_id"
   add_foreign_key "cases", "users", column: "updated_by_id"
@@ -664,11 +647,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_20_031719) do
   add_foreign_key "settlement_offers", "users", column: "submitted_by_id"
   add_foreign_key "simulation_events", "simulations"
   add_foreign_key "simulations", "cases"
-  add_foreign_key "simulations", "teams", column: "defendant_team_id"
-  add_foreign_key "simulations", "teams", column: "plaintiff_team_id"
   add_foreign_key "team_members", "teams", on_delete: :cascade
   add_foreign_key "team_members", "users"
-  add_foreign_key "teams", "courses"
+  add_foreign_key "teams", "simulations"
   add_foreign_key "teams", "users", column: "owner_id"
   add_foreign_key "terms", "organizations"
   add_foreign_key "users", "organizations"

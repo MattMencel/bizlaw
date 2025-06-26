@@ -3,8 +3,6 @@
 FactoryBot.define do
   factory :simulation do
     association :case
-    association :plaintiff_team, factory: :team
-    association :defendant_team, factory: :team
     start_date { nil } # Only set when active
     end_date { nil }
     total_rounds { 6 }
@@ -19,6 +17,13 @@ FactoryBot.define do
     auto_events_enabled { true }
     argument_quality_required { true }
 
+    trait :with_teams do
+      after(:create) do |simulation|
+        create(:team, simulation: simulation, role: :plaintiff)
+        create(:team, simulation: simulation, role: :defendant)
+      end
+    end
+
     trait :active do
       status { :active }
       start_date { 1.hour.ago }
@@ -26,13 +31,10 @@ FactoryBot.define do
       plaintiff_ideal { 300000 }
       defendant_max_acceptable { 250000 }
       defendant_ideal { 75000 }
-      after(:build) do |simulation|
-        unless simulation.plaintiff_team
-          simulation.plaintiff_team = create(:team, course: simulation.case.course)
-        end
-        unless simulation.defendant_team
-          simulation.defendant_team = create(:team, course: simulation.case.course)
-        end
+
+      after(:create) do |simulation|
+        create(:team, simulation: simulation, role: :plaintiff) unless simulation.plaintiff_teams.exists?
+        create(:team, simulation: simulation, role: :defendant) unless simulation.defendant_teams.exists?
       end
     end
 
@@ -45,13 +47,10 @@ FactoryBot.define do
       plaintiff_ideal { 300000 }
       defendant_max_acceptable { 250000 }
       defendant_ideal { 75000 }
-      after(:build) do |simulation|
-        unless simulation.plaintiff_team
-          simulation.plaintiff_team = create(:team, course: simulation.case.course)
-        end
-        unless simulation.defendant_team
-          simulation.defendant_team = create(:team, course: simulation.case.course)
-        end
+
+      after(:create) do |simulation|
+        create(:team, simulation: simulation, role: :plaintiff) unless simulation.plaintiff_teams.exists?
+        create(:team, simulation: simulation, role: :defendant) unless simulation.defendant_teams.exists?
       end
     end
 
@@ -64,13 +63,10 @@ FactoryBot.define do
       plaintiff_ideal { 300000 }
       defendant_max_acceptable { 250000 }
       defendant_ideal { 75000 }
-      after(:build) do |simulation|
-        unless simulation.plaintiff_team
-          simulation.plaintiff_team = create(:team, course: simulation.case.course)
-        end
-        unless simulation.defendant_team
-          simulation.defendant_team = create(:team, course: simulation.case.course)
-        end
+
+      after(:create) do |simulation|
+        create(:team, simulation: simulation, role: :plaintiff) unless simulation.plaintiff_teams.exists?
+        create(:team, simulation: simulation, role: :defendant) unless simulation.defendant_teams.exists?
       end
     end
 
@@ -81,13 +77,10 @@ FactoryBot.define do
       plaintiff_ideal { 300000 }
       defendant_max_acceptable { 250000 }
       defendant_ideal { 75000 }
-      after(:build) do |simulation|
-        unless simulation.plaintiff_team
-          simulation.plaintiff_team = create(:team, course: simulation.case.course)
-        end
-        unless simulation.defendant_team
-          simulation.defendant_team = create(:team, course: simulation.case.course)
-        end
+
+      after(:create) do |simulation|
+        create(:team, simulation: simulation, role: :plaintiff) unless simulation.plaintiff_teams.exists?
+        create(:team, simulation: simulation, role: :defendant) unless simulation.defendant_teams.exists?
       end
     end
 
@@ -97,6 +90,18 @@ FactoryBot.define do
 
     trait :low_pressure do
       pressure_escalation_rate { :low }
+    end
+
+    trait :named do
+      name { "Custom Simulation Name" }
+    end
+
+    trait :midterm do
+      name { "Midterm Practice" }
+    end
+
+    trait :final do
+      name { "Final Negotiation" }
     end
   end
 end

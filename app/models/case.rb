@@ -9,21 +9,27 @@ class Case < ApplicationRecord
   belongs_to :created_by, class_name: "User"
   belongs_to :updated_by, class_name: "User"
   belongs_to :course
-  has_many :case_teams, dependent: :destroy
-  has_many :assigned_teams, through: :case_teams, source: :team
-  has_many :teams, through: :case_teams
+  has_many :simulations, dependent: :destroy
+  has_many :teams, through: :simulations
   has_many :users, through: :teams
   has_many :documents, as: :documentable, dependent: :destroy
   has_many :case_events, dependent: :destroy
-  has_many :simulations, dependent: :destroy
 
   # Helper methods for team roles
+  def plaintiff_teams
+    teams.where(role: :plaintiff)
+  end
+
+  def defendant_teams
+    teams.where(role: :defendant)
+  end
+
   def plaintiff_team
-    case_teams.find_by(role: :plaintiff)&.team
+    plaintiff_teams.first
   end
 
   def defendant_team
-    case_teams.find_by(role: :defendant)&.team
+    defendant_teams.first
   end
 
   # Validations
@@ -83,7 +89,7 @@ class Case < ApplicationRecord
       joins(:course).where(course: {instructor: user})
     elsif user.student?
       # Students can only access cases where they are assigned to teams
-      joins(:assigned_teams).where(teams: {id: user.team_ids})
+      joins(:teams).where(teams: {id: user.team_ids})
     else
       none
     end
@@ -157,7 +163,7 @@ class Case < ApplicationRecord
 
   # Navigation helper methods
   def user_team_for(user)
-    assigned_teams.joins(:users).where(users: {id: user.id}).first
+    teams.joins(:users).where(users: {id: user.id}).first
   end
 
   def status_for_user(user)
@@ -209,12 +215,12 @@ class Case < ApplicationRecord
     return false unless status_not_started?
 
     # Business rule: Cannot delete if there are teams with student members
-    !assigned_teams.any? { |team| team.has_student_members? }
+    !teams.any? { |team| team.has_student_members? }
   end
 
   def deletion_error_message
     return "Case can only be deleted when in 'Not Started' status" unless status_not_started?
-    return "Cannot delete case with teams that have student members" if assigned_teams.any? { |team| team.has_student_members? }
+    return "Cannot delete case with teams that have student members" if teams.any? { |team| team.has_student_members? }
     nil
   end
 
@@ -235,7 +241,7 @@ class Case < ApplicationRecord
   end
 
   def must_have_plaintiff_and_defendant_teams
-    roles = case_teams.map(&:role)
+    roles = teams.distinct.pluck(:role)
     unless roles.include?("plaintiff") && roles.include?("defendant")
       errors.add(:base, "Case must have at least one plaintiff and one defendant team")
     end

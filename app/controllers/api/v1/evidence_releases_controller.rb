@@ -221,7 +221,7 @@ class Api::V1::EvidenceReleasesController < Api::V1::BaseController
   end
 
   def current_user_team
-    @current_user_team ||= current_user.teams.joins(:case_teams).where(case_teams: {case: @case}).first
+    @current_user_team ||= current_user.teams.joins(simulation: :case).where(simulations: {case_id: @case.id}).first
   end
 
   def evidence_params

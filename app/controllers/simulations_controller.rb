@@ -17,23 +17,21 @@ class SimulationsController < ApplicationController
     service = SimulationDefaultsService.new(@case)
 
     # Check if using defaults or custom parameters
-    if simulation_params[:use_case_defaults] == "true"
+    case simulation_params[:parameter_option]
+    when "case_defaults"
       @simulation = service.build_simulation_with_defaults
-    elsif simulation_params[:use_randomized_defaults] == "true"
+      # Apply the custom name if provided
+      @simulation.name = simulation_params[:name] if simulation_params[:name].present?
+    when "randomized"
       @simulation = service.build_simulation_with_randomized_defaults
+      # Apply the custom name if provided
+      @simulation.name = simulation_params[:name] if simulation_params[:name].present?
     else
       # Manual configuration - use provided parameters
-      @simulation = @case.build_simulation(simulation_params.except(:use_case_defaults, :use_randomized_defaults))
+      @simulation = @case.build_simulation(simulation_params.except(:parameter_option))
       @simulation.status = :setup
       @simulation.current_round = 1
       @simulation.simulation_config = default_simulation_config.merge(simulation_params[:simulation_config] || {})
-
-      # Ensure teams are set if not provided
-      if @simulation.plaintiff_team_id.blank? || @simulation.defendant_team_id.blank?
-        teams = service.default_teams
-        @simulation.plaintiff_team = teams[:plaintiff_team] if @simulation.plaintiff_team_id.blank?
-        @simulation.defendant_team = teams[:defendant_team] if @simulation.defendant_team_id.blank?
-      end
     end
 
     respond_to do |format|
@@ -237,11 +235,10 @@ class SimulationsController < ApplicationController
 
   def simulation_params
     params.require(:simulation).permit(
+      :name, :parameter_option,
       :plaintiff_min_acceptable, :plaintiff_ideal,
       :defendant_ideal, :defendant_max_acceptable,
       :total_rounds, :pressure_escalation_rate,
-      :plaintiff_team_id, :defendant_team_id,
-      :use_case_defaults, :use_randomized_defaults,
       simulation_config: {}
     )
   end
@@ -251,8 +248,11 @@ class SimulationsController < ApplicationController
   end
 
   def load_teams_for_assignment
-    @available_teams = @case.course.teams
-    @assigned_teams = @case.case_teams.includes(:team)
+    # In the new model, teams belong to simulations, not cases or courses
+    # This method is for backward compatibility but is no longer needed
+    # since teams are auto-created after simulation creation
+    @available_teams = []
+    @assigned_teams = []
   end
 
   def default_simulation_config

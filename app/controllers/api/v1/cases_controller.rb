@@ -7,7 +7,7 @@ module Api
       before_action :set_case, only: %i[show update destroy]
 
       def index
-        @cases = policy_scope(Case).includes(:team, :created_by, :case_teams, :assigned_teams)
+        @cases = policy_scope(Case).includes(:created_by, :teams, :simulations)
         @cases = filter_cases(@cases)
         render_cases_with_includes(@cases)
       end
@@ -16,7 +16,7 @@ module Api
         authorize @case
         render json: CaseSerializer.new(
           @case,
-          include: %i[team created_by updated_by case_teams assigned_teams documents case_events]
+          include: %i[created_by updated_by teams simulations documents case_events]
         ).serializable_hash
       end
 

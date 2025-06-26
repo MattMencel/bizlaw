@@ -72,6 +72,22 @@
       <% end %>
 
       <div class="space-y-8">
+        <!-- Basic Information Section -->
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Simulation Details</h3>
+          <div class="space-y-4">
+            <div>
+              <%= form.label :name, "Simulation Name", class: "block text-sm font-medium text-gray-700 mb-2" %>
+              <%= form.text_field :name,
+                                  placeholder: "e.g., Midterm Practice, Final Negotiation (optional)",
+                                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
+              <p class="mt-1 text-xs text-gray-500">
+                Leave blank to use default naming (<%= @simulation.default_name %>)
+              </p>
+            </div>
+          </div>
+        </div>
+
         <!-- Current Status Section -->
         <div class="bg-gray-50 rounded-lg p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Simulation Status</h3>

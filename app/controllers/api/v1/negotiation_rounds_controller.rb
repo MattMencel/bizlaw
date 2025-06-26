@@ -123,7 +123,7 @@ module Api
           )
         end
 
-        unless [@simulation.plaintiff_team, @simulation.defendant_team].include?(current_user_team)
+        unless @simulation.teams.include?(current_user_team)
           api_error(
             message: "Your team is not participating in this simulation",
             status: :forbidden
@@ -133,8 +133,8 @@ module Api
 
       def current_user_team
         @current_user_team ||= current_user.teams
-          .joins(:case_teams)
-          .where(case_teams: {case: @case})
+          .joins(simulation: :case)
+          .where(simulations: {case_id: @case.id})
           .first
       end
 

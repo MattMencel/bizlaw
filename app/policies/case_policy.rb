@@ -67,7 +67,7 @@ class CasePolicy < ApplicationPolicy
 
     # Students can access cases if they're enrolled in the course and assigned to teams
     return false unless user_can_access_course?
-    user.teams.joins(:case_teams).exists?(case_teams: {case_id: record.id})
+    user.teams.joins(simulation: :case).exists?(simulations: {case_id: record.id})
   end
 
   def user_can_manage_case?
@@ -96,7 +96,7 @@ class CasePolicy < ApplicationPolicy
         scope.joins(:course).where(course: {instructor: user})
       elsif user.student?
         # Students can only access cases where they are assigned to teams
-        scope.joins(:assigned_teams).where(teams: {id: user.team_ids})
+        scope.joins(:teams).where(teams: {id: user.team_ids})
       else
         scope.none
       end

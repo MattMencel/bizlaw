@@ -12,8 +12,9 @@ class Course < ApplicationRecord
   has_many :course_enrollments, dependent: :destroy
   has_many :students, through: :course_enrollments, source: :user
   has_many :course_invitations, dependent: :destroy
-  has_many :teams, dependent: :nullify
   has_many :cases, dependent: :destroy
+  has_many :simulations, through: :cases
+  has_many :teams, through: :simulations
 
   # Validations
   validates :title, presence: true, length: {maximum: 255}
