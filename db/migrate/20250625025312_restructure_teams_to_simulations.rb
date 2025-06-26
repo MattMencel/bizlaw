@@ -43,8 +43,8 @@ class RestructureTeamsToSimulations < ActiveRecord::Migration[8.0]
     add_reference :teams, :course, null: true, foreign_key: true, type: :uuid
 
     # Add back plaintiff/defendant team references to simulations
-    add_reference :simulations, :plaintiff_team, foreign_key: { to_table: :teams }, type: :uuid
-    add_reference :simulations, :defendant_team, foreign_key: { to_table: :teams }, type: :uuid
+    add_reference :simulations, :plaintiff_team, foreign_key: {to_table: :teams}, type: :uuid
+    add_reference :simulations, :defendant_team, foreign_key: {to_table: :teams}, type: :uuid
 
     # Migrate data back to old structure
     reverse_migrate_data

@@ -107,7 +107,7 @@ class Team < ApplicationRecord
   end
 
   def role_in_case(case_obj)
-    case_obj == self.case ? role : nil
+    (case_obj == self.case) ? role : nil
   end
 
   def primary_case

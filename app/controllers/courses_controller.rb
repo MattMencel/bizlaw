@@ -23,7 +23,7 @@ class CoursesController < ApplicationController
     @course_invitation = @course.course_invitations.active.first
     @students = @course.students
     @teams = @course.teams.includes(:team_members, :owner, :simulation)
-    @cases = @course.cases.includes(simulations: { teams: [:team_members, :owner] }).recent_first.limit(5)
+    @cases = @course.cases.includes(simulations: {teams: [:team_members, :owner]}).recent_first.limit(5)
     @recent_enrollments = @course.course_enrollments.recent.limit(10).includes(:user)
   end
 
