@@ -1,0 +1,91 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="py-8">
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-8">
+      <div>
+        <nav class="flex" aria-label="Breadcrumb">
+          <ol class="flex items-center space-x-4">
+            <li>
+              <%= link_to "Annotations", annotations_path, class: "text-gray-400 hover:text-gray-500" %>
+            </li>
+            <li class="flex items-center">
+              <svg class="flex-shrink-0 h-5 w-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+              </svg>
+              <span class="ml-4 text-sm font-medium text-gray-700">Annotation</span>
+            </li>
+          </ol>
+        </nav>
+        <h1 class="mt-4 text-3xl font-bold text-gray-900">Annotation Details</h1>
+      </div>
+
+      <div class="flex space-x-3">
+        <%= link_to "Edit", edit_annotation_path(@annotation),
+            class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+        <%= link_to "Delete", annotation_path(@annotation),
+            method: :delete,
+            data: { confirm: "Are you sure you want to delete this annotation?" },
+            class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" %>
+      </div>
+    </div>
+
+    <!-- Annotation Content -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+          <%= @annotation.document.title %>
+        </h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+          Page <%= @annotation.page_number %> • Position: (<%= @annotation.x_position %>, <%= @annotation.y_position %>)
+        </p>
+      </div>
+      <div class="border-t border-gray-200">
+        <dl>
+          <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">Document</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              <%= link_to @annotation.document.title, @annotation.document,
+                  class: "text-indigo-600 hover:text-indigo-500" %>
+            </dd>
+          </div>
+          <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">Page Number</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              <%= @annotation.page_number %>
+            </dd>
+          </div>
+          <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">Position</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              X: <%= @annotation.x_position %>, Y: <%= @annotation.y_position %>
+            </dd>
+          </div>
+          <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">Content</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              <div class="prose max-w-none">
+                <%= simple_format(@annotation.content) %>
+              </div>
+            </dd>
+          </div>
+          <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">Created</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              <%= @annotation.created_at.strftime("%B %d, %Y at %I:%M %p") %>
+              (<%= time_ago_in_words(@annotation.created_at) %> ago)
+            </dd>
+          </div>
+          <% if @annotation.updated_at != @annotation.created_at %>
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">Last Updated</dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <%= @annotation.updated_at.strftime("%B %d, %Y at %I:%M %p") %>
+                (<%= time_ago_in_words(@annotation.updated_at) %> ago)
+              </dd>
+            </div>
+          <% end %>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,81 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="py-8">
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">My Annotations</h1>
+        <p class="mt-2 text-sm text-gray-600">View and manage your document annotations</p>
+      </div>
+
+      <div class="flex space-x-6 text-sm">
+        <div class="text-center">
+          <div class="text-2xl font-bold text-indigo-600"><%= @annotations.total_count %></div>
+          <div class="text-gray-500">Total Annotations</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="mb-6">
+      <%= form_with url: search_annotations_path, method: :get, class: "flex gap-4", local: true do |form| %>
+        <%= form.text_field :q,
+            placeholder: "Search annotations...",
+            value: params[:q],
+            class: "flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
+        <%= form.submit "Search",
+            class: "px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      <% end %>
+    </div>
+
+    <!-- Annotations List -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-md">
+      <% if @annotations.any? %>
+        <ul class="divide-y divide-gray-200">
+          <% @annotations.each do |annotation| %>
+            <li>
+              <div class="px-4 py-4 flex items-center justify-between">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between">
+                    <p class="text-sm font-medium text-indigo-600 truncate">
+                      <%= link_to annotation.document.title, annotation_path(annotation) %>
+                    </p>
+                    <div class="ml-2 flex-shrink-0 flex">
+                      <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        Page <%= annotation.page_number %>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="mt-2">
+                    <p class="text-sm text-gray-900">
+                      <%= truncate(annotation.content, length: 150) %>
+                    </p>
+                  </div>
+                  <div class="mt-2 flex items-center text-sm text-gray-500">
+                    <p>Created <%= time_ago_in_words(annotation.created_at) %> ago</p>
+                  </div>
+                </div>
+                <div class="ml-5 flex-shrink-0">
+                  <%= link_to "View", annotation_path(annotation),
+                      class: "text-indigo-600 hover:text-indigo-900" %>
+                </div>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+
+        <!-- Pagination -->
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+          <%= paginate @annotations %>
+        </div>
+      <% else %>
+        <div class="text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10m0 0V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2m0 0v8a2 2 0 002 2h6a2 2 0 002-2V8m0 0H7m0 0v8a2 2 0 002 2h6a2 2 0 002-2V8" />
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No annotations</h3>
+          <p class="mt-1 text-sm text-gray-500">You haven't created any annotations yet.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

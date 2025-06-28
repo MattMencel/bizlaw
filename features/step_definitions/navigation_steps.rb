@@ -508,3 +508,143 @@ Then("the navigation should not occupy more than {int}% of the screen width") do
   actual_percentage = (nav_width.to_f / viewport_width.to_f) * 100
   expect(actual_percentage).to be <= percentage
 end
+
+# New steps for case context URL resolution testing
+
+Then("the {string} link should contain the current case ID") do |link_text|
+  link = find("a", text: link_text)
+  current_case = @case || @current_user.cases.first
+  expect(link[:href]).to include(current_case.id)
+end
+
+Then("the {string} link should not contain {string}") do |link_text, forbidden_text|
+  link = find("a", text: link_text)
+  expect(link[:href]).not_to include(forbidden_text)
+end
+
+Then("the {string} link should have href {string}") do |link_text, expected_href|
+  link = find("a", text: link_text)
+  expect(link[:href]).to eq(expected_href)
+end
+
+Then("the {string} link should contain the second case ID") do |link_text|
+  link = find("a", text: link_text)
+  expect(link[:href]).to include(@second_case.id)
+end
+
+Then("the {string} link should not contain the first case ID") do |link_text|
+  link = find("a", text: link_text)
+  current_case = @case || @current_user.cases.first
+  expect(link[:href]).not_to include(current_case.id)
+end
+
+When("I click on the {string} link") do |link_text|
+  click_link link_text
+end
+
+Then("I should remain on the dashboard page") do
+  expect(page).to have_current_path(dashboard_path, ignore_query: true)
+end
+
+Then("I should not see any error messages") do
+  expect(page).not_to have_content("error", wait: 2)
+  expect(page).not_to have_content("Error", wait: 2)
+  expect(page).not_to have_content("404", wait: 2)
+  expect(page).not_to have_content("500", wait: 2)
+end
+
+Then("the page should remain functional") do
+  # Check that the page still has the main navigation
+  expect(page).to have_css('[data-controller="navigation-menu"]')
+
+  # Check that we can still interact with elements
+  expect(page).to have_button(text: /Select a Case|Mitchell v. TechFlow Industries/)
+end
+
+Then("the context switcher should show {string}") do |expected_text|
+  within('button[data-navigation-menu-target="caseSwitcher"], button:has-text("Select a Case"), button:has-text("Mitchell v. TechFlow Industries")') do
+    expect(page).to have_text(expected_text)
+  end
+end
+
+When("I sign out") do
+  # Navigate to logout or use Capybara's logout helper
+  if page.has_link?("Sign out")
+    click_link "Sign out"
+  elsif page.has_button?("Sign out")
+    click_button "Sign out"
+  else
+    # Fallback: visit logout path directly
+    visit destroy_user_session_path
+  end
+end
+
+Then("I should be navigated to the evidence vault page for the current case") do
+  current_case = @case || @current_user.cases.first
+  expected_path = "/cases/#{current_case.id}/evidence_vault"
+  expect(page).to have_current_path(expected_path, ignore_query: true)
+end
+
+Then("the URL should contain the case ID") do
+  current_case = @case || @current_user.cases.first
+  expect(current_url).to include(current_case.id)
+end
+
+Then("the URL should not contain {string}") do |forbidden_text|
+  expect(current_url).not_to include(forbidden_text)
+end
+
+Then("the {string} link should have proper aria attributes") do |link_text|
+  link = find("a", text: link_text)
+
+  # Check for basic accessibility attributes
+  expect(link[:href]).to be_present
+  expect(link.text).to be_present
+
+  # Link should be keyboard accessible (not disabled)
+  expect(link[:tabindex]).not_to eq("-1")
+end
+
+When("I use keyboard navigation to reach the {string} link") do |link_text|
+  # Find the link and focus it
+  link = find("a", text: link_text)
+  link.send_keys(:tab)
+
+  # Verify it's focused (this may vary by browser)
+  focused = page.has_css?("a:focus", text: link_text) ||
+    page.evaluate_script("document.activeElement.textContent").include?(link_text)
+  expect(focused).to be_truthy
+end
+
+When("I press Enter") do
+  page.driver.browser.action.send_keys(:enter).perform
+end
+
+Then("I should be navigated to the evidence vault page") do
+  # Should be on some evidence vault page
+  expect(page).to have_current_path(%r{/evidence_vault})
+end
+
+When("I note the current {string} link URL") do |link_text|
+  link = find("a", text: link_text)
+  @noted_url = link[:href]
+end
+
+When("I wait for the context to switch") do
+  # Wait for potential AJAX requests or page updates
+  sleep 1
+
+  # Or wait for specific indicators that context has switched
+  expect(page).to have_text("Contract Dispute - ABC Corp", wait: 5)
+end
+
+Then("the {string} link URL should be different from the noted URL") do |link_text|
+  link = find("a", text: link_text)
+  current_url = link[:href]
+  expect(current_url).not_to eq(@noted_url)
+end
+
+Then("the {string} link should contain the second case ID") do |link_text|
+  link = find("a", text: link_text)
+  expect(link[:href]).to include(@second_case.id)
+end

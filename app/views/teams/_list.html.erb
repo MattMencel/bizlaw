@@ -67,7 +67,7 @@
           <%= link_to "View Team", team_path(team),
               class: "flex-1 inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
               data: { turbo_frame: "_top" } %>
-          <%= link_to "Simulation", simulation_path(team.simulation),
+          <%= link_to "Simulation", case_simulation_path(team.simulation.case, team.simulation),
               class: "flex-1 inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
               data: { turbo_frame: "_top" } %>
         </div>

@@ -268,4 +268,200 @@ RSpec.describe NavigationHelper, type: :helper do
       )
     end
   end
+
+  describe "#case_nav_path" do
+    context "when user has an active case" do
+      before do
+        create(:case_team, case: case_obj, team: team)
+        user.teams << team
+        allow(helper).to receive(:current_user_case).and_return(case_obj)
+      end
+
+      it "returns evidence vault path for evidence_vault route" do
+        expect(helper).to receive(:case_evidence_vault_index_path).with(case_obj).and_return("/cases/#{case_obj.id}/evidence_vault")
+
+        result = helper.case_nav_path("evidence_vault")
+        expect(result).to eq("/cases/#{case_obj.id}/evidence_vault")
+      end
+
+      it "returns negotiations path for negotiations route" do
+        expect(helper).to receive(:case_negotiations_path).with(case_obj).and_return("/cases/#{case_obj.id}/negotiations")
+
+        result = helper.case_nav_path("negotiations")
+        expect(result).to eq("/cases/#{case_obj.id}/negotiations")
+      end
+
+      it "returns calculator path for calculator route" do
+        expect(helper).to receive(:calculator_case_negotiations_path).with(case_obj).and_return("/cases/#{case_obj.id}/negotiations/calculator")
+
+        result = helper.case_nav_path("calculator")
+        expect(result).to eq("/cases/#{case_obj.id}/negotiations/calculator")
+      end
+
+      it "returns templates path for templates route" do
+        expect(helper).to receive(:templates_case_negotiations_path).with(case_obj).and_return("/cases/#{case_obj.id}/negotiations/templates")
+
+        result = helper.case_nav_path("templates")
+        expect(result).to eq("/cases/#{case_obj.id}/negotiations/templates")
+      end
+
+      it "returns history path for history route" do
+        expect(helper).to receive(:history_case_negotiations_path).with(case_obj).and_return("/cases/#{case_obj.id}/negotiations/history")
+
+        result = helper.case_nav_path("history")
+        expect(result).to eq("/cases/#{case_obj.id}/negotiations/history")
+      end
+
+      it "returns # for unknown route" do
+        result = helper.case_nav_path("unknown_route")
+        expect(result).to eq("#")
+      end
+
+      context "when evidence vault route doesn't exist" do
+        it "falls back to case path" do
+          expect(helper).to receive(:case_evidence_vault_index_path).with(case_obj).and_raise(NoMethodError)
+          expect(helper).to receive(:case_path).with(case_obj).and_return("/cases/#{case_obj.id}")
+
+          result = helper.case_nav_path("evidence_vault")
+          expect(result).to eq("/cases/#{case_obj.id}")
+        end
+      end
+
+      context "when all route methods fail" do
+        it "falls back to #" do
+          expect(helper).to receive(:case_evidence_vault_index_path).with(case_obj).and_raise(NoMethodError)
+          expect(helper).to receive(:case_path).with(case_obj).and_raise(NoMethodError)
+          expect(helper).to receive(:cases_path).and_raise(NoMethodError)
+
+          result = helper.case_nav_path("evidence_vault")
+          expect(result).to eq("#")
+        end
+      end
+    end
+
+    context "when user has no active case" do
+      before do
+        allow(helper).to receive(:current_user_case).and_return(nil)
+      end
+
+      it "returns # for evidence_vault route" do
+        result = helper.case_nav_path("evidence_vault")
+        expect(result).to eq("#")
+      end
+
+      it "returns # for negotiations route" do
+        result = helper.case_nav_path("negotiations")
+        expect(result).to eq("#")
+      end
+
+      it "returns # for calculator route" do
+        result = helper.case_nav_path("calculator")
+        expect(result).to eq("#")
+      end
+
+      it "returns # for templates route" do
+        result = helper.case_nav_path("templates")
+        expect(result).to eq("#")
+      end
+
+      it "returns # for history route" do
+        result = helper.case_nav_path("history")
+        expect(result).to eq("#")
+      end
+
+      it "returns # for unknown route" do
+        result = helper.case_nav_path("unknown_route")
+        expect(result).to eq("#")
+      end
+    end
+  end
+
+  describe "#safe_nav_path" do
+    it "returns the path when route helper exists" do
+      expect(helper).to receive(:profile_path).and_return("/profile")
+
+      result = helper.safe_nav_path("profile_path")
+      expect(result).to eq("/profile")
+    end
+
+    it "returns # when route helper doesn't exist" do
+      expect(helper).to receive(:nonexistent_path).and_raise(NoMethodError)
+
+      result = helper.safe_nav_path("nonexistent_path")
+      expect(result).to eq("#")
+    end
+
+    it "passes arguments to route helper" do
+      expect(helper).to receive(:case_path).with(case_obj).and_return("/cases/#{case_obj.id}")
+
+      result = helper.safe_nav_path("case_path", case_obj)
+      expect(result).to eq("/cases/#{case_obj.id}")
+    end
+
+    it "returns # when route helper with arguments fails" do
+      expect(helper).to receive(:case_path).with(case_obj).and_raise(ActionController::UrlGenerationError)
+
+      result = helper.safe_nav_path("case_path", case_obj)
+      expect(result).to eq("#")
+    end
+  end
+
+  describe "#available_cases_for_switching" do
+    context "when user is signed in" do
+      before do
+        create(:case_team, case: case_obj, team: team)
+        user.teams << team
+      end
+
+      it "returns active cases for the user" do
+        allow(user).to receive_message_chain(:cases, :active, :includes, :limit).and_return([case_obj])
+
+        result = helper.available_cases_for_switching
+        expect(result).to eq([case_obj])
+      end
+    end
+
+    context "when user is not signed in" do
+      before do
+        allow(helper).to receive(:user_signed_in?).and_return(false)
+      end
+
+      it "returns empty array" do
+        result = helper.available_cases_for_switching
+        expect(result).to eq([])
+      end
+    end
+  end
+
+  describe "#available_teams_for_switching" do
+    let(:other_team) { create(:team) }
+
+    context "when user has a current case" do
+      before do
+        create(:case_team, case: case_obj, team: team)
+        create(:case_team, case: case_obj, team: other_team)
+        user.teams << team
+        allow(helper).to receive(:current_user_case).and_return(case_obj)
+        allow(helper).to receive(:current_user_team).and_return(team)
+      end
+
+      it "returns teams in current case excluding current team" do
+        allow(case_obj).to receive_message_chain(:teams, :includes, :where).and_return([other_team])
+
+        result = helper.available_teams_for_switching
+        expect(result).to eq([other_team])
+      end
+    end
+
+    context "when user has no current case" do
+      before do
+        allow(helper).to receive(:current_user_case).and_return(nil)
+      end
+
+      it "returns empty array" do
+        result = helper.available_teams_for_switching
+        expect(result).to eq([])
+      end
+    end
+  end
 end

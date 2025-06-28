@@ -207,3 +207,123 @@ Feature: Hierarchical Navigation System
     Then I should see proper indentation for subsections
     And I should see appropriate spacing between sections
     And the navigation should remain scrollable if needed
+
+  @javascript
+  Scenario: Navigation URLs resolve to current case for students
+    Given I am signed in as "john@example.com"
+    When I visit the dashboard
+    And I expand the "Case Files" section
+    And I expand the "Evidence Management" subsection
+    Then the "Document Vault" link should contain the current case ID
+    And the "Evidence Bundles" link should contain the current case ID
+    And the "Document Vault" link should not contain "current"
+    And the "Evidence Bundles" link should not contain "current"
+
+  @javascript
+  Scenario: Navigation URLs show fallbacks for users without active cases
+    Given a user "instructor@example.com" exists with role "instructor" in the organization
+    And I am signed in as "instructor@example.com"
+    When I visit the dashboard
+    And I expand the "Case Files" section
+    And I expand the "Evidence Management" subsection
+    Then the "Document Vault" link should have href "#"
+    And the "Evidence Bundles" link should have href "#"
+    When I expand the "Negotiations" section
+    And I expand the "Settlement Portal" subsection
+    Then the "Submit Offers" link should have href "#"
+    And the "Offer Templates" link should have href "#"
+    And the "Damage Calculator" link should have href "#"
+
+  @javascript
+  Scenario: Negotiation URLs resolve to current case for students
+    Given I am signed in as "john@example.com"
+    When I visit the dashboard
+    And I expand the "Negotiations" section
+    And I expand the "Settlement Portal" subsection
+    Then the "Submit Offers" link should contain the current case ID
+    And the "Offer Templates" link should contain the current case ID
+    And the "Damage Calculator" link should contain the current case ID
+    And the "Submit Offers" link should not contain "current"
+    And the "Offer Templates" link should not contain "current"
+    And the "Damage Calculator" link should not contain "current"
+
+  @javascript
+  Scenario: Case context switching updates navigation URLs
+    Given another case "Contract Dispute - ABC Corp" exists
+    And another team "Defense Team" exists for the second case
+    And the user is a member of the second team
+    And I am signed in as "john@example.com"
+    When I visit the dashboard
+    And I expand the "Case Files" section
+    And I expand the "Evidence Management" subsection
+    Then the "Document Vault" link should contain the current case ID
+    When I click on the context switcher
+    And I click on "Contract Dispute - ABC Corp"
+    Then the "Document Vault" link should contain the second case ID
+    And the "Document Vault" link should not contain the first case ID
+
+  @javascript
+  Scenario: Safe navigation fallbacks prevent broken links
+    Given a user "instructor@example.com" exists with role "instructor" in the organization
+    And I am signed in as "instructor@example.com"
+    When I visit the dashboard
+    And I expand the "Case Files" section
+    And I expand the "Evidence Management" subsection
+    And I click on the "Document Vault" link
+    Then I should remain on the dashboard page
+    And I should not see any error messages
+    And the page should remain functional
+
+  @javascript
+  Scenario: Context switcher shows appropriate state for different user types
+    Given I am signed in as "john@example.com"
+    When I visit the dashboard
+    Then the context switcher should show "Mitchell v. TechFlow Industries"
+    And the context switcher should show "Plaintiff Legal Team"
+    And the context switcher should show "Student"
+    When I sign out
+    And a user "instructor@example.com" exists with role "instructor" in the organization
+    And I am signed in as "instructor@example.com"
+    And I visit the dashboard
+    Then the context switcher should show "Select a Case"
+    And the context switcher should show "No Team"
+    And the context switcher should show "Instructor"
+
+  @javascript
+  Scenario: Evidence vault links work correctly for students with cases
+    Given I am signed in as "john@example.com"
+    When I visit the dashboard
+    And I expand the "Case Files" section
+    And I expand the "Evidence Management" subsection
+    And I click on the "Document Vault" link
+    Then I should be navigated to the evidence vault page for the current case
+    And the URL should contain the case ID
+    And the URL should not contain "current"
+
+  @javascript
+  Scenario: Navigation maintains accessibility with case context
+    Given I am signed in as "john@example.com"
+    When I visit the dashboard
+    And I expand the "Case Files" section
+    And I expand the "Evidence Management" subsection
+    Then the "Document Vault" link should have proper aria attributes
+    And the "Evidence Bundles" link should have proper aria attributes
+    When I use keyboard navigation to reach the "Document Vault" link
+    And I press Enter
+    Then I should be navigated to the evidence vault page
+
+  @javascript
+  Scenario: Multiple case users see correct URLs after case switching
+    Given another case "Contract Dispute - ABC Corp" exists
+    And another team "Defense Team" exists for the second case
+    And the user is a member of the second team
+    And I am signed in as "john@example.com"
+    When I visit the dashboard
+    And I expand the "Negotiations" section
+    And I expand the "Settlement Portal" subsection
+    And I note the current "Submit Offers" link URL
+    When I click on the context switcher
+    And I click on "Contract Dispute - ABC Corp"
+    And I wait for the context to switch
+    Then the "Submit Offers" link URL should be different from the noted URL
+    And the "Submit Offers" link should contain the second case ID

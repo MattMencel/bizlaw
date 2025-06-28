@@ -253,7 +253,7 @@
                               <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-<%= status_color %>-100 text-<%= status_color %>-800">
                                 <%= active_simulation.status.humanize %>
                               </span>
-                              <% case_team = case_item.case_teams.joins(:team).where(teams: { id: current_user.team_ids }).first %>
+                              <% case_team = case_item.teams.where(id: current_user.team_ids).first %>
                               <% if case_team %>
                                 <span class="text-xs text-gray-500">
                                   Playing as <%= case_team.role.humanize %>

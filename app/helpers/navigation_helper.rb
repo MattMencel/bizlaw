@@ -249,7 +249,11 @@ module NavigationHelper
       begin
         case_evidence_vault_index_path(case_obj)
       rescue
-        case_path(case_obj)
+        begin
+          case_path(case_obj)
+        rescue
+          cases_path
+        end
       end
     when "negotiations"
       case_negotiations_path(case_obj)
@@ -260,10 +264,10 @@ module NavigationHelper
     when "history"
       history_case_negotiations_path(case_obj)
     else
-      cases_path
+      "#"
     end
   rescue
-    cases_path
+    "#"
   end
 
   # Get safe navigation path (fallback to # if route doesn't exist)

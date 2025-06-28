@@ -86,7 +86,7 @@
                       <%= link_to "View Team", team_path(team),
                           class: "inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500",
                           data: { turbo_frame: "_top" } %>
-                      <%= link_to "View Simulation", simulation_path(simulation),
+                      <%= link_to "View Simulation", case_simulation_path(simulation.case, simulation),
                           class: "inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500",
                           data: { turbo_frame: "_top" } %>
                       <%= link_to "View Course", course_path(course),
