@@ -28,6 +28,7 @@ bin/brakeman               # Security vulnerability scanner
 
 **Git and Pre-commit:**
 ```bash
+git rebase main            # Rebase current branch from trunk before pushing, and ask for help on merge conflicts
 git commit -m "message"    # NEVER skip pre-commit hooks with --no-verify
 git push origin branch     # Push changes after successful commit
 ```
