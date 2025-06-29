@@ -11,6 +11,10 @@ class AnnotationsController < ApplicationController
     @annotation = current_user.annotations.find(params[:id])
   end
 
+  def new
+    @annotation = current_user.annotations.build
+  end
+
   def create
     @annotation = current_user.annotations.build(annotation_params)
 
