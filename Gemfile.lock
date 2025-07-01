@@ -182,7 +182,7 @@ GEM
       warden-jwt_auth (~> 0.10)
     diff-lcs (1.6.2)
     docile (1.4.1)
-    dockerfile-rails (1.7.9)
+    dockerfile-rails (1.7.10)
       rails (>= 3.0.0)
     dogstatsd-ruby (5.6.6)
     dotenv (3.1.8)
@@ -343,7 +343,7 @@ GEM
       bigdecimal (~> 3.1)
     net-http (0.6.0)
       uri
-    net-imap (0.5.8)
+    net-imap (0.5.9)
       date
       net-protocol
     net-pop (0.1.2)
@@ -601,7 +601,7 @@ GEM
     snaky_hash (2.0.3)
       hashie (>= 0.1.0, < 6)
       version_gem (>= 1.1.8, < 3)
-    solargraph (0.55.4)
+    solargraph (0.55.5)
       backport (~> 1.2)
       benchmark (~> 0.4)
       bundler (~> 2.0)
@@ -613,6 +613,7 @@ GEM
       observer (~> 0.1)
       ostruct (~> 0.6)
       parser (~> 3.0)
+      prism (~> 1.4)
       rbs (~> 3.3)
       reverse_markdown (~> 3.0)
       rubocop (~> 1.38)
