@@ -220,11 +220,11 @@ GEM
       railties (>= 6.1.0)
     faker (3.5.1)
       i18n (>= 1.8.11, < 2)
-    faraday (2.13.1)
+    faraday (2.13.3)
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
-    faraday-net_http (3.4.0)
+    faraday-net_http (3.4.1)
       net-http (>= 0.5.0)
     faraday-typhoeus (1.1.0)
       faraday (~> 2.0)
@@ -240,9 +240,9 @@ GEM
     fugit (1.11.1)
       et-orbi (~> 1, >= 1.2.11)
       raabro (~> 1.4)
-    gemini-ai (4.2.0)
+    gemini-ai (4.3.0)
       event_stream_parser (~> 1.0)
-      faraday (~> 2.10)
+      faraday (~> 2.13, >= 2.13.2)
       faraday-typhoeus (~> 1.1)
       googleauth (~> 1.8)
       typhoeus (~> 1.4, >= 1.4.1)
@@ -278,13 +278,13 @@ GEM
     jbuilder (2.13.0)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
-    json (2.12.2)
+    json (2.13.0)
     json-schema (5.1.1)
       addressable (~> 2.8)
       bigdecimal (~> 3.1)
     jsonapi-serializer (2.2.0)
       activesupport (>= 4.2)
-    jwt (2.10.1)
+    jwt (2.10.2)
       base64
     kamal (2.7.0)
       activesupport (>= 7.0)
@@ -337,7 +337,7 @@ GEM
     mini_mime (1.1.5)
     minitest (5.25.5)
     msgpack (1.8.0)
-    multi_json (1.15.0)
+    multi_json (1.17.0)
     multi_test (1.1.0)
     multi_xml (0.7.2)
       bigdecimal (~> 3.1)
@@ -761,7 +761,7 @@ DEPENDENCIES
   email_spec
   factory_bot_rails
   faker
-  gemini-ai (~> 4.2)
+  gemini-ai (~> 4.3)
   importmap-rails
   jbuilder
   jsonapi-serializer (~> 2.2)
