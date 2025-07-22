@@ -184,7 +184,7 @@ GEM
     docile (1.4.1)
     dockerfile-rails (1.7.9)
       rails (>= 3.0.0)
-    dogstatsd-ruby (5.6.6)
+    dogstatsd-ruby (5.7.0)
     dotenv (3.1.8)
     dotenv-rails (3.1.8)
       dotenv (= 3.1.8)
@@ -756,7 +756,7 @@ DEPENDENCIES
   devise (~> 4.9)
   devise-jwt (~> 0.12)
   dockerfile-rails (>= 1.7)
-  dogstatsd-ruby (~> 5.6)
+  dogstatsd-ruby (~> 5.7)
   dotenv-rails (~> 3.1)
   email_spec
   factory_bot_rails
