@@ -406,7 +406,11 @@ GEM
       ast (~> 2.4.1)
       racc
     pdf-core (0.10.0)
-    pg (1.5.9)
+    pg (1.6.0)
+    pg (1.6.0-aarch64-linux)
+    pg (1.6.0-arm64-darwin)
+    pg (1.6.0-x86_64-darwin)
+    pg (1.6.0-x86_64-linux)
     playwright-ruby-client (1.52.0)
       concurrent-ruby (>= 1.1.6)
       mime-types (>= 3.0)
@@ -770,7 +774,7 @@ DEPENDENCIES
   omniauth (~> 2.1)
   omniauth-google-oauth2 (~> 1.1)
   omniauth-rails_csrf_protection (~> 1.0)
-  pg (~> 1.5)
+  pg (~> 1.6)
   prawn (~> 2.4)
   prawn-table (~> 0.2)
   propshaft
