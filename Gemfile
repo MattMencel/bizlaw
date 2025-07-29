@@ -29,8 +29,8 @@ gem "jsonapi-serializer", "~> 2.2" # Fast JSON:API serialization
 gem "rack-attack", "~> 6.7" # Rate limiting
 
 # Metrics and monitoring
-gem "statsd-instrument", "~> 3.5" # StatsD client for metrics
-gem "dogstatsd-ruby", "~> 5.6" # Enhanced StatsD client with tagging support
+gem "statsd-instrument", "~> 3.9" # StatsD client for metrics
+gem "dogstatsd-ruby", "~> 5.7" # Enhanced StatsD client with tagging support
 
 # AI Integration
 gem "gemini-ai", "~> 4.2" # Google Gemini AI client
