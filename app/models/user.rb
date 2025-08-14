@@ -18,6 +18,7 @@ class User < ApplicationRecord
   has_many :cases, through: :simulations
   has_many :documents, foreign_key: :created_by_id
   has_many :owned_teams, class_name: "Team", foreign_key: :owner_id, dependent: :destroy
+  has_many :annotations, dependent: :destroy
 
   # Organization association
   belongs_to :organization, optional: true, counter_cache: true

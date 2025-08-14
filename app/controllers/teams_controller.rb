@@ -8,6 +8,20 @@ class TeamsController < ApplicationController
 
   def index
     @teams = Team.accessible_by(current_user)
+      .includes(:owner, :team_members, simulation: {case: :course})
+
+    # Apply filters
+    @teams = apply_filters(@teams)
+
+    # Organize data based on view parameter
+    case params[:view]
+    when "hierarchical"
+      @teams_by_course = @teams.group_by { |team| team.course }
+    when "simulation"
+      @teams_by_simulation = @teams.group_by { |team| team.simulation }
+    else
+      # Default flat view - no additional grouping needed
+    end
 
     respond_to do |format|
       format.html
@@ -87,5 +101,26 @@ class TeamsController < ApplicationController
 
   def team_params
     params.require(:team).permit(:name, :description, :max_members)
+  end
+
+  def apply_filters(teams)
+    # Filter by course
+    if params[:course_id].present?
+      teams = teams.joins(simulation: {case: :course})
+        .where(cases: {course_id: params[:course_id]})
+    end
+
+    # Filter by role
+    if params[:role].present?
+      teams = teams.where(role: params[:role])
+    end
+
+    # Filter by simulation status
+    if params[:simulation_status].present?
+      teams = teams.joins(:simulation)
+        .where(simulations: {status: params[:simulation_status]})
+    end
+
+    teams
   end
 end
