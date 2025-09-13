@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="h-full bg-gray-50">
+<html class="h-full bg-white">
   <head>
     <title><%= content_for?(:title) ? yield(:title) + " | Business Law" : "Business Law" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -23,7 +23,7 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="h-full bg-gray-50">
+  <body class="h-full bg-white">
     <%= render "shared/flash" %>
 
     <% if impersonating? %>
@@ -36,11 +36,11 @@
     <% end %>
 
     <!-- Main content wrapper with responsive margin -->
-    <div class="<%= user_signed_in? ? 'lg:ml-80 pt-16 lg:pt-0' : '' %>">
+    <div class="<%= user_signed_in? ? 'pt-16 lg:pt-0' : '' %>">
       <!-- Top bar - only show when signed in -->
       <% if user_signed_in? %>
-        <div class="flex h-16 flex-shrink-0 bg-white shadow lg:border-none">
-          <div class="flex flex-1 justify-between px-4 sm:px-6 lg:mx-auto lg:max-w-6xl lg:px-8">
+        <div class="flex h-16 flex-shrink-0 bg-white shadow lg:border-none lg:ml-80">
+          <div class="flex flex-1 justify-between px-4 sm:px-6 lg:px-8">
             <div class="flex flex-1">
               <!-- Search bar placeholder -->
               <div class="flex w-full md:ml-0">
@@ -128,8 +128,8 @@
       <!-- Page content -->
       <main class="flex-1 <%= user_signed_in? ? 'pb-8' : 'h-full' %>">
         <% if user_signed_in? %>
-          <div class="bg-white py-6">
-            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div class="bg-white py-6 lg:ml-80">
+            <div class="max-w-none px-4 sm:px-6 lg:pl-4 lg:pr-8">
               <%= yield %>
             </div>
           </div>

@@ -10,6 +10,7 @@ class Document < ApplicationRecord
   belongs_to :documentable, polymorphic: true
   belongs_to :created_by, class_name: "User"
   has_one_attached :file
+  has_many :annotations, dependent: :destroy
 
   # Enums
   enum :status, {
