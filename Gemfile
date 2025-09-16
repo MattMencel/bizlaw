@@ -86,7 +86,7 @@ group :development, :test do
 
   # RSpec for Rails testing
 
-  gem "rspec-rails", "~> 8.0.1"
+  gem "rspec-rails", "~> 8.0.2"
 
   # Factory Bot for test data generation
   gem "factory_bot_rails"
@@ -95,8 +95,8 @@ group :development, :test do
   gem "faker"
 
   # Cucumber for BDD
-  gem "cucumber-rails", "~> 3.1", require: false
-  gem "cucumber", "~> 9.2.1"
+  gem "cucumber-rails", "~> 4.0", require: false
+  gem "cucumber", "~> 10.1.0"
 
   # Rswag for API documentation
   gem "rswag-specs", "~> 2.13"
