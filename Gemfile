@@ -69,7 +69,7 @@ gem "prawn-table", "~> 0.2"
 # Authentication & Authorization
 gem "devise", "~> 4.9"
 gem "devise-jwt", "~> 0.12"
-gem "pundit", "~> 2.3"
+gem "pundit", "~> 2.5"
 gem "omniauth", "~> 2.1"
 gem "omniauth-google-oauth2", "~> 1.1"
 gem "omniauth-rails_csrf_protection", "~> 1.0"
