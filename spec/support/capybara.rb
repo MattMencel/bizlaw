@@ -4,7 +4,8 @@ require "capybara/playwright/driver"
 Capybara.register_driver(:playwright) do |app|
   options = {
     browser_type: :chromium,
-    headless: ENV.fetch("HEADLESS", "true") != "false"
+    headless: ENV.fetch("HEADLESS", "true") != "false",
+    default_navigation_timeout: 30  # 30 seconds (gets multiplied by 1000 in driver.rb)
   }
 
   # Only add playwright paths if they are set
