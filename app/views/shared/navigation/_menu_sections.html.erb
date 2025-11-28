@@ -46,12 +46,12 @@
         <div class="ml-4 space-y-1" data-navigation-menu-target="subsectionContent" id="evidence-management-content">
           <%= render 'shared/navigation/nav_item',
                      title: 'Document Vault',
-                     path: case_evidence_vault_index_path(case_id: 'current'),
+                     path: case_nav_path('evidence_vault'),
                      icon: 'archive',
                      size: 'sm' %>
           <%= render 'shared/navigation/nav_item',
                      title: 'Evidence Bundles',
-                     path: case_evidence_vault_index_path(case_id: 'current'),
+                     path: case_nav_path('evidence_vault'),
                      icon: 'collection',
                      size: 'sm' %>
           <%= render 'shared/navigation/nav_item',
@@ -95,17 +95,17 @@
         <div class="ml-4 space-y-1" data-navigation-menu-target="subsectionContent" id="settlement-portal-content">
           <%= render 'shared/navigation/nav_item',
                      title: 'Submit Offers',
-                     path: case_negotiations_path(case_id: 'current'),
+                     path: case_nav_path('negotiations'),
                      icon: 'paper-airplane',
                      size: 'sm' %>
           <%= render 'shared/navigation/nav_item',
                      title: 'Offer Templates',
-                     path: templates_case_negotiations_path(case_id: 'current'),
+                     path: case_nav_path('templates'),
                      icon: 'template',
                      size: 'sm' %>
           <%= render 'shared/navigation/nav_item',
                      title: 'Damage Calculator',
-                     path: calculator_case_negotiations_path(case_id: 'current'),
+                     path: case_nav_path('calculator'),
                      icon: 'calculator',
                      size: 'sm' %>
         </div>
@@ -120,7 +120,7 @@
         <div class="ml-4 space-y-1" data-navigation-menu-target="subsectionContent" id="client-relations-content">
           <%= render 'shared/navigation/nav_item',
                      title: 'Client Consultation',
-                     path: client_consultation_case_negotiation_path(case_id: 'current', id: 'current'),
+                     path: safe_nav_path('client_consultation_case_negotiation_path', current_user_case&.id, 'current'),
                      icon: 'chat',
                      size: 'sm' %>
           <%= render 'shared/navigation/nav_item',
@@ -138,7 +138,7 @@
 
       <%= render 'shared/navigation/nav_item',
                  title: 'Negotiation History',
-                 path: history_case_negotiations_path(case_id: 'current'),
+                 path: case_nav_path('history'),
                  icon: 'clock' %>
     </div>
   </div>

@@ -13,6 +13,14 @@ class CasePolicy < ApplicationPolicy
     user_can_access_case?
   end
 
+  def timeline?
+    user_can_access_case?
+  end
+
+  def events?
+    user_can_access_case?
+  end
+
   def create?
     user.instructor? || user.admin?
   end

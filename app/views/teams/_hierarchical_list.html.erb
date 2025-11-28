@@ -1,0 +1,113 @@
+<div class="space-y-8">
+  <% teams_by_course.each do |course, teams| %>
+    <div class="bg-white shadow rounded-lg">
+      <!-- Course Header -->
+      <div class="bg-indigo-50 px-6 py-4 border-b border-indigo-100 rounded-t-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-lg font-semibold text-indigo-900">
+              📚 <%= course.display_name %>
+            </h3>
+            <p class="text-sm text-indigo-600">
+              <%= course.course_code %> | <%= course.semester_display %> <%= course.academic_year %>
+            </p>
+          </div>
+          <div class="text-sm text-indigo-600">
+            <%= pluralize(teams.count, 'team') %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Teams grouped by simulation -->
+      <div class="p-6">
+        <% teams.group_by(&:simulation).each do |simulation, sim_teams| %>
+          <div class="mb-6 last:mb-0">
+            <!-- Simulation Header -->
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center space-x-2">
+                <span class="text-gray-400">🎯</span>
+                <div>
+                  <h4 class="font-medium text-gray-900"><%= simulation.display_name %></h4>
+                  <p class="text-sm text-gray-500">
+                    <%= simulation.case.title %>
+                    <span class="text-gray-400">•</span>
+                    Phase <%= simulation.current_phase %> of <%= simulation.total_rounds %>
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                  <%= simulation.status == 'active' ? 'bg-green-100 text-green-800' :
+                      simulation.status == 'completed' ? 'bg-gray-100 text-gray-800' :
+                      'bg-yellow-100 text-yellow-800' %>">
+                  <%= simulation.status.titleize %>
+                </span>
+              </div>
+            </div>
+
+            <!-- Teams in this simulation -->
+            <div class="grid gap-3 md:grid-cols-2">
+              <% sim_teams.each do |team| %>
+                <%= turbo_frame_tag dom_id(team), data: { team_id: team.id } do %>
+                  <div class="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 hover:shadow-sm transition-all">
+                    <!-- Team Header -->
+                    <div class="flex items-start justify-between mb-3">
+                      <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-1">
+                          <h5 class="font-semibold text-gray-900"><%= team.name %></h5>
+                          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                            <%= team.role == 'plaintiff' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800' %>">
+                            <%= team.role.titleize %>
+                          </span>
+                        </div>
+                        <p class="text-sm text-gray-600 line-clamp-2"><%= team.description %></p>
+                      </div>
+                    </div>
+
+                    <!-- Team Stats -->
+                    <div class="flex items-center justify-between text-sm mb-3">
+                      <div class="flex items-center space-x-4">
+                        <span class="flex items-center text-gray-600">
+                          👥 <%= team.member_count %>/<%= team.max_members %> members
+                        </span>
+                        <% if team.full? %>
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            Full
+                          </span>
+                        <% end %>
+                      </div>
+                      <div class="text-gray-500">
+                        Owner: <%= team.owner.display_name %>
+                      </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="flex space-x-2">
+                      <%= link_to "View Team", team_path(team),
+                          class: "inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500",
+                          data: { turbo_frame: "_top" } %>
+                      <%= link_to "View Simulation", case_simulation_path(simulation.case, simulation),
+                          class: "inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500",
+                          data: { turbo_frame: "_top" } %>
+                      <%= link_to "View Course", course_path(course),
+                          class: "inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500",
+                          data: { turbo_frame: "_top" } %>
+                    </div>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <% if teams_by_course.empty? %>
+    <div class="text-center py-12">
+      <div class="text-gray-400 text-6xl mb-4">📚</div>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">No teams found</h3>
+      <p class="text-gray-500">Teams are created within courses. Visit a course to create a new team.</p>
+    </div>
+  <% end %>
+</div>

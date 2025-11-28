@@ -26,6 +26,14 @@ bin/rubocop                # Run linter with Omakase Ruby styling
 bin/brakeman               # Security vulnerability scanner
 ```
 
+**Git and Pre-commit:**
+```bash
+git rebase main            # Rebase current branch from trunk before pushing, and ask for help on merge conflicts
+git commit -m "message"    # NEVER skip pre-commit hooks with --no-verify
+git push origin branch     # Push changes after successful commit
+```
+**IMPORTANT**: Always allow pre-commit hooks to run. If pre-commit checks fail, fix the issues before committing. Never use `--no-verify` or `--skip-ci` flags to bypass these checks. If you cannot resolve pre-commit issues, stop and ask for review.
+
 **Database:**
 ```bash
 bin/rails db:create        # Create databases
@@ -94,6 +102,23 @@ This codebase follows Rails Omakase conventions:
 - ActiveRecord validations and associations
 
 When working with this codebase, leverage the existing patterns rather than creating new architectural approaches.
+
+### Responsive Design Guidelines
+
+**Always follow responsive design best practices:**
+
+- **Mobile-First Approach**: Design for mobile devices first, then progressively enhance for larger screens
+- **Breakpoint Strategy**: Use Tailwind's responsive prefixes (`sm:`, `md:`, `lg:`, `xl:`, `2xl:`) consistently
+- **Layout Considerations**:
+  - Sidebar: `w-80` (320px) fixed width with `lg:block hidden` for responsive behavior
+  - Main content: `lg:ml-80` (320px left margin) to account for sidebar on desktop
+  - Avoid `mx-auto` centering when using fixed sidebars - use left-aligned content with appropriate padding
+- **Content Spacing**: Use responsive padding/margins that work across breakpoints
+- **Touch Targets**: Ensure interactive elements are minimum 44px for mobile accessibility
+- **Typography**: Use responsive text sizes (`text-sm sm:text-base lg:text-lg`) for optimal readability
+- **Grid Systems**: Leverage Tailwind's responsive grid classes for consistent layouts
+- **Image Optimization**: Use responsive images with appropriate `srcset` attributes
+- **Testing**: Always test layouts on multiple screen sizes and devices
 
 ## MCP Integration
 

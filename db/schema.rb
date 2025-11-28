@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_25_032042) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_27_033352) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -71,6 +71,22 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_25_032042) do
     t.index ["error_occurred"], name: "index_ai_usage_logs_on_error_occurred"
     t.index ["model"], name: "index_ai_usage_logs_on_model"
     t.index ["request_type"], name: "index_ai_usage_logs_on_request_type"
+  end
+
+  create_table "annotations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.text "content"
+    t.uuid "document_id", null: false
+    t.uuid "user_id", null: false
+    t.decimal "x_position", precision: 10, scale: 2
+    t.decimal "y_position", precision: 10, scale: 2
+    t.integer "page_number"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["deleted_at"], name: "index_annotations_on_deleted_at"
+    t.index ["document_id", "page_number"], name: "index_annotations_on_document_id_and_page_number"
+    t.index ["document_id"], name: "index_annotations_on_document_id"
+    t.index ["user_id"], name: "index_annotations_on_user_id"
   end
 
   create_table "arbitration_outcomes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -614,6 +630,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_25_032042) do
     t.index ["roles"], name: "index_users_on_roles", using: :gin
   end
 
+  add_foreign_key "annotations", "documents"
+  add_foreign_key "annotations", "users"
   add_foreign_key "arbitration_outcomes", "simulations"
   add_foreign_key "case_events", "cases", on_delete: :cascade
   add_foreign_key "case_events", "users"
