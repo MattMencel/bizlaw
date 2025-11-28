@@ -155,9 +155,9 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/bizlaw_test
         run: |
           bin/rails db:test:prepare
-      - name: Install Playwright browsers
+      - name: Install Playwright with system dependencies
         run: |
-          bundle exec playwright install chromium
+          npx -y playwright@1.56.1 install --with-deps chromium
       - name: Run E2E tests
         id: e2e_tests
         env:
