@@ -139,7 +139,6 @@ jobs:
             git \
             libyaml-dev \
             pkg-config \
-            google-chrome-stable \
             libpq-dev \
             postgresql-client
       - name: Checkout code
