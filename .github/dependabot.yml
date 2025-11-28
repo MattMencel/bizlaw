@@ -1,3 +1,4 @@
+---
 version: 2
 updates:
   # Ruby/Rails dependencies
@@ -94,6 +95,14 @@ updates:
           - "pg"
           - "puma"
 
+      # All patch updates together, may be merged when CI is green.
+      patch-updates:
+        update-types: ["patch"]
+
+      # All minor updates together. Requires green CI + manual check.
+      minor-updates:
+        update-types: ["minor"]
+
   # Documentation dependencies
   - package-ecosystem: npm
     directory: "/docs"
@@ -118,6 +127,14 @@ updates:
           - "clsx"
           - "prism-react-renderer"
 
+      # All patch updates together, may be merged when CI is green.
+      patch-updates:
+        update-types: ["patch"]
+
+      # All minor updates together. Requires green CI + manual check.
+      minor-updates:
+        update-types: ["minor"]
+
   # Docker dependencies
   - package-ecosystem: docker
     directory: "/"
@@ -131,3 +148,11 @@ updates:
     schedule:
       interval: daily
     open-pull-requests-limit: 10
+    groups:
+      # All patch updates together, may be merged when CI is green.
+      patch-updates:
+        update-types: ["patch"]
+
+      # All minor updates together. Requires green CI + manual check.
+      minor-updates:
+        update-types: ["minor"]

@@ -1,19 +1,154 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
   <div class="py-8">
-    <div class="flex justify-between items-center">
-      <h1 class="text-3xl font-bold text-gray-900">Teams</h1>
-      <p class="text-sm text-gray-600">Teams are created within courses. Visit a course to create a new team.</p>
+    <!-- Header with summary stats -->
+    <div class="flex justify-between items-start mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Teams</h1>
+        <p class="mt-2 text-sm text-gray-600">Manage and view teams across courses and simulations</p>
+      </div>
+
+      <% if current_user.instructor? || current_user.admin? %>
+        <div class="flex space-x-6 text-sm">
+          <div class="text-center">
+            <div class="text-2xl font-bold text-indigo-600"><%= @teams.count %></div>
+            <div class="text-gray-500">Total Teams</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-green-600">
+              <%= @teams.joins(:simulation).where(simulations: { status: 'active' }).count %>
+            </div>
+            <div class="text-gray-500">Active</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-yellow-600">
+              <%= @teams.select(&:full?).count %>
+            </div>
+            <div class="text-gray-500">Full Teams</div>
+          </div>
+        </div>
+      <% end %>
     </div>
 
-    <div class="mt-8">
-      <div class="bg-white shadow rounded-lg p-4">
-        <div class="border-b border-gray-200 pb-4 mb-4">
-          <h3 class="text-lg font-medium leading-6 text-gray-900">Active Teams</h3>
-        </div>
-        <div id="teams-list">
-          <%= render "list", teams: @teams %>
+    <% if current_user.instructor? || current_user.admin? %>
+      <!-- Filters and Controls -->
+      <div class="bg-white shadow rounded-lg p-4 mb-6">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+          <!-- Filters -->
+          <div class="flex flex-wrap items-center space-x-4">
+            <%= form_with url: teams_path, method: :get, local: true, class: "flex flex-wrap items-center space-x-4" do |form| %>
+              <%= form.hidden_field :view, value: params[:view] %>
+
+              <div class="flex items-center space-x-2">
+                <%= form.label :course_id, "Course:", class: "text-sm font-medium text-gray-700" %>
+                <%= form.select :course_id,
+                    options_from_collection_for_select(
+                      @teams.map { |team| team.simulation&.case&.course }.compact.uniq.sort_by(&:title),
+                      :id, :display_name, params[:course_id]
+                    ),
+                    { prompt: "All Courses" },
+                    { class: "text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500", id: "course_filter" } %>
+              </div>
+
+              <div class="flex items-center space-x-2">
+                <%= form.label :role, "Role:", class: "text-sm font-medium text-gray-700" %>
+                <%= form.select :role,
+                    options_for_select([["Plaintiff", "plaintiff"], ["Defendant", "defendant"]], params[:role]),
+                    { prompt: "All Roles" },
+                    { class: "text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500", id: "role_filter" } %>
+              </div>
+
+              <div class="flex items-center space-x-2">
+                <%= form.label :simulation_status, "Status:", class: "text-sm font-medium text-gray-700" %>
+                <%= form.select :simulation_status,
+                    options_for_select([["Active", "active"], ["Completed", "completed"], ["Pending", "pending"]], params[:simulation_status]),
+                    { prompt: "All Statuses" },
+                    { class: "text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" } %>
+              </div>
+
+              <%= form.submit "Apply Filters", class: "inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+
+              <% if params[:course_id].present? || params[:role].present? || params[:simulation_status].present? %>
+                <%= link_to "Clear Filters", teams_path(view: params[:view]),
+                    class: "inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+              <% end %>
+            <% end %>
+          </div>
         </div>
       </div>
+
+      <!-- View Tabs -->
+      <div class="bg-white shadow rounded-lg mb-6">
+        <div class="border-b border-gray-200">
+          <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs" role="tablist">
+            <%= link_to teams_path(view: "hierarchical", **request.query_parameters.except(:view)),
+                class: "py-4 px-1 border-b-2 font-medium text-sm #{'border-indigo-500 text-indigo-600 tab-active' if params[:view] == 'hierarchical' || params[:view].blank?} #{'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' unless params[:view] == 'hierarchical' || params[:view].blank?}",
+                role: "tab" do %>
+              📚 By Course
+            <% end %>
+
+            <%= link_to teams_path(view: "simulation", **request.query_parameters.except(:view)),
+                class: "py-4 px-1 border-b-2 font-medium text-sm #{'border-indigo-500 text-indigo-600 tab-active' if params[:view] == 'simulation'} #{'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' unless params[:view] == 'simulation'}",
+                role: "tab" do %>
+              🎯 By Simulation
+            <% end %>
+
+            <%= link_to teams_path(view: "all", **request.query_parameters.except(:view)),
+                class: "py-4 px-1 border-b-2 font-medium text-sm #{'border-indigo-500 text-indigo-600 tab-active' if params[:view] == 'all'} #{'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' unless params[:view] == 'all'}",
+                role: "tab" do %>
+              👥 All Teams
+            <% end %>
+          </nav>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Teams Content -->
+    <div id="teams-content" role="tabpanel">
+      <% if (current_user.instructor? || current_user.admin?) && (params[:view] == "hierarchical" || params[:view].blank?) %>
+        <%= render "hierarchical_list", teams_by_course: @teams_by_course || @teams.group_by { |team| team.simulation&.case&.course } %>
+      <% elsif (current_user.instructor? || current_user.admin?) && params[:view] == "simulation" %>
+        <%= render "simulation_list", teams_by_simulation: @teams_by_simulation || @teams.group_by(&:simulation) %>
+      <% else %>
+        <!-- Default flat view for students or "all" view for instructors -->
+        <div class="bg-white shadow rounded-lg p-6">
+          <div class="border-b border-gray-200 pb-4 mb-6">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">
+              <% if current_user.student? %>
+                Your Teams
+              <% else %>
+                All Teams
+              <% end %>
+            </h3>
+            <p class="mt-1 text-sm text-gray-600">
+              <% if current_user.student? %>
+                Teams you are a member of
+              <% else %>
+                Complete list of all teams
+              <% end %>
+            </p>
+          </div>
+          <div id="teams-list">
+            <%= render "list", teams: @teams %>
+          </div>
+        </div>
+      <% end %>
     </div>
+
+    <% if @teams.empty? %>
+      <div class="text-center py-12">
+        <div class="text-gray-400 text-6xl mb-4">👥</div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No teams found</h3>
+        <p class="text-gray-500 mb-4">
+          <% if current_user.student? %>
+            You haven't joined any teams yet.
+          <% else %>
+            No teams match your current filters.
+          <% end %>
+        </p>
+        <% unless current_user.student? %>
+          <p class="text-sm text-gray-500">Teams are created within courses. Visit a course to create a new team.</p>
+        <% end %>
+      </div>
+    <% end %>
   </div>
 </div>

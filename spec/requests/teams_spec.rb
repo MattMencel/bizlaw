@@ -16,17 +16,72 @@ RSpec.describe "Teams", type: :request do
 
   describe "GET /teams" do
     let(:other_student) { create(:user, :student) }
-    let!(:student_team) { create(:team, owner: student, course: course) }
-    let!(:instructor_team) { create(:team, owner: instructor, course: course) }
-    let!(:shared_team) { create(:team, owner: instructor, course: course) }
+    let(:course2) { create(:course, instructor: instructor) }
+
+    # Create teams directly without going through simulation factory to avoid auto-team creation
+    let!(:student_team) do
+      # Create a case and simulation but skip the auto team creation
+      case1 = create(:case, course: course, created_by: instructor)
+      # Use insert to bypass all callbacks and validations
+      sim1_id = SecureRandom.uuid
+      Simulation.connection.execute(
+        "INSERT INTO simulations (id, case_id, total_rounds, current_round, status, created_at, updated_at)
+         VALUES ('#{sim1_id}', '#{case1.id}', 6, 1, 'setup', NOW(), NOW())"
+      )
+      sim1 = Simulation.find(sim1_id)
+      create(:team, owner: student, simulation: sim1)
+    end
+
+    let!(:instructor_team) do
+      case2 = create(:case, course: course, created_by: instructor)
+      sim2_id = SecureRandom.uuid
+      Simulation.connection.execute(
+        "INSERT INTO simulations (id, case_id, total_rounds, current_round, status, created_at, updated_at)
+         VALUES ('#{sim2_id}', '#{case2.id}', 6, 1, 'setup', NOW(), NOW())"
+      )
+      sim2 = Simulation.find(sim2_id)
+      create(:team, owner: instructor, simulation: sim2)
+    end
+
+    let!(:shared_team) do
+      case3 = create(:case, course: course, created_by: instructor)
+      sim3_id = SecureRandom.uuid
+      Simulation.connection.execute(
+        "INSERT INTO simulations (id, case_id, total_rounds, current_round, status, created_at, updated_at)
+         VALUES ('#{sim3_id}', '#{case3.id}', 6, 1, 'setup', NOW(), NOW())"
+      )
+      sim3 = Simulation.find(sim3_id)
+      create(:team, owner: instructor, simulation: sim3)
+    end
+
+    let!(:course2_team) do
+      case4 = create(:case, course: course2, created_by: instructor)
+      sim4_id = SecureRandom.uuid
+      Simulation.connection.execute(
+        "INSERT INTO simulations (id, case_id, total_rounds, current_round, status, created_at, updated_at)
+         VALUES ('#{sim4_id}', '#{case4.id}', 6, 1, 'setup', NOW(), NOW())"
+      )
+      sim4 = Simulation.find(sim4_id)
+      create(:team, owner: instructor, simulation: sim4)
+    end
 
     let!(:other_student_team) do
       # Enroll the other student first
       create(:course_enrollment, user: other_student, course: course, status: "active")
-      create(:team, owner: other_student, course: course)
+      case5 = create(:case, course: course, created_by: instructor)
+      sim5_id = SecureRandom.uuid
+      Simulation.connection.execute(
+        "INSERT INTO simulations (id, case_id, total_rounds, current_round, status, created_at, updated_at)
+         VALUES ('#{sim5_id}', '#{case5.id}', 6, 1, 'setup', NOW(), NOW())"
+      )
+      sim5 = Simulation.find(sim5_id)
+      create(:team, owner: other_student, simulation: sim5)
     end
 
     before do
+      # Ensure course2 exists with proper enrollment
+      create(:course_enrollment, user: instructor, course: course2, status: "active")
+
       # Add student as member to their own team
       create(:team_member, team: student_team, user: student)
       # Add student as member to a shared team
@@ -60,7 +115,7 @@ RSpec.describe "Teams", type: :request do
       it "shows all teams" do
         get teams_path
         expect(response).to have_http_status(:success)
-        expect(assigns(:teams)).to include(student_team, instructor_team, other_student_team, shared_team)
+        expect(assigns(:teams)).to include(student_team, instructor_team, other_student_team, shared_team, course2_team)
       end
 
       it "returns all teams in JSON format" do
@@ -69,7 +124,42 @@ RSpec.describe "Teams", type: :request do
 
         json_response = JSON.parse(response.body)
         team_ids = json_response["data"].map { |team| team["id"] }
-        expect(team_ids).to include(student_team.id, instructor_team.id, other_student_team.id, shared_team.id)
+        expect(team_ids).to include(student_team.id, instructor_team.id, other_student_team.id, shared_team.id, course2_team.id)
+      end
+
+      context "with view parameter" do
+        it "supports hierarchical view" do
+          get teams_path, params: {view: "hierarchical"}
+          expect(response).to have_http_status(:success)
+          expect(assigns(:teams_by_course)).to be_present
+        end
+
+        it "supports simulation view" do
+          get teams_path, params: {view: "simulation"}
+          expect(response).to have_http_status(:success)
+          expect(assigns(:teams_by_simulation)).to be_present
+        end
+
+        it "defaults to flat view" do
+          get teams_path
+          expect(response).to have_http_status(:success)
+          expect(assigns(:teams)).to be_present
+        end
+      end
+
+      context "with filters" do
+        it "filters by course" do
+          get teams_path, params: {course_id: course.id}
+          expect(response).to have_http_status(:success)
+          expect(assigns(:teams)).not_to include(course2_team)
+        end
+
+        it "filters by role" do
+          course2_team.update!(role: "defendant")
+          get teams_path, params: {role: "defendant"}
+          expect(response).to have_http_status(:success)
+          expect(assigns(:teams)).to include(course2_team)
+        end
       end
     end
 
@@ -79,7 +169,7 @@ RSpec.describe "Teams", type: :request do
       it "shows all teams" do
         get teams_path
         expect(response).to have_http_status(:success)
-        expect(assigns(:teams)).to include(student_team, instructor_team, other_student_team, shared_team)
+        expect(assigns(:teams)).to include(student_team, instructor_team, other_student_team, shared_team, course2_team)
       end
     end
 
@@ -92,7 +182,15 @@ RSpec.describe "Teams", type: :request do
   end
 
   describe "GET /teams/:id" do
-    let!(:team) { create(:team, owner: instructor, course: course) }
+    let!(:team) do
+      case_record = create(:case, course: course, created_by: instructor)
+      sim_id = Simulation.connection.insert(
+        "INSERT INTO simulations (id, case_id, total_rounds, current_round, status, created_at, updated_at)
+         VALUES ('#{SecureRandom.uuid}', '#{case_record.id}', 6, 1, 'setup', NOW(), NOW()) RETURNING id"
+      )
+      sim = Simulation.find(sim_id)
+      create(:team, owner: instructor, simulation: sim)
+    end
     let!(:other_student) { create(:user, :student) }
 
     before do
@@ -132,7 +230,15 @@ RSpec.describe "Teams", type: :request do
 
   describe "DELETE /teams/:id" do
     context "when deleting team from course context" do
-      let(:team) { create(:team, owner: instructor, course: course) }
+      let(:team) do
+        case_record = create(:case, course: course, created_by: instructor)
+        sim_id = Simulation.connection.insert(
+          "INSERT INTO simulations (id, case_id, total_rounds, current_round, status, created_at, updated_at)
+           VALUES ('#{SecureRandom.uuid}', '#{case_record.id}', 6, 1, 'setup', NOW(), NOW()) RETURNING id"
+        )
+        sim = Simulation.find(sim_id)
+        create(:team, owner: instructor, simulation: sim)
+      end
 
       before do
         create(:team_member, team: team, user: instructor)
@@ -151,7 +257,15 @@ RSpec.describe "Teams", type: :request do
 
     context "when student tries to delete team they don't own" do
       let(:other_student) { create(:user, :student) }
-      let(:team) { create(:team, owner: instructor, course: course) }
+      let(:team) do
+        case_record = create(:case, course: course, created_by: instructor)
+        sim_id = Simulation.connection.insert(
+          "INSERT INTO simulations (id, case_id, total_rounds, current_round, status, created_at, updated_at)
+           VALUES ('#{SecureRandom.uuid}', '#{case_record.id}', 6, 1, 'setup', NOW(), NOW()) RETURNING id"
+        )
+        sim = Simulation.find(sim_id)
+        create(:team, owner: instructor, simulation: sim)
+      end
 
       before do
         create(:course_enrollment, user: other_student, course: course, status: "active")
@@ -166,7 +280,15 @@ RSpec.describe "Teams", type: :request do
   end
 
   describe "GET /courses/:course_id/teams/:id/edit" do
-    let(:team) { create(:team, owner: instructor, course: course) }
+    let(:team) do
+      case_record = create(:case, course: course, created_by: instructor)
+      sim_id = Simulation.connection.insert(
+        "INSERT INTO simulations (id, case_id, total_rounds, current_round, status, created_at, updated_at)
+         VALUES ('#{SecureRandom.uuid}', '#{case_record.id}', 6, 1, 'setup', NOW(), NOW()) RETURNING id"
+      )
+      sim = Simulation.find(sim_id)
+      create(:team, owner: instructor, simulation: sim)
+    end
 
     before do
       create(:team_member, team: team, user: instructor)

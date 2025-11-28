@@ -1,21 +1,85 @@
-<div class="divide-y divide-gray-200">
+<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
   <% teams.each do |team| %>
-    <%= turbo_frame_tag dom_id(team) do %>
-      <div class="py-4">
-        <div class="flex items-center justify-between">
-          <div>
-            <h4 class="text-lg font-medium text-gray-900"><%= team.name %></h4>
-            <p class="mt-1 text-sm text-gray-500">
-              <%= pluralize(team.member_count, 'member') %>
-            </p>
+    <%= turbo_frame_tag dom_id(team), data: { team_id: team.id } do %>
+      <div class="bg-white border border-gray-200 rounded-lg p-6 hover:border-indigo-300 hover:shadow-lg transition-all">
+        <!-- Team Header -->
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex-1">
+            <div class="flex items-center space-x-2 mb-2">
+              <h4 class="text-lg font-semibold text-gray-900"><%= team.name %></h4>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                <%= team.role == 'plaintiff' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800' %>">
+                <%= team.role.titleize %>
+              </span>
+            </div>
+            <p class="text-sm text-gray-600 line-clamp-3"><%= team.description %></p>
           </div>
-          <div class="flex space-x-3">
-            <%= link_to "View", team_path(team),
-                class: "inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
-                data: { turbo_frame: "_top" } %>
+        </div>
+
+        <!-- Context Information -->
+        <div class="space-y-2 text-sm text-gray-600 mb-4">
+          <div class="flex items-center">
+            <span class="text-gray-400 mr-2">📚</span>
+            <span><%= team.course.display_name %> (<%= team.course.course_code %>)</span>
           </div>
+          <div class="flex items-center">
+            <span class="text-gray-400 mr-2">📋</span>
+            <span><%= team.case.title %></span>
+          </div>
+          <div class="flex items-center">
+            <span class="text-gray-400 mr-2">🎯</span>
+            <span><%= team.simulation.display_name %></span>
+          </div>
+        </div>
+
+        <!-- Team Stats -->
+        <div class="flex items-center justify-between text-sm mb-4">
+          <div class="flex items-center space-x-4">
+            <span class="flex items-center text-gray-600">
+              👥 <%= team.member_count %>/<%= team.max_members %> members
+            </span>
+            <% if team.full? %>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                Full
+              </span>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Simulation Status -->
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-sm text-gray-600">Phase <%= team.simulation.current_phase %> of <%= team.simulation.total_rounds %></span>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+            <%= team.simulation.status == 'active' ? 'bg-green-100 text-green-800' :
+                team.simulation.status == 'completed' ? 'bg-gray-100 text-gray-800' :
+                'bg-yellow-100 text-yellow-800' %>">
+            <%= team.simulation.status.titleize %>
+          </span>
+        </div>
+
+        <!-- Owner Info -->
+        <div class="text-xs text-gray-500 mb-4">
+          Owner: <%= team.owner.display_name %>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="flex space-x-2">
+          <%= link_to "View Team", team_path(team),
+              class: "flex-1 inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
+              data: { turbo_frame: "_top" } %>
+          <%= link_to "Simulation", simulation_path(team.simulation),
+              class: "flex-1 inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
+              data: { turbo_frame: "_top" } %>
         </div>
       </div>
     <% end %>
+  <% end %>
+
+  <% if teams.empty? %>
+    <div class="col-span-full text-center py-12">
+      <div class="text-gray-400 text-6xl mb-4">👥</div>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">No teams found</h3>
+      <p class="text-gray-500">Teams are created within courses. Visit a course to create a new team.</p>
+    </div>
   <% end %>
 </div>
