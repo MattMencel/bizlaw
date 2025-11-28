@@ -1,13 +1,23 @@
 require "capybara/playwright/driver"
 
+# Register the Playwright driver with Capybara
+Capybara.register_driver(:playwright) do |app|
+  options = {
+    browser_type: :chromium,
+    headless: ENV.fetch("HEADLESS", "true") != "false",
+    default_navigation_timeout: 30  # 30 seconds (gets multiplied by 1000 in driver.rb)
+  }
+
+  # Only add playwright paths if they are set
+  options[:playwright_cli_executable_path] = ENV["PLAYWRIGHT_CLI_EXECUTABLE_PATH"] if ENV["PLAYWRIGHT_CLI_EXECUTABLE_PATH"]
+  options[:playwright_server_executable_path] = ENV["PLAYWRIGHT_SERVER_EXECUTABLE_PATH"] if ENV["PLAYWRIGHT_SERVER_EXECUTABLE_PATH"]
+
+  Capybara::Playwright::Driver.new(app, **options)
+end
+
 RSpec.configure do |config|
   config.before(:each, type: :system) do
-    driven_by :playwright, options: {
-      browser: :chromium,
-      headless: !ENV["HEADLESS"].nil?,
-      playwright_cli_executable_path: ENV["PLAYWRIGHT_CLI_EXECUTABLE_PATH"],
-      playwright_server_executable_path: ENV["PLAYWRIGHT_SERVER_EXECUTABLE_PATH"]
-    }
+    driven_by :playwright
   end
 end
 

@@ -1,9 +1,10 @@
+---
 name: CI
 
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   contents: read
@@ -44,9 +45,9 @@ jobs:
             postgresql-client
 
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@8aeb6ff8030dd539317f8e1769a044873b56ea71 # v1.268.0
         with:
           ruby-version: .ruby-version
           bundler-cache: true
@@ -71,11 +72,20 @@ jobs:
         options: --health-cmd "pg_isready -U postgres" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config google-chrome-stable libpq-dev postgresql-client
+        run: |
+          sudo apt-get update && \
+          sudo apt-get install --no-install-recommends -y \
+            build-essential \
+            git \
+            libyaml-dev \
+            pkg-config \
+            google-chrome-stable \
+            libpq-dev \
+            postgresql-client
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@8aeb6ff8030dd539317f8e1769a044873b56ea71 # v1.268.0
         with:
           ruby-version: .ruby-version
           bundler-cache: true
@@ -102,7 +112,7 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/bizlaw_test
       - name: Keep screenshots from failed system tests
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: screenshots
           path: ${{ github.workspace }}/tmp/screenshots
@@ -122,11 +132,19 @@ jobs:
         options: --health-cmd "pg_isready -U postgres" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config google-chrome-stable libpq-dev postgresql-client
+        run: |
+          sudo apt-get update && \
+          sudo apt-get install --no-install-recommends -y \
+            build-essential \
+            git \
+            libyaml-dev \
+            pkg-config \
+            libpq-dev \
+            postgresql-client
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@8aeb6ff8030dd539317f8e1769a044873b56ea71 # v1.268.0
         with:
           ruby-version: .ruby-version
           bundler-cache: true
@@ -136,7 +154,18 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/bizlaw_test
         run: |
           bin/rails db:test:prepare
+      - name: Set up Chrome
+        uses: browser-actions/setup-chrome@v2
+      - name: Verify Chrome installation
+        run: chrome --version
+      - name: Install Playwright with system dependencies
+        run: |
+          npx -y playwright@1.56.1 install --with-deps chromium
       - name: Run E2E tests
         id: e2e_tests
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/bizlaw_test
+          HEADLESS: "true"
         run: |
           bundle exec rspec spec/e2e/

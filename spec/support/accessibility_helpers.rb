@@ -35,7 +35,9 @@ RSpec.configure do |config|
 
   # Configure axe for our application
   config.before(:each, type: :system) do
-    # Set up axe configuration
+    # Only configure axe if the driver supports JavaScript execution
+    # Some drivers like :rack_test don't support JS, and the driver may not be initialized yet
+
     page.execute_script <<~JS
       if (typeof axe !== 'undefined') {
         axe.configure({
@@ -46,5 +48,7 @@ RSpec.configure do |config|
         });
       }
     JS
+  rescue Capybara::NotSupportedByDriverError, Capybara::DriverNotFoundError
+    # Driver doesn't support JavaScript execution (e.g., rack_test) or driver not found yet - skip axe configuration
   end
 end

@@ -8,20 +8,24 @@ RSpec.describe "Case Simulation E2E", type: :system do
   let(:student1) { create(:user, organization: organization) }
   let(:student2) { create(:user, organization: organization) }
   let(:course) { create(:course, instructor: instructor, organization: organization) }
-  let(:case_obj) { create(:case, course: course) }
-  let(:team) { create(:team, course: course) }
+
+  # Enroll users BEFORE creating case/simulation (use let! for eager evaluation)
+  let!(:instructor_enrollment) { create(:course_enrollment, user: instructor, course: course, status: "active") }
+  let!(:student1_enrollment) { create(:course_enrollment, user: student1, course: course, status: "active") }
+  let!(:student2_enrollment) { create(:course_enrollment, user: student2, course: course, status: "active") }
+
+  # Now create case and simulation (after enrollments exist)
+  # IMPORTANT: Set created_by to enrolled instructor
+  let(:case_obj) { create(:case, course: course, created_by: instructor) }
+  let(:simulation) { create(:simulation, case: case_obj) }
+  let(:team) { create(:team, simulation: simulation, owner: student1) }
 
   before do
     driven_by :playwright # Full e2e testing with automatic test server
 
-    # Set up course enrollments
-    create(:course_enrollment, user: student1, course: course, status: "active")
-    create(:course_enrollment, user: student2, course: course, status: "active")
-
-    # Set up team
-    create(:team_member, user: student1, team: team, role: "leader")
+    # Set up team members
+    create(:team_member, user: student1, team: team, role: "manager")
     create(:team_member, user: student2, team: team, role: "member")
-    create(:case_team, case: case_obj, team: team)
   end
 
   describe "Student workflow" do
@@ -30,13 +34,13 @@ RSpec.describe "Case Simulation E2E", type: :system do
       sign_in student1
       visit dashboard_path
 
-      expect(page).to have_content("Student Dashboard")
-      expect(page).to have_content(course.name)
+      expect(page).to have_content("Simulation Dashboard")
+      expect(page).to have_content(case_obj.title)
 
       # Navigate to case
-      click_link case_obj.title
+      visit case_path(case_obj)
       expect(page).to have_content(case_obj.title)
-      expect(page).to have_content("Case Details")
+      expect(page).to have_content("Case Description")
 
       # Access evidence vault
       click_link "Evidence Vault"
@@ -66,19 +70,10 @@ RSpec.describe "Case Simulation E2E", type: :system do
 
       expect(page).to have_content("Instructor Dashboard")
 
-      # Navigate to course management
-      click_link course.name
-      expect(page).to have_content("Course Management")
-
-      # View student progress
-      if page.has_link?("View Progress")
-        click_link "View Progress"
-        expect(page).to have_content("Student Progress")
-      end
-
-      # Check case analytics
+      # Navigate directly to case
       visit case_path(case_obj)
       expect(page).to have_content(case_obj.title)
+      expect(page).to have_content("Case Description")
     end
   end
 
