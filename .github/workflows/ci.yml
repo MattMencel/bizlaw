@@ -102,7 +102,7 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/bizlaw_test
       - name: Keep screenshots from failed system tests
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: screenshots
           path: ${{ github.workspace }}/tmp/screenshots
