@@ -157,7 +157,7 @@ jobs:
           bin/rails db:test:prepare
       - name: Install Playwright browsers
         run: |
-          npx playwright install --with-deps chromium
+          bundle exec playwright install chromium
       - name: Run E2E tests
         id: e2e_tests
         env:
