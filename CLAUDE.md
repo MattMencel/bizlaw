@@ -1,199 +1,56 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Legal education simulation platform for college business law courses: students work in teams on legal case simulations (primarily sexual harassment lawsuit negotiations), with instructors running concurrent simulations per case.
 
-## Development Commands
+## Architecture
 
-**Development Server:**
+Hybrid API/web application — the same domain is served both as versioned JSON:API endpoints under `/api/v1/` and as traditional Rails views. Business logic lives in service objects under `app/services/` rather than in models or controllers.
+
+## Conventions that differ from Rails defaults
+
+These are not guessable from the framework, and getting them wrong produces migrations and queries that look correct but aren't:
+
+- **UUID primary keys** for all major entities — never write an integer-PK migration.
+- **Soft deletion** via the `SoftDeletable` concern. Deleting a record means setting `deleted_at`, and default scopes exclude soft-deleted rows; a query that must see them has to opt in.
+- **PostgreSQL enums** back status fields, so adding a status value requires a migration, not just a constant.
+- **JSONB metadata columns** hold flexible per-case data (`plaintiff_info` / `defendant_info` on `Case`).
+
+Leverage the existing patterns rather than introducing new architectural approaches.
+
+## Development
+
 ```bash
-bin/dev                    # Start development server with Foreman (Rails + Tailwind watch)
-bin/rails server          # Start Rails server only
+bin/dev    # Rails + Tailwind watch via Foreman (Procfile.dev)
 ```
 
-**Testing:**
+Standard Rails and RSpec invocations work as expected. Two non-obvious ones:
+
 ```bash
-bundle exec rspec                  # Run RSpec unit/integration tests
-bundle exec cucumber               # Run Cucumber BDD tests
-bundle exec rails test:system     # Run system tests with Capybara + Playwright
-bundle exec rspec spec/system/    # Run accessibility & system tests
-bundle exec rspec spec/e2e/       # Run end-to-end tests with Playwright
-bundle exec rspec --tag accessibility  # Run only accessibility tests
+bundle exec rspec --tag accessibility   # axe-core WCAG 2.0/2.1 AA specs only
+bundle exec rspec spec/e2e/             # Playwright-driven end-to-end specs
 ```
 
-**Code Quality:**
+System tests are RSpec under `spec/system/`, not Minitest — `rails test:system` runs nothing.
+
+## Verification
+
+Run the suites that cover what you changed, then the linters:
+
 ```bash
-bin/rubocop                # Run linter with Omakase Ruby styling
-bin/brakeman               # Security vulnerability scanner
+bundle exec rspec spec/models/     # model changes
+bundle exec rspec spec/requests/   # API changes
+bundle exec rspec spec/system/     # UI changes
+bundle exec cucumber               # feature/behavior changes
 ```
 
-**Database:**
-```bash
-bin/rails db:create        # Create databases
-bin/rails db:migrate       # Run pending migrations
-bin/rails db:seed          # Seed database
-bin/rails db:reset         # Drop, create, migrate, and seed
-```
+`bin/rubocop` and `bin/brakeman` run automatically on every commit via pre-commit, so a clean commit means both passed. Run them directly only to see failures before committing.
 
-## Architecture Overview
+Distinguish pre-existing test failures from ones your change introduced before reporting results.
 
-This is a **Legal Education Simulation Platform** built with Rails 8.0.2 for college business law courses. Students work in teams on legal case simulations (particularly sexual harassment lawsuit negotiations).
+## Project documentation
 
-### Core Architecture Patterns
-
-- **Hybrid API/Web Application**: Supports both JSON API endpoints (`/api/v1/`) and traditional Rails views
-- **API-First Design**: Versioned REST APIs with JSON:API serialization
-- **Service Layer**: Business logic in service objects (`MetricsService`, `RedisService`)
-- **Domain-Driven Models**: Rich domain objects with clear business relationships
-
-### Key Technology Stack
-
-- **Backend**: Rails 8.0.2, PostgreSQL with UUIDs, modern Rails features (Solid Queue/Cache/Cable)
-- **Frontend**: Hotwire (Turbo + Stimulus), Tailwind CSS, Importmap
-- **Authentication**: Devise with JWT tokens, Google OAuth2, Pundit authorization
-- **Testing**: RSpec + Cucumber + Capybara with Playwright driver
-
-### Data Architecture
-
-**Core Models:**
-- `User` (students/instructors/admins) with role-based access
-- `Team` (user groups) with many-to-many relationships
-- `Case` (legal simulations) with JSONB metadata for `plaintiff_info`/`defendant_info`
-- `Simulation` (multiple simulations per case) supporting concurrent team negotiations
-- `Document` (file attachments) with polymorphic associations
-- `CaseEvent` (audit trail) for activity tracking
-
-**Key Patterns:**
-- UUID primary keys for all major entities
-- Soft deletion implemented via `SoftDeletable` concern
-- PostgreSQL enums for type-safe status fields
-- JSONB columns for flexible metadata storage
-
-### API Design
-
-- **Versioned APIs**: URL path (`/api/v1/`) and Accept header versioning
-- **JSON:API Compliance**: Using `jsonapi-serializer` gem
-- **Rate Limiting**: Rack::Attack for API protection
-- **Pagination**: Kaminari for efficient data access
-
-### Testing Strategy
-
-- **Unit Tests**: RSpec with Factory Bot and comprehensive model coverage
-- **BDD Tests**: Cucumber for user story validation
-- **API Tests**: Request specs for all endpoints
-- **System Tests**: Full E2E with Capybara + Playwright
-- **Accessibility Tests**: axe-core-rspec for WCAG 2.0/2.1 AA compliance
-- **Performance**: Custom `QueryCounter` for N+1 detection
-
-### Rails Conventions
-
-This codebase follows Rails Omakase conventions:
-- RESTful routing patterns
-- Concerns for shared behavior (`HasUuid`, `HasTimestamps`, `SoftDeletable`)
-- Service objects for complex business logic
-- Strong parameters and security best practices
-- ActiveRecord validations and associations
-
-When working with this codebase, leverage the existing patterns rather than creating new architectural approaches.
-
-## MCP Integration
-
-This project supports Model Context Protocol (MCP) integrations for enhanced development workflows:
-
-### GitHub MCP
-For GitHub operations, use the GitHub MCP tools instead of bash commands:
-- Repository management (create, fork, branches)
-- Issues and pull requests (create, update, review, merge)
-- Code and security scanning alerts
-- Notifications and project management
-- File operations (create, update, delete files directly in GitHub)
-
-### Playwright MCP
-For browser automation and E2E testing:
-- Web page navigation and interaction
-- Screenshot and snapshot capture
-- Form filling and element interaction
-- Test generation and execution
-- Accessibility testing with browser tools
-
-These MCPs provide more reliable and feature-rich alternatives to traditional CLI tools for GitHub and browser automation tasks.
-
-## Pull Request Review Guidelines
-
-When reviewing pull requests, follow this systematic approach:
-
-### Review Process
-1. **Checkout and Setup**
-   ```bash
-   git checkout main && git pull origin main
-   git checkout <pr-branch>
-   bundle install  # If dependencies changed
-   ```
-
-2. **Analysis Phase**
-   - Use GitHub MCP tools to fetch PR details and changed files
-   - Review PR description, type (feature/bugfix/dependency), and scope
-   - Identify the primary changes and potential impact areas
-
-3. **Testing Phase**
-   - Run relevant test suites based on changed files:
-     - `bundle exec rspec spec/models/` for model changes
-     - `bundle exec rspec spec/requests/` for API changes
-     - `bundle exec rspec spec/system/` for UI changes
-     - `bundle exec cucumber` for feature changes
-   - For dependency updates: verify bundle install success and run core test suites
-   - Check that existing test failures are pre-existing, not introduced by the PR
-
-4. **Code Quality Checks**
-   ```bash
-   bin/rubocop     # Style and code quality
-   bin/brakeman    # Security analysis
-   ```
-
-### Review Criteria
-
-**✅ APPROVE when:**
-- All relevant tests pass or failures are pre-existing
-- Code follows Rails Omakase conventions and project patterns
-- Security best practices are maintained
-- Dependencies are safe minor/patch updates
-- Documentation is updated if needed
-
-**🔄 REQUEST CHANGES when:**
-- New test failures introduced by the PR
-- Security vulnerabilities or bad practices
-- Breaking changes without proper migration strategy
-- Code doesn't follow project conventions
-- Missing tests for new functionality
-
-**📝 COMMENT for:**
-- Suggestions for improvement
-- Questions about implementation approach
-- Non-blocking style or performance recommendations
-
-### Special Cases
-
-**Dependency Updates (like Dependabot PRs):**
-- Focus on version compatibility and security
-- Check for breaking changes in release notes
-- Verify bundle install succeeds
-- Run core test suite to ensure no regressions
-- Generally safe to approve minor/patch updates from trusted sources
-
-**Feature PRs:**
-- Ensure comprehensive test coverage
-- Check for proper error handling
-- Verify UI/UX follows design patterns
-- Test accessibility compliance if UI changes
-
-**Bugfix PRs:**
-- Verify the fix addresses the root cause
-- Check for regression test coverage
-- Ensure fix doesn't introduce new issues
-
-## Project Documentation
-
-- **PRDs**: Product Requirements Documents are located in the `.prd/` folder
-- **Tasks**: Task lists and project planning are located in the `.cursor/` folder
+- `.prd/` — product requirements documents
+- `.cursor/` — task lists and project planning
 
 ## Agent skills
 
