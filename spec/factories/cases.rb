@@ -3,8 +3,12 @@
 FactoryBot.define do
   factory :case do
     association :course
-    association :created_by, factory: :user
-    association :updated_by, factory: :user
+    # Simulation#create_default_teams makes created_by the owner of both default
+    # teams, and Team#owner_must_be_enrolled_in_course requires an owner who can
+    # manage the course. Default to the course instructor so the association is
+    # valid; pass created_by explicitly to exercise the invalid case.
+    created_by { course.instructor }
+    updated_by { created_by }
 
     sequence(:title) { |n| "Mitchell v. TechFlow Industries #{n}" }
     description { "Sexual harassment lawsuit involving workplace misconduct allegations" }
