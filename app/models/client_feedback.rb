@@ -50,8 +50,9 @@ class ClientFeedback < ApplicationRecord
 
   # Instance methods
   def team_role
-    case_team = team.case_teams.find_by(case: simulation.case)
-    case_team&.role
+    return nil unless team&.case == simulation&.case
+
+    team.role
   end
 
   def is_plaintiff_feedback?
@@ -152,17 +153,16 @@ class ClientFeedback < ApplicationRecord
   def team_assigned_to_case
     return unless team.present? && simulation.present?
 
-    unless team.case_teams.exists?(case: simulation.case)
+    unless team.case == simulation.case
       errors.add(:team, "is not assigned to this case")
     end
   end
 
   # Class methods for feedback calculation
   def self.calculate_offer_reaction(simulation, team, settlement_offer)
-    case_team = team.case_teams.find_by(case: simulation.case)
-    return ["neutral", 50, "Unable to assess offer"] unless case_team
+    return ["neutral", 50, "Unable to assess offer"] unless team&.case == simulation.case
 
-    if case_team.role == "plaintiff"
+    if team.role == "plaintiff"
       calculate_plaintiff_reaction(simulation, settlement_offer)
     else
       calculate_defendant_reaction(simulation, settlement_offer)
@@ -206,7 +206,7 @@ class ClientFeedback < ApplicationRecord
   end
 
   def self.calculate_pressure_response(simulation, team, event_type)
-    case_team = team.case_teams.find_by(case: simulation.case)
+    team_role = (team.role if team&.case == simulation.case)
     base_messages = {
       "media_attention" => {
         "plaintiff" => "Media coverage puts additional pressure on the company to settle fairly.",
@@ -226,7 +226,7 @@ class ClientFeedback < ApplicationRecord
       }
     }
 
-    role = case_team&.role || "plaintiff"
+    role = team_role || "plaintiff"
     message = base_messages.dig(event_type, role) || "External pressures are affecting the case dynamics."
 
     if role == "plaintiff"
@@ -237,8 +237,6 @@ class ClientFeedback < ApplicationRecord
   end
 
   def self.calculate_strategy_guidance(simulation, team, round_number)
-    team.case_teams.find_by(case: simulation.case)
-
     if round_number <= 2
       mood = "neutral"
       satisfaction = 60
