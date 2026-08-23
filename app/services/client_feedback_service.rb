@@ -73,7 +73,7 @@ class ClientFeedbackService
       completed_round = simulation.negotiation_rounds.find_by(round_number: from_round)
       next unless completed_round
 
-      team_role = team.case_teams.find_by(case: simulation.case)&.role
+      team_role = determine_team_role(team)
       next unless team_role
 
       has_offer = if team_role == "plaintiff"
@@ -185,8 +185,7 @@ class ClientFeedbackService
   end
 
   def generate_transition_feedback(team, from_round, to_round, completed_round)
-    case_team = team.case_teams.find_by(case: simulation.case)
-    role = case_team&.role
+    role = determine_team_role(team)
     return nil unless role
 
     # Analyze the completed round for feedback themes
@@ -224,8 +223,7 @@ class ClientFeedbackService
   end
 
   def generate_settlement_satisfaction_feedback(team, final_round)
-    case_team = team.case_teams.find_by(case: simulation.case)
-    role = case_team&.role
+    role = determine_team_role(team)
     return nil unless role
 
     # Analyze final settlement terms
@@ -275,8 +273,7 @@ class ClientFeedbackService
   end
 
   def generate_arbitration_warning_feedback(team)
-    case_team = team.case_teams.find_by(case: simulation.case)
-    role = case_team&.role
+    role = determine_team_role(team)
     return nil unless role
 
     mood = "unhappy"
@@ -315,7 +312,7 @@ class ClientFeedbackService
   def analyze_round_performance(team, round)
     themes = []
 
-    team_role = team.case_teams.find_by(case: simulation.case)&.role
+    team_role = determine_team_role(team)
     team_offer = if team_role == "plaintiff"
       round.plaintiff_offer
     else
@@ -519,8 +516,7 @@ class ClientFeedbackService
   def get_strategic_recommendations(team, round_number)
     recommendations = []
 
-    case_team = team.case_teams.find_by(case: simulation.case)
-    role = case_team&.role
+    role = determine_team_role(team)
 
     # Round-specific recommendations
     recommendations << if round_number <= 2
@@ -702,9 +698,12 @@ class ClientFeedbackService
     end
   end
 
+  # A team's side is its own role column; it belongs to this case if its
+  # simulation does.
   def determine_team_role(team)
-    case_team = simulation.case.case_teams.find_by(team: team)
-    case_team&.role
+    return nil unless team&.case == simulation.case
+
+    team.role
   end
 
   # AI Enhancement Methods

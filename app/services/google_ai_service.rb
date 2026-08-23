@@ -515,8 +515,9 @@ class GoogleAiService
 
   # Utility methods
   def determine_team_role(team, simulation)
-    case_team = simulation.case.case_teams.find_by(team: team)
-    case_team&.role || "unknown"
+    return "unknown" unless team&.case == simulation.case
+
+    team.role || "unknown"
   end
 
   def get_recent_offers(simulation, current_round)

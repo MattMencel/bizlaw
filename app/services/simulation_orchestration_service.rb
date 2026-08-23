@@ -315,7 +315,7 @@ class SimulationOrchestrationService
   end
 
   def get_user_team(user)
-    user.teams.joins(:case_teams).where(case_teams: {case: simulation.case}).first
+    user.teams.find_by(simulation: simulation)
   end
 
   def get_current_round_status
@@ -336,12 +336,12 @@ class SimulationOrchestrationService
   def get_team_status(team)
     return nil unless team
 
-    case_team = team.case_teams.find_by(case: simulation.case)
+    team_role = (team.role if team.case == simulation.case)
     current_round = simulation.current_negotiation_round
 
     team_offer = nil
-    if current_round && case_team
-      team_offer = if case_team.role == "plaintiff"
+    if current_round && team_role
+      team_offer = if team_role == "plaintiff"
         current_round.plaintiff_offer
       else
         current_round.defendant_offer
@@ -350,7 +350,7 @@ class SimulationOrchestrationService
 
     {
       team_id: team.id,
-      role: case_team&.role,
+      role: team_role,
       has_submitted: team_offer.present?,
       can_submit: current_round&.active? && Time.current <= current_round&.deadline
     }
