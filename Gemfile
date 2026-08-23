@@ -67,7 +67,7 @@ gem "prawn", "~> 2.4"
 gem "prawn-table", "~> 0.2"
 
 # Authentication & Authorization
-gem "devise", "~> 4.9"
+gem "devise", "~> 5.0"
 gem "devise-jwt", "~> 0.12"
 gem "pundit", "~> 2.3"
 gem "omniauth", "~> 2.1"
