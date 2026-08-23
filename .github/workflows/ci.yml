@@ -87,7 +87,6 @@ jobs:
           bin/rails db:test:prepare
       - name: Run tests
         id: tests
-        continue-on-error: true
         run: |
           bundle exec rspec --exclude-pattern spec/e2e/**/*_spec.rb
           bundle exec cucumber
