@@ -24,9 +24,12 @@ FactoryBot.define do
       end
     end
 
+    # An active simulation must already have a plaintiff and a defendant team,
+    # but teams are built by Simulation's after_create -- so it cannot be
+    # created active in one step. Create it in setup and activate it, which is
+    # what the application does.
     trait :active do
-      status { :active }
-      start_date { 1.hour.ago }
+      status { :setup }
       plaintiff_min_acceptable { 150000 }
       plaintiff_ideal { 300000 }
       defendant_max_acceptable { 250000 }
@@ -35,6 +38,7 @@ FactoryBot.define do
       after(:create) do |simulation|
         create(:team, simulation: simulation, role: :plaintiff) unless simulation.plaintiff_teams.exists?
         create(:team, simulation: simulation, role: :defendant) unless simulation.defendant_teams.exists?
+        simulation.update!(status: :active, start_date: 1.hour.ago)
       end
     end
 

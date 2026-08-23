@@ -338,8 +338,10 @@ RSpec.describe Simulation, type: :model do
     let(:course) { case_record.course }
 
     describe ".create_with_defaults" do
+      # create_with_defaults is a private class method with no caller in app/.
+      # These specs reach it with send rather than silently exercising nothing.
       it "creates empty plaintiff and defendant teams" do
-        simulation = Simulation.create_with_defaults(case_record: case_record)
+        simulation = Simulation.send(:create_with_defaults, case_record: case_record)
 
         expect(simulation.plaintiff_team).to be_present
         expect(simulation.defendant_team).to be_present
@@ -349,35 +351,11 @@ RSpec.describe Simulation, type: :model do
         expect(simulation.defendant_team.users).to be_empty
       end
 
-      it "uses existing case teams if available" do
-        plaintiff_team = create(:team, name: "Existing Plaintiff", course: course)
-        defendant_team = create(:team, name: "Existing Defendant", course: course)
-        create(:case_team, case: case_record, team: plaintiff_team, role: :plaintiff)
-        create(:case_team, case: case_record, team: defendant_team, role: :defendant)
+      it "associates teams with the case through the simulation" do
+        simulation = Simulation.send(:create_with_defaults, case_record: case_record)
 
-        simulation = Simulation.create_with_defaults(case_record: case_record)
-
-        expect(simulation.plaintiff_team).to eq(plaintiff_team)
-        expect(simulation.defendant_team).to eq(defendant_team)
-      end
-
-      it "creates missing teams when only one exists" do
-        existing_team = create(:team, name: "Existing Plaintiff", course: course)
-        create(:case_team, case: case_record, team: existing_team, role: :plaintiff)
-
-        simulation = Simulation.create_with_defaults(case_record: case_record)
-
-        expect(simulation.plaintiff_team).to eq(existing_team)
-        expect(simulation.defendant_team).to be_present
-        expect(simulation.defendant_team.name).to eq("Defendant Team")
-      end
-
-      it "associates teams with the case" do
-        simulation = Simulation.create_with_defaults(case_record: case_record)
-
-        expect(case_record.case_teams.count).to eq(2)
-        expect(case_record.case_teams.plaintiff.first.team).to eq(simulation.plaintiff_team)
-        expect(case_record.case_teams.defendant.first.team).to eq(simulation.defendant_team)
+        expect(case_record.teams.count).to eq(2)
+        expect(case_record.teams).to include(simulation.plaintiff_team, simulation.defendant_team)
       end
     end
   end

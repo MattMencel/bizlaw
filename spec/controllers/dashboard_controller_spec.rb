@@ -14,17 +14,17 @@ RSpec.describe DashboardController, type: :controller do
 
     context "when user is authenticated as student" do
       let(:student) { create(:user, role: :student) }
-      let(:team1) { create(:team, name: "Plaintiff Team A") }
-      let(:team2) { create(:team, name: "Defense Team B") }
       let(:case1) { create(:case, case_type: :sexual_harassment, title: "Mitchell v. TechFlow Industries") }
       let(:case2) { create(:case, case_type: :discrimination, title: "Johnson v. MegaCorp") }
+      # Teams belong to a simulation; renaming the defaults keeps the
+      # assertions on team names below meaningful.
+      let(:team1) { create(:simulation, case: case1).plaintiff_team.tap { |t| t.update!(name: "Plaintiff Team A") } }
+      let(:team2) { create(:simulation, case: case2).defendant_team.tap { |t| t.update!(name: "Defense Team B") } }
 
       before do
         sign_in student
         create(:team_member, user: student, team: team1)
         create(:team_member, user: student, team: team2)
-        create(:case_team, case: case1, team: team1, role: :plaintiff)
-        create(:case_team, case: case2, team: team2, role: :defendant)
       end
 
       it "renders student dashboard template" do
@@ -125,13 +125,13 @@ RSpec.describe DashboardController, type: :controller do
 
   describe "simulation dashboard specific functionality" do
     let(:student) { create(:user, role: :student) }
-    let(:team) { create(:team) }
-    let(:case_with_simulation) { create(:case, :with_simulation) }
+    let(:case_with_simulation) { create(:case) }
+    let!(:simulation) { create(:simulation, case: case_with_simulation) }
+    let(:team) { simulation.plaintiff_team }
 
     before do
       sign_in student
       create(:team_member, user: student, team: team)
-      create(:case_team, case: case_with_simulation, team: team, role: :plaintiff)
     end
 
     it "includes simulation data in student dashboard" do

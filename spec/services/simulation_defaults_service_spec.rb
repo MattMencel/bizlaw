@@ -130,78 +130,23 @@ RSpec.describe SimulationDefaultsService, type: :service do
   end
 
   describe "#default_teams" do
-    let(:course) { case_record.course }
-
-    context "when no teams exist for the case" do
-      it "creates new plaintiff and defendant teams" do
-        teams = service.default_teams
-
-        expect(teams[:plaintiff_team]).to be_a(Team)
-        expect(teams[:defendant_team]).to be_a(Team)
-        expect(teams[:plaintiff_team].name).to eq("Plaintiff Team")
-        expect(teams[:defendant_team].name).to eq("Defendant Team")
-        expect(teams[:plaintiff_team].course).to eq(course)
-        expect(teams[:defendant_team].course).to eq(course)
-      end
-
-      it "creates case team associations" do
-        teams = service.default_teams
-
-        plaintiff_case_team = case_record.case_teams.find_by(role: :plaintiff)
-        defendant_case_team = case_record.case_teams.find_by(role: :defendant)
-
-        expect(plaintiff_case_team.team).to eq(teams[:plaintiff_team])
-        expect(defendant_case_team.team).to eq(teams[:defendant_team])
-      end
+    # 72001a1 moved team creation onto Simulation#create_default_teams and left
+    # find_or_create_team here as an unconditional `nil` stub, so default_teams
+    # no longer builds anything. The five specs that used to cover team
+    # find-or-create behaviour asserted the pre-72001a1 case_teams model and
+    # could not pass against the current code; this pins what it actually does.
+    # SimulationDefaultsService#find_or_create_team and #create_team_for_role
+    # are both unreachable and want deleting separately.
+    it "returns no teams, leaving creation to the simulation" do
+      expect(service.default_teams).to eq(plaintiff_team: nil, defendant_team: nil)
     end
 
-    context "when teams already exist for the case" do
-      let!(:existing_plaintiff) { create(:team, name: "Existing Plaintiff", course: course) }
-      let!(:existing_defendant) { create(:team, name: "Existing Defendant", course: course) }
+    it "creates the default teams when the simulation is created" do
+      simulation = create(:simulation, case: case_record)
 
-      before do
-        create(:case_team, case: case_record, team: existing_plaintiff, role: :plaintiff)
-        create(:case_team, case: case_record, team: existing_defendant, role: :defendant)
-      end
-
-      it "uses existing teams" do
-        teams = service.default_teams
-
-        expect(teams[:plaintiff_team]).to eq(existing_plaintiff)
-        expect(teams[:defendant_team]).to eq(existing_defendant)
-      end
-    end
-
-    context "when only plaintiff team exists" do
-      let!(:existing_plaintiff) { create(:team, name: "Existing Plaintiff", course: course) }
-
-      before do
-        create(:case_team, case: case_record, team: existing_plaintiff, role: :plaintiff)
-      end
-
-      it "uses existing plaintiff and creates defendant team" do
-        teams = service.default_teams
-
-        expect(teams[:plaintiff_team]).to eq(existing_plaintiff)
-        expect(teams[:defendant_team]).to be_a(Team)
-        expect(teams[:defendant_team].name).to eq("Defendant Team")
-      end
-    end
-
-    context "when only defendant team exists" do
-      let!(:existing_defendant) { create(:team, name: "Existing Defendant", course: course) }
-
-      before do
-        create(:case_team, case: case_record, team: existing_defendant, role: :defendant)
-      end
-
-      it "creates plaintiff team and uses existing defendant" do
-        teams = service.default_teams
-
-        expect(teams[:plaintiff_team]).to be_a(Team)
-        expect(teams[:plaintiff_team].name).to eq("Plaintiff Team")
-        expect(teams[:defendant_team]).to eq(existing_defendant)
-      end
+      expect(simulation.plaintiff_team.name).to eq("Plaintiff Team")
+      expect(simulation.defendant_team.name).to eq("Defendant Team")
+      expect(case_record.teams).to include(simulation.plaintiff_team, simulation.defendant_team)
     end
   end
 
@@ -221,11 +166,15 @@ RSpec.describe SimulationDefaultsService, type: :service do
       expect(simulation.pressure_escalation_rate).to eq("moderate")
     end
 
-    it "assigns teams to simulation" do
+    it "gets its teams once saved" do
+      # build_simulation_with_defaults returns an unsaved record; the default
+      # teams come from Simulation's after_create, so there are none until save.
       simulation = service.build_simulation_with_defaults
+      expect(simulation.plaintiff_team).to be_nil
 
-      expect(simulation.plaintiff_team).to be_present
-      expect(simulation.defendant_team).to be_present
+      simulation.save!
+      simulation.reload
+
       expect(simulation.plaintiff_team.name).to eq("Plaintiff Team")
       expect(simulation.defendant_team.name).to eq("Defendant Team")
     end

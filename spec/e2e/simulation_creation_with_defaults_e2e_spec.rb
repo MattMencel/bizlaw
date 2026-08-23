@@ -125,24 +125,14 @@ RSpec.describe "Simulation Creation with Defaults", type: :system do
       expect(find_field("Total Rounds")).to have_value("8")
     end
 
-    it "handles existing case teams correctly" do
-      # Create existing teams for the case
-      plaintiff_team = create(:team, name: "Legal Eagles", course: course)
-      defendant_team = create(:team, name: "Corporate Defense", course: course)
-      create(:case_team, case: case_instance, team: plaintiff_team, role: :plaintiff)
-      create(:case_team, case: case_instance, team: defendant_team, role: :defendant)
-
+    it "creates its own plaintiff and defendant teams" do
       visit new_course_case_simulation_path(course, case_instance)
-
-      # Should use existing teams instead of creating new ones
-      expect(page).to have_select("Plaintiff Team", selected: "Legal Eagles")
-      expect(page).to have_select("Defendant Team", selected: "Corporate Defense")
 
       click_button "Create Simulation"
 
-      simulation = case_instance.reload.simulation
-      expect(simulation.plaintiff_team).to eq(plaintiff_team)
-      expect(simulation.defendant_team).to eq(defendant_team)
+      simulation = case_instance.reload.simulations.last
+      expect(simulation.plaintiff_team.name).to eq("Plaintiff Team")
+      expect(simulation.defendant_team.name).to eq("Defendant Team")
     end
   end
 

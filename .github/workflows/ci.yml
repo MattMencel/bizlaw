@@ -130,12 +130,31 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: lts/*
+          cache: npm
+      - name: Install Playwright CLI
+        run: npm ci
+      - name: Cache Playwright browsers
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
       - name: Setup test database
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/bizlaw_test
         run: |
           bin/rails db:test:prepare
+      - name: Build CSS
+        env:
+          RAILS_ENV: test
+        run: |
+          bin/rails tailwindcss:build
       - name: Run E2E tests
         id: e2e_tests
         run: |

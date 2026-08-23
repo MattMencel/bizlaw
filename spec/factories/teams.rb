@@ -6,11 +6,22 @@ FactoryBot.define do
     description { Faker::Lorem.paragraph }
     max_members { 5 }
     role { "plaintiff" }
-    association :owner, factory: :user
-    association :simulation
 
-    after(:create) do |team|
-      # Ensure the owner is enrolled in the course (only for students)
+    # Teams hang off a simulation, not a course (72001a1). `course:` is a
+    # convenience for specs that only care which course the team ends up in --
+    # it builds the intervening case and simulation.
+    transient do
+      course { nil }
+    end
+
+    simulation { course ? create(:simulation, case: create(:case, course: course)) : create(:simulation) }
+
+    # Team#owner_must_be_enrolled_in_course runs on create, so the owner has to
+    # be valid before the record is saved. The course instructor always is.
+    owner { simulation.case.course.instructor }
+
+    before(:create) do |team|
+      # A student owner must be enrolled before validation, not after.
       if team.owner&.student? && team.simulation&.case&.course && !team.simulation.case.course.course_enrollments.exists?(user: team.owner)
         create(:course_enrollment, user: team.owner, course: team.simulation.case.course, status: "active")
       end

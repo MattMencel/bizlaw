@@ -448,12 +448,13 @@ RSpec.describe "Cases", type: :request do
 
     context "when case cannot be deleted due to student team members" do
       let(:student) { create(:user, :student) }
-      let(:student_team) { create(:team, course: course, owner: student) }
       let(:case_instance) { create(:case, course: course, status: :not_started, created_by: instructor) }
+      let!(:simulation) { create(:simulation, case: case_instance) }
+      let(:student_team) { simulation.plaintiff_team }
 
       before do
+        create(:course_enrollment, user: student, course: course, status: "active")
         create(:team_member, team: student_team, user: student, role: :member)
-        create(:case_team, case: case_instance, team: student_team, role: :plaintiff)
       end
 
       it "does not destroy the case" do

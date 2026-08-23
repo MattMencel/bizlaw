@@ -32,19 +32,4 @@ end
 RSpec.configure do |config|
   config.include AccessibilityHelpers, type: :system
   config.include AccessibilityHelpers, type: :feature
-
-  # Configure axe for our application
-  config.before(:each, type: :system) do
-    # Set up axe configuration
-    page.execute_script <<~JS
-      if (typeof axe !== 'undefined') {
-        axe.configure({
-          rules: [
-            { id: 'color-contrast', enabled: false }, // Disable in test
-            { id: 'landmark-one-main', enabled: false } // Can be flaky
-          ]
-        });
-      }
-    JS
-  end
 end

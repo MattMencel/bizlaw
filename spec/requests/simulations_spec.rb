@@ -11,9 +11,10 @@ RSpec.describe "Simulations", type: :request do
   let(:course) { create(:course, instructor: instructor, organization: organization) }
   let(:case_instance) { create(:case, course: course, created_by: instructor) }
 
-  # Create teams for simulation
-  let(:plaintiff_team) { create(:team, course: course) }
-  let(:defendant_team) { create(:team, course: course) }
+  # A simulation creates its own plaintiff and defendant teams.
+  let(:simulation) { create(:simulation, case: case_instance) }
+  let(:plaintiff_team) { simulation.plaintiff_team }
+  let(:defendant_team) { simulation.defendant_team }
 
   describe "GET /courses/:course_id/cases/:case_id/simulation/new" do
     context "when user is instructor" do
@@ -93,16 +94,9 @@ RSpec.describe "Simulations", type: :request do
           expect(simulation.defendant_team.name).to eq("Defendant Team")
         end
 
-        it "uses existing case teams when available" do
-          create(:case_team, case: case_instance, team: plaintiff_team, role: :plaintiff)
-          create(:case_team, case: case_instance, team: defendant_team, role: :defendant)
-
-          get new_course_case_simulation_path(course, case_instance)
-          simulation = assigns(:simulation)
-
-          expect(simulation.plaintiff_team).to eq(plaintiff_team)
-          expect(simulation.defendant_team).to eq(defendant_team)
-        end
+        # Dropped: "uses existing case teams when available". Team reuse went
+        # with the case_teams table in 72001a1 -- a new simulation always builds
+        # its own plaintiff and defendant teams.
       end
     end
 
@@ -213,10 +207,10 @@ RSpec.describe "Simulations", type: :request do
         it "creates default teams when using defaults" do
           post course_case_simulation_path(course, case_instance), params: default_params
 
-          simulation = case_instance.reload.simulation
+          simulation = case_instance.reload.simulations.last
           expect(simulation.plaintiff_team).to be_present
           expect(simulation.defendant_team).to be_present
-          expect(case_instance.case_teams.count).to eq(2)
+          expect(case_instance.teams.count).to eq(2)
         end
       end
 
@@ -266,11 +260,9 @@ RSpec.describe "Simulations", type: :request do
     context "when user is instructor" do
       before do
         sign_in instructor
-        plaintiff_team # Force creation of teams
+        # Force creation of the simulation and its teams.
+        plaintiff_team
         defendant_team
-        # Create case team assignments
-        case_instance.case_teams.create!(team: plaintiff_team, role: :plaintiff)
-        case_instance.case_teams.create!(team: defendant_team, role: :defendant)
       end
 
       it "returns success" do

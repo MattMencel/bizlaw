@@ -88,13 +88,13 @@ RSpec.describe "Dashboard", type: :request do
       end
 
       context "with simulation data" do
-        let(:team) { create(:team, name: "Plaintiff Team A") }
-        let(:case_with_simulation) { create(:case, case_type: :sexual_harassment, name: "Mitchell v. TechFlow Industries") }
-        let!(:simulation) { create(:simulation, status: :active, case: case_with_simulation) }
+        let(:case_with_simulation) { create(:case, case_type: :sexual_harassment, title: "Mitchell v. TechFlow Industries") }
+        let!(:simulation) { create(:simulation, :active, case: case_with_simulation) }
+        # The simulation owns its teams; rename the default to what this spec asserts.
+        let(:team) { simulation.plaintiff_team.tap { |t| t.update!(name: "Plaintiff Team A") } }
 
         before do
           create(:team_member, user: student, team: team)
-          create(:case_team, case: case_with_simulation, team: team, role: :plaintiff)
         end
 
         it "displays simulation dashboard content" do
@@ -110,18 +110,16 @@ RSpec.describe "Dashboard", type: :request do
       end
 
       context "with multiple simulation statuses" do
-        let(:plaintiff_team) { create(:team, name: "Plaintiff Team A") }
-        let(:defendant_team) { create(:team, name: "Defense Team B") }
-        let(:active_case) { create(:case, name: "Mitchell v. TechFlow Industries", case_type: :sexual_harassment) }
-        let(:completed_case) { create(:case, name: "Johnson v. MegaCorp", case_type: :discrimination) }
-        let!(:active_simulation) { create(:simulation, status: :active, case: active_case) }
-        let!(:completed_simulation) { create(:simulation, status: :completed, case: completed_case) }
+        let(:active_case) { create(:case, title: "Mitchell v. TechFlow Industries", case_type: :sexual_harassment) }
+        let(:completed_case) { create(:case, title: "Johnson v. MegaCorp", case_type: :discrimination) }
+        let!(:active_simulation) { create(:simulation, :active, case: active_case) }
+        let!(:completed_simulation) { create(:simulation, :active, status: :completed, case: completed_case) }
+        let(:plaintiff_team) { active_simulation.plaintiff_team.tap { |t| t.update!(name: "Plaintiff Team A") } }
+        let(:defendant_team) { completed_simulation.defendant_team.tap { |t| t.update!(name: "Defense Team B") } }
 
         before do
           create(:team_member, user: student, team: plaintiff_team)
           create(:team_member, user: student, team: defendant_team)
-          create(:case_team, case: active_case, team: plaintiff_team, role: :plaintiff)
-          create(:case_team, case: completed_case, team: defendant_team, role: :defendant)
         end
 
         it "displays different simulation statuses" do

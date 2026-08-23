@@ -10,7 +10,6 @@ RSpec.describe CasePolicy, type: :policy do
 
   let(:case_record) { build_stubbed(:case, created_by_id: instructor.id) }
   let(:team) { build_stubbed(:team) }
-  let(:case_team) { build_stubbed(:case_team, case: case_record, team: team) }
 
   before do
     allow(student).to receive_messages(teams: double(joins: double(exists?: true)), team_ids: [team.id])
