@@ -407,7 +407,7 @@ class Api::V1::CaseMaterialsController < Api::V1::BaseController
       can_upload: policy(@case).update?,
       can_view_all: current_user.role_instructor? || current_user.role_admin?,
       team_name: team.name,
-      team_role: team.case_teams.find_by(case: @case)&.role
+      team_role: (team.role if team.case == @case)
     }
   end
 
