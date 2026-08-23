@@ -9,7 +9,9 @@ RSpec.describe NavigationHelper, type: :helper do
   let(:admin) { create(:user, :admin, organization: organization) }
   let(:course) { create(:course, instructor: instructor, organization: organization) }
   let(:case_obj) { create(:case, course: course) }
-  let(:team) { create(:team) }
+  # A team reaches its case through the simulation it belongs to.
+  let(:simulation) { create(:simulation, case: case_obj) }
+  let(:team) { simulation.plaintiff_team }
 
   before do
     allow(helper).to receive(:user_signed_in?).and_return(true)
@@ -20,8 +22,7 @@ RSpec.describe NavigationHelper, type: :helper do
   describe "#current_user_case" do
     context "when user has an active case in session" do
       before do
-        # Create case team association
-        create(:case_team, case: case_obj, team: team)
+        team
         user.teams << team
         allow(helper).to receive(:session).and_return({active_case_id: case_obj.id})
       end
@@ -33,8 +34,7 @@ RSpec.describe NavigationHelper, type: :helper do
 
     context "when user has no active case in session" do
       before do
-        # Create case team association
-        create(:case_team, case: case_obj, team: team)
+        team
         user.teams << team
       end
 
@@ -56,7 +56,6 @@ RSpec.describe NavigationHelper, type: :helper do
 
   describe "#current_user_team" do
     before do
-      create(:case_team, case: case_obj, team: team)
       user.teams << team
       allow(helper).to receive(:current_user_case).and_return(case_obj)
     end
@@ -252,7 +251,6 @@ RSpec.describe NavigationHelper, type: :helper do
 
   describe "#context_switcher_data" do
     before do
-      create(:case_team, case: case_obj, team: team)
       user.teams << team
       allow(helper).to receive(:current_user_case).and_return(case_obj)
       allow(helper).to receive(:current_user_team).and_return(team)

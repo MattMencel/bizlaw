@@ -21,26 +21,10 @@ FactoryBot.define do
     legal_issues { ["Sexual harassment", "Hostile work environment", "Retaliation"] }
 
     trait :with_teams do
-      # Create case teams after the case is created
+      # Teams reach a case through a simulation, and a simulation creates its
+      # own plaintiff and defendant teams on create.
       after(:create) do |case_instance|
-        # Create owners who are enrolled in the course
-        plaintiff_owner = create(:user)
-        defendant_owner = create(:user)
-
-        create(:course_enrollment, user: plaintiff_owner, course: case_instance.course)
-        create(:course_enrollment, user: defendant_owner, course: case_instance.course)
-
-        plaintiff_team = create(:team,
-          name: "#{case_instance.title} - Plaintiff Team",
-          course: case_instance.course,
-          owner: plaintiff_owner)
-        defendant_team = create(:team,
-          name: "#{case_instance.title} - Defendant Team",
-          course: case_instance.course,
-          owner: defendant_owner)
-
-        create(:case_team, case: case_instance, team: plaintiff_team, role: "plaintiff")
-        create(:case_team, case: case_instance, team: defendant_team, role: "defendant")
+        create(:simulation, case: case_instance)
       end
     end
 

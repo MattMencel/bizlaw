@@ -4,15 +4,11 @@ require "rails_helper"
 RSpec.describe GoogleAiService do
   let(:organization) { create(:organization) }
   let(:course) { create(:course, organization: organization) }
-  let(:plaintiff_team) { create(:team, course: course) }
-  let(:defendant_team) { create(:team, course: course) }
-  let(:case_instance) do
-    case_obj = create(:case, course: course)
-    create(:case_team, case: case_obj, team: plaintiff_team, role: "plaintiff")
-    create(:case_team, case: case_obj, team: defendant_team, role: "defendant")
-    case_obj
-  end
+  let(:case_instance) { create(:case, course: course) }
   let(:simulation) { create(:simulation, case: case_instance) }
+  # A simulation creates its own plaintiff and defendant teams on create.
+  let(:plaintiff_team) { simulation.plaintiff_team }
+  let(:defendant_team) { simulation.defendant_team }
   let(:negotiation_round) { create(:negotiation_round, simulation: simulation, round_number: 1) }
   let(:settlement_offer) do
     create(:settlement_offer,

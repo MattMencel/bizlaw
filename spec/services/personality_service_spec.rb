@@ -150,8 +150,7 @@ RSpec.describe PersonalityService, type: :service do
     let(:case_instance) { create(:case, :sexual_harassment) }
     let(:simulation) { create(:simulation, case: case_instance) }
     let(:round) { create(:negotiation_round, simulation: simulation) }
-    let(:team) { create(:team) }
-    let!(:case_team) { create(:case_team, case: case_instance, team: team, role: "plaintiff") }
+    let(:team) { simulation.plaintiff_team }
     let(:settlement_offer) { create(:settlement_offer, amount: 150_000, negotiation_round: round, team: team) }
     let(:personality_type) { "aggressive" }
 
