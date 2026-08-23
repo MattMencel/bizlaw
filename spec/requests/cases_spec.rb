@@ -58,7 +58,6 @@ RSpec.describe "Cases", type: :request do
     context "when user has access to case" do
       before do
         sign_in instructor
-        allow_any_instance_of(CasesController).to receive(:authorize).and_return(true)
       end
 
       it "returns successful response" do
@@ -101,7 +100,6 @@ RSpec.describe "Cases", type: :request do
   describe "GET /courses/:course_id/cases/new" do
     before do
       sign_in instructor
-      allow_any_instance_of(CasesController).to receive(:authorize).and_return(true)
     end
 
     context "without scenario_id" do
@@ -206,7 +204,6 @@ RSpec.describe "Cases", type: :request do
 
     before do
       sign_in instructor
-      allow_any_instance_of(CasesController).to receive(:authorize).and_return(true)
     end
 
     context "with valid parameters" do
@@ -291,7 +288,6 @@ RSpec.describe "Cases", type: :request do
   describe "GET /courses/:course_id/cases/:id/edit" do
     before do
       sign_in instructor
-      allow_any_instance_of(CasesController).to receive(:authorize).and_return(true)
     end
 
     it "returns successful response" do
@@ -323,7 +319,6 @@ RSpec.describe "Cases", type: :request do
 
     before do
       sign_in instructor
-      allow_any_instance_of(CasesController).to receive(:authorize).and_return(true)
     end
 
     context "with valid parameters" do
@@ -389,7 +384,6 @@ RSpec.describe "Cases", type: :request do
   describe "DELETE /courses/:course_id/cases/:id" do
     before do
       sign_in instructor
-      allow_any_instance_of(CasesController).to receive(:authorize).and_return(true)
       case_instance # Create the case
     end
 
@@ -493,7 +487,6 @@ RSpec.describe "Cases", type: :request do
     describe "#set_case" do
       before do
         sign_in instructor
-        allow_any_instance_of(CasesController).to receive(:authorize).and_return(true)
       end
 
       context "with course_id parameter" do
@@ -582,33 +575,140 @@ RSpec.describe "Cases", type: :request do
     end
   end
 
-  describe "authorization integration" do
-    context "when student tries to create case" do
-      before { sign_in student }
+  describe "authorization on new/create" do
+    # The first instructor created in an organization is auto-promoted to
+    # org_admin (User#assign_first_instructor_as_org_admin), and org admins are
+    # allowed to manage every course in their org. Strip the role so these
+    # examples exercise a plain instructor.
+    let(:other_instructor) do
+      create(:user, :instructor, organization: organization).tap { |u| u.remove_role("org_admin") }
+    end
+    let(:other_course) do
+      create(:course, instructor: other_instructor, organization: organization, course_code: "OTHER101")
+    end
+    let(:plain_instructor) do
+      create(:user, :instructor, organization: organization).tap { |u| u.remove_role("org_admin") }
+    end
 
-      it "checks authorization" do
-        # This test verifies that authorization is checked during case creation
-        # For a student trying to create a case, this should either succeed (if authorized)
-        # or fail with proper authorization handling
-        post course_cases_path(course), params: {case: {title: "Test"}}
-        expect(response.status).to be_in([201, 302, 403, 422])
+    let(:valid_params) do
+      {
+        title: "New Legal Case",
+        description: "A test case description",
+        case_type: "sexual_harassment",
+        difficulty_level: "intermediate",
+        legal_issues: ["Sexual harassment"],
+        plaintiff_info_keys: ["name"],
+        plaintiff_info_values: ["John Doe"],
+        defendant_info_keys: ["company"],
+        defendant_info_values: ["TechCorp"]
+      }
+    end
+
+    context "when the instructor owns the course" do
+      let(:own_course) do
+        create(:course, instructor: plain_instructor, organization: organization, course_code: "OWN101")
+      end
+
+      before { sign_in plain_instructor }
+
+      it "creates the case" do
+        expect {
+          post course_cases_path(own_course), params: {case: valid_params}
+        }.to change(Case, :count).by(1)
+
+        expect(response).to redirect_to(course_case_path(own_course, Case.last))
+        expect(Case.last.course).to eq(own_course)
+        expect(Case.last.created_by).to eq(plain_instructor)
       end
     end
 
-    context "when accessing case without permission" do
-      let(:other_course) { create(:course, instructor: create(:user, :instructor)) }
+    context "when the instructor does not own the course" do
+      before { sign_in plain_instructor }
+
+      it "denies GET new" do
+        get new_course_case_path(other_course)
+
+        expect(response).to redirect_to(root_path)
+        expect(flash[:alert]).to eq("You are not authorized to perform this action.")
+      end
+
+      it "does not create the case" do
+        expect {
+          post course_cases_path(other_course), params: {case: valid_params}
+        }.not_to change(Case, :count)
+
+        expect(response).to redirect_to(root_path)
+      end
+
+      it "returns 403 for JSON requests" do
+        post course_cases_path(other_course), params: {case: valid_params}, as: :json
+
+        expect(response).to have_http_status(:forbidden)
+        expect(JSON.parse(response.body)["error"]).to eq("You are not authorized to perform this action")
+      end
+    end
+
+    context "when the user is a student" do
+      before { sign_in student }
+
+      it "denies GET new" do
+        get new_course_case_path(course)
+        expect(response).to redirect_to(root_path)
+      end
+
+      it "does not create the case" do
+        expect {
+          post course_cases_path(course), params: {case: valid_params}
+        }.not_to change(Case, :count)
+
+        expect(response).to redirect_to(root_path)
+      end
+
+      it "returns 403 rather than a 500 for JSON requests" do
+        post course_cases_path(course), params: {case: valid_params}, as: :json
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "when the user is an org admin for the course's organization" do
+      let(:org_admin) { create(:user, :org_admin, organization: organization) }
+
+      before { sign_in org_admin }
+
+      it "creates the case in a course they do not own" do
+        expect {
+          post course_cases_path(other_course), params: {case: valid_params}
+        }.to change(Case, :count).by(1)
+
+        expect(response).to redirect_to(course_case_path(other_course, Case.last))
+      end
+    end
+
+    context "when the user is an admin" do
+      let(:admin) { create(:user, :admin, organization: organization) }
+
+      before { sign_in admin }
+
+      it "creates the case in any course" do
+        expect {
+          post course_cases_path(other_course), params: {case: valid_params}
+        }.to change(Case, :count).by(1)
+
+        expect(response).to redirect_to(course_case_path(other_course, Case.last))
+      end
+    end
+  end
+
+  describe "authorization integration" do
+    context "when accessing a case in another instructor's course" do
+      let(:other_course) { create(:course, instructor: create(:user, :instructor), course_code: "FOREIGN101") }
       let(:other_case) { create(:case, course: other_course) }
 
       before { sign_in student }
 
-      it "calls authorize method" do
-        expect_any_instance_of(CasesController).to receive(:authorize).with(other_case)
-
-        begin
-          get course_case_path(other_course, other_case)
-        rescue Pundit::NotAuthorizedError
-          # Expected - authorization should fail
-        end
+      it "denies access" do
+        get course_case_path(other_course, other_case)
+        expect(response).to redirect_to(root_path)
       end
     end
   end

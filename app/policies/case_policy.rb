@@ -13,8 +13,15 @@ class CasePolicy < ApplicationPolicy
     user_can_access_case?
   end
 
+  def new?
+    create?
+  end
+
   def create?
-    user.instructor? || user.admin?
+    return false unless user.instructor? || user.admin?
+    return true if user.admin?
+
+    user_can_manage_record_course?
   end
 
   def edit?
@@ -59,6 +66,16 @@ class CasePolicy < ApplicationPolicy
   end
 
   private
+
+  # Used for create/new, where the record is an unsaved Case whose only
+  # meaningful attribute is the course it would belong to.
+  def user_can_manage_record_course?
+    course = record.respond_to?(:course) ? record.course : nil
+    return false unless course
+    return true if course.instructor_id == user.id
+
+    user.can_manage_organization?(course.organization)
+  end
 
   def user_can_access_case?
     return true if user.admin?

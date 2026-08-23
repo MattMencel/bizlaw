@@ -57,19 +57,50 @@ RSpec.describe CasePolicy, type: :policy do
   end
 
   describe "#create?" do
+    # NOTE: role predicates read the `roles` array column, so these use the
+    # factory traits rather than `role:` like the older examples above.
+    let(:course_owner) { build_stubbed(:user, :instructor) }
+    let(:other_instructor) { build_stubbed(:user, :instructor) }
+    let(:site_admin) { build_stubbed(:user, :admin) }
+    let(:enrolled_student) { build_stubbed(:user, :student) }
+    let(:own_course) { build_stubbed(:course, instructor: course_owner) }
+    let(:other_course) { build_stubbed(:course, instructor: other_instructor) }
+
     it "permits admin to create cases" do
-      policy = described_class.new(admin, Case)
+      policy = described_class.new(site_admin, Case.new(course: own_course))
       expect(policy.create?).to be true
     end
 
-    it "permits instructor to create cases" do
-      policy = described_class.new(instructor, Case)
+    it "permits admin to create cases without a course" do
+      policy = described_class.new(site_admin, Case.new)
       expect(policy.create?).to be true
+    end
+
+    it "permits instructor to create cases in their own course" do
+      policy = described_class.new(course_owner, Case.new(course: own_course))
+      expect(policy.create?).to be true
+    end
+
+    it "denies instructor creating cases in another instructor's course" do
+      policy = described_class.new(course_owner, Case.new(course: other_course))
+      expect(policy.create?).to be false
+    end
+
+    it "denies instructor creating cases with no course" do
+      policy = described_class.new(course_owner, Case.new)
+      expect(policy.create?).to be false
     end
 
     it "denies student access to create cases" do
-      policy = described_class.new(student, Case)
+      policy = described_class.new(enrolled_student, Case.new(course: own_course))
       expect(policy.create?).to be false
+    end
+
+    describe "#new?" do
+      it "mirrors #create?" do
+        expect(described_class.new(course_owner, Case.new(course: own_course)).new?).to be true
+        expect(described_class.new(course_owner, Case.new(course: other_course)).new?).to be false
+      end
     end
   end
 
