@@ -15,9 +15,8 @@ RSpec.describe Case, type: :model do
     it { is_expected.to belong_to(:created_by).class_name("User") }
     it { is_expected.to belong_to(:updated_by).class_name("User") }
     it { is_expected.to belong_to(:course) }
-    it { is_expected.to have_many(:case_teams).dependent(:destroy) }
-    it { is_expected.to have_many(:assigned_teams).through(:case_teams) }
-    it { is_expected.to have_many(:teams).through(:case_teams) }
+    it { is_expected.to have_many(:teams).through(:simulations) }
+    it { is_expected.to have_many(:users).through(:teams) }
     it { is_expected.to have_many(:documents).dependent(:destroy) }
     it { is_expected.to have_many(:case_events).dependent(:destroy) }
     it { is_expected.to have_many(:simulations).dependent(:destroy) }
@@ -383,11 +382,9 @@ RSpec.describe Case, type: :model do
         end
 
         context "with teams that have no student members" do
-          let(:instructor_team) { create(:team, course: course, owner: instructor) }
-
-          before do
-            create(:case_team, case: case_instance, team: instructor_team, role: :plaintiff)
-          end
+          # A simulation always brings a default plaintiff and defendant team,
+          # both owned by the case creator, neither with student members.
+          let!(:simulation) { create(:simulation, case: case_instance) }
 
           it "returns true" do
             expect(case_instance.can_be_deleted?).to be true
@@ -395,11 +392,11 @@ RSpec.describe Case, type: :model do
         end
 
         context "with teams that have student members" do
-          let(:student_team) { create(:team, course: course, owner: student1) }
+          let!(:simulation) { create(:simulation, case: case_instance) }
 
           before do
-            create(:team_member, team: student_team, user: student2, role: :member)
-            create(:case_team, case: case_instance, team: student_team, role: :plaintiff)
+            create(:course_enrollment, user: student2, course: course, status: "active")
+            create(:team_member, team: simulation.teams.find_by(role: :plaintiff), user: student2, role: :member)
           end
 
           it "returns false" do
@@ -408,13 +405,11 @@ RSpec.describe Case, type: :model do
         end
 
         context "with mixed teams (some with students, some without)" do
-          let(:instructor_team) { create(:team, course: course, owner: instructor) }
-          let(:student_team) { create(:team, course: course, owner: student1) }
+          let!(:simulation) { create(:simulation, case: case_instance) }
 
           before do
-            create(:team_member, team: student_team, user: student2, role: :member)
-            create(:case_team, case: case_instance, team: instructor_team, role: :plaintiff)
-            create(:case_team, case: case_instance, team: student_team, role: :defendant)
+            create(:course_enrollment, user: student2, course: course, status: "active")
+            create(:team_member, team: simulation.teams.find_by(role: :defendant), user: student2, role: :member)
           end
 
           it "returns false when any team has student members" do
@@ -459,12 +454,12 @@ RSpec.describe Case, type: :model do
       end
 
       context "when case has teams with student members" do
-        let(:student_team) { create(:team, course: course, owner: student1) }
+        let!(:simulation) { create(:simulation, case: case_instance) }
 
         before do
           case_instance.update!(status: :not_started)
-          create(:team_member, team: student_team, user: student2, role: :member)
-          create(:case_team, case: case_instance, team: student_team, role: :plaintiff)
+          create(:course_enrollment, user: student2, course: course, status: "active")
+          create(:team_member, team: simulation.teams.find_by(role: :plaintiff), user: student2, role: :member)
         end
 
         it "returns team error message" do
