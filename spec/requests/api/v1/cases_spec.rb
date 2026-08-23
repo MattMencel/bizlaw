@@ -119,11 +119,7 @@ RSpec.describe "Api::V1::Cases", type: :request do
           case_type_id: case_type.id,
           plaintiff_info: {name: "Plaintiff"},
           defendant_info: {name: "Defendant"},
-          legal_issues: ["Contract breach"],
-          case_teams_attributes: [
-            {team_id: plaintiff_team.id, role: "plaintiff"},
-            {team_id: defendant_team.id, role: "defendant"}
-          ]
+          legal_issues: ["Contract breach"]
         }
       }
     end
@@ -205,12 +201,13 @@ RSpec.describe "Api::V1::Cases", type: :request do
       let(:student) { create(:user, :student) }
       let(:instructor) { create(:user, :instructor) }
       let(:test_course) { create(:course, instructor: instructor) }
-      let(:student_team) { create(:team, course: test_course, owner: student) }
       let(:case_with_students) { create(:case, status: :not_started, created_by: user, course: test_course, case_type: "sexual_harassment") }
+      let!(:simulation) { create(:simulation, case: case_with_students) }
+      let(:student_team) { simulation.plaintiff_team }
 
       before do
+        create(:course_enrollment, user: student, course: test_course, status: "active")
         create(:team_member, team: student_team, user: student, role: :member)
-        create(:case_team, case: case_with_students, team: student_team, role: :plaintiff)
       end
 
       it "returns unprocessable entity with error message" do

@@ -9,9 +9,9 @@ RSpec.describe ScoringDashboardController, type: :controller do
   let(:instructor) { create(:user, :instructor, organization: organization) }
   let(:case_record) { create(:case, :sexual_harassment, course: course) }
   let(:simulation) { create(:simulation, case: case_record) }
-  let(:team) { create(:team, course: course) }
+  # The simulation's own plaintiff team; teams reach a case through it.
+  let(:team) { simulation.plaintiff_team }
   let!(:team_member) { create(:team_member, team: team, user: student) }
-  let!(:case_team) { create(:case_team, case: case_record, team: team, role: "plaintiff") }
 
   describe "GET #index" do
     context "when user is a student" do
@@ -87,9 +87,8 @@ RSpec.describe ScoringDashboardController, type: :controller do
         # Create multiple students with scores
         students = create_list(:user, 5, :student, organization: organization)
         students.each_with_index do |student, index|
-          team = create(:team, course: course)
+          team = create(:team, simulation: simulation, role: index.even? ? "plaintiff" : "defendant")
           create(:team_member, team: team, user: student)
-          create(:case_team, case: case_record, team: team, role: index.even? ? "plaintiff" : "defendant")
           create(:performance_score,
             simulation: simulation,
             team: team,
@@ -255,9 +254,8 @@ RSpec.describe ScoringDashboardController, type: :controller do
       # Create multiple students with performance data
       5.times do |i|
         student = create(:user, :student, organization: organization)
-        team = create(:team, course: course)
+        team = create(:team, simulation: simulation, role: i.even? ? "plaintiff" : "defendant")
         create(:team_member, team: team, user: student)
-        create(:case_team, case: case_record, team: team, role: i.even? ? "plaintiff" : "defendant")
         create(:performance_score,
           simulation: simulation,
           team: team,
@@ -291,14 +289,11 @@ RSpec.describe ScoringDashboardController, type: :controller do
       plaintiff_student = create(:user, :student, organization: organization)
       defendant_student = create(:user, :student, organization: organization)
 
-      plaintiff_team = create(:team, course: course)
-      defendant_team = create(:team, course: course)
+      plaintiff_team = simulation.plaintiff_team
+      defendant_team = simulation.defendant_team
 
       create(:team_member, team: plaintiff_team, user: plaintiff_student)
       create(:team_member, team: defendant_team, user: defendant_student)
-
-      create(:case_team, case: case_record, team: plaintiff_team, role: "plaintiff")
-      create(:case_team, case: case_record, team: defendant_team, role: "defendant")
 
       create(:performance_score, simulation: simulation, team: plaintiff_team,
         user: plaintiff_student, total_score: 85, legal_strategy_score: 28)

@@ -9,14 +9,15 @@ RSpec.describe Api::V1::ContextController, type: :controller do
   let(:instructor) { create(:user, :instructor, organization: organization) }
   let(:course) { create(:course, instructor: instructor, organization: organization) }
   let(:case_obj) { create(:case, course: course) }
-  let(:team) { create(:team, course: course) }
   let(:other_case) { create(:case, course: course) }
-  let(:other_team) { create(:team, course: course) }
+  # A team belongs to a simulation, which is what ties it to a case.
+  let(:simulation) { create(:simulation, case: case_obj) }
+  let(:other_simulation) { create(:simulation, case: other_case) }
+  let(:team) { simulation.plaintiff_team }
+  let(:other_team) { other_simulation.plaintiff_team }
 
   before do
     sign_in user
-    create(:case_team, case: case_obj, team: team)
-    create(:case_team, case: other_case, team: other_team)
     create(:team_member, user: user, team: team, role: "member")
     create(:team_member, user: user, team: other_team, role: "member")
   end
@@ -202,8 +203,7 @@ RSpec.describe Api::V1::ContextController, type: :controller do
       # Create many cases to test limit
       10.times do |i|
         test_case = create(:case, title: "Test Case #{i}", course: course)
-        test_team = create(:team, course: course)
-        create(:case_team, case: test_case, team: test_team)
+        test_team = create(:simulation, case: test_case).plaintiff_team
         create(:team_member, user: user, team: test_team, role: "member")
       end
 
@@ -235,8 +235,7 @@ RSpec.describe Api::V1::ContextController, type: :controller do
       # Create many cases to test limit
       15.times do |i|
         test_case = create(:case, title: "Case #{i}", course: course)
-        test_team = create(:team, course: course)
-        create(:case_team, case: test_case, team: test_team)
+        test_team = create(:simulation, case: test_case).plaintiff_team
         create(:team_member, user: user, team: test_team, role: "member")
       end
 

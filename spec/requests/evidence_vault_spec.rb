@@ -9,13 +9,13 @@ RSpec.describe "Evidence Vault", type: :request do
   let(:instructor) { create(:user, :instructor, organization: organization) }
   let(:student1) { create(:user, :student, organization: organization, first_name: "Alice", last_name: "Johnson") }
   let(:student2) { create(:user, :student, organization: organization, first_name: "Bob", last_name: "Smith") }
-  let(:team) { create(:team, name: "Plaintiff Team A") }
   let(:case_instance) { create(:case, title: "Mitchell v. TechFlow Industries", case_type: :sexual_harassment) }
+  let!(:simulation) { create(:simulation, case: case_instance) }
+  let(:team) { simulation.plaintiff_team.tap { |t| t.update!(name: "Plaintiff Team A") } }
 
   before do
     create(:team_member, user: student1, team: team)
     create(:team_member, user: student2, team: team)
-    create(:case_team, case: case_instance, team: team, role: :plaintiff)
   end
 
   describe "GET /cases/:id/evidence_vault" do

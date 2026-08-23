@@ -7,12 +7,12 @@ RSpec.describe "Mobile Navigation", :js, type: :system do
   let(:user) { create(:user, organization: organization, role: "student", roles: ["student"]) }
   let(:course) { create(:course, organization: organization) }
   let(:case_obj) { create(:case, course: course) }
-  let(:team) { create(:team, course: course) }
+  let(:simulation) { create(:simulation, case: case_obj) }
+  let(:team) { simulation.plaintiff_team }
 
   before do
     create(:course_enrollment, user: user, course: course, status: "active")
     create(:team_member, user: user, team: team, role: "member")
-    create(:case_team, case: case_obj, team: team, role: "plaintiff")
     sign_in user
   end
 

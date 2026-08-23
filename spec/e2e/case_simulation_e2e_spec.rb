@@ -9,7 +9,9 @@ RSpec.describe "Case Simulation E2E", type: :system do
   let(:student2) { create(:user, organization: organization) }
   let(:course) { create(:course, instructor: instructor, organization: organization) }
   let(:case_obj) { create(:case, course: course) }
-  let(:team) { create(:team, course: course) }
+  # A simulation creates its own plaintiff and defendant teams.
+  let(:simulation) { create(:simulation, case: case_obj) }
+  let(:team) { simulation.plaintiff_team }
 
   before do
     driven_by :playwright # Full e2e testing with automatic test server
@@ -21,7 +23,6 @@ RSpec.describe "Case Simulation E2E", type: :system do
     # Set up team
     create(:team_member, user: student1, team: team, role: "leader")
     create(:team_member, user: student2, team: team, role: "member")
-    create(:case_team, case: case_obj, team: team)
   end
 
   describe "Student workflow" do

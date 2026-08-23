@@ -13,12 +13,10 @@ RSpec.describe "Simulation Activation E2E", type: :system, driver: :playwright d
 
   # Create case and teams
   let(:case_instance) { create(:case, course: course, created_by: instructor, status: :not_started) }
-  let(:plaintiff_team) { create(:team, course: course, owner: student1) }
-  let(:defendant_team) { create(:team, course: course, owner: student2) }
-
-  # Create team assignments
-  let!(:plaintiff_case_team) { create(:case_team, case: case_instance, team: plaintiff_team, role: "plaintiff") }
-  let!(:defendant_case_team) { create(:case_team, case: case_instance, team: defendant_team, role: "defendant") }
+  # A simulation creates its own plaintiff and defendant teams.
+  let!(:simulation) { create(:simulation, case: case_instance) }
+  let(:plaintiff_team) { simulation.plaintiff_team }
+  let(:defendant_team) { simulation.defendant_team }
 
   # Create team memberships
   let!(:plaintiff_member) { create(:team_member, team: plaintiff_team, user: student1, role: "member") }

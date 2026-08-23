@@ -12,16 +12,12 @@ RSpec.describe "Client Consultation", type: :system do
   let(:course) { create(:course, instructor: instructor, organization: organization) }
 
   # Create case with simulation
-  let(:case_instance) { create(:case, :with_simulation, course: course, created_by: instructor) }
-  let(:simulation) { case_instance.simulation }
+  let(:case_instance) { create(:case, course: course, created_by: instructor) }
+  let!(:simulation) { create(:simulation, case: case_instance) }
 
-  # Create teams
-  let(:plaintiff_team) { create(:team, course: course, owner: student1) }
-  let(:defendant_team) { create(:team, course: course, owner: student2) }
-
-  # Create case team assignments
-  let!(:plaintiff_case_team) { create(:case_team, case: case_instance, team: plaintiff_team, role: "plaintiff") }
-  let!(:defendant_case_team) { create(:case_team, case: case_instance, team: defendant_team, role: "defendant") }
+  # A simulation creates its own plaintiff and defendant teams.
+  let(:plaintiff_team) { simulation.plaintiff_team }
+  let(:defendant_team) { simulation.defendant_team }
 
   # Create team memberships
   let!(:plaintiff_member) { create(:team_member, team: plaintiff_team, user: student1, role: "member") }

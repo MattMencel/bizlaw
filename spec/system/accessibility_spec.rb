@@ -34,8 +34,7 @@ RSpec.describe "Application Accessibility", :accessibility, type: :system do
     before do
       course = create(:course, instructor: instructor, organization: organization)
       case_obj = create(:case, course: course)
-      team = create(:team, course: course)
-      create(:case_team, case: case_obj, team: team)
+      team = create(:simulation, case: case_obj).plaintiff_team
       create(:team_member, user: user, team: team, role: "member")
       create(:course_enrollment, user: user, course: course, status: "active")
 
@@ -83,10 +82,11 @@ RSpec.describe "Application Accessibility", :accessibility, type: :system do
   describe "Case simulation accessibility" do
     let(:course) { create(:course, instructor: instructor, organization: organization) }
     let(:case_obj) { create(:case, course: course) }
-    let(:team) { create(:team, course: course) }
+    let(:simulation) { create(:simulation, case: case_obj) }
+    let(:team) { simulation.plaintiff_team }
 
     before do
-      create(:case_team, case: case_obj, team: team)
+      team
       create(:team_member, user: user, team: team, role: "member")
       create(:course_enrollment, user: user, course: course, status: "active")
       sign_in user
