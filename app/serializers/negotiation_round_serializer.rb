@@ -45,14 +45,13 @@ class NegotiationRoundSerializer
     next nil unless params[:current_user]
 
     user_team = params[:current_user].teams
-      .joins(:case_teams)
-      .where(case_teams: {case: round.case})
+      .joins(:simulation)
+      .where(simulations: {case_id: round.case.id})
       .first
 
     next nil unless user_team
 
-    case_team = user_team.case_teams.find_by(case: round.case)
-    team_role = case_team&.role
+    team_role = user_team.role
 
     if team_role == "plaintiff"
       round.plaintiff_offer
@@ -65,14 +64,13 @@ class NegotiationRoundSerializer
     next nil unless params[:current_user]
 
     user_team = params[:current_user].teams
-      .joins(:case_teams)
-      .where(case_teams: {case: round.case})
+      .joins(:simulation)
+      .where(simulations: {case_id: round.case.id})
       .first
 
     next nil unless user_team
 
-    case_team = user_team.case_teams.find_by(case: round.case)
-    team_role = case_team&.role
+    team_role = user_team.role
 
     opposing_offer = if team_role == "plaintiff"
       round.defendant_offer
