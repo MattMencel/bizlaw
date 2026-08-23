@@ -37,7 +37,7 @@ class SimulationPolicy < ApplicationPolicy
     when "admin", "instructor"
       true
     when "student"
-      user.teams.joins(:simulation).where(simulations: {case_id: record.case.id}).exists?
+      user.teams.exists?(simulation: record)
     else
       false
     end
@@ -46,7 +46,7 @@ class SimulationPolicy < ApplicationPolicy
   def user_on_assigned_team?
     return false unless record&.case
 
-    user_teams = user.teams.joins(:simulation).where(simulations: {case_id: record.case.id})
+    user_teams = user.teams.where(simulation: record)
     assigned_teams = [record.plaintiff_team, record.defendant_team].compact
 
     (user_teams & assigned_teams).any?

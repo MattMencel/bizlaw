@@ -447,8 +447,8 @@ class ScoringDashboardController < ApplicationController
   end
 
   def calculate_completion_rate(simulations)
-    total_expected_scores = User.joins(teams: {simulation: :case})
-      .where(cases: {id: simulations.joins(:case).select("cases.id")})
+    total_expected_scores = User.joins(teams: :simulation)
+      .where(simulations: {id: simulations.select(:id)})
       .distinct
       .count
 

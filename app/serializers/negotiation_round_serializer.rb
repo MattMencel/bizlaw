@@ -44,10 +44,7 @@ class NegotiationRoundSerializer
   attribute :team_offer do |round, params|
     next nil unless params[:current_user]
 
-    user_team = params[:current_user].teams
-      .joins(:simulation)
-      .where(simulations: {case_id: round.case.id})
-      .first
+    user_team = params[:current_user].teams.find_by(simulation: round.simulation)
 
     next nil unless user_team
 
@@ -63,10 +60,7 @@ class NegotiationRoundSerializer
   attribute :opposing_offer_summary do |round, params|
     next nil unless params[:current_user]
 
-    user_team = params[:current_user].teams
-      .joins(:simulation)
-      .where(simulations: {case_id: round.case.id})
-      .first
+    user_team = params[:current_user].teams.find_by(simulation: round.simulation)
 
     next nil unless user_team
 

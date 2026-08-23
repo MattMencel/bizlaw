@@ -122,7 +122,7 @@ class ClientRangeValidationService
   end
 
   def determine_team_role(team)
-    return nil unless team&.case == simulation.case
+    return nil unless team&.simulation == simulation
 
     team.role
   end
@@ -419,7 +419,7 @@ class ClientRangeValidationService
   def build_gap_context_offer(role, amount)
     # Create mock team for gap analysis
     mock_team = OpenStruct.new(
-      case: simulation.case,
+      simulation: simulation,
       role: role
     )
 

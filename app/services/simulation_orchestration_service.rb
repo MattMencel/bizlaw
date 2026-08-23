@@ -336,7 +336,7 @@ class SimulationOrchestrationService
   def get_team_status(team)
     return nil unless team
 
-    team_role = (team.role if team.case == simulation.case)
+    team_role = (team.role if team.simulation == simulation)
     current_round = simulation.current_negotiation_round
 
     team_offer = nil

@@ -38,12 +38,7 @@ class SettlementOfferSerializer
     next nil unless params[:current_user]
 
     # Only show strategic analysis to the team that submitted this offer
-    user_team = params[:current_user].teams
-      .joins(:simulation)
-      .where(simulations: {case_id: offer.case.id})
-      .first
-
-    next nil unless user_team == offer.team
+    next nil unless params[:current_user].teams.exists?(id: offer.team_id)
 
     {
       quality_breakdown: offer.quality_assessment,

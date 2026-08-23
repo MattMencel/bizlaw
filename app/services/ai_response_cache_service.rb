@@ -233,7 +233,7 @@ class AiResponseCacheService
   end
 
   def determine_team_role(team)
-    return "unknown" unless team&.case == @simulation.case
+    return "unknown" unless team&.simulation == @simulation
 
     team.role || "unknown"
   end
@@ -308,7 +308,7 @@ class AiResponseCacheService
 
   def build_mock_team(role)
     OpenStruct.new(
-      case: @simulation.case,
+      simulation: @simulation,
       role: role
     )
   end

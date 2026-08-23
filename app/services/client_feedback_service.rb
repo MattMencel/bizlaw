@@ -701,7 +701,7 @@ class ClientFeedbackService
   # A team's side is its own role column; it belongs to this case if its
   # simulation does.
   def determine_team_role(team)
-    return nil unless team&.case == simulation.case
+    return nil unless team&.simulation == simulation
 
     team.role
   end

@@ -515,7 +515,7 @@ class GoogleAiService
 
   # Utility methods
   def determine_team_role(team, simulation)
-    return "unknown" unless team&.case == simulation.case
+    return "unknown" unless team&.simulation == simulation
 
     team.role || "unknown"
   end

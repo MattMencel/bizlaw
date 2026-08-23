@@ -50,7 +50,7 @@ class ClientFeedback < ApplicationRecord
 
   # Instance methods
   def team_role
-    return nil unless team&.case == simulation&.case
+    return nil unless team&.simulation == simulation
 
     team.role
   end
@@ -153,14 +153,14 @@ class ClientFeedback < ApplicationRecord
   def team_assigned_to_case
     return unless team.present? && simulation.present?
 
-    unless team.case == simulation.case
+    unless team.simulation == simulation
       errors.add(:team, "is not assigned to this case")
     end
   end
 
   # Class methods for feedback calculation
   def self.calculate_offer_reaction(simulation, team, settlement_offer)
-    return ["neutral", 50, "Unable to assess offer"] unless team&.case == simulation.case
+    return ["neutral", 50, "Unable to assess offer"] unless team&.simulation == simulation
 
     if team.role == "plaintiff"
       calculate_plaintiff_reaction(simulation, settlement_offer)
@@ -206,7 +206,7 @@ class ClientFeedback < ApplicationRecord
   end
 
   def self.calculate_pressure_response(simulation, team, event_type)
-    team_role = (team.role if team&.case == simulation.case)
+    team_role = (team.role if team&.simulation == simulation)
     base_messages = {
       "media_attention" => {
         "plaintiff" => "Media coverage puts additional pressure on the company to settle fairly.",

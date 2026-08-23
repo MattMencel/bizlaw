@@ -132,7 +132,7 @@ class EvidenceRelease < ApplicationRecord
   def requesting_team_in_case
     return unless requesting_team.present? && simulation.present?
 
-    unless requesting_team.case == simulation.case
+    unless requesting_team.simulation == simulation
       errors.add(:requesting_team, "must be assigned to this case")
     end
   end
