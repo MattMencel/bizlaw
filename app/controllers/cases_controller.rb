@@ -4,6 +4,8 @@ class CasesController < ApplicationController
   before_action :set_course, only: [:new, :create, :edit, :update, :destroy]
   before_action :set_case, only: [:show, :edit, :update, :destroy]
   before_action :authorize_case, only: [:show, :edit, :update, :destroy]
+  before_action :authorize_new_case, only: [:new, :create]
+  after_action :verify_authorized, except: [:index]
 
   def index
     if params[:course_id]
@@ -95,6 +97,7 @@ class CasesController < ApplicationController
       set_case
       authorize_case
     else
+      skip_authorization
       @cases = Case.accessible_by(current_user).page(params[:page])
     end
   end
@@ -105,6 +108,7 @@ class CasesController < ApplicationController
       authorize_case
       @events = @case.case_events.order(:created_at)
     else
+      skip_authorization
       @cases = Case.accessible_by(current_user).page(params[:page])
     end
   end
@@ -115,6 +119,7 @@ class CasesController < ApplicationController
       authorize_case
       @events = @case.case_events.order(:created_at)
     else
+      skip_authorization
       @cases = Case.accessible_by(current_user).page(params[:page])
     end
   end
@@ -186,5 +191,11 @@ class CasesController < ApplicationController
 
   def authorize_case
     authorize @case
+  end
+
+  # new/create have no persisted record yet, so authorize a stand-in carrying
+  # the target course. CasePolicy#create? verifies the user can manage it.
+  def authorize_new_case
+    authorize Case.new(course: @course), :create?
   end
 end
