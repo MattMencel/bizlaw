@@ -22,7 +22,7 @@ class EvidenceRelease < ApplicationRecord
 
   validate :release_round_within_simulation_bounds
   validate :document_is_case_material
-  validate :requesting_team_in_case, if: :team_requested?
+  validate :requesting_team_in_simulation, if: :team_requested?
 
   # Evidence types
   EVIDENCE_TYPES = %w[
@@ -129,11 +129,11 @@ class EvidenceRelease < ApplicationRecord
     end
   end
 
-  def requesting_team_in_case
+  def requesting_team_in_simulation
     return unless requesting_team.present? && simulation.present?
 
-    unless requesting_team.case_teams.exists?(case: simulation.case)
-      errors.add(:requesting_team, "must be assigned to this case")
+    unless requesting_team.simulation == simulation
+      errors.add(:requesting_team, "must be assigned to this simulation")
     end
   end
 

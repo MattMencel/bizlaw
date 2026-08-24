@@ -233,8 +233,9 @@ class AiResponseCacheService
   end
 
   def determine_team_role(team)
-    case_team = @simulation.case.case_teams.find_by(team: team)
-    case_team&.role || "unknown"
+    return "unknown" unless team&.simulation == @simulation
+
+    team.role || "unknown"
   end
 
   def get_cached_response(cache_key)
@@ -307,7 +308,8 @@ class AiResponseCacheService
 
   def build_mock_team(role)
     OpenStruct.new(
-      case_teams: [OpenStruct.new(case: @simulation.case, role: role)]
+      simulation: @simulation,
+      role: role
     )
   end
 

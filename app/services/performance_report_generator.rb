@@ -29,18 +29,24 @@ class PerformanceReportGenerator
 
   def current_simulation
     @current_simulation ||= user.teams
-      .joins(case_teams: {case: :simulation})
+      .joins(:simulation)
       .merge(Simulation.active)
-      .first&.case&.simulation
+      .first&.simulation
+  end
+
+  # The user's team in the current simulation. Teams belong to a simulation
+  # directly, so this no longer goes through the case.
+  def current_user_team
+    return nil unless current_simulation
+
+    user.teams.find_by(simulation: current_simulation)
   end
 
   def current_performance_score
     @current_performance_score ||= begin
       return nil unless current_simulation
 
-      user_team = user.teams.joins(:case_teams)
-        .where(case_teams: {case: current_simulation.case})
-        .first
+      user_team = current_user_team
 
       PerformanceScore.find_by(
         simulation: current_simulation,
@@ -142,9 +148,7 @@ class PerformanceReportGenerator
     pdf.text "Performance Trends"
     pdf.move_down 10
 
-    user_team = user.teams.joins(:case_teams)
-      .where(case_teams: {case: current_simulation.case})
-      .first
+    user_team = current_user_team
 
     trend_scores = PerformanceScore.where(
       simulation: current_simulation,

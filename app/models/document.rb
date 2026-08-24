@@ -78,7 +78,7 @@ class Document < ApplicationRecord
     when "instructor"
       all
     when "student"
-      case_ids = user.teams.joins(:case_teams).pluck("case_teams.case_id")
+      case_ids = user.teams.joins(:simulation).pluck("simulations.case_id")
       team_ids = user.team_ids
 
       where(
@@ -150,7 +150,7 @@ class Document < ApplicationRecord
     return true if created_by == user
 
     if case_material?
-      user_teams = user.teams.joins(:case_teams).where(case_teams: {case: documentable})
+      user_teams = user.teams.joins(:simulation).where(simulations: {case_id: documentable.id})
       user_teams.any? { |team| accessible_by_team?(team) }
     else
       false
@@ -215,7 +215,7 @@ class Document < ApplicationRecord
 
   def team_in_case?(team)
     return false unless documentable_type == "Case"
-    team.case_teams.exists?(case: documentable)
+    team.case == documentable
   end
 
   def team_allowed?(team)

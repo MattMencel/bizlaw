@@ -118,12 +118,13 @@ class ClientRangeValidationService
   end
 
   def team_assigned_to_simulation?(team)
-    simulation.case.teams.include?(team)
+    team&.simulation == simulation
   end
 
   def determine_team_role(team)
-    case_team = simulation.case.case_teams.find_by(team: team)
-    case_team&.role
+    return nil unless team&.simulation == simulation
+
+    team.role
   end
 
   def validate_plaintiff_offer(amount)
@@ -418,7 +419,8 @@ class ClientRangeValidationService
   def build_gap_context_offer(role, amount)
     # Create mock team for gap analysis
     mock_team = OpenStruct.new(
-      case_teams: [OpenStruct.new(role: role)]
+      simulation: simulation,
+      role: role
     )
 
     # Create mock negotiation round

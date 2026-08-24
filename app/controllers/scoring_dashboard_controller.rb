@@ -109,17 +109,21 @@ class ScoringDashboardController < ApplicationController
 
   private
 
+  # The current user's team in the current simulation. Teams belong to a
+  # simulation directly, so this no longer goes through the case.
+  def current_user_team
+    current_user.teams.find_by(simulation: @current_simulation)
+  end
+
   def set_current_simulation
     # Find the user's current active simulation
     @current_simulation = current_user.teams
-      .joins(case_teams: {case: :simulation})
+      .joins(:simulation)
       .merge(Simulation.active)
-      .first&.case&.simulation
+      .first&.simulation
 
     if @current_simulation
-      user_team = current_user.teams.joins(:case_teams)
-        .where(case_teams: {case: @current_simulation.case})
-        .first
+      user_team = current_user_team
 
       @current_simulation_score = PerformanceScore.find_by(
         simulation: @current_simulation,
@@ -188,9 +192,7 @@ class ScoringDashboardController < ApplicationController
   def build_student_trend_data
     return [] unless @current_simulation
 
-    user_team = current_user.teams.joins(:case_teams)
-      .where(case_teams: {case: @current_simulation.case})
-      .first
+    user_team = current_user_team
 
     PerformanceScore.where(
       simulation: @current_simulation,
@@ -232,9 +234,7 @@ class ScoringDashboardController < ApplicationController
   def build_team_standing_data
     return {} unless @current_simulation && @current_simulation_score
 
-    user_team = current_user.teams.joins(:case_teams)
-      .where(case_teams: {case: @current_simulation.case})
-      .first
+    user_team = current_user_team
 
     team_score = PerformanceScore.find_by(
       simulation: @current_simulation,
@@ -258,9 +258,7 @@ class ScoringDashboardController < ApplicationController
   end
 
   def build_team_comparison_data
-    user_team = current_user.teams.joins(:case_teams)
-      .where(case_teams: {case: @current_simulation.case})
-      .first
+    user_team = current_user_team
 
     team_members = PerformanceScore.where(
       simulation: @current_simulation,
@@ -281,9 +279,7 @@ class ScoringDashboardController < ApplicationController
   def build_trend_data
     return [] unless @current_simulation
 
-    user_team = current_user.teams.joins(:case_teams)
-      .where(case_teams: {case: @current_simulation.case})
-      .first
+    user_team = current_user_team
 
     PerformanceScore.where(
       simulation: @current_simulation,
@@ -393,7 +389,7 @@ class ScoringDashboardController < ApplicationController
     simulations = @instructor_simulations
 
     # Get all individual scores for the instructor's simulations
-    all_scores = PerformanceScore.joins(:user, team: :case_teams)
+    all_scores = PerformanceScore.joins(:user, :team)
       .where(simulation: simulations, score_type: "individual")
       .includes(:user, :team, simulation: :case)
 
@@ -426,11 +422,9 @@ class ScoringDashboardController < ApplicationController
   end
 
   def calculate_role_comparison(scores)
-    plaintiff_scores = scores.joins(team: :case_teams)
-      .where(case_teams: {role: "plaintiff"})
+    plaintiff_scores = scores.joins(:team).where(teams: {role: "plaintiff"})
 
-    defendant_scores = scores.joins(team: :case_teams)
-      .where(case_teams: {role: "defendant"})
+    defendant_scores = scores.joins(:team).where(teams: {role: "defendant"})
 
     plaintiff_avg = plaintiff_scores.average(:total_score)&.round(1) || 0
     defendant_avg = defendant_scores.average(:total_score)&.round(1) || 0
@@ -453,8 +447,8 @@ class ScoringDashboardController < ApplicationController
   end
 
   def calculate_completion_rate(simulations)
-    total_expected_scores = User.joins(teams: {case_teams: :case})
-      .where(cases: {id: simulations.joins(:case).select("cases.id")})
+    total_expected_scores = User.joins(teams: :simulation)
+      .where(simulations: {id: simulations.select(:id)})
       .distinct
       .count
 

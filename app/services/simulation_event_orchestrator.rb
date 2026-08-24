@@ -522,8 +522,7 @@ class SimulationEventOrchestrator
     # More likely if plaintiff offers are conservative
     recent_plaintiff_offers = SettlementOffer.joins(:negotiation_round)
       .joins(:team)
-      .joins("JOIN case_teams ON teams.id = case_teams.team_id")
-      .where(case_teams: {role: :plaintiff})
+      .where(teams: {role: :plaintiff})
       .where(negotiation_rounds: {simulation: simulation})
       .where("negotiation_rounds.round_number >= ?", round_number - 1)
 
