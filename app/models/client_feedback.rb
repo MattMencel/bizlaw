@@ -23,7 +23,7 @@ class ClientFeedback < ApplicationRecord
   validates :triggered_by_round, presence: true,
     numericality: {greater_than: 0}
 
-  validate :team_assigned_to_case
+  validate :team_assigned_to_simulation
 
   # Enums
   enum :feedback_type, {
@@ -150,11 +150,11 @@ class ClientFeedback < ApplicationRecord
 
   private
 
-  def team_assigned_to_case
+  def team_assigned_to_simulation
     return unless team.present? && simulation.present?
 
     unless team.simulation == simulation
-      errors.add(:team, "is not assigned to this case")
+      errors.add(:team, "is not assigned to this simulation")
     end
   end
 

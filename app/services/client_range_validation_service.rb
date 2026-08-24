@@ -118,7 +118,7 @@ class ClientRangeValidationService
   end
 
   def team_assigned_to_simulation?(team)
-    simulation.case.teams.include?(team)
+    team&.simulation == simulation
   end
 
   def determine_team_role(team)
