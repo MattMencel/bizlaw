@@ -115,8 +115,10 @@ class PersonalityService
     end
 
     def assign_personalities(case_instance)
-      # Use case ID as seed for deterministic assignment
-      random = Random.new(case_instance.id.hash)
+      # Use case ID as seed for deterministic assignment. String#hash is salted
+      # per process, so it cannot be used here -- a case would draw different
+      # personalities every time the app restarted.
+      random = Random.new(Digest::SHA256.hexdigest(case_instance.id.to_s).to_i(16))
 
       available_types = PERSONALITY_DEFINITIONS.pluck("type")
 

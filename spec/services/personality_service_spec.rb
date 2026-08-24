@@ -59,33 +59,41 @@ RSpec.describe PersonalityService, type: :service do
       expect(personalities1).to eq(personalities2)
     end
 
-    # The assignment is a pure function of case.id.hash, and there are only 20
-    # ordered pairs to draw from, so two real cases collide 1 run in 20. Stub the
+    # The assignment is a pure function of the case id, and there are only 20
+    # ordered pairs to draw from, so two real cases collide 1 run in 20. Pin the
     # id to control the seed and test the guarantee the service actually makes:
     # same id => same pair, and the pair varies with the id.
-    def case_with_seed(seed)
-      seed_id = Object.new
-      seed_id.define_singleton_method(:hash) { seed }
-      instance_double(Case, id: seed_id)
+    def case_with_id(id)
+      instance_double(Case, id: id)
     end
 
     it "derives the assignment solely from the case id" do
-      expect(PersonalityService.assign_personalities(case_with_seed(7)))
-        .to eq(PersonalityService.assign_personalities(case_with_seed(7)))
+      expect(PersonalityService.assign_personalities(case_with_id("seed-7")))
+        .to eq(PersonalityService.assign_personalities(case_with_id("seed-7")))
     end
 
     it "varies the assignment across case ids" do
-      assignments = (0..9).map { |seed| PersonalityService.assign_personalities(case_with_seed(seed)) }
+      assignments = (0..9).map { |n| PersonalityService.assign_personalities(case_with_id("seed-#{n}")) }
 
       expect(assignments.uniq.size).to be > 1
     end
 
     it "never assigns the same personality to both sides, whatever the case id" do
-      (0..99).each do |seed|
-        personalities = PersonalityService.assign_personalities(case_with_seed(seed))
+      (0..99).each do |n|
+        personalities = PersonalityService.assign_personalities(case_with_id("seed-#{n}"))
 
         expect(personalities[:plaintiff_personality]).not_to eq(personalities[:defendant_personality])
       end
+    end
+
+    it "assigns the same personalities to a given case in every process" do
+      # Golden values. The seed is derived from a stable digest of the case id,
+      # so these must not change when the app restarts. If this fails, the seed
+      # derivation has become process-dependent again.
+      expect(PersonalityService.assign_personalities(case_with_id("seed-7"))).to eq(
+        plaintiff_personality: "pragmatic",
+        defendant_personality: "aggressive"
+      )
     end
   end
 
