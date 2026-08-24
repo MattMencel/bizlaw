@@ -17,7 +17,7 @@ RSpec.describe "Team Member Management E2E", type: :system do
   before do
     driven_by :playwright, options: {
       browser: :chromium,
-      headless: !ENV["HEADLESS"].nil?
+      headless: ENV["HEADED"].nil?
     }
 
     # Enroll students in the course
