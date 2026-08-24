@@ -4,8 +4,8 @@ require "rails_helper"
 
 RSpec.describe "Api::V1::Sessions", type: :request do
   let(:user) { create(:user, password: "password123") }
-  let(:login_url) { "/api/login" }
-  let(:logout_url) { "/api/logout" }
+  let(:login_url) { "/api/v1/login" }
+  let(:logout_url) { "/api/v1/logout" }
 
   describe "POST /api/login" do
     context "with valid credentials" do

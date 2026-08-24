@@ -6,7 +6,9 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
     :recoverable, :rememberable, :validatable,
     :timeoutable,
-    :omniauthable, omniauth_providers: [:google_oauth2]
+    :omniauthable, :jwt_authenticatable,
+    omniauth_providers: [:google_oauth2],
+    jwt_revocation_strategy: JwtDenylist
   include HasUuid
   include HasTimestamps
   include SoftDeletable
@@ -197,6 +199,7 @@ class User < ApplicationRecord
   end
 
   # Callbacks
+  before_validation :default_roles_from_role
   before_validation :downcase_email
   before_create :enforce_license_limits
   after_create :assign_first_instructor_as_org_admin
@@ -217,6 +220,10 @@ class User < ApplicationRecord
 
   def downcase_email
     self.email = email.downcase if email.present?
+  end
+
+  def default_roles_from_role
+    self.roles = [role] if roles.blank? && role.present?
   end
 
   def enforce_license_limits

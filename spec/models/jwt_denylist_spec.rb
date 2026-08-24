@@ -85,6 +85,8 @@ RSpec.describe JwtDenylist, type: :model do
   end
 
   describe "security considerations" do
+    let(:user) { create(:user) }
+
     it "prevents duplicate jti entries" do
       jti = "duplicate-test-jti"
       exp_time = 1.hour.from_now
@@ -97,15 +99,13 @@ RSpec.describe JwtDenylist, type: :model do
     end
 
     it "handles edge case payloads gracefully" do
-      # Test with minimal payload
+      # Payload with jti but no exp
       minimal_payload = {"jti" => "minimal-jwt"}
       expect { described_class.jwt_revoked?(minimal_payload, user) }.not_to raise_error
 
-      # Test with nil payload
-      expect { described_class.jwt_revoked?(nil, user) }.not_to raise_error
-
-      # Test with empty payload
+      # Payload with no jti at all
       expect { described_class.jwt_revoked?({}, user) }.not_to raise_error
+      expect(described_class.jwt_revoked?({}, user)).to be false
     end
   end
 end

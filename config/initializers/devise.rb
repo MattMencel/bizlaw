@@ -107,14 +107,16 @@ Devise.setup do |config|
 
   # ==> JWT Configuration
   config.jwt do |jwt|
+    # secret_key_base, not credentials.secret_key_base: the latter is nil without a
+    # master.key, and jwt 3 raises on a nil HMAC key.
     jwt.secret = Rails.application.secret_key_base
     jwt.dispatch_requests = [
-      ["POST", %r{^/api/login$}],
-      ["POST", %r{^/api/signup$}],
+      ["POST", %r{^/api/v1/login$}],
+      ["POST", %r{^/api/v1/signup$}],
       ["POST", %r{^/users/auth/google_oauth2/callback$}]
     ]
     jwt.revocation_requests = [
-      ["DELETE", %r{^/api/logout$}]
+      ["DELETE", %r{^/api/v1/logout$}]
     ]
     jwt.expiration_time = 1.hour
   end
