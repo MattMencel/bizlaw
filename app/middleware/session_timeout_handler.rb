@@ -36,7 +36,7 @@ class SessionTimeoutHandler
   end
 
   def token_expired?(token)
-    JWT.decode(token, Rails.application.credentials.secret_key_base).first["exp"] < Time.now.to_i
+    JWT.decode(token, Rails.application.secret_key_base).first["exp"] < Time.now.to_i
   rescue JWT::ExpiredSignature
     true
   rescue JWT::DecodeError
