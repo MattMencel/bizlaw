@@ -118,7 +118,10 @@ Devise.setup do |config|
     jwt.revocation_requests = [
       ["DELETE", %r{^/api/v1/logout$}]
     ]
-    jwt.expiration_time = 1.hour
+    # .to_i matters: Integer + ActiveSupport::Duration returns a Duration, and
+    # warden-jwt_auth builds exp as `Time.now.to_i + expiration_time`. A Duration
+    # serializes into the JWT as a string, which then breaks numeric exp handling.
+    jwt.expiration_time = 1.hour.to_i
   end
 
   # ==> Hotwire/Turbo configuration

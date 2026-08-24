@@ -57,6 +57,36 @@ RSpec.describe SessionTimeoutHandler do
     end
   end
 
+  describe "non-integer exp claims" do
+    # warden-jwt_auth built exp as Time.now.to_i + expiration_time; with a
+    # Duration configured that produced a string claim, and the old hand-rolled
+    # comparison raised ArgumentError on every authenticated API request.
+    # ActiveSupport::Duration reports itself as Numeric, so JWT.encode accepts it
+    # and only JSON serialization turns the claim into a string. Building the
+    # token any other way cannot reproduce this - jwt 3 rejects a String exp
+    # outright with JWT::InvalidPayload.
+    def token_with_duration_exp(seconds_from_now)
+      JWT.encode(
+        {"sub" => SecureRandom.uuid, "jti" => SecureRandom.uuid,
+         "exp" => Time.now.to_i + seconds_from_now.seconds},
+        Rails.application.secret_key_base,
+        "HS256"
+      )
+    end
+
+    it "treats a stringly-typed expired claim as expired" do
+      status, = middleware.call(env_for("/api/v1/cases", token_with_duration_exp(-60)))
+
+      expect(status).to eq(401)
+    end
+
+    it "lets a stringly-typed live claim through without raising" do
+      status, = middleware.call(env_for("/api/v1/cases", token_with_duration_exp(600)))
+
+      expect(status).to eq(200)
+    end
+  end
+
   describe "requests it must not intercept" do
     it "passes through non-API paths even with an expired token" do
       status, = middleware.call(env_for("/dashboard", token(exp: 1.minute.ago)))

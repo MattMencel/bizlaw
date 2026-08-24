@@ -35,8 +35,12 @@ class SessionTimeoutHandler
     env["HTTP_AUTHORIZATION"].split(" ").last
   end
 
+  # JWT.decode verifies exp itself and raises ExpiredSignature, coercing the
+  # claim with to_i on the way. Comparing payload["exp"] by hand here duplicated
+  # that and raised ArgumentError whenever the claim was not already an Integer.
   def token_expired?(token)
-    JWT.decode(token, Rails.application.secret_key_base).first["exp"] < Time.now.to_i
+    JWT.decode(token, Rails.application.secret_key_base)
+    false
   rescue JWT::ExpiredSignature
     true
   rescue JWT::DecodeError
