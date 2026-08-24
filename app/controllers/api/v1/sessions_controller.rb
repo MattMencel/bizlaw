@@ -8,6 +8,14 @@ module Api
 
       private
 
+      # Devise's version only inspects the session, so a JWT-bearing request looks
+      # already signed out. Authenticating the token first makes all_signed_out?
+      # false; hold onto the user because sign_out clears it before we respond.
+      def verify_signed_out_user
+        @signed_out_user = current_user
+        super
+      end
+
       def respond_with(resource, _opts = {})
         if resource.persisted?
           render json: {
@@ -25,7 +33,7 @@ module Api
       end
 
       def respond_to_on_destroy
-        if current_user
+        if @signed_out_user
           render json: {
             status: {code: 200, message: "Logged out successfully."}
           }

@@ -60,10 +60,13 @@ Rails.application.routes.draw do
   namespace :api, defaults: {format: :json} do
     # Version 1 routes (current)
     namespace :v1, constraints: ApiVersionConstraint.new(version: 1, default: true) do
-      # Authentication routes
-      post "/login", to: "sessions#create"
-      delete "/logout", to: "sessions#destroy"
-      post "/signup", to: "registrations#create"
+      # Authentication routes. These map to Devise controller subclasses, so they
+      # need a devise_scope for Devise to resolve the :user mapping.
+      devise_scope :user do
+        post "/login", to: "sessions#create"
+        delete "/logout", to: "sessions#destroy"
+        post "/signup", to: "registrations#create"
+      end
 
       # Profile routes
       resource :profile, only: [:show, :update]
