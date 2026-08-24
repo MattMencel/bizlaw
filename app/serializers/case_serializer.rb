@@ -27,8 +27,9 @@ class CaseSerializer
   belongs_to :course
   belongs_to :created_by, serializer: UserSerializer
   belongs_to :updated_by, serializer: UserSerializer
-  has_many :case_teams
-  has_many :teams, through: :case_teams
+  # case_teams is gone; teams now reach a case through its simulations. There is
+  # no SimulationSerializer, so the simulations relationship is not exposed.
+  has_many :teams, through: :simulations
   has_many :documents
   # has_many :case_events  # No serializer for this yet
 end

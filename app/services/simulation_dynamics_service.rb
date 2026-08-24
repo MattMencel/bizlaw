@@ -569,8 +569,7 @@ class SimulationDynamicsService
 
   # Feedback generation methods
   def generate_offer_feedback(settlement_offer, team)
-    case_team = team.case_teams.find_by(case: simulation.case)
-    role = case_team&.role
+    role = (team.role if team&.simulation == simulation)
 
     return "Unable to provide feedback on this offer." unless role
 

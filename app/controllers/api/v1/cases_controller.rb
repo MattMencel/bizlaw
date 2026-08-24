@@ -107,8 +107,7 @@ module Api
           :team_id,
           plaintiff_info: %i[name contact_details address],
           defendant_info: %i[name contact_details address],
-          legal_issues: %i[issue_type description],
-          case_teams_attributes: %i[id team_id role _destroy]
+          legal_issues: %i[issue_type description]
         )
       end
 

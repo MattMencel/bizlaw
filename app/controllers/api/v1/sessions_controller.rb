@@ -32,7 +32,9 @@ module Api
         end
       end
 
-      def respond_to_on_destroy
+      # Devise 5 passes non_navigational_status:; this renders JSON with its own
+      # statuses, so the keyword is accepted and ignored.
+      def respond_to_on_destroy(**)
         if @signed_out_user
           render json: {
             status: {code: 200, message: "Logged out successfully."}
