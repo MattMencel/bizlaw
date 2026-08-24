@@ -14,7 +14,8 @@ RSpec.describe "Case Simulation E2E", type: :system do
   let(:team) { simulation.plaintiff_team }
 
   before do
-    driven_by :playwright # Full e2e testing with automatic test server
+    # Full e2e testing with automatic test server
+    driven_by :playwright, options: PlaywrightDriverOptions.call
 
     # Set up course enrollments
     create(:course_enrollment, user: student1, course: course, status: "active")
