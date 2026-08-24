@@ -15,10 +15,7 @@ RSpec.describe "Team Member Management E2E", type: :system do
   let!(:student4) { create(:user, organization: organization, first_name: "Diana", last_name: "Ross") }
 
   before do
-    driven_by :playwright, options: {
-      browser: :chromium,
-      headless: ENV["HEADED"].nil?
-    }
+    driven_by :playwright, options: PlaywrightDriverOptions.call
 
     # Enroll students in the course
     create(:course_enrollment, user: student1, course: course, status: "active")

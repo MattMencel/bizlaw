@@ -23,7 +23,7 @@ RSpec.describe "Simulation Activation E2E", type: :system, driver: :playwright d
   let!(:defendant_member) { create(:team_member, team: defendant_team, user: student2, role: "member") }
 
   before do
-    driven_by(:playwright)
+    driven_by(:playwright, options: PlaywrightDriverOptions.call)
   end
 
   describe "Case without simulation" do
