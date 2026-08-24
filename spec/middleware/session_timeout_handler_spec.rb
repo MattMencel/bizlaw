@@ -5,7 +5,13 @@ require "rails_helper"
 RSpec.describe SessionTimeoutHandler do
   subject(:middleware) { described_class.new(downstream) }
 
-  let(:downstream) { ->(_env) { [200, {"Content-Type" => "application/json"}, ["{}"]] } }
+  let(:calls) { [] }
+  let(:downstream) do
+    lambda do |env|
+      calls << env["PATH_INFO"]
+      [200, {"Content-Type" => "application/json"}, ["{}"]]
+    end
+  end
 
   def token(exp:)
     Warden::JWTAuth::TokenEncoder.new.call(
@@ -31,6 +37,15 @@ RSpec.describe SessionTimeoutHandler do
 
       expect(status).to eq(401)
       expect(JSON.parse(body.first)).to eq("error" => "Session expired")
+    end
+
+    # Regression: the expiry check used to run after @app.call, so a
+    # state-changing request committed its side effects and only then had the
+    # response swapped for a 401.
+    it "does not invoke the downstream app for an expired token" do
+      middleware.call(env_for("/api/v1/cases", token(exp: 1.minute.ago)))
+
+      expect(calls).to be_empty
     end
 
     it "decodes with the same secret Devise signs with" do

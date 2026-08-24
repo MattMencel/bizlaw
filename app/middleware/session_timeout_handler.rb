@@ -6,8 +6,8 @@ class SessionTimeoutHandler
   end
 
   def call(env)
-    status, headers, response = @app.call(env)
-
+    # Checked before @app.call: a 401 issued after the fact would still leave
+    # the downstream action's side effects committed.
     if api_request?(env) && authenticated_request?(env)
       token = extract_jwt_token(env)
 
@@ -16,7 +16,7 @@ class SessionTimeoutHandler
       end
     end
 
-    [status, headers, response]
+    @app.call(env)
   end
 
   private
