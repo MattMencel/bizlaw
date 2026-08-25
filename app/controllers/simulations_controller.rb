@@ -239,7 +239,14 @@ class SimulationsController < ApplicationController
       :plaintiff_min_acceptable, :plaintiff_ideal,
       :defendant_ideal, :defendant_max_acceptable,
       :total_rounds, :pressure_escalation_rate,
-      simulation_config: {}
+      simulation_config: [
+        :client_mood_enabled,
+        :pressure_escalation_enabled,
+        :auto_round_advancement,
+        :settlement_range_hints,
+        :arbitration_threshold_rounds,
+        :round_duration_hours
+      ]
     )
   end
 
