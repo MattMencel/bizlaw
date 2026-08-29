@@ -112,16 +112,16 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 /* across the table, cut at the chest by the near table edge — front-facing reads
    correctly here because they are looking at us */
-.v-a .seat.counsel   { left: 36%; bottom: 39vh; width: 33vh; }
-.v-a .seat.defendant { left: 58%; bottom: 41vh; width: 28vh; }
+.v-a .seat.counsel   { left: 36%; bottom: 42vh; width: 33vh; }
+.v-a .seat.defendant { left: 58%; bottom: 42.8vh; width: 28vh; }
 /* our end of the table: closer to camera, angled in, cropped by the frame edge */
 .v-a .seat.client {
-  left: -3%; bottom: 4vh; width: 44vh; z-index: 3;
+  left: -3%; bottom: 12vh; width: 40vh; z-index: 3;
   transform: perspective(950px) rotateY(21deg); transform-origin: right center;
 }
 
 .v-a .table {
-  position: absolute; left: -10%; right: -10%; bottom: 18%; height: 31%; z-index: 2;
+  position: absolute; left: -10%; right: -10%; bottom: 18%; height: 27%; z-index: 2;
   clip-path: polygon(15% 0, 85% 0, 100% 100%, 0 100%);
   background: linear-gradient(180deg, #c08d59 0%, #8d5f34 6%, #6a4426 26%, #472d17 72%, #2e1c0d 100%);
   box-shadow: 0 -26px 55px rgba(0,0,0,.5);
@@ -130,7 +130,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   content: ""; position: absolute; left: 15%; right: 15%; top: 0; height: 2px;
   background: rgba(255,228,186,.55);
 }
-.v-a .props { position: absolute; left: 0; right: 0; bottom: 18%; height: 31%; z-index: 3; pointer-events: none; }
+.v-a .props { position: absolute; left: 0; right: 0; bottom: 18%; height: 27%; z-index: 3; pointer-events: none; }
 .v-a .paper {
   position: absolute; background: var(--paper); border-radius: 1px;
   box-shadow: 0 4px 10px rgba(0,0,0,.55); opacity: .93;
