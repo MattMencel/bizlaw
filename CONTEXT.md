@@ -58,6 +58,18 @@ The record of which member took an Action. Attached to every spend. It is what l
 
 The accumulating results of the Team's Actions — documents, testimony, research, what the Client has said. Answers *what do we know*, as opposed to the Docket's *what have we done*. One Case File per Team per Simulation; distinct from the Case, which is the authored dispute both Teams share.
 
+Everything in it is a document. Some documents also carry an **Exhibit** — the Case File is a folder that happens to hold a few playable things, not a hand.
+
+## Exhibit
+
+A Case File document a Team can put in front of the other Side to move a Client's valuation. Not a separate kind of object: an Exhibit is an authored **property** some documents carry and most do not, so preparation yields one thing, not two.
+
+An Exhibit carries a target, a sign, a shift, and the **Terms** it bears on. **Favorable** Exhibits are played and move the *opposing* Client. **Unfavorable** ones are not playable at all — they land the moment they are discovered and move *your own* Client toward realism, lowering what they will hold out for. Deposing a witness who hurts you still teaches you something worth knowing.
+
+Playing one **rides a staged Offer** and costs Action Budget; it cannot be played alone, and any number may ride one Offer. It moves the Client only when the Offer touches the Terms it bears on — a document arguing for reinstatement is worth nothing attached to a cash-only Offer. Shifts stack additively against an authored bound on how far a Client may move across one Simulation.
+
+The Exhibit is spent when played; the document is not, and stays in the Case File as what the Team knows. The receiving Team is **served the document and never its effect** — playing an Exhibit is serving it.
+
 ## Client
 
 The party a Team represents, present in the game as an avatar with a private range of what they will accept. Reachable only by spending an Action. Authored decision logic, LLM wording.
@@ -93,6 +105,8 @@ The vocabulary an Offer is built from: money plus a set of authored non-monetary
 ## Par
 
 The settlement a Case's authors consider well-negotiated **for one Side**. Each Side has its own. It is what Settlement Quality is scored against, with the Client's reservation point as the floor. Par is per-Side and not zero-sum: both Sides can score full marks on the same settlement.
+
+Par **assumes the case was worked** — it is authored as what a Side that used its Exhibits should get, so a Team that plays none falls short of it. Par never moves with what a Team actually did; a Par that adapted would grade each Team against its own choices and hide poor play.
 
 ## Rubric
 
