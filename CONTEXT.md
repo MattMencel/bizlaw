@@ -44,6 +44,8 @@ Not to be confused with the old app's *round*, which was a submission box holdin
 
 What a Team has to spend within one Day. The scarce resource that makes preparation compete with negotiation — the tension the course is actually about.
 
+**The only scarce resource.** Settlement value is never spendable: a Team cannot buy influence with the money on the table, so no second economy runs beside this one. Retaining outside counsel or an expert is fiction over an ordinary Action — it costs Budget and lead time like anything else, and what it yields is documents.
+
 ## Action
 
 One thing a Team spends Action Budget on. Making or revising an Offer is one Action among many; consulting the Client, deposing a witness, requesting documents, researching precedent and managing the press are others. **Consulting the Client costs Budget**, so a Team that never asks negotiates blind.
@@ -149,6 +151,8 @@ A named subset of a Case's Event Deck — quiet, normal, turbulent — that an I
 The vocabulary an Offer is built from: money plus a set of authored non-monetary terms — apology, NDA, reinstatement, training, reference letter, policy change. Authored per Case, with a private valuation per Client, so the game can react honestly when a Side offers something other than cash. Free text attaches as a note the Instructor reads; it is not part of the vocabulary.
 
 Terms are **atomic**. A public apology and a private one are two Terms, never one Term with a setting — a Client values each Term at a single amount, which is what lets an Offer be worth one number to them.
+
+Cost allocation is a Term like any other. Who pays whose fees, or how a mediator is paid for, is something the Sides negotiate rather than something the engine deducts — which keeps *winning bigger and netting less* inside the Offer's value to the Client, and leaves Par with no gross-or-net distinction to draw.
 
 ## Par
 
