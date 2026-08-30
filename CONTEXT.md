@@ -12,6 +12,18 @@ The authored dispute a Simulation runs on: the facts, the parties, the documents
 
 A Case is licensed separately from the game that runs it. The game is open; Cases are not — a Case is the authored teaching material, and the engine without one is an empty room.
 
+A Case also authors **reference values** for the things a Section may set — how many Days, how large an Action Budget — because Par is authored against them.
+
+## Case Version
+
+What a Simulation pins. A Case is identified by its name and a version; a **published** version never changes again, so a grading dispute reopened months later reaches the material the Simulation actually ran on. Correcting a published Case means a new version, not an edit.
+
+A **draft** version is the professor's working copy: mutable, invisible to students, and impossible for a Simulation to pin.
+
+## Party
+
+Someone in the dispute the game can put on screen — the two Clients, witnesses, opposing counsel, the judge. Authored per Case, appearance included: with so few garments available, a cast is told apart by hair, colour and glasses, and that is a decision the Case's author makes rather than one drawn at random.
+
 ## Side
 
 Plaintiff or defendant. A Side is a position in the dispute, not a group of people — the Team is the people. The two Sides are deliberately **asymmetric**: they have different action menus, because building pressure and containing exposure are different jobs.
@@ -78,6 +90,12 @@ The Exhibit is spent when played; the document is not, and stays in the Case Fil
 
 An Exhibit played after its target's bound is exhausted is still spent, and its shift is **clipped** to whatever travel remains. It scores regardless — a good argument put to a Client who has already come around is still a good argument, and a Team cannot see the bound it would be punished for missing.
 
+## Provenance
+
+How a document came to be in a Team's hands. Three are authored in the Case — in both Sides' hands at the open, in one Side's hands at the open, or waiting behind an Action to be discovered. The fourth, **served**, is never authored: it is what happens when the other Side plays an Exhibit.
+
+Provenance is what makes *doors visible, contents hidden* checkable — every discoverable document must sit behind some Action, and nothing a Team starts with can also be something it finds.
+
 ## Client
 
 The party a Team represents, present in the game as an avatar with a private range of what they will accept. Reachable only by spending an Action. Authored decision logic, LLM wording.
@@ -85,6 +103,8 @@ The party a Team represents, present in the game as an avatar with a private ran
 What moves during a Simulation is the Client's **reservation point** — the worst settlement they will take. Their aspiration does not move: they still want what they wanted, so a Client's stated demands never reveal that they have softened.
 
 Player-caused movement is a **ratchet**. Exhibits and discoveries only ever move a reservation point toward settleability, never back out toward holding firm, and the total inward travel across one Simulation is bounded per Client by the Case. Both Sides draw on that one bound — the opposing Team's favorable Exhibits and the Team's own unfavorable discoveries spend the same budget. Only an Event can move a reservation point back out.
+
+The bound is the one thing about a Client authored as money; every shift against it — an Exhibit played, a bad discovery, an Event — is a **fraction** of it. So an Exhibit is worth the same share of a Client's travel whether the Section made that Client easy or hard.
 
 ## Reaction Band
 
@@ -102,7 +122,9 @@ The Instructor's powers over a running Simulation are deliberately few: force-cl
 
 An Instructor's class group, and the unit everything configurable hangs off. One Section runs many concurrent Simulations of one Case.
 
-Set per Section: the Case, the number of Days, the deadline schedule, Action Budget size, Client difficulty, the Peer Evaluation flag, and the Event Deck profile. **Par is not** — it is authored in the Case, and a Section that could move it could not be compared to another. Rubric weights are configurable but freeze when the Section's first Simulation starts, because the Rubric is published to students on day one.
+Set per Section: the Case, the number of Days, the deadline schedule, Action Budget size, Client difficulty, the Peer Evaluation flag, and the Event Deck Profile. **Par is not** — it is authored in the Case, and a Section that could move it could not be compared to another. Rubric weights are configurable but freeze when the Section's first Simulation starts, because the Rubric is published to students on day one.
+
+Day count and Action Budget arrive with the Case's reference values, and a Section that changes either is marked as no longer comparable to one that did not — Par assumed those numbers. **Client difficulty** makes an authored Client harder or easier to satisfy; it never swaps in a different Client, so a Case authors one of each, not three.
 
 ## Pairing
 
@@ -118,15 +140,21 @@ An Event's shift carries a **direction**, and Events are the only thing exempt f
 
 The draw is seeded, so the Instructor previews and may edit the whole schedule before Day 1, and may play any card manually during the run. Nothing about an Event is decided by a roll the Instructor cannot see in advance.
 
+## Event Deck Profile
+
+A named subset of a Case's Event Deck — quiet, normal, turbulent — that an Instructor chooses for a Section. Authored, because pacing is a judgement about which pressures belong in one dispute together; a Section choosing a number of cards instead could deal a combination the Case's author never thought playable.
+
 ## Terms
 
 The vocabulary an Offer is built from: money plus a set of authored non-monetary terms — apology, NDA, reinstatement, training, reference letter, policy change. Authored per Case, with a private valuation per Client, so the game can react honestly when a Side offers something other than cash. Free text attaches as a note the Instructor reads; it is not part of the vocabulary.
 
+Terms are **atomic**. A public apology and a private one are two Terms, never one Term with a setting — a Client values each Term at a single amount, which is what lets an Offer be worth one number to them.
+
 ## Par
 
-The settlement a Case's authors consider well-negotiated **for one Side**. Each Side has its own. It is what Settlement Quality is scored against, with the Client's reservation point as the floor. Par is per-Side and not zero-sum: both Sides can score full marks on the same settlement.
+The settlement value a Case's authors consider well-negotiated **for one Side** — a single number, in the same money the Offer is worth to a Client. Each Side has its own. It is what Settlement Quality is scored against, with the Client's reservation point as the floor. Par is per-Side and not zero-sum: both Sides can score full marks on the same settlement.
 
-Par **assumes the case was worked** — it is authored as what a Side that used its Exhibits should get, so a Team that plays none falls short of it. Par never moves with what a Team actually did; a Par that adapted would grade each Team against its own choices and hide poor play.
+Par **assumes the case was worked** — it is authored as what a Side that used its Exhibits should get, so a Team that plays none falls short of it. Par never moves with what a Team actually did; a Par that adapted would grade each Team against its own choices and hide poor play. It also assumes the Case's reference Day count and Action Budget, which is why a Section that changes those loses comparability.
 
 ## Rubric
 
