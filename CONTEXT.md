@@ -10,6 +10,8 @@ One complete run of one Case, from opening to settlement or its failure. Two Tea
 
 The authored dispute a Simulation runs on: the facts, the parties, the documents, and the private positions each Client holds. Data, not code. One Case can back many concurrent Simulations.
 
+A Case is licensed separately from the game that runs it. The game is open; Cases are not — a Case is the authored teaching material, and the engine without one is an empty room.
+
 ## Side
 
 Plaintiff or defendant. A Side is a position in the dispute, not a group of people — the Team is the people. The two Sides are deliberately **asymmetric**: they have different action menus, because building pressure and containing exposure are different jobs.
