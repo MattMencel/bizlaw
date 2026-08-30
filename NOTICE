@@ -1,0 +1,23 @@
+BizLaw
+Copyright 2026 Matt Mencel
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Scope of this licence
+---------------------
+
+The Apache-2.0 licence covers the game engine and application code in this
+repository. It does NOT cover authored Case content -- the facts, parties,
+documents, Terms, Par values, Exhibits, event decks and generated NPC dialogue
+that a Simulation runs on. Cases are teaching material, distributed separately
+under their own proprietary licence, and no right to use, copy or redistribute
+them is granted here. See CONTEXT.md for the domain meaning of "Case".
+
+Third-party components
+----------------------
+
+Avatar art derives from fangpenlin/avataaars
+(https://github.com/fangpenlin/avataaars), MIT licensed,
+Copyright (c) 2017 Pablo Stanley, Fang-Pen Lin -- rendered through
+@dicebear/core (https://github.com/dicebear/dicebear), MIT licensed,
+Copyright (c) Florian Koerner.
