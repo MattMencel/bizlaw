@@ -64,7 +64,7 @@ A Team whose other members are absent can stage an Offer it cannot commit. That 
 
 ## Docket
 
-The Team's chronological record of Actions taken: what was spent, which member spent it, and the Day its result lands. Answers *what have we done and what is coming*. Visible to the whole Team, naming who acted; it carries no per-member totals or contribution scores.
+The Team's chronological record of Actions taken: what was spent, which member spent it, and the Day its result lands. Answers *what have we done and what is coming*. Visible to the whole Team, naming who acted; it carries no per-member totals or contribution scores. Seen forward it is the Team's calendar — there is no separate one.
 
 ## Attribution
 
@@ -97,6 +97,38 @@ An Exhibit played after its target's bound is exhausted is still spent, and its 
 How a document came to be in a Team's hands. Three are authored in the Case — in both Sides' hands at the open, in one Side's hands at the open, or waiting behind an Action to be discovered. The fourth, **served**, is never authored: it is what happens when the other Side plays an Exhibit.
 
 Provenance is what makes *doors visible, contents hidden* checkable — every discoverable document must sit behind some Action, and nothing a Team starts with can also be something it finds.
+
+## Firm
+
+The room a Team prepares in: its own conference table, its own Client, no opponent. The Case File lies on it as papers and the Action Board sits beside them.
+
+One of the two rooms a Day moves between, freely and in either direction. The door is never the gate — the Second is.
+
+## Boardroom
+
+The room the exchange happens in, and the only place an Offer can commit. Seats three: the Team's own Client in the foreground, the opposing Client and opposing counsel across a conference table.
+
+**Only the Team's own Client is expressive.** The figures across the table are presence, not a read — a face that reacted honestly to a committed Offer would hand over the opposing Client's reservation point for free, which is the read a Consult is charged for. Their being seated is fiction, never a claim the other Team is online.
+
+## Terms Board
+
+Where the shape of the deal is visible: each Term as a track carrying the Team's own position, the other Side's **last committed** Offer, and the Team's own Client's stated aspiration. Reachable from either room, because deliberation is preparation work even though the commit is not.
+
+It never shows Par. Par is what the grade is measured against, and no rubric-derived number reaches a student before Release. The Client's aspiration is the in-fiction stand-in, and it gives nothing away, because an aspiration does not move.
+
+## Action Board
+
+The menu of what a Team could do this Day, each Action with its cost and its lead time. *What we could do* — opposite the Case File's *what we know* and the Docket's *what we have done*.
+
+## Close-up
+
+One figure's face, scaled up over the dimmed room. **Emphasis, never the sole carrier**: whatever a Close-up says also lands in the Docket or the Case File, so skipping one costs a Team nothing.
+
+The game cuts on authored beats only — a Reaction Band change, and an Offer accepted or rejected — at most one per commit, and always the Team's own Client. A student may push in on any figure at any time, free. An Event, an arbitration award and a served document get no cut; they are documents, and reading them is the beat.
+
+## Morning Briefing
+
+What a Day opens with, over the Firm's table: the Actions that have just landed and any documents the other Side served. The same object a returning absent teammate is given, widened.
 
 ## Client
 
