@@ -62,6 +62,8 @@ The accumulating results of the Team's Actions — documents, testimony, researc
 
 Everything in it is a document. Some documents also carry an **Exhibit** — the Case File is a folder that happens to hold a few playable things, not a hand.
 
+It also holds every document the other Side has served, flagged as served rather than found. Those arrive without an Exhibit property: service gives a Team knowledge, never ammunition.
+
 ## Exhibit
 
 A Case File document a Team can put in front of the other Side to move a Client's valuation. Not a separate kind of object: an Exhibit is an authored **property** some documents carry and most do not, so preparation yields one thing, not two.
@@ -70,11 +72,25 @@ An Exhibit carries a target, a sign, a shift, and the **Terms** it bears on. **F
 
 Playing one **rides a staged Offer** and costs Action Budget; it cannot be played alone, and any number may ride one Offer. It moves the Client only when the Offer touches the Terms it bears on — a document arguing for reinstatement is worth nothing attached to a cash-only Offer. Shifts stack additively against an authored bound on how far a Client may move across one Simulation.
 
-The Exhibit is spent when played; the document is not, and stays in the Case File as what the Team knows. The receiving Team is **served the document and never its effect** — playing an Exhibit is serving it.
+The Exhibit is spent when played; the document is not, and stays in the Case File as what the Team knows. The shift lands the moment the Offer commits, and the document reaches the other Side at that same instant. The receiving Team is **served the document and never its effect** — playing an Exhibit is serving it.
+
+**A served Exhibit cannot be answered.** There is no rebuttal: the ratchet leaves nothing to undo, and a served document carries no Exhibit property for its recipient. What service opens is an informational beat — visible and free, its direction legible from reading the document, its weight only ever a Reaction Band bought with an Action. The strategic response is ordinary play: they softened your Client, so go soften theirs.
+
+An Exhibit played after its target's bound is exhausted is still spent, and its shift is **clipped** to whatever travel remains. It scores regardless — a good argument put to a Client who has already come around is still a good argument, and a Team cannot see the bound it would be punished for missing.
 
 ## Client
 
 The party a Team represents, present in the game as an avatar with a private range of what they will accept. Reachable only by spending an Action. Authored decision logic, LLM wording.
+
+What moves during a Simulation is the Client's **reservation point** — the worst settlement they will take. Their aspiration does not move: they still want what they wanted, so a Client's stated demands never reveal that they have softened.
+
+Player-caused movement is a **ratchet**. Exhibits and discoveries only ever move a reservation point toward settleability, never back out toward holding firm, and the total inward travel across one Simulation is bounded per Client by the Case. Both Sides draw on that one bound — the opposing Team's favorable Exhibits and the Team's own unfavorable discoveries spend the same budget. Only an Event can move a reservation point back out.
+
+## Reaction Band
+
+What a Client says about where they stand, and the only read a Team ever gets on how far their Client has moved. Authored per Client as an ordered set of bands — firm, wavering, ready — keyed to the cumulative fraction of the bound consumed, never to any single Exhibit.
+
+Reachable only by consulting the Client, so knowing where you stand costs Action Budget. A band is qualitative: no number, no reservation point, no size of any shift. The band is the authored decision; the wording is generated.
 
 ## Instructor
 
@@ -97,6 +113,8 @@ Assigning two Teams to the opposing Sides of one Simulation. The Instructor pair
 Something that happens *to* the dispute rather than being done by a Team — media attention, a witness changing their story, a court deadline, new evidence surfacing. Shifts what the Clients will accept.
 
 Events are authored per Case as an **Event Deck**, each card carrying its own shift to each Client's valuations and an authored window of Days it may land in. A Simulation's Events are **drawn at its start, never during play**: *which* cards fire is drawn once per Section, so every Team faces the same pressures and Par stays comparable; *when* each fires inside its window is drawn per Simulation, so no two Teams share a timeline. Both Sides of a Simulation share one timeline — it is one dispute.
+
+An Event's shift carries a **direction**, and Events are the only thing exempt from the Client ratchet — the only force that can move a reservation point back out toward holding firm. An outward shift restores bound rather than consuming it, so a Simulation cannot run out of travel. This is what lets a media firestorm harden a Side's resolve while the tug-of-war stays out of players' hands entirely.
 
 The draw is seeded, so the Instructor previews and may edit the whole schedule before Day 1, and may play any card manually during the run. Nothing about an Event is decided by a roll the Instructor cannot see in advance.
 
