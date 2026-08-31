@@ -56,6 +56,12 @@ What a Team has to spend within one Day. The scarce resource that makes preparat
 
 **The only scarce resource.** Settlement value is never spendable: a Team cannot buy influence with the money on the table, so no second economy runs beside this one. Retaining outside counsel or an expert is fiction over an ordinary Action — it costs Budget and lead time like anything else, and what it yields is documents.
 
+The Budget arrives in two halves each Day and **neither half carries to the next Day**. The **preparation half** is ungated and buys everything that is not an Offer. The **exchange half** is an absolute number of points, not a fraction of the Budget — it is authored as a count, and the reference Case authors **two**, which buys exactly one Offer and one Exhibit riding it. That number is the whole brake on the game's one degenerate strategy: because the halves do not carry, the exchange half caps Exhibits-per-Offer and the number of Offers caps total plays, so a Team that hoards its Exhibits physically cannot dump them. Below two points nothing can be played at all and the design stops discriminating; at three the dump becomes affordable again.
+
+Expressing the exchange half as a *fraction* is a mistake worth naming, because it silently couples the brake to the Budget: at a fifth of a ten-point Budget the brake is correct, and the same fifth of a nine-point Budget falls under two points and the game collapses. The Case authors the pool; the preparation half is what is left.
+
+**Roughly a quarter of the Budget expires unspent, and that is the design paying for itself** — about half of it in the exchange half on Days where a Side makes no Offer, and half in the preparation half on the closing Days once discovery has run out. Every attempt to reclaim it costs more than it returns. A Team is shown what it has left **today** and never a cumulative unspent total: the expiry is a structural cost of the brake, so a running waste figure would grade a Team on a number the design requires of it.
+
 ## Action
 
 One thing a Team spends Action Budget on. Making or revising an Offer is one Action among many; consulting the Client, deposing a witness, requesting documents, researching precedent and managing the press are others. **Consulting the Client costs Budget**, so a Team that never asks negotiates blind.
@@ -148,7 +154,7 @@ What a Day opens with, over the Firm's table: the Actions that have just landed 
 
 The party a Team represents, present in the game as an avatar with a private range of what they will accept. Reachable only by spending an Action. Authored decision logic, LLM wording.
 
-What moves during a Simulation is the Client's **reservation point** — what the Case considers the worst settlement worth taking. It is a **scoring floor and a target for shifts, never a veto**: a Team may accept any Offer, and a deal beneath the reservation point simply scores badly against Par. A Client who could refuse would hand over that number to any Team willing to probe for it.
+What moves during a Simulation is the Client's **reservation point** — what the Case considers the worst settlement worth taking. It is **a target for shifts and nothing else: never a veto, and not the scoring floor either**. A Team may accept any Offer, and a deal beneath the reservation point simply scores badly against Par. A Client who could refuse would hand over that number to any Team willing to probe for it; and a Client whose live number set the grading scale would hand one Side's scale to the other Side's diligence, because the opposing Team's Exhibits are what move it. The floor Settlement Quality ramps from is authored and immobile — see *Par*.
 
 Their aspiration does not move: they still want what they wanted, so a Client's stated demands never reveal that they have softened.
 
@@ -258,7 +264,9 @@ Cost allocation is a Term like any other. Who pays whose fees, or how a mediator
 
 ## Par
 
-The settlement value a Case's authors consider well-negotiated **for one Side** — a single number, in the same money the Offer is worth to a Client. Each Side has its own. It is what Settlement Quality is scored against, with the Client's reservation point as the floor. Par is per-Side and not zero-sum: both Sides can score full marks on the same settlement.
+The settlement value a Case's authors consider well-negotiated **for one Side** — a single number, in the same money the Offer is worth to a Client. Each Side has its own. It is what Settlement Quality is scored against. Par is per-Side and not zero-sum: both Sides can score full marks on the same settlement.
+
+Settlement Quality's forty points ramp from a **floor a quarter of the bound short of Par**, full marks at Par and beyond, nothing at or below the floor. The floor is derived from the two numbers the Case already authors — it adds no third money denominator — and it is **immobile**, which is the point of it: the Client's live reservation point is moved by the *opposing* Team's Exhibits, so ramping from it would let one Side's grading scale be set by how hard its opponent worked. A quarter of the bound is what makes the ramp discriminate: a wider floor hands a Team that never worked the case most of the forty points for turning up, and no ramp at all puts forty points on a single threshold.
 
 Par **assumes the case was worked** — it is authored as what a Side that used its Exhibits should get, so a Team that plays none falls short of it. Par never moves with what a Team actually did; a Par that adapted would grade each Team against its own choices and hide poor play. It also assumes the Case's reference Day count and Action Budget, which is why a Section that changes those loses comparability.
 

@@ -108,9 +108,15 @@
       That is the Case format's own spine, so the sweep is scale-free: it never has to guess dollars.</li>
     <li><strong>Collaboration is not modelled.</strong> It is a per-student dimension and this model has no
       students in it. Rubric totals below are out of <strong>80</strong>, not 100.</li>
-    <li><strong>One assumption is invented here and needs your eye:</strong> settlement quality is scored
-      <em>linearly</em> from the Client's reservation point (0 points) up to Par (full 40), clipped at 40 beyond
-      Par. No closed ticket sets that curve. It is a knob below, and the sweep shows whether it matters.</li>
+    <li><strong>Settlement quality ramps from an authored, immobile floor</strong> — Par minus a quarter of
+      the bound — to full 40 at Par and beyond. Deliberately <em>not</em> the live reservation point: that
+      number is moved by the opposing Team's Exhibits, so ramping from it would set one Side's grading scale
+      by how hard the other Side worked. The spread is a knob; widening it hands a Team that never worked the
+      case most of the forty points for turning up.</li>
+    <li><strong>The exchange half is an absolute number of points, not a fraction of the Budget.</strong>
+      Two points buys one Offer and one Exhibit riding it, and that ceiling is the entire brake on the dump.
+      Held as a fraction it silently couples to the Budget — a fifth of ten is safe, a fifth of nine is 1.8
+      and the game collapses.</li>
   </ul>
 </div>
 
@@ -218,7 +224,9 @@ const DEFAULTS = {
   // The Day and the Budget
   days:            10,     // Simulation length (canon says 8–12)
   budgetPerDay:    10,     // Action Budget, points per Day per Side
-  exchangeShare: 0.40,     // fraction of the Budget reserved for the exchange half
+  exchangePool:  2.00,     // ABSOLUTE points reserved for the exchange half, per Day.
+                           // Authored as a count, never as a fraction: a fraction couples
+                           // the brake to the Budget and 0.20 x 9 silently falls under 2.
   budgetPerDayIsPooled: 0, // 1 = unspent Budget carries to the next Day
 
   // What an Action costs / how many Days until its result lands
@@ -235,7 +243,7 @@ const DEFAULTS = {
   // The Client
   bound:              1.00, // total inward travel available, per Client (the money unit)
   shiftFavorable:     0.13, // a played favorable Exhibit, as a fraction of the target's bound
-  shiftUnfavorable:   0.05, // a self-discovery landing on your own Client — the "armour" knob
+  shiftUnfavorable:   0.06, // a self-discovery landing on your own Client — the "armour" knob
   bandWavering:       0.33, // cumulative fraction consumed at which the Client says "wavering"
   bandReady:          0.66, // ...and "ready"
   eventCount:            3, // cards drawn from the Event Deck for this Simulation
@@ -253,13 +261,16 @@ const DEFAULTS = {
   expectedRelevantPlays: 4,    // relevance hits a fully-worked Case is authored to yield
   exhibitEfficiencyCap: 0.50,  // Exhibits' maximum share of the efficiency dimension
   parGraceBand:         0.06,  // "reached Par" counts within this much of Par
+  qualityFloorSpread:   0.25,  // Settlement Quality ramps from Par minus this x bound.
+                               // Immobile and authored — NOT the live reservation point,
+                               // which the OPPONENT moves.
 };
 
 const KNOB_GROUPS = {
   'k-budget': [
     ['days', 'Days in the Simulation'],
     ['budgetPerDay', 'Action Budget per Day'],
-    ['exchangeShare', 'Exchange half’s share'],
+    ['exchangePool', 'Exchange half (absolute pts/Day)'],
     ['budgetPerDayIsPooled', 'Budget carries over (0/1)'],
   ],
   'k-actions': [
@@ -294,6 +305,7 @@ const KNOB_GROUPS = {
     ['expectedRelevantPlays', 'Relevance hits a worked Case yields'],
     ['exhibitEfficiencyCap', 'Exhibits’ share of efficiency'],
     ['parGraceBand', '“Reached Par” tolerance'],
+    ['qualityFloorSpread', 'Quality floor: Par minus'],
   ],
 };
 
@@ -467,7 +479,7 @@ function simulate(P, stratP, stratD, seed) {
     // Refill the two halves of the Budget.
     for (const s of sides) {
       const carry = P.budgetPerDayIsPooled >= 1;
-      const exchQuota = P.budgetPerDay * P.exchangeShare;
+      const exchQuota = Math.min(P.exchangePool, P.budgetPerDay);
       const prepQuota = P.budgetPerDay - exchQuota;
       if (!carry) { s.wastedBudget += s.prep + s.exch; s.prep = prepQuota; s.exch = exchQuota; }
       else { s.prep += prepQuota; s.exch += exchQuota; }
@@ -646,16 +658,18 @@ function spend(side, action, day, entry) {
 
 /* ── Scoring. Collaboration (20) is per-student and not modelled: totals are out of 80. ── */
 function score(s, value, P) {
-  // Settlement quality (40): linear from the reservation point to Par, clipped.
-  // ASSUMPTION — no closed ticket sets this curve. See the note at the top.
+  // Settlement quality (40): ramps from an AUTHORED, IMMOBILE floor to Par, clipped.
+  // The floor is Par minus qualityFloorSpread x bound. It is deliberately not the live
+  // reservation point: that number is moved by the OPPONENT's Exhibits, so ramping from
+  // it sets one Side's grading scale by how hard the other Side worked.
   let quality;
   const reachedPar = s.isP ? value >= s.par - P.parGraceBand : value <= s.par + P.parGraceBand;
+  const spread = P.qualityFloorSpread * P.bound;
+  const floor = s.isP ? s.par - spread : s.par + spread;
   if (s.isP) {
-    quality = value >= s.par ? 40
-      : s.par > s.rp ? 40 * clamp((value - s.rp) / (s.par - s.rp), 0, 1) : 0;
+    quality = value >= s.par ? 40 : 40 * clamp((value - floor) / spread, 0, 1);
   } else {
-    quality = value <= s.par ? 40
-      : s.rp > s.par ? 40 * clamp((s.rp - value) / (s.rp - s.par), 0, 1) : 0;
+    quality = value <= s.par ? 40 : 40 * clamp((floor - value) / spread, 0, 1);
   }
 
   // Legal strategy (30): relevance hits off the Docket, never keyword-matched text.
@@ -790,7 +804,7 @@ document.getElementById('run-sweep').addEventListener('click', () => {
 /* ── Sensitivity ──────────────────────────────────────────────────────────── */
 const SENS = [
   ['budgetPerDay', 3, 16, 1],
-  ['exchangeShare', 0.15, 0.65, 0.05],
+  ['exchangePool', 1, 6, 0.5],
   ['costPlayExhibit', 0, 5, 0.5],
   ['costConsult', 1, 6, 0.5],
   ['costExpert', 2, 10, 1],
@@ -799,6 +813,7 @@ const SENS = [
   ['shiftUnfavorable', 0, 0.20, 0.02],
   ['bandWavering', 0.10, 0.55, 0.05],
   ['exhibitEfficiencyCap', 0, 1, 0.1],
+  ['qualityFloorSpread', 0.10, 1.00, 0.05],
   ['expectedRelevantPlays', 1, 10, 1],
   ['days', 6, 14, 1],
 ];
