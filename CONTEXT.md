@@ -32,6 +32,8 @@ Each counsel is only ever seen by the *opposing* Side. A Team never looks at its
 
 Plaintiff or defendant. A Side is a position in the dispute, not a group of people — the Team is the people. The two Sides are deliberately **asymmetric**: they have different action menus, because building pressure and containing exposure are different jobs.
 
+A position *in a dispute* exists per dispute, so a Side belongs to one Simulation and there are exactly two. It is the thing everything a Team accumulates hangs off: the Action Budget, the Docket, the Case File, the staged Offer, and the Client it represents. A Team is paired to a Side; the pairing is what joins the people to the position.
+
 ## Team
 
 The small group of students playing one Side. Three to five, and **flat** — no lead counsel, no researcher, no liaison. Every member has the same standing and the same Action menu; specialisation is a strategy a Team may choose, never a permission the game grants.
@@ -41,6 +43,10 @@ A Team acts as a single negotiating party: one shared state, one Action Budget, 
 ## Day
 
 **The unit of play.** A Day opens, the Team spends its Action Budget, and the Day closes. A Day is a unit of the *Simulation*, not of wall-clock time: a Team sitting together in class may burn a Day in twenty minutes, a Team working apart may take three evenings over it. Both are the same Day.
+
+**Committing the Day and committing an Offer are different acts.** A Side commits its Day by declaring itself finished with it; committing an Offer is a Boardroom act, at most one per Side per Day, and it implies the Day commit. The reverse does not follow — a Side that spent its whole Budget on preparation and made no Offer has still finished its Day. A Day closes when both Sides have committed it, or when the Instructor's deadline fires.
+
+The Simulation's Days all exist before the first one is played, because the Case authors an ordered calendar with in-fiction dates. That is what lets an Action taken today name the Day its result lands on, and what lets the Instructor preview and edit the whole Event schedule before Day 1.
 
 Not to be confused with the old app's *round*, which was a submission box holding one number per Side.
 
@@ -190,6 +196,8 @@ Enforcement matches the Case import gate rather than resting on review: the LLM 
 
 Every table declares a tier — `:prose`, `:skeleton` or `:authored` — and a spec fails on any table that declares none. The scheduled purge reads the declaration rather than a maintained list, so a new prose-bearing table added without a tier breaks the build instead of quietly retaining student writing forever.
 
+A record is often prose and skeleton at once: a deliberation message is writing on the `:prose` clock, but who wrote it and on which Day belong to the graded shape and outlive it by eleven months. So a table declares its tier **and names which of its columns are the prose**, and the earlier purge empties those columns where they sit. The writing is genuinely destroyed; what survives is the row that becomes the tombstone.
+
 `:prose` is Student Prose. `:skeleton` is the graded shape: Docket, committed Offers, outcome, scores, revealed ranges, Attribution, and the generated Client lines with their utterance index. `:authored` is Case rows and their pinned Case Versions — the professor's work, never a student record, never purged.
 
 **Prose is destroyed 30 days after the Section's end date; the skeleton one year after it.** Both are hard deletes, because a `deleted_at` row still holding the prose is not a purge and a soft-deleted skeleton keeps every student name forever. The clocks are short because the app is not the grade book: the grade of record leaves through the Instructor into the school's records at Release, so what the run owes afterwards is evidence for a dispute, not a transcript. Nothing survives a Section purge but the `:authored` tier — the Section shell and its roster go with the run.
@@ -213,6 +221,14 @@ An Instructor's class group, and the unit everything configurable hangs off. One
 Set per Section: the Case, the number of Days, the deadline schedule, Action Budget size, Client difficulty, the Peer Evaluation flag, the Event Deck Profile, and an **end date**, which is the anchor every Retention clock is measured from. **Par is not** — it is authored in the Case, and a Section that could move it could not be compared to another. Rubric weights are configurable but freeze when the Section's first Simulation starts, because the Rubric is published to students on day one.
 
 Day count and Action Budget arrive with the Case's reference values, and a Section that changes either is marked as no longer comparable to one that did not — Par assumed those numbers. **Client difficulty** makes an authored Client harder or easier to satisfy; it never swaps in a different Client, so a Case authors one of each, not three.
+
+A Section belongs to an Organization, and an Instructor is an Instructor *of a Section* rather than by standing — the same person may teach one Section and appear nowhere in another.
+
+## Organization
+
+The institution a Section belongs to, and the boundary no data crosses. Everything a person can reach — their Sections, Teams, Simulations and Sides — descends from one Organization, and a document, a Docket or a score never travels between two.
+
+Cases sit outside it. A Case is the authored teaching material, shared by every Organization licensed to run it, and belongs to none of them.
 
 ## Pairing
 
@@ -260,6 +276,8 @@ Optional, per-section, at the Instructor's flag. When on, it supplies 6 of colla
 
 What a Simulation ends in when it runs out of Days without a settlement. **The Instructor is the judge** — a teaching moment, not a computed stalemate. The app assembles the record and drafts a recommendation; the Instructor writes the award and the rationale that actually stand.
 
+The draft is kept beside what the Instructor wrote rather than being overwritten by it, so a record reopened later shows which of the two the students were given.
+
 Students watch a judgment beat with both Sides present: the award arrives as a document in the Boardroom, over the standing three. There is no judge at the table — the judge is the Instructor, who was never a Party — and the Client says nothing, because the only honest thing it could speak to is an award invisible until Release. Nothing about the outcome reaches them until Release.
 
 ## Arbitration Packet
@@ -269,6 +287,8 @@ What the app hands the Instructor to judge from: both Sides' Pars, both Clients'
 ## Release
 
 The single Instructor action per Simulation that makes outcome, scores and debrief visible to students. Before it, no rubric-derived number and no arbitration result exists for a student. It is what separates the Instructor's live provisional view from the students' silence.
+
+**Release is also what fixes the scores.** Up to that moment a provisional score is recomputed from the record every time it is looked at, so an Instructor's adjustment shows up immediately. At Release each score is written down for good, alongside the weights and the Par it was measured against — a grade queried a year later is answered from what the student was actually shown, not by recomputing it against rules that have since changed.
 
 ## Debrief Packet
 
