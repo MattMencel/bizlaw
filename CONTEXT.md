@@ -124,7 +124,7 @@ The menu of what a Team could do this Day, each Action with its cost and its lea
 
 One figure's face, scaled up over the dimmed room. **Emphasis, never the sole carrier**: whatever a Close-up says also lands in the Docket or the Case File, so skipping one costs a Team nothing.
 
-The game cuts on authored beats only — a Reaction Band change, and an Offer accepted or rejected — at most one per commit, and always the Team's own Client. A student may push in on any figure at any time, free. An Event, an arbitration award and a served document get no cut; they are documents, and reading them is the beat.
+The game cuts only where a Client has something to say — a Consult, and settlement — at most one per commit, and always the Team's own Client. A cut is never a free read: a Reaction Band that moves is shown at the next Consult, not the moment it moves. A student may push in on any figure at any time, free. An Event, an arbitration award and a served document get no cut; they are documents, and reading them is the beat.
 
 ## Morning Briefing
 
@@ -134,7 +134,9 @@ What a Day opens with, over the Firm's table: the Actions that have just landed 
 
 The party a Team represents, present in the game as an avatar with a private range of what they will accept. Reachable only by spending an Action. Authored decision logic, LLM wording.
 
-What moves during a Simulation is the Client's **reservation point** — the worst settlement they will take. Their aspiration does not move: they still want what they wanted, so a Client's stated demands never reveal that they have softened.
+What moves during a Simulation is the Client's **reservation point** — what the Case considers the worst settlement worth taking. It is a **scoring floor and a target for shifts, never a veto**: a Team may accept any Offer, and a deal beneath the reservation point simply scores badly against Par. A Client who could refuse would hand over that number to any Team willing to probe for it.
+
+Their aspiration does not move: they still want what they wanted, so a Client's stated demands never reveal that they have softened.
 
 Player-caused movement is a **ratchet**. Exhibits and discoveries only ever move a reservation point toward settleability, never back out toward holding firm, and the total inward travel across one Simulation is bounded per Client by the Case. Both Sides draw on that one bound — the opposing Team's favorable Exhibits and the Team's own unfavorable discoveries spend the same budget. Only an Event can move a reservation point back out.
 
@@ -145,6 +147,20 @@ The bound is the one thing about a Client authored as money; every shift against
 What a Client says about where they stand, and the only read a Team ever gets on how far their Client has moved. Authored per Client as an ordered set of bands — firm, wavering, ready — keyed to the cumulative fraction of the bound consumed, never to any single Exhibit.
 
 Reachable only by consulting the Client, so knowing where you stand costs Action Budget. A band is qualitative: no number, no reservation point, no size of any shift. The band is the authored decision; the wording is generated.
+
+## Dialogue Node
+
+A situation in which a Client speaks, and the unit generated dialogue is stored against. **The Client is the only Party that ever speaks.** Opposing counsel, the opposing Client, witnesses and the judge are presence or documents — an opposing figure with honest words would give away the reservation point a Consult is charged for, and the counsel across the table stands in for the opposing Team, whose words are the students' own.
+
+The engine defines the node **kinds**; the Case's own data multiplies out the instances, so the inventory is a closed cross-product known before it is generated. A node is **atomic** — one whole utterance, never slots assembled at runtime — so the bytes a professor reviews are the bytes a student reads. Each carries several variants, chosen by the Simulation seed *and* how many times the node has already been spoken, so a Client consulted on five Days does not repeat itself.
+
+A line is generated only where a Party speaks about something the engine computed. Anything that exists as an object in the dispute — an Event's news story, a deposition transcript, an arbitration award, a served document, the Client's opening statement of what they want — is authored prose and never reaches the model. Anything describing the machine rather than the dispute — the Morning Briefing, the Action Board, the Docket — is fixed interface copy.
+
+Generation is given the Client's persona, the Reaction Band and an authored per-Client brief, and **never a number**: no reservation point, no bound, no Par, no size of any shift. A figure a line cannot see is a figure a line cannot leak, and editing Par therefore invalidates no dialogue.
+
+The avatar's expression is derived from the Reaction Band by engine rule rather than authored on the node, so a Client's face cannot change between two variants that mean the same thing.
+
+A Case that does not supply every node and every variant does not import.
 
 ## Instructor
 
