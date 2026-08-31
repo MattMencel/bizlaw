@@ -22,7 +22,11 @@ A **draft** version is the professor's working copy: mutable, invisible to stude
 
 ## Party
 
-Someone in the dispute the game can put on screen — the two Clients, witnesses, opposing counsel, the judge. Authored per Case, appearance included: with so few garments available, a cast is told apart by hair, colour and glasses, and that is a decision the Case's author makes rather than one drawn at random.
+Someone the game **seats**. Exactly four per Case: one Client and one counsel for each Side. Authored per Case, appearance included: with so few garments available, a cast is told apart by hair, colour and glasses, and that is a decision the Case's author makes rather than one drawn at random.
+
+Not everyone in the dispute is a Party. Witnesses, experts, reporters and the judge are never seated and never portrayed; they exist as prose inside the documents that mention them. Nothing in the engine would read a record for them — an Exhibit targets a Client, an Action yields documents, and only a Client carries a persona, a brief, Reaction Bands and a reservation point.
+
+Each counsel is only ever seen by the *opposing* Side. A Team never looks at its own counsel, because the students are the counsel.
 
 ## Side
 
@@ -102,13 +106,17 @@ Provenance is what makes *doors visible, contents hidden* checkable — every di
 
 The room a Team prepares in: its own conference table, its own Client, no opponent. The Case File lies on it as papers and the Action Board sits beside them.
 
+It seats one figure. Teammates are not avatars, and nothing a Team does seats anyone else — retaining outside counsel or an expert yields a report, not a body. The framing is first-person from the Team's own side of the table.
+
 One of the two rooms a Day moves between, freely and in either direction. The door is never the gate — the Second is.
 
 ## Boardroom
 
 The room the exchange happens in, and the only place an Offer can commit. Seats three: the Team's own Client in the foreground, the opposing Client and opposing counsel across a conference table.
 
-**Only the Team's own Client is expressive.** The figures across the table are presence, not a read — a face that reacted honestly to a committed Offer would hand over the opposing Client's reservation point for free, which is the read a Consult is charged for. Their being seated is fiction, never a claim the other Team is online.
+Three is the engine's number, and the cast never changes. The seats are **roles**, not a count — mine, theirs, their counsel — and there is no fourth role for anyone to fill. Nobody arrives mid-Simulation and nobody leaves: since only a Client ever speaks, an arriving Party would change the picture and nothing else.
+
+**Only the Team's own Client is expressive.** The figures across the table are presence, not a read — a face that reacted honestly to a committed Offer would hand over the opposing Client's reservation point for free, which is the read a Consult is charged for. Their expression is authored on the Party and fixed for the whole Simulation, never derived from their Reaction Band. Their being seated is fiction, never a claim the other Team is online.
 
 ## Terms Board
 
@@ -158,7 +166,7 @@ A line is generated only where a Party speaks about something the engine compute
 
 Generation is given the Client's persona, the Reaction Band and an authored per-Client brief, and **never a number**: no reservation point, no bound, no Par, no size of any shift. A figure a line cannot see is a figure a line cannot leak, and editing Par therefore invalidates no dialogue.
 
-The avatar's expression is derived from the Reaction Band by engine rule rather than authored on the node, so a Client's face cannot change between two variants that mean the same thing.
+The avatar's expression is derived from the Reaction Band by engine rule rather than authored on the node, so a Client's face cannot change between two variants that mean the same thing. The rule reaches **the Team's own Client only**: the opposing Client's expression is authored and fixed, or the face would give away what a Consult is charged for.
 
 A Case that does not supply every node and every variant does not import.
 
@@ -222,7 +230,7 @@ Optional, per-section, at the Instructor's flag. When on, it supplies 6 of colla
 
 What a Simulation ends in when it runs out of Days without a settlement. **The Instructor is the judge** — a teaching moment, not a computed stalemate. The app assembles the record and drafts a recommendation; the Instructor writes the award and the rationale that actually stand.
 
-Students watch a judgment beat with both Sides present. Nothing about the outcome reaches them until Release.
+Students watch a judgment beat with both Sides present: the award arrives as a document in the Boardroom, over the standing three. There is no judge at the table — the judge is the Instructor, who was never a Party — and the Client says nothing, because the only honest thing it could speak to is an award invisible until Release. Nothing about the outcome reaches them until Release.
 
 ## Arbitration Packet
 
