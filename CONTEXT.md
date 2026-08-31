@@ -174,6 +174,8 @@ A Case that does not supply every node and every variant does not import.
 
 Everything students write inside a Simulation: the note attached to an Offer, the deliberation threads anchored to a staged Offer, and the Peer Evaluation's written line per teammate. All of it is Team-internal or Instructor-bound — nothing a student writes ever crosses to the opposing Side.
 
+**It stays in the app, and then it stops existing.** Prose is the `:prose` tier under Retention: destroyed 30 days after the Section's end date, ahead of the graded skeleton it sits inside. The Peer Evaluation line goes with it and the score it produced survives, so a late collaboration appeal is answered from the number rather than the sentence. The Offer note goes with it too — the Rubric scores legal strategy from the Docket precisely so that text is never grading evidence, which leaves the note no evidentiary job to protect.
+
 **No model ever reads it.** The LLM writes Client lines and reads nothing a student typed: no digest of deliberation for the Instructor, no characterisation of what a Team argued, no safety pass before a teammate sees a message. The load-bearing reason is consent, not architecture — student prose is an educational record this product has no agreement to send to a vendor, and the `zdr: true` pinning in ADR 0001 protects Case content as product IP, which is a promise about the professor's work rather than the students'. The architectural reason corroborates: student text does not exist at case-authoring time, so any read would be a runtime call into a web tier that holds no API key. It is the weaker of the two, because a background job satisfies it.
 
 A digest would also be the objection the Rubric already ruled on. Legal strategy scores from the Docket rather than from keyword-matched text; a model-written summary the Instructor grades from is that objection wearing a better coat, and one they do not grade from is a summary of threads capped by one commit per Side per Day.
@@ -183,6 +185,20 @@ The invariant reaches past the model to any processor that receives data inciden
 What replaces a digest is structure the design already has. Deliberation is anchored to a staged Offer rather than being a general chat, so a thread renders where its Offer sits in the Docket, attributed and in Day order — the Instructor reads prose in place, at full fidelity, and it is inside their live visibility alongside the Dockets and Case Files. Nothing catches abusive prose except the person already reading it, which is the answer in any graded group work.
 
 Enforcement matches the Case import gate rather than resting on review: the LLM client is reachable only from the generation rake task's path and is never autoloaded into the web tier, asserted by a spec, so a runtime read fails to load.
+
+## Retention
+
+Every table declares a tier — `:prose`, `:skeleton` or `:authored` — and a spec fails on any table that declares none. The scheduled purge reads the declaration rather than a maintained list, so a new prose-bearing table added without a tier breaks the build instead of quietly retaining student writing forever.
+
+`:prose` is Student Prose. `:skeleton` is the graded shape: Docket, committed Offers, outcome, scores, revealed ranges, Attribution, and the generated Client lines with their utterance index. `:authored` is Case rows and their pinned Case Versions — the professor's work, never a student record, never purged.
+
+**Prose is destroyed 30 days after the Section's end date; the skeleton one year after it.** Both are hard deletes, because a `deleted_at` row still holding the prose is not a purge and a soft-deleted skeleton keeps every student name forever. The clocks are short because the app is not the grade book: the grade of record leaves through the Instructor into the school's records at Release, so what the run owes afterwards is evidence for a dispute, not a transcript. Nothing survives a Section purge but the `:authored` tier — the Section shell and its roster go with the run.
+
+**The anchor is a date, not an event.** A Section is given an end date when it is created, because a term knows its ending before it starts. An explicit *close the Section* act never gets performed, and deriving the end from the last Release never fires for a Section holding one stalled Simulation. Release therefore has no retention effect at all; it gates visibility and nothing else. The date never force-closes play, the Instructor may move it, moving it later after a purge revives nothing, and the Section board warns as a purge approaches — a warning rather than a block, since a block would reintroduce the failure the date was chosen to avoid.
+
+**A purged pointer renders as a tombstone, never as silence** — *3 messages, purged*, with attribution and Day intact. Silence would read as *this student wrote nothing*, the most damaging wrong inference available, on the one dimension graded per student.
+
+Two things are refused deliberately. There is **no export** ahead of the prose purge: it would be a bulk export of student writing relocated to a laptop, uncontrolled and permanent, and it would make the policy decorative. And there is **no per-student erasure** — Attribution sits on every spend, so removing one student guts their Team's Docket and damages their teammates' record. The answer to a withdrawal is the Section clock. A named gap, not an oversight.
 
 ## Instructor
 
@@ -194,7 +210,7 @@ The Instructor's powers over a running Simulation are deliberately few: force-cl
 
 An Instructor's class group, and the unit everything configurable hangs off. One Section runs many concurrent Simulations of one Case.
 
-Set per Section: the Case, the number of Days, the deadline schedule, Action Budget size, Client difficulty, the Peer Evaluation flag, and the Event Deck Profile. **Par is not** — it is authored in the Case, and a Section that could move it could not be compared to another. Rubric weights are configurable but freeze when the Section's first Simulation starts, because the Rubric is published to students on day one.
+Set per Section: the Case, the number of Days, the deadline schedule, Action Budget size, Client difficulty, the Peer Evaluation flag, the Event Deck Profile, and an **end date**, which is the anchor every Retention clock is measured from. **Par is not** — it is authored in the Case, and a Section that could move it could not be compared to another. Rubric weights are configurable but freeze when the Section's first Simulation starts, because the Rubric is published to students on day one.
 
 Day count and Action Budget arrive with the Case's reference values, and a Section that changes either is marked as no longer comparable to one that did not — Par assumed those numbers. **Client difficulty** makes an authored Client harder or easier to satisfy; it never swaps in a different Client, so a Case authors one of each, not three.
 
@@ -258,6 +274,6 @@ The single Instructor action per Simulation that makes outcome, scores and debri
 
 What the app hands the Instructor when a Simulation ends: the outcome, both Clients' private ranges, each Side's Par against what was actually settled, the full Docket, and the provisional scores with their evidence trails. The Instructor runs the debrief; the packet is only what is in the envelope.
 
-Student prose does not travel in it. Deliberation threads and Offer notes stay in the application, and the packet points into the run rather than carrying them — which is what keeps it from being a bulk export of student writing.
+Student prose does not travel in it. Deliberation threads and Offer notes stay in the application, and the packet points into the run rather than carrying them — which is what keeps it from being a bulk export of student writing. Those pointers resolve to nothing once the prose is purged, and render as a tombstone rather than as an empty thread.
 
 Students get a narrower view of their own at Release: the outcome, both Clients' ranges revealed, their own Side's Par against what they settled, and their own Docket. The *other* Side's Docket is a per-Section flag, default off — it is the most instructive thing in the packet and the one that names individual students to their opponents.
