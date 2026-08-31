@@ -170,9 +170,23 @@ The avatar's expression is derived from the Reaction Band by engine rule rather 
 
 A Case that does not supply every node and every variant does not import.
 
+## Student Prose
+
+Everything students write inside a Simulation: the note attached to an Offer, the deliberation threads anchored to a staged Offer, and the Peer Evaluation's written line per teammate. All of it is Team-internal or Instructor-bound — nothing a student writes ever crosses to the opposing Side.
+
+**No model ever reads it.** The LLM writes Client lines and reads nothing a student typed: no digest of deliberation for the Instructor, no characterisation of what a Team argued, no safety pass before a teammate sees a message. The load-bearing reason is consent, not architecture — student prose is an educational record this product has no agreement to send to a vendor, and the `zdr: true` pinning in ADR 0001 protects Case content as product IP, which is a promise about the professor's work rather than the students'. The architectural reason corroborates: student text does not exist at case-authoring time, so any read would be a runtime call into a web tier that holds no API key. It is the weaker of the two, because a background job satisfies it.
+
+A digest would also be the objection the Rubric already ruled on. Legal strategy scores from the Docket rather than from keyword-matched text; a model-written summary the Instructor grades from is that objection wearing a better coat, and one they do not grade from is a summary of threads capped by one commit per Side per Day.
+
+The invariant reaches past the model to any processor that receives data incidentally — error tracking, analytics, log aggregation — as a rule about the payload rather than a ban on the tools: those may run, with student prose scrubbed from what leaves. The host is a different case; data on the application's own volume is tenancy, not disclosure. No consent flow is built, because the invariant is what removes the need for one.
+
+What replaces a digest is structure the design already has. Deliberation is anchored to a staged Offer rather than being a general chat, so a thread renders where its Offer sits in the Docket, attributed and in Day order — the Instructor reads prose in place, at full fidelity, and it is inside their live visibility alongside the Dockets and Case Files. Nothing catches abusive prose except the person already reading it, which is the answer in any graded group work.
+
+Enforcement matches the Case import gate rather than resting on review: the LLM client is reachable only from the generation rake task's path and is never autoloaded into the web tier, asserted by a spec, so a runtime read fails to load.
+
 ## Instructor
 
-Runs the Simulations of one Section: forms Teams, pairs them into opposing Sides, sets the pace, plays Events, judges an arbitration, and grades. Not a player — the Instructor sees both Sides' Dockets, Case Files and private Client ranges throughout.
+Runs the Simulations of one Section: forms Teams, pairs them into opposing Sides, sets the pace, plays Events, judges an arbitration, and grades. Not a player — the Instructor sees both Sides' Dockets, Case Files, deliberation threads and private Client ranges throughout.
 
 The Instructor's powers over a running Simulation are deliberately few: force-close or extend a Day, play an Event card, waive a Second for one Day. Everything else is set before play or rendered after it.
 
@@ -243,5 +257,7 @@ The single Instructor action per Simulation that makes outcome, scores and debri
 ## Debrief Packet
 
 What the app hands the Instructor when a Simulation ends: the outcome, both Clients' private ranges, each Side's Par against what was actually settled, the full Docket, and the provisional scores with their evidence trails. The Instructor runs the debrief; the packet is only what is in the envelope.
+
+Student prose does not travel in it. Deliberation threads and Offer notes stay in the application, and the packet points into the run rather than carrying them — which is what keeps it from being a bulk export of student writing.
 
 Students get a narrower view of their own at Release: the outcome, both Clients' ranges revealed, their own Side's Par against what they settled, and their own Docket. The *other* Side's Docket is a per-Section flag, default off — it is the most instructive thing in the packet and the one that names individual students to their opponents.

@@ -97,3 +97,31 @@ serve GLM and several are US-hosted. Record the model id and prompt version on
 every generated line. Model *choice* stays open — at roughly $21 per cohort on
 Haiku 4.5 and ~$3 on GLM-5.3-Flash, cost is not a design driver, and dialogue
 quality is the last thing to economize on.
+
+**The boundary runs both ways: the model never reads student prose.** The
+generated-dialogue rule above governs what the model writes; this governs what it
+is given. Offer notes, deliberation threads, Peer Evaluation lines and anything a
+Team wrote are never sent to a model — not as a grading digest for the instructor,
+not as a characterisation of what a team argued, not as a safety pass before a
+teammate reads a message.
+
+The load-bearing reason is consent rather than architecture. `zdr: true` is bought
+above to protect authored case content, which is the professor's work and the
+product; it is not a promise about the students, whose prose is an educational
+record this product has no agreement to send to a vendor. The architectural reason
+corroborates — student text does not exist at case-authoring time, so any read is
+necessarily a runtime call into a web tier that holds no API key — but it is the
+weaker of the two, because a background job satisfies it and the consent reason
+survives any change of architecture.
+
+The rule reaches past model vendors to any processor that receives data
+incidentally — error tracking, analytics, log aggregation — as a constraint on the
+payload rather than a ban on the tools: run them, with student prose scrubbed from
+what leaves. The host is a separate case, since data on the application's own
+volume is tenancy rather than disclosure. Build no scrubbing framework in advance;
+apply the rule when a telemetry vendor is actually chosen.
+
+Enforce it structurally rather than by review, matching the case-import gate: the
+LLM client is required only from the generation rake task's path and is never
+autoloaded into the web tier, with a spec asserting it, so a runtime read fails to
+load rather than failing a code review.
