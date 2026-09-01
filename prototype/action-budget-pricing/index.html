@@ -240,7 +240,7 @@ const DEFAULTS = {
   budgetPerDayIsPooled: 0, // 1 = unspent Budget carries to the next Day
 
   // What an Action costs / how many Days until its result lands
-  costConsult:      2, leadConsult:  0,
+  costConsult:      1, leadConsult:  0,
   costDocs:         2, leadDocs:     1,
   costDepose:       3, leadDepose:   2,
   costResearch:     2, leadResearch: 1,
@@ -249,6 +249,27 @@ const DEFAULTS = {
   lateConsultSlope: 0,     // how much dearer a Consult gets as the Simulation runs on.
                            // 0 = flat. 1 = double price by the final Day. A late Consult is
                            // a last-minute call on a busy client; an early one is routine.
+  // #281. The Budget is NOT flat across the Simulation. Past the knee the preparation
+  // allowance collapses to roughly the price of a Consult and the exchange half widens:
+  // measured, the closing Days spend their exchange half to within 0.2 of 2 while the
+  // whole preparation allowance expires. Not an Action — an engine number, so it collides
+  // with nothing closed and needs no authored prose.
+  closingKnee:   0.60,     // fraction of the Simulation past which the closing Budget applies (1 = off)
+  closingPrep:      2,     // preparation points per Day past the knee
+  closingExch:      3,     // exchange points per Day past the knee
+
+  // #281's rejected candidate, kept as the arm that was run. A preparation-half Action
+  // that multiplies the shift of an Exhibit the Team already holds. sharpenMult 1 = off,
+  // which is the setting of record: the multiplier has no useful gradient (1.1 and 8.0
+  // give the same answer), it costs the case-worker rubric points to spend, and it pays
+  // for HOLDING an unplayed Exhibit, which is the dump #277 priced out wearing a hat.
+  costSharpen:      2,     // prep-half cost
+  leadSharpen:      0,     // Days until the work lands on the Exhibit
+  sharpenMult:   1.00,     // 1.0 = the Action does not exist. This is the answer.
+  sharpenScope:     0,     // 0 = one held Exhibit, 1 = every held unsharpened Exhibit
+  sharpenFrom:   0.65,     // fraction of the Simulation before a Team will buy it
+  sharpenCap:       3,     // how many times one Exhibit may be sharpened
+
   costOffer:        1,                    // committing an Offer (exchange pool)
   costPlayExhibit:  1,                    // per Exhibit riding the Offer (exchange pool)
   endgameOvershoot: 0.15,                 // how far past the floor a Team will go to close
@@ -258,12 +279,12 @@ const DEFAULTS = {
   shiftFavorable:     0.13, // a played favorable Exhibit, as a fraction of the target's bound
   shiftUnfavorable:   0.06, // a self-discovery landing on your own Client — the "armour" knob
   bandWavering:       0.33, // cumulative fraction consumed at which the Client says "wavering"
-  bandReady:          0.66, // ...and "ready"
+  bandReady:          0.80, // ...and "ready". #280 authored this edge LATE, and there are two bands.
   priorShift:         0.10, // what a Team ASSUMES one blow was worth, having seen it land
                             // but not its size. The gap between this and the truth is the
                             // drift a Consult exists to correct.
   bandFourth:         0.88, // a fourth band's edge — read only when bandCount is 4
-  bandCount:             3, // 2, 3 or 4. Not free: #272's inventory is Consult x Band.
+  bandCount:             2, // 2, 3 or 4. Not free: #272's inventory is Consult x Band.
   beliefMode:            1, // 1 = a Side learns its own reservation point ONLY by consulting.
                             // 0 = the omniscient model #277 ran on, kept for comparison.
   eventCount:            3, // cards drawn from the Event Deck for this Simulation
@@ -292,6 +313,9 @@ const KNOB_GROUPS = {
     ['budgetPerDay', 'Action Budget per Day'],
     ['exchangePool', 'Exchange half (absolute pts/Day)'],
     ['budgetPerDayIsPooled', 'Budget carries over (0/1)'],
+    ['closingKnee', 'Closing Days begin at (fraction)'],
+    ['closingPrep', '… preparation pts/Day'],
+    ['closingExch', '… exchange pts/Day'],
   ],
   'k-actions': [
     ['costConsult', 'Consult the Client — cost'],   ['leadConsult', '… lands after (Days)'],
@@ -304,6 +328,10 @@ const KNOB_GROUPS = {
     ['costOffer', 'Commit an Offer — cost'],
     ['costPlayExhibit', 'Play one Exhibit — cost'],
     ['endgameOvershoot', 'Endgame: how far past the floor'],
+    ['costSharpen', 'Sharpen an Exhibit — cost'],    ['leadSharpen', '… lands after (Days)'],
+    ['sharpenMult', '… multiplies its shift by (1 = off)'],
+    ['sharpenScope', '… one Exhibit (0) or all held (1)'],
+    ['sharpenFrom', '… buyable from (fraction)'],    ['sharpenCap', '… times one Exhibit may be sharpened'],
   ],
   'k-client': [
     ['bound', 'The bound (money unit)'],
@@ -374,6 +402,8 @@ function newSide(role, P) {
     lastBand: null,
     spentTotal: 0,
     wastedBudget: 0,        // Budget that expired unspent
+    wastePrepByDay: [], wasteExchByDay: [], heldByDay: [],  // #281: WHERE the slack sits
+    sharpens: 0, pendingSharpen: [],
     // What this Side BELIEVES about its own Client. Starts true — nothing has happened
     // yet on Day 1 — and then goes stale unless a Consult refreshes it.
     beliefConsumed: 0,
@@ -477,6 +507,7 @@ const STRATEGIES = {
     offerFrom: 0.20,     // fraction of the Simulation before the first Offer
     concede: 0.10,
     relevanceAware: true,
+    sharpens: true,
     expertDay: 0.15,
   },
   hoarder: {
@@ -488,6 +519,7 @@ const STRATEGIES = {
     offerFrom: 0.80,
     concede: 0.30,
     relevanceAware: false,
+    sharpens: true,
     expertDay: 0.15,
   },
   blind: {
@@ -499,6 +531,7 @@ const STRATEGIES = {
     offerFrom: 0.20,
     concede: 0.10,
     relevanceAware: false,
+    sharpens: true,
     expertDay: 0.15,
   },
   sprinter: {
@@ -510,6 +543,7 @@ const STRATEGIES = {
     offerFrom: 0.10,
     concede: 0.28,
     relevanceAware: true,
+    sharpens: true,
     expertDay: 9,
   },
   quietWorker: {
@@ -521,6 +555,7 @@ const STRATEGIES = {
     offerFrom: 0.20,
     concede: 0.10,
     relevanceAware: true,
+    sharpens: true,
     expertDay: 0.15,
   },
   bandReader: {
@@ -532,6 +567,7 @@ const STRATEGIES = {
     offerFrom: 0.20,
     concede: 0.10,
     relevanceAware: true,
+    sharpens: true,
     expertDay: 0.15,
     bandTactic: true,
   },
@@ -544,6 +580,7 @@ const STRATEGIES = {
     offerFrom: 0.20,
     concede: 0.10,
     relevanceAware: true,
+    sharpens: true,
     expertDay: 0.15,
     bandTactic: true,
   },
@@ -556,6 +593,7 @@ const STRATEGIES = {
     offerFrom: 0.20,
     concede: 0.10,
     relevanceAware: true,
+    sharpens: true,
     expertDay: 0.15,
     bandCut: true,
   },
@@ -568,6 +606,7 @@ const STRATEGIES = {
     offerFrom: 0.20,
     concede: 0.10,
     relevanceAware: true,
+    sharpens: true,
     expertDay: 0.15,
     onEvent: true,
   },
@@ -580,6 +619,7 @@ const STRATEGIES = {
     offerFrom: 0.20,
     concede: 0.10,
     relevanceAware: true,
+    sharpens: true,
     expertDay: 0.99,
   },
 };
@@ -627,10 +667,27 @@ function simulate(P, stratP, stratD, seed) {
     // Refill the two halves of the Budget.
     for (const s of sides) {
       const carry = P.budgetPerDayIsPooled >= 1;
-      const exchQuota = Math.min(P.exchangePool, P.budgetPerDay);
-      const prepQuota = P.budgetPerDay - exchQuota;
+      // Past the knee the Day is a different Day: little to prepare, more to trade.
+      const closing = (day / D) > P.closingKnee;
+      const flatExch = Math.min(P.exchangePool, P.budgetPerDay);
+      const exchQuota = closing ? P.closingExch : flatExch;
+      const prepQuota = closing ? P.closingPrep : P.budgetPerDay - flatExch;
       if (!carry) { s.wastedBudget += s.prep + s.exch; s.prep = prepQuota; s.exch = exchQuota; }
       else { s.prep += prepQuota; s.exch += exchQuota; }
+    }
+
+    // Sharpening work lands: the Exhibit it was aimed at is now worth more.
+    for (const s of sides) {
+      const landing = s.pendingSharpen.filter(p => p.landsOn === day);
+      s.pendingSharpen = s.pendingSharpen.filter(p => p.landsOn !== day);
+      for (const p of landing) {
+        for (const x of p.targets) {
+          if (!s.exhibits.includes(x)) continue;   // already played: the work is wasted
+          x.shift *= P.sharpenMult;
+          x.sharpenedTimes = (x.sharpenedTimes || 0) + 1;
+          entry[s.role].push('Preparation lands — an Exhibit we hold now bites harder.');
+        }
+      }
     }
 
     // Actions taken on earlier Days land now.
@@ -714,6 +771,28 @@ function simulate(P, stratP, stratD, seed) {
         s.actionsPaidOff++; // knowing where you stand is a payoff
       }
 
+      // #281's rejected candidate, off unless sharpenMult is raised above 1.
+      if (st.sharpens && P.sharpenMult > 1 && progress >= P.sharpenFrom) {
+        let g2 = 0;
+        while (s.prep >= P.costSharpen && day + P.leadSharpen <= D && g2++ < 12) {
+          const aimed = new Set(s.pendingSharpen.flatMap(p => p.targets));
+          const eligible = s.exhibits.filter(x => (x.sharpenedTimes || 0) < P.sharpenCap && !aimed.has(x));
+          if (!eligible.length) break;
+          const targets = P.sharpenScope >= 1 ? eligible : [eligible[0]];
+          s.prep -= P.costSharpen; s.spentTotal += P.costSharpen;
+          s.actionsTaken++; s.sharpens++;
+          if (P.leadSharpen <= 0) {
+            for (const x of targets) { x.shift *= P.sharpenMult; x.sharpenedTimes = (x.sharpenedTimes || 0) + 1; }
+          } else {
+            s.pendingSharpen.push({ landsOn: day + P.leadSharpen, targets });
+          }
+          entry[s.role].push(
+            `Prepare ${targets.length > 1 ? 'the Exhibits' : 'an Exhibit'} — ` +
+            `${P.costSharpen} Budget${P.leadSharpen ? `, lands Day ${day + P.leadSharpen}.` : ', lands today.'}`);
+          if (P.sharpenScope >= 1) break;   // one buy covers everything held
+        }
+      }
+
       // Ordinary discovery, while this strategy is still acquiring.
       const discovery = menu.filter(a => a.yields > 0 && a.key !== 'expert');
       let guard = 0;
@@ -778,6 +857,7 @@ function simulate(P, stratP, stratD, seed) {
             if (relevant) {
               s.relevanceHits++;
               s.actionsPaidOff++;
+              if (x.sharpenedTimes) s.actionsPaidOff += x.sharpenedTimes;
               const r = shiftClient(opp, x.shift, P);
               if (r.clipped) s.exhibitsClipped++;
             }
@@ -790,6 +870,11 @@ function simulate(P, stratP, stratD, seed) {
       }
     }
 
+    for (const s of sides) {
+      s.wastePrepByDay[day - 1] = s.prep;
+      s.wasteExchByDay[day - 1] = s.exch;
+      s.heldByDay[day - 1] = s.exhibits.length;
+    }
     log.push(entry);
   }
 
@@ -872,6 +957,8 @@ function score(s, value, P) {
     exhibitsPlayed: s.exhibitsPlayed, exhibitsHeld: s.exhibits.length,
     relevanceHits: s.relevanceHits, clipped: s.exhibitsClipped,
     consults: s.consults, actions: s.actionsTaken, wasted: s.wastedBudget,
+    sharpens: s.sharpens,
+    wastePrepByDay: s.wastePrepByDay, wasteExchByDay: s.wasteExchByDay, heldByDay: s.heldByDay,
     // How wrong the Team's picture of its own Client was, and how often daily
     // consulting pinned it exactly. The binary-search trap, measured.
     beliefErr: s.beliefReads ? s.beliefErrSum / s.beliefReads : null,
@@ -889,7 +976,8 @@ function sweep(P, runs) {
   for (const key of Object.keys(STRATEGIES)) {
     const acc = { par: 0, total: 0, quality: 0, strategy: 0, efficiency: 0,
                   arb: 0, played: 0, held: 0, wasted: 0, n: 0,
-                  consults: 0, bErr: 0, bErrN: 0, bBest: 0, pinned: 0 };
+                  consults: 0, bErr: 0, bErrN: 0, bBest: 0, pinned: 0,
+                  lateSlack: 0, sharpens: 0 };
     for (let i = 0; i < runs; i++) {
       const r = simulate(P, key, 'worker', 1000 + i * 7919);
       const me = r.plaintiff;
@@ -900,6 +988,14 @@ function sweep(P, runs) {
       acc.played += me.exhibitsPlayed; acc.held += me.exhibitsHeld;
       acc.wasted += me.wasted; acc.n++;
       acc.consults += me.consults; acc.pinned += me.pinned;
+      acc.sharpens += me.sharpens;
+      // #281: preparation Budget that expired on the closing Days specifically. Slack in
+      // general is the price of per-Day non-carry (#277); slack concentrated at the end is
+      // a stretch of Simulation where a Team has nothing to do.
+      // The window is fixed at the last 40% of the Simulation, NOT at closingKnee, so the
+      // number stays comparable between a flat Budget and a tapered one.
+      const from = Math.ceil(Math.round(P.days) * 0.6);
+      for (let d = from; d < me.wastePrepByDay.length; d++) acc.lateSlack += me.wastePrepByDay[d];
       if (me.beliefErr !== null) { acc.bErr += me.beliefErr; acc.bBest += me.beliefBest; acc.bErrN++; }
     }
     const n = acc.n;
@@ -908,6 +1004,7 @@ function sweep(P, runs) {
       strategy: acc.strategy / n, efficiency: acc.efficiency / n,
       arbRate: acc.arb / n, played: acc.played / n, held: acc.held / n,
       wasted: acc.wasted / n, consults: acc.consults / n,
+      lateSlack: acc.lateSlack / n, sharpens: acc.sharpens / n,
       beliefErr: acc.bErrN ? acc.bErr / acc.bErrN : null,
       beliefBest: acc.bErrN ? acc.bBest / acc.bErrN : null,
       pinned: acc.pinned / n,
@@ -953,7 +1050,7 @@ function renderSweep(res) {
   let h = '<table><thead><tr>' +
     '<th>Archetype</th><th>Reaches Par</th><th>Rubric /80</th>' +
     '<th>Settlement /40</th><th>Strategy /30</th><th>Efficiency /10</th>' +
-    '<th>Exhibits played</th><th>Left unplayed</th><th>To arbitration</th>' +
+    '<th>Exhibits played</th><th>Left unplayed</th><th>Closing-Days slack</th><th>To arbitration</th>' +
     '</tr></thead><tbody>';
   for (const k of order) {
     const r = res[k];
@@ -964,6 +1061,7 @@ function renderSweep(res) {
       `<td class="num">${n1(r.total)}</td><td class="num">${n1(r.quality)}</td>` +
       `<td class="num">${n1(r.strategy)}</td><td class="num">${n1(r.efficiency)}</td>` +
       `<td class="num">${r.played.toFixed(1)}</td><td class="num">${r.held.toFixed(1)}</td>` +
+      `<td class="num">${r.lateSlack.toFixed(1)}</td>` +
       `<td class="num">${pct(r.arbRate)}</td></tr>`;
   }
   h += '</tbody></table>';
