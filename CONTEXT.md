@@ -186,9 +186,17 @@ The bound is the one thing about a Client authored as money; every shift against
 
 ## Reaction Band
 
-What a Client says about where they stand, and the only read a Team ever gets on how far their Client has moved. Authored per Client as an ordered set of bands — firm, wavering, ready — keyed to the cumulative fraction of the bound consumed, never to any single Exhibit.
+What a Client says about where they stand, and the only read a Team ever gets on how far their Client has moved. Authored per Client as an ordered set of bands keyed to the cumulative fraction of the bound consumed, never to any single Exhibit.
+
+**There are two — *firm* and *ready* — and the edge is authored late, around four fifths of the bound.** Both halves of that are measured rather than chosen. An early edge is a Client crying wolf: the Team reacts while nothing has really happened, and pays for it. And a third band earns nothing a second does not, while a fourth is strictly worse than three at every threshold tried — so the inventory question never becomes a trade.
 
 Reachable only by consulting the Client, so knowing where you stand costs Action Budget. A band is qualitative: no number, no reservation point, no size of any shift. The band is the authored decision; the wording is generated.
+
+**A band is a bucket, so it is imprecise near the ends by construction** — a Client four fifths of the way through its bound and one that has exhausted it read the same. Nothing is owed to that: a clipped Exhibit still scores, so a Team playing into an exhausted bound gets a true signal, a useless one, and full credit alike.
+
+**What a Consult is worth is set by the Event Deck, not by the thresholds.** A Team can see every blow land — service is visible and its direction legible — so what it lacks is the *size*, and its own running count drifts rather than breaking. An Event is the one thing that moves a Client back **outward**, which is the single moment a Team's picture is not merely stale but pointing the wrong way. So the Consult is an instrument used rarely and on an occasion, never a purchase made on a timetable, and it is worth **nothing at all in a Section whose Event Deck Profile draws no Events**.
+
+That is also why it is cheap. A Consult costs **1**: a Team's own reservation point is a target for shifts and nothing else, so no decision the Rubric rewards actually runs on it, and a Team that never consults is not thereby playing badly. Priced any higher, consulting is a tax on the Teams that stay in character. Priced this low, consulting on every Day is still self-defeating — the band's imprecision is what stops a Team buying its way to the number, and the Consult's own price is what stops it trying.
 
 ## Dialogue Node
 
@@ -317,6 +325,8 @@ Students watch a judgment beat with both Sides present: the award arrives as a d
 ## Arbitration Packet
 
 What the app hands the Instructor to judge from: both Sides' Pars, both Clients' private ranges, the full Docket, the final Offers on the table, and the gap between them — plus a recommended award and its rationale, drawn from authored factors only. A draft to accept or overwrite, never a verdict.
+
+**The drafted award is final-offer: it is one of the two final Offers, whichever sits closer to the merits, and never a split between them.** A draft that splits the difference pays intransigence — a Side that never moves off its opening demand drags the midpoint with it, and since a Client's reservation point is private, refusing to negotiate becomes the strongest play available. Choosing between the two positions instead makes the unreasonable one the losing one. The Instructor still overwrites whatever they like; this is only what the app proposes.
 
 ## Release
 
