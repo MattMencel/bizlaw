@@ -113,6 +113,16 @@
       number is moved by the opposing Team's Exhibits, so ramping from it would set one Side's grading scale
       by how hard the other Side worked. The spread is a knob; widening it hands a Team that never worked the
       case most of the forty points for turning up.</li>
+    <li><strong>A Side does not know its own Client's reservation point.</strong> Added for
+      <a href="https://github.com/MattMencel/bizlaw/issues/280">#280</a>. #277's model handed every
+      archetype the true number every Day, which is exactly the number a Consult is charged for — so
+      no Reaction Band threshold could ever move a result. A Side now carries a <em>belief</em>: it
+      counts the blows it can see land (#270 makes service visible and its direction legible) but
+      cannot see their size, so its picture drifts, and a Consult is what corrects it.</li>
+    <li><strong>Arbitration is final-offer.</strong> Also #280. The award is whichever of the two
+      last committed Offers sits closer to the merits, never a split between them. Splitting the
+      difference pays extremity, and once the reservation point is private that makes refusing to
+      negotiate the dominant strategy.</li>
     <li><strong>The exchange half is an absolute number of points, not a fraction of the Budget.</strong>
       Two points buys one Offer and one Exhibit riding it, and that ceiling is the entire brake on the dump.
       Held as a fraction it silently couples to the Budget — a fifth of ten is safe, a fifth of nine is 1.8
@@ -236,6 +246,9 @@ const DEFAULTS = {
   costResearch:     2, leadResearch: 1,
   costPress:        2, leadPress:    1,
   costExpert:       5, leadExpert:   3,
+  lateConsultSlope: 0,     // how much dearer a Consult gets as the Simulation runs on.
+                           // 0 = flat. 1 = double price by the final Day. A late Consult is
+                           // a last-minute call on a busy client; an early one is routine.
   costOffer:        1,                    // committing an Offer (exchange pool)
   costPlayExhibit:  1,                    // per Exhibit riding the Offer (exchange pool)
   endgameOvershoot: 0.15,                 // how far past the floor a Team will go to close
@@ -246,6 +259,13 @@ const DEFAULTS = {
   shiftUnfavorable:   0.06, // a self-discovery landing on your own Client — the "armour" knob
   bandWavering:       0.33, // cumulative fraction consumed at which the Client says "wavering"
   bandReady:          0.66, // ...and "ready"
+  priorShift:         0.10, // what a Team ASSUMES one blow was worth, having seen it land
+                            // but not its size. The gap between this and the truth is the
+                            // drift a Consult exists to correct.
+  bandFourth:         0.88, // a fourth band's edge — read only when bandCount is 4
+  bandCount:             3, // 2, 3 or 4. Not free: #272's inventory is Consult x Band.
+  beliefMode:            1, // 1 = a Side learns its own reservation point ONLY by consulting.
+                            // 0 = the omniscient model #277 ran on, kept for comparison.
   eventCount:            3, // cards drawn from the Event Deck for this Simulation
   eventShift:         0.08, // an Event's shift, fraction of bound; sign varies by card
 
@@ -280,6 +300,7 @@ const KNOB_GROUPS = {
     ['costResearch', 'Research precedent — cost'],  ['leadResearch', '… lands after (Days)'],
     ['costPress', 'Manage the press — cost'],       ['leadPress', '… lands after (Days)'],
     ['costExpert', 'Retain an expert — cost'],      ['leadExpert', '… lands after (Days)'],
+    ['lateConsultSlope', 'Consult gets dearer by (x/Day)'],
     ['costOffer', 'Commit an Offer — cost'],
     ['costPlayExhibit', 'Play one Exhibit — cost'],
     ['endgameOvershoot', 'Endgame: how far past the floor'],
@@ -288,8 +309,12 @@ const KNOB_GROUPS = {
     ['bound', 'The bound (money unit)'],
     ['shiftFavorable', 'A played Exhibit moves'],
     ['shiftUnfavorable', 'A bad discovery moves'],
+    ['priorShift', 'A Team assumes a blow is worth'],
     ['bandWavering', 'Band: wavering at'],
     ['bandReady', 'Band: ready at'],
+    ['bandFourth', 'Band: fourth edge at'],
+    ['bandCount', 'How many bands (2/3/4)'],
+    ['beliefMode', 'Client read costs Budget (0/1)'],
     ['eventCount', 'Event cards drawn'],
     ['eventShift', 'An Event moves'],
   ],
@@ -349,13 +374,74 @@ function newSide(role, P) {
     lastBand: null,
     spentTotal: 0,
     wastedBudget: 0,        // Budget that expired unspent
+    // What this Side BELIEVES about its own Client. Starts true — nothing has happened
+    // yet on Day 1 — and then goes stale unless a Consult refreshes it.
+    beliefConsumed: 0,
+    beliefErrSum: 0, beliefErrMin: 1, beliefReads: 0, pinnedReads: 0, observedBlows: 0,
+    _lastBandIdx: null, _lastConsultDay: -99,
   };
 }
 
-function bandOf(side, P) {
-  if (side.consumed >= P.bandReady) return 'ready';
-  if (side.consumed >= P.bandWavering) return 'wavering';
-  return 'firm';
+/* A band is a bucket of consumed bound, so what it tells a Team is an interval,
+   never a number. Two bands is one edge, four is three. */
+const BAND_NAMES = {
+  2: ['firm', 'ready'],
+  3: ['firm', 'wavering', 'ready'],
+  4: ['firm', 'wavering', 'ready', 'resigned'],
+};
+function bandCountOf(P) { return Math.min(4, Math.max(2, Math.round(P.bandCount))); }
+function bandEdges(P) {
+  const n = bandCountOf(P);
+  if (n === 2) return [P.bandReady];
+  if (n === 4) return [P.bandWavering, P.bandReady, P.bandFourth];
+  return [P.bandWavering, P.bandReady];
+}
+function bandIndex(consumed, P) {
+  const e = bandEdges(P);
+  let i = 0;
+  while (i < e.length && consumed >= e[i]) i++;
+  return i;
+}
+function bandOf(side, P) { return BAND_NAMES[bandCountOf(P)][bandIndex(side.consumed, P)]; }
+/* The interval the band leaves open. This is the whole information content of a Consult. */
+function bandRange(consumed, P) {
+  const e = bandEdges(P);
+  const i = bandIndex(consumed, P);
+  return [i === 0 ? 0 : e[i - 1], i === e.length ? 1 : e[i]];
+}
+
+/* What a Side acts on. Under beliefMode it is the Client's LAST READ position, not the
+   true one: the reservation point is private to the Client and a Consult is what buys it. */
+function effRp(s, P) {
+  if (P.beliefMode < 1) return s.rp;
+  return s.rp0 + (s.isP ? -1 : 1) * s.beliefConsumed * P.bound;
+}
+
+/* A Consult. The estimator is the midpoint of the band's interval — with one exception
+   that is the binary-search trap in the open: because the ratchet is monotone, a Team
+   that consulted YESTERDAY and sees the band change TODAY knows the Client crossed that
+   exact threshold in between, and reads the edge rather than the interval. */
+function consultBelief(s, P, day) {
+  const [lo, hi] = bandRange(s.consumed, P);
+  const i = bandIndex(s.consumed, P);
+  const pinned = s._lastBandIdx !== null && i > s._lastBandIdx && (day - s._lastConsultDay) === 1;
+  s.beliefConsumed = pinned ? lo : (lo + hi) / 2;
+  const err = Math.abs(s.beliefConsumed - s.consumed);
+  s.beliefErrSum += err;
+  s.beliefErrMin = Math.min(s.beliefErrMin, err);
+  s.beliefReads++;
+  if (pinned) s.pinnedReads++;
+  s._lastBandIdx = i;
+  s._lastConsultDay = day;
+}
+
+/* #270 makes service visible and its direction legible, and a Team watches its own bad
+   discoveries land. So a Team counts the blows against its Client — it simply cannot see
+   how hard each one hit. Its running estimate therefore drifts, and past the bound it goes
+   on counting blows that did nothing at all. Correcting that drift is a Consult's whole job. */
+function observeBlow(side, signed, P) {
+  side.beliefConsumed = Math.min(1, Math.max(0, side.beliefConsumed + (signed >= 0 ? P.priorShift : -P.priorShift)));
+  side.observedBlows++;
 }
 
 /* Move a Client's reservation point inward. Ratchets, clips at the bound,
@@ -364,6 +450,7 @@ function shiftClient(side, fraction, P) {
   const room = Math.max(0, 1 - side.consumed);
   const applied = Math.min(fraction, room);
   side.consumed += applied;
+  observeBlow(side, 1, P);
   // Inward = toward settleability. Plaintiff's floor falls; defendant's ceiling rises.
   side.rp += (side.isP ? -1 : 1) * applied * P.bound;
   return { applied, clipped: applied < fraction - 1e-9 };
@@ -374,6 +461,7 @@ function eventClient(side, signedFraction, P) {
   if (signedFraction >= 0) return shiftClient(side, signedFraction, P);
   const back = Math.min(-signedFraction, side.consumed);
   side.consumed -= back;
+  observeBlow(side, -1, P);
   side.rp -= (side.isP ? -1 : 1) * back * P.bound;
   return { applied: -back, clipped: false };
 }
@@ -424,6 +512,65 @@ const STRATEGIES = {
     relevanceAware: true,
     expertDay: 9,
   },
+  quietWorker: {
+    label: 'Works the case, never consults',
+    blurb: 'Identical to the case-worker in every way except that it never spends Budget to read its own Client. The control: whatever separates it from the case-worker is what a Consult is worth.',
+    holdUntil: 0,
+    discoverUntil: 0.65,
+    consultEvery: 99,
+    offerFrom: 0.20,
+    concede: 0.10,
+    relevanceAware: true,
+    expertDay: 0.15,
+  },
+  bandReader: {
+    label: 'Plays the band',
+    blurb: 'Consults often and acts on what it hears: keeps buying discovery while the Client reads “firm”, and closes hard once it reads “ready”.',
+    holdUntil: 0,
+    discoverUntil: 0.65,
+    consultEvery: 2,
+    offerFrom: 0.20,
+    concede: 0.10,
+    relevanceAware: true,
+    expertDay: 0.15,
+    bandTactic: true,
+  },
+  dailyConsult: {
+    label: 'Consults every Day',
+    blurb: 'The probe. Buys the band on every single Day, which is the only way a monotone ratchet can be bracketed — the strategy the thresholds must not reward.',
+    holdUntil: 0,
+    discoverUntil: 0.65,
+    consultEvery: 1,
+    offerFrom: 0.20,
+    concede: 0.10,
+    relevanceAware: true,
+    expertDay: 0.15,
+    bandTactic: true,
+  },
+  bandCutter: {
+    label: 'Stops digging when the Client moves',
+    blurb: 'Reads the band as a warning about its own discovery rather than about the negotiation: once the Client stops reading “firm”, it stops buying discovery and spends the rest on the exchange.',
+    holdUntil: 0,
+    discoverUntil: 0.65,
+    consultEvery: 2,
+    offerFrom: 0.20,
+    concede: 0.10,
+    relevanceAware: true,
+    expertDay: 0.15,
+    bandCut: true,
+  },
+  eventReader: {
+    label: 'Consults when an Event lands',
+    blurb: 'Buys no band on a timetable. Consults only after an Event has hit its own Client — the one moment its picture is not merely stale but pointing the wrong way.',
+    holdUntil: 0,
+    discoverUntil: 0.65,
+    consultEvery: 99,
+    offerFrom: 0.20,
+    concede: 0.10,
+    relevanceAware: true,
+    expertDay: 0.15,
+    onEvent: true,
+  },
   lateExpert: {
     label: 'Buys the expert late',
     blurb: 'Plays like a case-worker but delays the retained expert as long as its lead time allows. Tests whether lead time is the only brake.',
@@ -470,6 +617,7 @@ function simulate(P, stratP, stratD, seed) {
     // Events fire first — they are the only thing that can move a Client outward.
     for (const e of events.filter(e => e.day === day)) {
       const r = eventClient(e.target, e.sign * P.eventShift, P);
+      e.target._eventPending = true;
       entry.events.push(
         `An Event ${e.sign > 0 ? 'softens' : 'hardens'} the ${e.target.role}’s Client ` +
         `(${(Math.abs(r.applied) * 100).toFixed(0)}% of the bound${e.sign < 0 ? ', restoring travel' : ''}).`
@@ -522,22 +670,45 @@ function simulate(P, stratP, stratD, seed) {
       const st = strat[s.role];
       const progress = day / D;
 
+      // What hearing a band changes, over and above keeping the concession curve honest.
+      // Only a Side that has actually consulted has a band to act on.
+      const heard = (st.bandTactic || st.bandCut) ? s.lastBand : null;
+      // Two opposite readings of the same band, and the sweep is here to choose between them.
+      // bandTactic hears "firm" as room to keep digging. bandCut hears anything past "firm"
+      // as its OWN discovery backfiring — a Team's unfavourable finds spend the same bound
+      // the opponent's Exhibits do, and digging is the only half of that a Team controls.
+      const discoverUntil = st.bandCut
+        ? (heard && heard !== 'firm' ? 0 : st.discoverUntil)
+        : st.discoverUntil + (heard === 'firm' ? 0.15 : 0);
+      const concedeRate = st.concede * (heard === 'ready' || heard === 'resigned' ? 1.6 : 1);
+
       // ── Preparation half ──
       // The retained expert, if this strategy wants it and the lead time still allows it.
       const expertLatest = D - byKey.expert.lead;
       const wantExpert = !s._boughtExpert &&
         (progress >= st.expertDay || day >= expertLatest) &&
-        day <= expertLatest && progress <= st.discoverUntil + 0.2;
+        day <= expertLatest && progress <= discoverUntil + 0.2;
       if (wantExpert && s.prep >= byKey.expert.cost) {
         spend(s, byKey.expert, day, entry);
         s._boughtExpert = true;
       }
 
       // Consult the Client — the only way to read the Reaction Band.
-      if (day % st.consultEvery === 0 && s.prep >= byKey.consult.cost) {
-        spend(s, byKey.consult, day, entry);
+      // Price may rise across the Simulation: a late Consult is a last-minute call on a
+      // client who has other things on, an early one is a routine check-in.
+      const consultNow = { ...byKey.consult,
+        cost: P.costConsult * (1 + P.lateConsultSlope * progress) };
+      // Two triggers. A cadence buys the band on a timetable. `onEvent` buys it only when
+      // something has just made the Team's picture wrong — an Event is the sole thing that
+      // moves a Client OUTWARD (#270), so it is the one moment a stale belief is not merely
+      // drifting but pointing the wrong way.
+      const wantConsult = st.onEvent ? !!s._eventPending : (day % st.consultEvery === 0);
+      if (wantConsult && s.prep >= consultNow.cost) {
+        s._eventPending = false;
+        spend(s, consultNow, day, entry);
         s.consults++;
         const b = bandOf(s, P);
+        consultBelief(s, P, day);
         entry[s.role].push(`Consult: the Client reads as “${b}”.`);
         s.lastBand = b;
         s.actionsPaidOff++; // knowing where you stand is a payoff
@@ -546,7 +717,7 @@ function simulate(P, stratP, stratD, seed) {
       // Ordinary discovery, while this strategy is still acquiring.
       const discovery = menu.filter(a => a.yields > 0 && a.key !== 'expert');
       let guard = 0;
-      while (progress <= st.discoverUntil && guard++ < 12) {
+      while (progress <= discoverUntil && guard++ < 12) {
         const affordable = discovery.filter(a => a.cost <= s.prep && day + a.lead <= D);
         if (!affordable.length) break;
         spend(s, affordable[Math.floor(rand() * affordable.length)], day, entry);
@@ -560,8 +731,8 @@ function simulate(P, stratP, stratD, seed) {
       // late on goes a little past that floor to close: the reservation point is a
       // scoring floor, never a veto, so nothing in the engine stops it. `concede` shapes
       // the curve — a low value holds firm and folds late, a high value concedes early.
-      const target = s.rp + dir * P.endgameOvershoot;
-      const k = 1 / Math.max(0.05, st.concede * 5);
+      const target = effRp(s, P) + dir * P.endgameOvershoot;
+      const k = 1 / Math.max(0.05, concedeRate * 5);
       s.demand = s.aspiration + (target - s.aspiration) * Math.pow(progress, k);
 
       const opp = s === P_ ? D_ : P_;
@@ -623,11 +794,22 @@ function simulate(P, stratP, stratD, seed) {
   }
 
   // No settlement in the Days available: the Simulation goes to arbitration and the
-  // Instructor is the judge. The model uses the drafted award — the midpoint on the table.
+  // Instructor is the judge, over a drafted award (#263).
+  //
+  // The award is FINAL-OFFER: it is one of the two last committed Offers, whichever sits
+  // closer to the merits — never a split between them. Splitting the difference pays
+  // extremity, and under a private reservation point that makes refusing to negotiate the
+  // dominant strategy: a Side that never moves off its opening demand drags the midpoint
+  // with it. Final-offer arbitration is real practice and costs the engine one comparison.
+  // The merits are the true settleability window, which neither Side can posture about.
   let value, outcome;
   if (settled) { value = settled.value; outcome = `Settled on Day ${settled.day}`; }
   else {
-    value = (P_.demand + D_.demand) / 2;
+    const merits = (P_.rp + D_.rp) / 2;
+    const finals = [P_._openOffer, D_._openOffer].filter(Boolean).map(o => o.value);
+    value = finals.length
+      ? finals.reduce((a, b) => (Math.abs(b - merits) < Math.abs(a - merits) ? b : a))
+      : merits;
     outcome = 'Arbitration';
   }
 
@@ -690,6 +872,12 @@ function score(s, value, P) {
     exhibitsPlayed: s.exhibitsPlayed, exhibitsHeld: s.exhibits.length,
     relevanceHits: s.relevanceHits, clipped: s.exhibitsClipped,
     consults: s.consults, actions: s.actionsTaken, wasted: s.wastedBudget,
+    // How wrong the Team's picture of its own Client was, and how often daily
+    // consulting pinned it exactly. The binary-search trap, measured.
+    beliefErr: s.beliefReads ? s.beliefErrSum / s.beliefReads : null,
+    beliefBest: s.beliefReads ? s.beliefErrMin : null,
+    pinned: s.pinnedReads,
+    beliefFinal: Math.abs(s.beliefConsumed - s.consumed),
   };
 }
 
@@ -700,7 +888,8 @@ function sweep(P, runs) {
   const out = {};
   for (const key of Object.keys(STRATEGIES)) {
     const acc = { par: 0, total: 0, quality: 0, strategy: 0, efficiency: 0,
-                  arb: 0, played: 0, held: 0, wasted: 0, n: 0 };
+                  arb: 0, played: 0, held: 0, wasted: 0, n: 0,
+                  consults: 0, bErr: 0, bErrN: 0, bBest: 0, pinned: 0 };
     for (let i = 0; i < runs; i++) {
       const r = simulate(P, key, 'worker', 1000 + i * 7919);
       const me = r.plaintiff;
@@ -710,13 +899,18 @@ function sweep(P, runs) {
       acc.arb += r.outcome === 'Arbitration' ? 1 : 0;
       acc.played += me.exhibitsPlayed; acc.held += me.exhibitsHeld;
       acc.wasted += me.wasted; acc.n++;
+      acc.consults += me.consults; acc.pinned += me.pinned;
+      if (me.beliefErr !== null) { acc.bErr += me.beliefErr; acc.bBest += me.beliefBest; acc.bErrN++; }
     }
     const n = acc.n;
     out[key] = {
       parRate: acc.par / n, total: acc.total / n, quality: acc.quality / n,
       strategy: acc.strategy / n, efficiency: acc.efficiency / n,
       arbRate: acc.arb / n, played: acc.played / n, held: acc.held / n,
-      wasted: acc.wasted / n,
+      wasted: acc.wasted / n, consults: acc.consults / n,
+      beliefErr: acc.bErrN ? acc.bErr / acc.bErrN : null,
+      beliefBest: acc.bErrN ? acc.bBest / acc.bErrN : null,
+      pinned: acc.pinned / n,
     };
   }
   out._separation = out.worker.parRate - out.hoarder.parRate;
@@ -754,7 +948,8 @@ const pct = v => (v * 100).toFixed(0) + '%';
 const n1 = v => v.toFixed(1);
 
 function renderSweep(res) {
-  const order = ['worker', 'lateExpert', 'blind', 'sprinter', 'hoarder'];
+  const order = ['worker', 'bandReader', 'bandCutter', 'eventReader', 'dailyConsult',
+                 'quietWorker', 'lateExpert', 'blind', 'sprinter', 'hoarder'];
   let h = '<table><thead><tr>' +
     '<th>Archetype</th><th>Reaches Par</th><th>Rubric /80</th>' +
     '<th>Settlement /40</th><th>Strategy /30</th><th>Efficiency /10</th>' +
@@ -812,6 +1007,12 @@ const SENS = [
   ['shiftFavorable', 0.04, 0.30, 0.02],
   ['shiftUnfavorable', 0, 0.20, 0.02],
   ['bandWavering', 0.10, 0.55, 0.05],
+  ['bandReady', 0.40, 0.95, 0.05],
+  ['bandCount', 2, 4, 1],
+  ['priorShift', 0.02, 0.22, 0.02],
+  ['lateConsultSlope', 0, 2, 0.25],
+  ['eventCount', 0, 8, 1],
+  ['bound', 0.25, 1.10, 0.05],
   ['exhibitEfficiencyCap', 0, 1, 0.1],
   ['qualityFloorSpread', 0.10, 1.00, 0.05],
   ['expectedRelevantPlays', 1, 10, 1],
