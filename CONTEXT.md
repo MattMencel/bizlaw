@@ -66,6 +66,8 @@ Expressing the exchange half as a *fraction* is a mistake worth naming, because 
 
 One thing a Team spends Action Budget on. Making or revising an Offer is one Action among many; consulting the Client, deposing a witness, requesting documents, researching precedent and managing the press are others. **Consulting the Client costs Budget**, so a Team that never asks negotiates blind.
 
+A spend is irreversible and, unlike an Offer, ungated by a Second, so **every spend confirms** — naming the cost, the Budget remaining today, and the Day the result lands. Uniformly, never only a first one: there is no per-student state to know whose first it is, and a per-Team first would vanish for the teammate who never saw it. It is the surface where lead time is explained at the moment it bites.
+
 ## Offer
 
 A proposed settlement, with terms. The move that can end the Simulation if the other Side accepts it and the Client will take it.
@@ -75,6 +77,8 @@ An Offer is **staged** before it is committed: visible to the whole Team, revisa
 ## Second
 
 A teammate's confirmation, and the only gate inside a Team. An Offer or an Acceptance lands only when a member other than the one who staged it confirms it. Nothing else in the game requires one — the preparation half stays ungated.
+
+The Second is never explained in advance. A student who stages an Offer holds a commit control that is **present and disabled, naming the teammates who can second it**, and the staging lands in the Docket with Attribution so it surfaces in a teammate's next Morning Briefing. A dead control in the hand teaches the rule that the door is never the gate; fixed copy elsewhere would not.
 
 A Team whose other members are absent can stage an Offer it cannot commit. That is not a mechanic; it is an Instructor **waiver** of the Second, granted to one Team for one Day and recorded in the Docket as an Instructor action. The Instructor never Seconds on a Team's behalf — Attribution would then name someone who did not take the position.
 
@@ -149,6 +153,22 @@ The game cuts only where a Client has something to say — a Consult, and settle
 ## Morning Briefing
 
 What a Day opens with, over the Firm's table: the Actions that have just landed and any documents the other Side served. The same object a returning absent teammate is given, widened.
+
+It carries a further section, **what you start with** — the documents in hand at the open, drawn from Provenance, beside the Client's opening statement, the calendar and the Rubric. On Day 1 that is the only non-empty section, because nothing has landed and nothing has been served yet; on later Days it is what a returning teammate is caught up on. Every section is composed by the engine from objects the Case already authors, so a briefing is never authored per Case.
+
+It is also where the two-room grammar is **named**, in one line of fixed copy: prepare in the Firm, deal in the Boardroom, move between them freely, the Day ends when both Sides commit. A room is never empty, so no room's own state can carry it.
+
+## Onboarding
+
+How a first-timer learns to operate the machine. It owns *operating the machine* and nothing else — what a good settlement looks like is the course's job, answered by the professor, the published Rubric and the Client's opening statement.
+
+**It has no object of its own.** No first-run pass, no practice Case before the graded run, no Section knob, and no per-student progress state — a "this student has seen it" flag is a status column with no ledger event behind it, and the runtime schema has none. **The empty state is the tutorial**: an empty Docket says what a Docket would hold, a full Action Board says what an Action costs and when it lands, the Case File holds only what you started with. The Morning Briefing carries the Day, and a disabled control carries the Second.
+
+Because there is no per-student state, the surface cannot open up over Days. Disclosure derives from *Team* state only, and almost nothing qualifies: both rooms, the toggle, the three record surfaces, the Terms Board and the whole Action Board with every cost and lead time are present from Day 1 — hiding what an Action costs makes the Budget unplannable, and planning the Budget is the lesson. Only the Exhibit affordances gate, appearing when the Case File first holds a document carrying one. The rule: gate a control only where it would otherwise be **inert**, so it teaches itself the moment it becomes real.
+
+**Learning is not subsidised.** Day 1 scores like any other Day, with no efficiency carve-out — a Day where mistakes are free teaches that Budget is not scarce, which is the one thing the Action Budget exists to prevent. Roughly a quarter of the Budget already expires unspent, so the fumble is cheap without an exemption.
+
+An Instructor demoing from a demo Section is a supported **accelerator, never a dependency**: a student who missed the demo is the absent teammate the Morning Briefing already has to catch up.
 
 ## Client
 
@@ -229,6 +249,10 @@ Set per Section: the Case, the number of Days, the deadline schedule, Action Bud
 Day count and Action Budget arrive with the Case's reference values, and a Section that changes either is marked as no longer comparable to one that did not — Par assumed those numbers. **Client difficulty** makes an authored Client harder or easier to satisfy; it never swaps in a different Client, so a Case authors one of each, not three.
 
 A Section belongs to an Organization, and an Instructor is an Instructor *of a Section* rather than by standing — the same person may teach one Section and appear nowhere in another.
+
+**Onboarding is not a Section knob.** Every knob changes the simulation; onboarding changes none of them, and a knob implies an off position that would leave a first-timer with no teaching.
+
+A **demo Section** is an ordinary Section of the same Case, seeded, with no real students in it — what an Instructor teaches a room of first-timers from. Nothing in the engine knows it is a demo: no flag, no mode, no exclusion. It is created and re-created by a rake task alongside `case:import`, seeded from a **recorded playthrough replayed as ledger events** rather than hand-written fixtures, so it cannot drift from the runtime schema silently and a Section aged out under Retention's clocks is re-seeded rather than preserved. The same artifact is the development fixture, which is what earns building it. It sits on whatever Day shows the record surfaces full; projecting a live Simulation could only ever show an empty Docket.
 
 ## Organization
 
