@@ -74,6 +74,8 @@ A proposed settlement, with terms. The move that can end the Simulation if the o
 
 An Offer is **staged** before it is committed: visible to the whole Team, revisable, costing nothing until it lands.
 
+An Offer is worth **two numbers, one per Client**, because each Client values the Terms privately. The Sides negotiate a single instrument and are graded on different figures: Settlement Quality reads each Side's own Client's valuation of the Offer against that Side's Par. The two figures coincide only where an Offer is **pure cash** — money is the one Term worth its face to both Clients. So an agreement struck outside the game can fix the instrument but not the score, unless it is written in cash alone.
+
 ## Second
 
 A teammate's confirmation, and the only gate inside a Team. An Offer or an Acceptance lands only when a member other than the one who staged it confirms it. Nothing else in the game requires one — the preparation half stays ungated.
