@@ -42,7 +42,7 @@ group :development, :test do
 
   gem "rspec-rails", "~> 8.0"
 
-  gem "cucumber-rails", "~> 3.1", require: false
+  gem "cucumber-rails", "~> 4.1", require: false
 end
 
 group :development do
