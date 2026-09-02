@@ -12,12 +12,24 @@ module AuthoredAndRunBuilders
     Section.create!(organization: organization, name: name)
   end
 
-  def a_case_version(days: 10, published: true, identifier: "bizlaw/reference", version: "1.0.0")
+  # The reference Case's authored Budget: 10 points a Day, an exchange half of
+  # two, and a knee at three fifths past which the Day is 2 and 3.
+  def a_case_version(days: 10, published: true, identifier: "bizlaw/reference", version: "1.0.0",
+    budget_per_day: 10, exchange_pool: 2, closing_knee: 0.60, closing_preparation: 2,
+    closing_exchange: 3)
     authored = Case.find_or_create_by!(identifier: identifier) do |record|
       record.name = "The Reference Case"
       record.licence = "Apache-2.0"
     end
-    authored.versions.create!(version: version, published_at: (Time.current if published)).tap do |pinned|
+    authored.versions.create!(
+      version: version,
+      published_at: (Time.current if published),
+      budget_per_day: budget_per_day,
+      exchange_pool: exchange_pool,
+      closing_knee: closing_knee,
+      closing_preparation: closing_preparation,
+      closing_exchange: closing_exchange
+    ).tap do |pinned|
       days.times do |index|
         pinned.calendar_days.create!(
           ordinal: index + 1,

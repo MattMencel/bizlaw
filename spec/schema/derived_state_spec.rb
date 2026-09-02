@@ -9,7 +9,7 @@ RSpec.describe "the tables of the Simulation skeleton" do
   let(:tables) do
     %w[
       cases case_versions case_calendar_days
-      organizations sections simulations sides days
+      organizations sections simulations sides days day_budgets
     ]
   end
 

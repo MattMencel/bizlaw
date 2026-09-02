@@ -17,6 +17,10 @@ class Simulation < ApplicationRecord
 
   validate :case_version_is_published
 
+  # The run's own calendar rather than the Case's, because the Section's Day
+  # count is what the Days were laid out from.
+  def day_count = days.size
+
   def plaintiff_side = sides.find_by(role: Side::PLAINTIFF)
 
   def defendant_side = sides.find_by(role: Side::DEFENDANT)

@@ -12,7 +12,13 @@ module Cases
     InvalidCase = Class.new(StandardError)
     PublishedVersionExists = Class.new(StandardError)
 
-    REQUIRED_KEYS = %w[identifier name licence version calendar].freeze
+    REQUIRED_KEYS = %w[identifier name licence version calendar budget].freeze
+    REQUIRED_BUDGET_KEYS =
+      %w[per_day exchange_pool closing_knee closing_preparation closing_exchange].freeze
+
+    # Below two points nothing can be played at all — an Offer costs one and the
+    # Exhibit riding it costs another — and the design stops discriminating.
+    PLAYABLE_EXCHANGE_HALF = 2
 
     def self.call(path) = new(path).call
 
@@ -54,11 +60,18 @@ module Cases
       end
 
       version.published_at = data["published"] ? Time.current : nil
+      version.budget_per_day = budget["per_day"]
+      version.exchange_pool = budget["exchange_pool"]
+      version.closing_knee = budget["closing_knee"]
+      version.closing_preparation = budget["closing_preparation"]
+      version.closing_exchange = budget["closing_exchange"]
       version.save!
       version
     end
 
     def calendar = data["calendar"]
+
+    def budget = data["budget"]
 
     def validate!
       raise InvalidCase, "#{path} does not hold a Case" unless data.is_a?(Hash)
@@ -75,6 +88,24 @@ module Cases
       unless calendar.each_cons(2).all? { |earlier, later| earlier < later }
         raise InvalidCase, "#{path} authors a calendar that is not in order"
       end
+
+      validate_budget!
+    end
+
+    def validate_budget!
+      raise InvalidCase, "#{path} authors no budget" unless budget.is_a?(Hash)
+
+      missing = REQUIRED_BUDGET_KEYS.reject { |key| budget[key].present? }
+      raise InvalidCase, "#{path} authors a budget missing #{missing.join(", ")}" if missing.any?
+
+      [["exchange_pool", "exchange half"], ["closing_exchange", "closing exchange half"]]
+        .each do |key, name|
+          next if budget[key] >= PLAYABLE_EXCHANGE_HALF
+
+          raise InvalidCase,
+            "#{path} authors a #{name} of #{budget[key]}, under the #{PLAYABLE_EXCHANGE_HALF} " \
+            "points an Offer with one Exhibit behind it costs"
+        end
     end
   end
 end

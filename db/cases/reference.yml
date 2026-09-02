@@ -10,6 +10,17 @@ name: The Reference Case
 licence: Apache-2.0
 version: "1.0.0"
 published: true
+# The Action Budget, measured on prototype/action-budget-pricing rather than
+# chosen. The exchange half is an absolute count of points: held as a fraction
+# it would couple the brake to the Budget size. Past the knee the preparation
+# allowance collapses to roughly the price of a Consult and the exchange half
+# widens by one point.
+budget:
+  per_day: 10
+  exchange_pool: 2
+  closing_knee: 0.60
+  closing_preparation: 2
+  closing_exchange: 3
 calendar:
   - 2026-03-02
   - 2026-03-03

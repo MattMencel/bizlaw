@@ -8,6 +8,7 @@ class Day < ApplicationRecord
   retention :skeleton
 
   belongs_to :simulation, inverse_of: :days
+  has_many :budgets, class_name: "DayBudget", inverse_of: :day, dependent: :restrict_with_error
 
   before_validation { self.organization_id ||= simulation&.organization_id }
 

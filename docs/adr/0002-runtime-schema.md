@@ -27,16 +27,33 @@ from it costs nothing that was not already being stored.
 
 ## The one materialized exception
 
-`day_budgets.spent` is materialized and carries `CHECK (spent <= budget)`,
-because the Action Budget is the only value in the game two humans race on and
-the only ceiling whose correct behaviour at the boundary is a **refusal**. A
-constraint expresses refusal natively.
+`day_budgets`'s spent counters are materialized and carry
+`CHECK (spent <= budget)`, because the Action Budget is the only value in the
+game two humans race on and the only ceiling whose correct behaviour at the
+boundary is a **refusal**. A constraint expresses refusal natively.
 
-It is maintained by an `AFTER INSERT` trigger on `docket_entries` that
-**re-folds** the sum from the Docket rather than incrementing it. A fold cannot
-drift the way a lost or doubled delta can, and a trigger cannot be bypassed by an
-insert path added later that forgot to check — which is the actual exposure,
-since SQLite serializes writers and had already killed the race.
+The Budget arrives in two halves that do not carry, and the halves are two
+ceilings rather than one, so the exception is **two counter pairs in one row**,
+each with its own CHECK:
+
+```
+day_budgets(side_id, day_id,
+            preparation_budget, preparation_spent,
+            exchange_budget,    exchange_spent)
+  CHECK (preparation_spent <= preparation_budget)
+  CHECK (exchange_spent    <= exchange_budget)
+  UNIQUE (side_id, day_id)
+```
+
+The row is written when the Day opens and never recomputed, so a Section edit
+mid-Simulation reaches later Days only and cannot rewrite a Day already played.
+
+Both `spent` columns are maintained by an `AFTER INSERT` trigger on
+`docket_entries` that **re-folds** the sum from the Docket rather than
+incrementing it. A fold cannot drift the way a lost or doubled delta can, and a
+trigger cannot be bypassed by an insert path added later that forgot to check —
+which is the actual exposure, since SQLite serializes writers and had already
+killed the race.
 
 The Client's bound is the deliberate contrast, and the reason there is no second
 counter. Its ceiling **saturates** rather than refusing: an Exhibit played into

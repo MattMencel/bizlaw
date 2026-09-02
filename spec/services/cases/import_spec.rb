@@ -18,7 +18,14 @@ RSpec.describe Cases::Import do
       "licence" => "Apache-2.0",
       "version" => "1.0.0",
       "published" => true,
-      "calendar" => (0..9).map { |index| Date.new(2026, 3, 2) + index }
+      "calendar" => (0..9).map { |index| Date.new(2026, 3, 2) + index },
+      "budget" => {
+        "per_day" => 10,
+        "exchange_pool" => 2,
+        "closing_knee" => 0.60,
+        "closing_preparation" => 2,
+        "closing_exchange" => 3
+      }
     }.merge(overrides.transform_keys(&:to_s))
 
     File.join(@dir, "case.yml").tap { |path| File.write(path, data.to_yaml) }
@@ -40,6 +47,42 @@ RSpec.describe Cases::Import do
 
     expect(version).to be_published
     expect(version.day_count).to eq(10)
+  end
+
+  it "loads the authored Action Budget the Day's quota is sized from" do
+    version = described_class.call(Rails.root.join("db/cases/reference.yml"))
+
+    expect(version.budget_per_day).to eq(10)
+    expect(version.exchange_pool).to eq(2)
+    expect(version.closing_knee).to eq(0.60)
+    expect(version.closing_preparation).to eq(2)
+    expect(version.closing_exchange).to eq(3)
+  end
+
+  it "refuses a Case whose exchange half cannot play an Offer with an Exhibit behind it" do
+    under = {"per_day" => 10, "exchange_pool" => 1, "closing_knee" => 0.60,
+             "closing_preparation" => 2, "closing_exchange" => 3}
+
+    expect { described_class.call(authored(budget: under)) }
+      .to raise_error(described_class::InvalidCase, /exchange/)
+  end
+
+  it "refuses a Case whose closing exchange half falls under two points" do
+    under = {"per_day" => 10, "exchange_pool" => 2, "closing_knee" => 0.60,
+             "closing_preparation" => 2, "closing_exchange" => 1}
+
+    expect { described_class.call(authored(budget: under)) }
+      .to raise_error(described_class::InvalidCase, /exchange/)
+  end
+
+  it "refuses a Case that authors no Action Budget" do
+    expect { described_class.call(authored(budget: nil)) }
+      .to raise_error(described_class::InvalidCase, /budget/)
+  end
+
+  it "refuses a Case whose Budget is missing a value" do
+    expect { described_class.call(authored(budget: {"per_day" => 10})) }
+      .to raise_error(described_class::InvalidCase, /budget/)
   end
 
   it "loads an unpublished version as a draft" do

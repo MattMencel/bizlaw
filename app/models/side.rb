@@ -11,6 +11,7 @@ class Side < ApplicationRecord
   ROLES = [PLAINTIFF, DEFENDANT].freeze
 
   belongs_to :simulation, inverse_of: :sides
+  has_many :budgets, class_name: "DayBudget", inverse_of: :side, dependent: :restrict_with_error
 
   # A Side runs on the Case Version its Simulation pinned; pinning it twice
   # would be a second source of truth.
