@@ -11,55 +11,21 @@ updates:
       rails-core:
         patterns:
           - "rails"
-          - "turbo-rails"
-          - "stimulus-rails"
-          - "importmap-rails"
-          - "tailwindcss-rails"
-          - "propshaft"
+          - "sqlite3"
           - "jbuilder"
           - "solid_cache"
           - "solid_queue"
           - "solid_cable"
           - "bootsnap"
           - "tzinfo-data"
-      authentication:
-        patterns:
-          - "devise"
-          - "devise-jwt"
-          - "pundit"
-          - "omniauth*"
-      api:
-        patterns:
-          - "jsonapi-serializer"
-          - "kaminari"
-          - "rack-attack"
-          - "rswag*"
-      monitoring:
-        patterns:
-          - "statsd-instrument"
-          - "dogstatsd-ruby"
-          - "bullet"
-      ai-integration:
-        patterns:
-          - "gemini-ai"
-      pdf-generation:
-        patterns:
-          - "prawn"
-          - "prawn-table"
-      qr-code:
-        patterns:
-          - "rqrcode"
-          - "chunky_png"
+          - "puma"
+          - "thruster"
       development-tools:
         patterns:
           - "web-console"
           - "debug"
           - "dotenv-rails"
           - "brakeman"
-          - "solargraph"
-          - "kamal"
-          - "thruster"
-          - "dockerfile-rails"
       linting:
         patterns:
           - "standard"
@@ -68,32 +34,7 @@ updates:
       test-framework:
         patterns:
           - "rspec-rails"
-          - "factory_bot_rails"
-          - "faker"
           - "cucumber*"
-          - "shoulda-matchers"
-          - "pundit-matchers"
-          - "rails-controller-testing"
-          - "simplecov"
-      test-system:
-        patterns:
-          - "capybara"
-          - "capybara-playwright-driver"
-          - "selenium-webdriver"
-      test-utilities:
-        patterns:
-          - "database_cleaner-active_record"
-          - "email_spec"
-          - "timecop"
-          - "axe-core-rspec"
-      storage:
-        patterns:
-          - "active_storage_validations"
-          - "image_processing"
-      database:
-        patterns:
-          - "pg"
-          - "puma"
 
       # All patch updates together, may be merged when CI is green.
       patch-updates:
@@ -103,7 +44,7 @@ updates:
       minor-updates:
         update-types: ["minor"]
 
-  # Documentation dependencies
+  # Documentation site dependencies
   - package-ecosystem: npm
     directory: "/docs"
     schedule:

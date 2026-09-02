@@ -1,0 +1,1212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pricing the Action Budget — BizLaw prototype</title>
+<style>
+  :root {
+    --ink: #16181d;
+    --ink-soft: #5b6270;
+    --line: #e2e5ea;
+    --bg: #fbfbfc;
+    --panel: #ffffff;
+    --accent: #7a3ea8;
+    --accent-soft: #f2ebf8;
+    --good: #1f7a4d;
+    --bad: #a83e3e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0 0 6rem;
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    color: var(--ink); background: var(--bg);
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 3rem 1.5rem 0; }
+  h1 { font-size: 1.75rem; font-weight: 640; letter-spacing: -0.02em; margin: 0 0 .4rem; }
+  h2 { font-size: 1.05rem; font-weight: 640; letter-spacing: -0.01em; margin: 2.75rem 0 .5rem; }
+  h3 { font-size: .82rem; font-weight: 660; text-transform: uppercase; letter-spacing: .07em;
+       color: var(--ink-soft); margin: 1.5rem 0 .6rem; }
+  p { margin: 0 0 .8rem; max-width: 68ch; }
+  .lede { color: var(--ink-soft); font-size: 1rem; max-width: 72ch; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+           padding: 1.25rem 1.4rem; margin: 1rem 0; }
+  .note { background: var(--accent-soft); border: 1px solid #e3d5f0; border-radius: 10px;
+          padding: 1rem 1.25rem; margin: 1rem 0; font-size: .9rem; color: #4a2b63; }
+  .note strong { color: #38204c; }
+  .note ul { margin: .5rem 0 0; padding-left: 1.1rem; }
+  .note li { margin: .25rem 0; }
+  button {
+    font: inherit; font-size: .88rem; font-weight: 540;
+    padding: .42rem .85rem; border-radius: 7px; border: 1px solid var(--line);
+    background: #fff; color: var(--ink); cursor: pointer;
+  }
+  button:hover { border-color: #c3c8d1; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary:hover { background: #6a3494; }
+  button:disabled { opacity: .45; cursor: default; }
+  .knobs { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .55rem 1.4rem; }
+  .knob { display: grid; grid-template-columns: 1fr 5.5rem; align-items: center; gap: .5rem;
+          font-size: .855rem; padding: .12rem 0; }
+  .knob label { color: var(--ink-soft); }
+  .knob input { font: inherit; font-size: .84rem; padding: .22rem .4rem; width: 100%;
+                border: 1px solid var(--line); border-radius: 5px; text-align: right; background: #fff; }
+  .knob input:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  table { border-collapse: collapse; width: 100%; font-size: .855rem; margin: .6rem 0; }
+  th, td { text-align: right; padding: .38rem .6rem; border-bottom: 1px solid var(--line); }
+  th:first-child, td:first-child { text-align: left; }
+  th { font-weight: 620; color: var(--ink-soft); font-size: .78rem;
+       text-transform: uppercase; letter-spacing: .05em; }
+  tbody tr:hover { background: #fafafb; }
+  .num { font-variant-numeric: tabular-nums; }
+  .good { color: var(--good); font-weight: 600; }
+  .bad { color: var(--bad); font-weight: 600; }
+  .muted { color: var(--ink-soft); }
+  .bar { display: inline-block; height: 8px; border-radius: 4px; background: var(--accent); vertical-align: middle; }
+  .toolbar { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; margin: 1rem 0 .3rem; }
+  .log { font-size: .84rem; }
+  .day { border-top: 1px solid var(--line); padding: .7rem 0 .5rem; }
+  .day-hd { display: flex; justify-content: space-between; align-items: baseline;
+            font-weight: 620; margin-bottom: .3rem; }
+  .day-hd span { font-weight: 440; color: var(--ink-soft); font-size: .82rem; }
+  .side-log { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; }
+  .side-log h4 { margin: 0 0 .25rem; font-size: .78rem; text-transform: uppercase;
+                 letter-spacing: .06em; color: var(--ink-soft); font-weight: 640; }
+  .side-log ul { margin: 0; padding-left: 1.05rem; }
+  .side-log li { margin: .12rem 0; }
+  select { font: inherit; font-size: .86rem; padding: .3rem .5rem; border-radius: 6px;
+           border: 1px solid var(--line); background: #fff; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .88em;
+         background: #f2f3f5; padding: .08em .32em; border-radius: 3px; }
+  .verdict { font-size: 1rem; padding: .9rem 1.1rem; border-radius: 9px; margin: .9rem 0;
+             border: 1px solid var(--line); background: #fff; }
+  .verdict.pass { border-color: #b9dcc9; background: #f2faf6; }
+  .verdict.fail { border-color: #e6c4c4; background: #fdf5f5; }
+  footer { max-width: 1080px; margin: 4rem auto 0; padding: 1.5rem;
+           color: var(--ink-soft); font-size: .82rem; border-top: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Pricing the Action Budget</h1>
+<p class="lede">
+  A throwaway model of one BizLaw Simulation, run thousands of times, to find prices where a Team that
+  <em>works the case</em> can plausibly reach Par and a Team that <em>hoards and dumps</em> plausibly cannot.
+  Nothing here is the game. It is a spreadsheet with a story.
+</p>
+
+<div class="note">
+  <strong>The question this answers</strong> — <a href="https://github.com/MattMencel/bizlaw/issues/277">#277</a>.
+  Every number in the economy is open: how big the Action Budget is, what each Action costs and how long it
+  takes to land, how far a Client can be moved, and where the Reaction Bands sit along that movement. The map
+  said twice that this needs a playable thing rather than a conversation. So: set the prices on the left,
+  press <em>Run the sweep</em>, and read whether the prices separate good play from bad.
+  <ul>
+    <li><strong>All money is in bound-units.</strong> A Client's bound — the total distance their reservation
+      point can travel in one Simulation — is 1.00. Every settlement number and every shift is a fraction of it.
+      That is the Case format's own spine, so the sweep is scale-free: it never has to guess dollars.</li>
+    <li><strong>Collaboration is not modelled.</strong> It is a per-student dimension and this model has no
+      students in it. Rubric totals below are out of <strong>80</strong>, not 100.</li>
+    <li><strong>Settlement quality ramps from an authored, immobile floor</strong> — Par minus a quarter of
+      the bound — to full 40 at Par and beyond. Deliberately <em>not</em> the live reservation point: that
+      number is moved by the opposing Team's Exhibits, so ramping from it would set one Side's grading scale
+      by how hard the other Side worked. The spread is a knob; widening it hands a Team that never worked the
+      case most of the forty points for turning up.</li>
+    <li><strong>A Side does not know its own Client's reservation point.</strong> Added for
+      <a href="https://github.com/MattMencel/bizlaw/issues/280">#280</a>. #277's model handed every
+      archetype the true number every Day, which is exactly the number a Consult is charged for — so
+      no Reaction Band threshold could ever move a result. A Side now carries a <em>belief</em>: it
+      counts the blows it can see land (#270 makes service visible and its direction legible) but
+      cannot see their size, so its picture drifts, and a Consult is what corrects it.</li>
+    <li><strong>Arbitration is final-offer.</strong> Also #280. The award is whichever of the two
+      last committed Offers sits closer to the merits, never a split between them. Splitting the
+      difference pays extremity, and once the reservation point is private that makes refusing to
+      negotiate the dominant strategy.</li>
+    <li><strong>The exchange half is an absolute number of points, not a fraction of the Budget.</strong>
+      Two points buys one Offer and one Exhibit riding it, and that ceiling is the entire brake on the dump.
+      Held as a fraction it silently couples to the Budget — a fifth of ten is safe, a fifth of nine is 1.8
+      and the game collapses.</li>
+  </ul>
+</div>
+
+<!-- ══════════════════════════ PRICES ══════════════════════════ -->
+<h2>The prices</h2>
+<p class="muted" style="font-size:.9rem">
+  These are the values under test. Change any of them and re-run; the sweep tells you whether the change
+  helped. <button id="reset" style="margin-left:.4rem">Reset to defaults</button>
+</p>
+
+<div class="panel">
+  <h3>The Day and the Budget</h3>
+  <div class="knobs" id="k-budget"></div>
+  <h3>What an Action costs, and how long it takes to land</h3>
+  <div class="knobs" id="k-actions"></div>
+  <h3>The Client: how far they move, and when they say so</h3>
+  <div class="knobs" id="k-client"></div>
+  <h3>The Case geometry: where the two Clients start, and where Par sits</h3>
+  <div class="knobs" id="k-case"></div>
+  <h3>Grading</h3>
+  <div class="knobs" id="k-scoring"></div>
+</div>
+
+<!-- ══════════════════════════ SWEEP ══════════════════════════ -->
+<h2>The sweep</h2>
+<p>
+  Each archetype below plays a full Simulation against a <em>Team that works the case</em>, over many seeded
+  runs. What matters is not any single number but the <strong>gap</strong>: the case-worker should land near Par
+  and the hoarder should not.
+</p>
+
+<div class="toolbar">
+  <button class="primary" id="run-sweep">Run the sweep</button>
+  <label class="muted" style="font-size:.86rem">
+    runs per archetype
+    <input id="seeds" type="number" value="300" min="20" max="4000" step="20"
+           style="width:5rem;font:inherit;font-size:.84rem;padding:.22rem .4rem;border:1px solid var(--line);border-radius:5px;text-align:right">
+  </label>
+  <span id="sweep-status" class="muted" style="font-size:.86rem"></span>
+</div>
+
+<div id="verdict"></div>
+<div id="sweep-out"></div>
+
+<h3>Sensitivity: one price at a time</h3>
+<p class="muted" style="font-size:.9rem">
+  Sweeps a single price across a range and reports the separation at each value — the fastest way to see which
+  numbers the design is actually sensitive to and which are free.
+</p>
+<div class="toolbar">
+  <select id="sens-knob"></select>
+  <button id="run-sens">Sweep this price</button>
+  <span id="sens-status" class="muted" style="font-size:.86rem"></span>
+</div>
+<div id="sens-out"></div>
+
+<!-- ══════════════════════════ ONE RUN ══════════════════════════ -->
+<h2>Watch one Simulation</h2>
+<p>
+  The same model, one seeded run, written out Day by Day in the game's own language — the Docket both Teams
+  would see. Use this to sanity-check that the numbers above produce a dispute that reads like a dispute.
+</p>
+<div class="toolbar">
+  <label class="muted" style="font-size:.86rem">Plaintiff plays
+    <select id="p-strat"></select>
+  </label>
+  <label class="muted" style="font-size:.86rem">Defendant plays
+    <select id="d-strat"></select>
+  </label>
+  <label class="muted" style="font-size:.86rem">seed
+    <input id="one-seed" type="number" value="7" min="1"
+           style="width:4.5rem;font:inherit;font-size:.84rem;padding:.22rem .4rem;border:1px solid var(--line);border-radius:5px;text-align:right">
+  </label>
+  <button class="primary" id="run-one">Play it out</button>
+</div>
+<div id="one-out"></div>
+
+</div>
+
+<footer>
+  Throwaway prototype for <a href="https://github.com/MattMencel/bizlaw/issues/277">bizlaw#277</a>.
+  Not production code, not the game. The pure module is the top <code>&lt;script&gt;</code> block; everything
+  below it is a disposable shell.
+</footer>
+
+<!-- ═════════════════════════════════════════════════════════════════════
+     THE MODEL — pure, no DOM. This is the part worth keeping.
+     ═════════════════════════════════════════════════════════════════════ -->
+<script>
+"use strict";
+
+/* ── Deterministic RNG so every run is reproducible and previewable ───────── */
+function rng(seed) {
+  let s = seed >>> 0 || 1;
+  return function () {
+    s ^= s << 13; s >>>= 0;
+    s ^= s >> 17;
+    s ^= s << 5;  s >>>= 0;
+    return s / 4294967296;
+  };
+}
+
+/* ── The prices under test ────────────────────────────────────────────────── */
+const DEFAULTS = {
+  // The Day and the Budget
+  days:            10,     // Simulation length (canon says 8–12)
+  budgetPerDay:    10,     // Action Budget, points per Day per Side
+  exchangePool:  2.00,     // ABSOLUTE points reserved for the exchange half, per Day.
+                           // Authored as a count, never as a fraction: a fraction couples
+                           // the brake to the Budget and 0.20 x 9 silently falls under 2.
+  budgetPerDayIsPooled: 0, // 1 = unspent Budget carries to the next Day
+
+  // What an Action costs / how many Days until its result lands
+  costConsult:      1, leadConsult:  0,
+  costDocs:         2, leadDocs:     1,
+  costDepose:       3, leadDepose:   2,
+  costResearch:     2, leadResearch: 1,
+  costPress:        2, leadPress:    1,
+  costExpert:       5, leadExpert:   3,
+  lateConsultSlope: 0,     // how much dearer a Consult gets as the Simulation runs on.
+                           // 0 = flat. 1 = double price by the final Day. A late Consult is
+                           // a last-minute call on a busy client; an early one is routine.
+  // #281. The Budget is NOT flat across the Simulation. Past the knee the preparation
+  // allowance collapses to roughly the price of a Consult and the exchange half widens:
+  // measured, the closing Days spend their exchange half to within 0.2 of 2 while the
+  // whole preparation allowance expires. Not an Action — an engine number, so it collides
+  // with nothing closed and needs no authored prose.
+  closingKnee:   0.60,     // fraction of the Simulation past which the closing Budget applies (1 = off)
+  closingPrep:      2,     // preparation points per Day past the knee
+  closingExch:      3,     // exchange points per Day past the knee
+
+  // #281's rejected candidate, kept as the arm that was run. A preparation-half Action
+  // that multiplies the shift of an Exhibit the Team already holds. sharpenMult 1 = off,
+  // which is the setting of record: the multiplier has no useful gradient (1.1 and 8.0
+  // give the same answer), it costs the case-worker rubric points to spend, and it pays
+  // for HOLDING an unplayed Exhibit, which is the dump #277 priced out wearing a hat.
+  costSharpen:      2,     // prep-half cost
+  leadSharpen:      0,     // Days until the work lands on the Exhibit
+  sharpenMult:   1.00,     // 1.0 = the Action does not exist. This is the answer.
+  sharpenScope:     0,     // 0 = one held Exhibit, 1 = every held unsharpened Exhibit
+  sharpenFrom:   0.65,     // fraction of the Simulation before a Team will buy it
+  sharpenCap:       3,     // how many times one Exhibit may be sharpened
+
+  costOffer:        1,                    // committing an Offer (exchange pool)
+  costPlayExhibit:  1,                    // per Exhibit riding the Offer (exchange pool)
+  endgameOvershoot: 0.15,                 // how far past the floor a Team will go to close
+
+  // The Client
+  bound:              1.00, // total inward travel available, per Client (the money unit)
+  shiftFavorable:     0.13, // a played favorable Exhibit, as a fraction of the target's bound
+  shiftUnfavorable:   0.06, // a self-discovery landing on your own Client — the "armour" knob
+  bandWavering:       0.33, // cumulative fraction consumed at which the Client says "wavering"
+  bandReady:          0.80, // ...and "ready". #280 authored this edge LATE, and there are two bands.
+  priorShift:         0.10, // what a Team ASSUMES one blow was worth, having seen it land
+                            // but not its size. The gap between this and the truth is the
+                            // drift a Consult exists to correct.
+  bandFourth:         0.88, // a fourth band's edge — read only when bandCount is 4
+  bandCount:             2, // 2, 3 or 4. Not free: #272's inventory is Consult x Band.
+  beliefMode:            1, // 1 = a Side learns its own reservation point ONLY by consulting.
+                            // 0 = the omniscient model #277 ran on, kept for comparison.
+  eventCount:            3, // cards drawn from the Event Deck for this Simulation
+  eventShift:         0.08, // an Event's shift, fraction of bound; sign varies by card
+
+  // Case geometry
+  rpOpenPlaintiff:  1.20,  // plaintiff will not go below this at the open
+  rpOpenDefendant:  0.40,  // defendant will not go above this at the open
+  parPlaintiff:     0.70,  // a well-negotiated result for the plaintiff
+  parDefendant:     0.90,  // ...and for the defendant. parP <= parD, so both can score full.
+  aspirationGap:    0.45,  // how far above/below the reservation point each Client's demand opens
+  termCount:           5,  // size of the authored Terms vocabulary
+
+  // Grading
+  expectedRelevantPlays: 4,    // relevance hits a fully-worked Case is authored to yield
+  exhibitEfficiencyCap: 0.50,  // Exhibits' maximum share of the efficiency dimension
+  parGraceBand:         0.06,  // "reached Par" counts within this much of Par
+  qualityFloorSpread:   0.25,  // Settlement Quality ramps from Par minus this x bound.
+                               // Immobile and authored — NOT the live reservation point,
+                               // which the OPPONENT moves.
+};
+
+const KNOB_GROUPS = {
+  'k-budget': [
+    ['days', 'Days in the Simulation'],
+    ['budgetPerDay', 'Action Budget per Day'],
+    ['exchangePool', 'Exchange half (absolute pts/Day)'],
+    ['budgetPerDayIsPooled', 'Budget carries over (0/1)'],
+    ['closingKnee', 'Closing Days begin at (fraction)'],
+    ['closingPrep', '… preparation pts/Day'],
+    ['closingExch', '… exchange pts/Day'],
+  ],
+  'k-actions': [
+    ['costConsult', 'Consult the Client — cost'],   ['leadConsult', '… lands after (Days)'],
+    ['costDocs', 'Request documents — cost'],       ['leadDocs', '… lands after (Days)'],
+    ['costDepose', 'Depose a witness — cost'],      ['leadDepose', '… lands after (Days)'],
+    ['costResearch', 'Research precedent — cost'],  ['leadResearch', '… lands after (Days)'],
+    ['costPress', 'Manage the press — cost'],       ['leadPress', '… lands after (Days)'],
+    ['costExpert', 'Retain an expert — cost'],      ['leadExpert', '… lands after (Days)'],
+    ['lateConsultSlope', 'Consult gets dearer by (x/Day)'],
+    ['costOffer', 'Commit an Offer — cost'],
+    ['costPlayExhibit', 'Play one Exhibit — cost'],
+    ['endgameOvershoot', 'Endgame: how far past the floor'],
+    ['costSharpen', 'Sharpen an Exhibit — cost'],    ['leadSharpen', '… lands after (Days)'],
+    ['sharpenMult', '… multiplies its shift by (1 = off)'],
+    ['sharpenScope', '… one Exhibit (0) or all held (1)'],
+    ['sharpenFrom', '… buyable from (fraction)'],    ['sharpenCap', '… times one Exhibit may be sharpened'],
+  ],
+  'k-client': [
+    ['bound', 'The bound (money unit)'],
+    ['shiftFavorable', 'A played Exhibit moves'],
+    ['shiftUnfavorable', 'A bad discovery moves'],
+    ['priorShift', 'A Team assumes a blow is worth'],
+    ['bandWavering', 'Band: wavering at'],
+    ['bandReady', 'Band: ready at'],
+    ['bandFourth', 'Band: fourth edge at'],
+    ['bandCount', 'How many bands (2/3/4)'],
+    ['beliefMode', 'Client read costs Budget (0/1)'],
+    ['eventCount', 'Event cards drawn'],
+    ['eventShift', 'An Event moves'],
+  ],
+  'k-case': [
+    ['rpOpenPlaintiff', 'Plaintiff’s opening floor'],
+    ['rpOpenDefendant', 'Defendant’s opening ceiling'],
+    ['parPlaintiff', 'Plaintiff’s Par'],
+    ['parDefendant', 'Defendant’s Par'],
+    ['aspirationGap', 'Opening demand, beyond the floor'],
+    ['termCount', 'Terms in the vocabulary'],
+  ],
+  'k-scoring': [
+    ['expectedRelevantPlays', 'Relevance hits a worked Case yields'],
+    ['exhibitEfficiencyCap', 'Exhibits’ share of efficiency'],
+    ['parGraceBand', '“Reached Par” tolerance'],
+    ['qualityFloorSpread', 'Quality floor: Par minus'],
+  ],
+};
+
+/* ── The authored Action menu. Kinds are engine; a Case authors instances. ── */
+function actionMenu(P) {
+  return [
+    { key: 'consult',  label: 'Consult the Client',  cost: P.costConsult,  lead: P.leadConsult,  half: 'prep', yields: 0,  exhibitOdds: 0    },
+    { key: 'docs',     label: 'Request documents',   cost: P.costDocs,     lead: P.leadDocs,     half: 'prep', yields: 1,  exhibitOdds: 0.50 },
+    { key: 'depose',   label: 'Depose a witness',    cost: P.costDepose,   lead: P.leadDepose,   half: 'prep', yields: 1,  exhibitOdds: 0.70 },
+    { key: 'research', label: 'Research precedent',  cost: P.costResearch, lead: P.leadResearch, half: 'prep', yields: 1,  exhibitOdds: 0.40 },
+    { key: 'press',    label: 'Manage the press',    cost: P.costPress,    lead: P.leadPress,    half: 'prep', yields: 1,  exhibitOdds: 0.30 },
+    { key: 'expert',   label: 'Retain an expert',    cost: P.costExpert,   lead: P.leadExpert,   half: 'prep', yields: 2,  exhibitOdds: 1.00 },
+  ];
+}
+
+/* ── A Side's live state ──────────────────────────────────────────────────── */
+function newSide(role, P) {
+  const isP = role === 'plaintiff';
+  return {
+    role, isP,
+    // The Client this Side represents. Its reservation point is moved by the OPPONENT's
+    // favorable Exhibits and by this Side's OWN unfavorable discoveries. Both spend one bound.
+    rp:        isP ? P.rpOpenPlaintiff : P.rpOpenDefendant,
+    rp0:       isP ? P.rpOpenPlaintiff : P.rpOpenDefendant,
+    consumed:  0,           // fraction of the bound spent, in [0, 1]
+    par:       isP ? P.parPlaintiff : P.parDefendant,
+    // The Client's aspiration does not move: they still want what they wanted.
+    aspiration: isP ? P.rpOpenPlaintiff + P.aspirationGap : P.rpOpenDefendant - P.aspirationGap,
+    demand:     isP ? P.rpOpenPlaintiff + P.aspirationGap : P.rpOpenDefendant - P.aspirationGap,
+    prep: 0, exch: 0,       // Budget remaining in each half, refilled each Day
+    pending: [],            // Actions in flight: { landsOn, action }
+    caseFile: [],           // documents held
+    exhibits: [],           // playable favorable Exhibits: { terms, shift }
+    docket: [],             // { day, what }
+    exhibitsPlayed: 0,
+    relevanceHits: 0,
+    exhibitsClipped: 0,
+    actionsTaken: 0,
+    actionsPaidOff: 0,
+    consults: 0,
+    lastBand: null,
+    spentTotal: 0,
+    wastedBudget: 0,        // Budget that expired unspent
+    wastePrepByDay: [], wasteExchByDay: [], heldByDay: [],  // #281: WHERE the slack sits
+    sharpens: 0, pendingSharpen: [],
+    // What this Side BELIEVES about its own Client. Starts true — nothing has happened
+    // yet on Day 1 — and then goes stale unless a Consult refreshes it.
+    beliefConsumed: 0,
+    beliefErrSum: 0, beliefErrMin: 1, beliefReads: 0, pinnedReads: 0, observedBlows: 0,
+    _lastBandIdx: null, _lastConsultDay: -99,
+  };
+}
+
+/* A band is a bucket of consumed bound, so what it tells a Team is an interval,
+   never a number. Two bands is one edge, four is three. */
+const BAND_NAMES = {
+  2: ['firm', 'ready'],
+  3: ['firm', 'wavering', 'ready'],
+  4: ['firm', 'wavering', 'ready', 'resigned'],
+};
+function bandCountOf(P) { return Math.min(4, Math.max(2, Math.round(P.bandCount))); }
+function bandEdges(P) {
+  const n = bandCountOf(P);
+  if (n === 2) return [P.bandReady];
+  if (n === 4) return [P.bandWavering, P.bandReady, P.bandFourth];
+  return [P.bandWavering, P.bandReady];
+}
+function bandIndex(consumed, P) {
+  const e = bandEdges(P);
+  let i = 0;
+  while (i < e.length && consumed >= e[i]) i++;
+  return i;
+}
+function bandOf(side, P) { return BAND_NAMES[bandCountOf(P)][bandIndex(side.consumed, P)]; }
+/* The interval the band leaves open. This is the whole information content of a Consult. */
+function bandRange(consumed, P) {
+  const e = bandEdges(P);
+  const i = bandIndex(consumed, P);
+  return [i === 0 ? 0 : e[i - 1], i === e.length ? 1 : e[i]];
+}
+
+/* What a Side acts on. Under beliefMode it is the Client's LAST READ position, not the
+   true one: the reservation point is private to the Client and a Consult is what buys it. */
+function effRp(s, P) {
+  if (P.beliefMode < 1) return s.rp;
+  return s.rp0 + (s.isP ? -1 : 1) * s.beliefConsumed * P.bound;
+}
+
+/* A Consult. The estimator is the midpoint of the band's interval — with one exception
+   that is the binary-search trap in the open: because the ratchet is monotone, a Team
+   that consulted YESTERDAY and sees the band change TODAY knows the Client crossed that
+   exact threshold in between, and reads the edge rather than the interval. */
+function consultBelief(s, P, day) {
+  const [lo, hi] = bandRange(s.consumed, P);
+  const i = bandIndex(s.consumed, P);
+  const pinned = s._lastBandIdx !== null && i > s._lastBandIdx && (day - s._lastConsultDay) === 1;
+  s.beliefConsumed = pinned ? lo : (lo + hi) / 2;
+  const err = Math.abs(s.beliefConsumed - s.consumed);
+  s.beliefErrSum += err;
+  s.beliefErrMin = Math.min(s.beliefErrMin, err);
+  s.beliefReads++;
+  if (pinned) s.pinnedReads++;
+  s._lastBandIdx = i;
+  s._lastConsultDay = day;
+}
+
+/* #270 makes service visible and its direction legible, and a Team watches its own bad
+   discoveries land. So a Team counts the blows against its Client — it simply cannot see
+   how hard each one hit. Its running estimate therefore drifts, and past the bound it goes
+   on counting blows that did nothing at all. Correcting that drift is a Consult's whole job. */
+function observeBlow(side, signed, P) {
+  side.beliefConsumed = Math.min(1, Math.max(0, side.beliefConsumed + (signed >= 0 ? P.priorShift : -P.priorShift)));
+  side.observedBlows++;
+}
+
+/* Move a Client's reservation point inward. Ratchets, clips at the bound,
+   and reports how much of the intended shift actually landed. */
+function shiftClient(side, fraction, P) {
+  const room = Math.max(0, 1 - side.consumed);
+  const applied = Math.min(fraction, room);
+  side.consumed += applied;
+  observeBlow(side, 1, P);
+  // Inward = toward settleability. Plaintiff's floor falls; defendant's ceiling rises.
+  side.rp += (side.isP ? -1 : 1) * applied * P.bound;
+  return { applied, clipped: applied < fraction - 1e-9 };
+}
+
+/* An Event is the sole exemption from the ratchet: an outward shift restores bound. */
+function eventClient(side, signedFraction, P) {
+  if (signedFraction >= 0) return shiftClient(side, signedFraction, P);
+  const back = Math.min(-signedFraction, side.consumed);
+  side.consumed -= back;
+  observeBlow(side, -1, P);
+  side.rp -= (side.isP ? -1 : 1) * back * P.bound;
+  return { applied: -back, clipped: false };
+}
+
+/* ── The archetypes. Each is a policy over one Day. ────────────────────────── */
+const STRATEGIES = {
+  worker: {
+    label: 'Works the case',
+    blurb: 'Spreads discovery early, consults to read the Client, plays Exhibits as soon as an Offer makes them relevant, and concedes steadily.',
+    holdUntil: 0,        // plays Exhibits as soon as they are relevant
+    discoverUntil: 0.65, // fraction of the Simulation spent acquiring
+    consultEvery: 3,
+    offerFrom: 0.20,     // fraction of the Simulation before the first Offer
+    concede: 0.10,
+    relevanceAware: true,
+    sharpens: true,
+    expertDay: 0.15,
+  },
+  hoarder: {
+    label: 'Hoards, then dumps',
+    blurb: 'Buys everything it can, plays nothing, then dumps every Exhibit into one Offer on the final Days. The degenerate strategy the pricing has to survive.',
+    holdUntil: 0.85,
+    discoverUntil: 0.80,
+    consultEvery: 99,
+    offerFrom: 0.80,
+    concede: 0.30,
+    relevanceAware: false,
+    sharpens: true,
+    expertDay: 0.15,
+  },
+  blind: {
+    label: 'Never consults',
+    blurb: 'Never spends Budget to read its own Client. Plays Exhibits without knowing whether the Offer on the table makes them relevant.',
+    holdUntil: 0,
+    discoverUntil: 0.65,
+    consultEvery: 99,
+    offerFrom: 0.20,
+    concede: 0.10,
+    relevanceAware: false,
+    sharpens: true,
+    expertDay: 0.15,
+  },
+  sprinter: {
+    label: 'Settles fast',
+    blurb: 'Barely works the case. Opens near its floor and concedes hard to close the deal in the first third.',
+    holdUntil: 0,
+    discoverUntil: 0.25,
+    consultEvery: 4,
+    offerFrom: 0.10,
+    concede: 0.28,
+    relevanceAware: true,
+    sharpens: true,
+    expertDay: 9,
+  },
+  quietWorker: {
+    label: 'Works the case, never consults',
+    blurb: 'Identical to the case-worker in every way except that it never spends Budget to read its own Client. The control: whatever separates it from the case-worker is what a Consult is worth.',
+    holdUntil: 0,
+    discoverUntil: 0.65,
+    consultEvery: 99,
+    offerFrom: 0.20,
+    concede: 0.10,
+    relevanceAware: true,
+    sharpens: true,
+    expertDay: 0.15,
+  },
+  bandReader: {
+    label: 'Plays the band',
+    blurb: 'Consults often and acts on what it hears: keeps buying discovery while the Client reads “firm”, and closes hard once it reads “ready”.',
+    holdUntil: 0,
+    discoverUntil: 0.65,
+    consultEvery: 2,
+    offerFrom: 0.20,
+    concede: 0.10,
+    relevanceAware: true,
+    sharpens: true,
+    expertDay: 0.15,
+    bandTactic: true,
+  },
+  dailyConsult: {
+    label: 'Consults every Day',
+    blurb: 'The probe. Buys the band on every single Day, which is the only way a monotone ratchet can be bracketed — the strategy the thresholds must not reward.',
+    holdUntil: 0,
+    discoverUntil: 0.65,
+    consultEvery: 1,
+    offerFrom: 0.20,
+    concede: 0.10,
+    relevanceAware: true,
+    sharpens: true,
+    expertDay: 0.15,
+    bandTactic: true,
+  },
+  bandCutter: {
+    label: 'Stops digging when the Client moves',
+    blurb: 'Reads the band as a warning about its own discovery rather than about the negotiation: once the Client stops reading “firm”, it stops buying discovery and spends the rest on the exchange.',
+    holdUntil: 0,
+    discoverUntil: 0.65,
+    consultEvery: 2,
+    offerFrom: 0.20,
+    concede: 0.10,
+    relevanceAware: true,
+    sharpens: true,
+    expertDay: 0.15,
+    bandCut: true,
+  },
+  eventReader: {
+    label: 'Consults when an Event lands',
+    blurb: 'Buys no band on a timetable. Consults only after an Event has hit its own Client — the one moment its picture is not merely stale but pointing the wrong way.',
+    holdUntil: 0,
+    discoverUntil: 0.65,
+    consultEvery: 99,
+    offerFrom: 0.20,
+    concede: 0.10,
+    relevanceAware: true,
+    sharpens: true,
+    expertDay: 0.15,
+    onEvent: true,
+  },
+  lateExpert: {
+    label: 'Buys the expert late',
+    blurb: 'Plays like a case-worker but delays the retained expert as long as its lead time allows. Tests whether lead time is the only brake.',
+    holdUntil: 0,
+    discoverUntil: 0.65,
+    consultEvery: 3,
+    offerFrom: 0.20,
+    concede: 0.10,
+    relevanceAware: true,
+    sharpens: true,
+    expertDay: 0.99,
+  },
+};
+
+/* ── Run one Simulation ───────────────────────────────────────────────────── */
+function simulate(P, stratP, stratD, seed) {
+  const rand = rng(seed);
+  const D = Math.max(2, Math.round(P.days));
+  const menu = actionMenu(P);
+  const byKey = Object.fromEntries(menu.map(a => [a.key, a]));
+  const terms = Array.from({ length: Math.max(1, Math.round(P.termCount)) }, (_, i) => i);
+
+  const P_ = newSide('plaintiff', P);
+  const D_ = newSide('defendant', P);
+  const sides = [P_, D_];
+  const strat = { plaintiff: STRATEGIES[stratP], defendant: STRATEGIES[stratD] };
+
+  // Event Deck: drawn at the start, never during play. Seeded, so previewable.
+  const events = [];
+  for (let i = 0; i < Math.max(0, Math.round(P.eventCount)); i++) {
+    events.push({
+      day: 1 + Math.floor(rand() * (D - 1)),
+      target: rand() < 0.5 ? P_ : D_,
+      // Some cards harden a Client (outward, restores bound); some soften.
+      sign: rand() < 0.45 ? -1 : 1,
+    });
+  }
+
+  const log = [];
+  let settled = null;
+
+  for (let day = 1; day <= D && !settled; day++) {
+    const entry = { day, plaintiff: [], defendant: [], events: [] };
+
+    // Events fire first — they are the only thing that can move a Client outward.
+    for (const e of events.filter(e => e.day === day)) {
+      const r = eventClient(e.target, e.sign * P.eventShift, P);
+      e.target._eventPending = true;
+      entry.events.push(
+        `An Event ${e.sign > 0 ? 'softens' : 'hardens'} the ${e.target.role}’s Client ` +
+        `(${(Math.abs(r.applied) * 100).toFixed(0)}% of the bound${e.sign < 0 ? ', restoring travel' : ''}).`
+      );
+    }
+
+    // Refill the two halves of the Budget.
+    for (const s of sides) {
+      const carry = P.budgetPerDayIsPooled >= 1;
+      // Past the knee the Day is a different Day: little to prepare, more to trade.
+      const closing = (day / D) > P.closingKnee;
+      const flatExch = Math.min(P.exchangePool, P.budgetPerDay);
+      const exchQuota = closing ? P.closingExch : flatExch;
+      const prepQuota = closing ? P.closingPrep : P.budgetPerDay - flatExch;
+      if (!carry) { s.wastedBudget += s.prep + s.exch; s.prep = prepQuota; s.exch = exchQuota; }
+      else { s.prep += prepQuota; s.exch += exchQuota; }
+    }
+
+    // Sharpening work lands: the Exhibit it was aimed at is now worth more.
+    for (const s of sides) {
+      const landing = s.pendingSharpen.filter(p => p.landsOn === day);
+      s.pendingSharpen = s.pendingSharpen.filter(p => p.landsOn !== day);
+      for (const p of landing) {
+        for (const x of p.targets) {
+          if (!s.exhibits.includes(x)) continue;   // already played: the work is wasted
+          x.shift *= P.sharpenMult;
+          x.sharpenedTimes = (x.sharpenedTimes || 0) + 1;
+          entry[s.role].push('Preparation lands — an Exhibit we hold now bites harder.');
+        }
+      }
+    }
+
+    // Actions taken on earlier Days land now.
+    for (const s of sides) {
+      const landing = s.pending.filter(p => p.landsOn === day);
+      s.pending = s.pending.filter(p => p.landsOn !== day);
+      for (const p of landing) {
+        for (let i = 0; i < p.action.yields; i++) {
+          const isExhibit = rand() < p.action.exhibitOdds;
+          const doc = { from: p.action.label, exhibit: null };
+          if (isExhibit) {
+            // Favorable Exhibits are played at the opposing Client. Unfavorable ones are
+            // not playable at all: they land on your own Client the moment you find them.
+            const favorable = rand() < 0.7;
+            const bears = [terms[Math.floor(rand() * terms.length)]];
+            if (rand() < 0.35) bears.push(terms[Math.floor(rand() * terms.length)]);
+            if (favorable) {
+              doc.exhibit = { terms: bears, shift: P.shiftFavorable, source: p.action.key };
+              s.exhibits.push(doc.exhibit);
+              entry[s.role].push(`${p.action.label} lands — a document, and it carries an Exhibit.`);
+            } else {
+              const r = shiftClient(s, P.shiftUnfavorable, P);
+              entry[s.role].push(
+                `${p.action.label} lands — it hurts. Our own Client comes down ` +
+                `${(r.applied * 100).toFixed(0)}% of the bound.`);
+            }
+          } else {
+            entry[s.role].push(`${p.action.label} lands — a document, no Exhibit.`);
+          }
+          s.caseFile.push(doc);
+        }
+      }
+    }
+
+    // Each Side spends its Day.
+    for (const s of sides) {
+      const st = strat[s.role];
+      const progress = day / D;
+
+      // What hearing a band changes, over and above keeping the concession curve honest.
+      // Only a Side that has actually consulted has a band to act on.
+      const heard = (st.bandTactic || st.bandCut) ? s.lastBand : null;
+      // Two opposite readings of the same band, and the sweep is here to choose between them.
+      // bandTactic hears "firm" as room to keep digging. bandCut hears anything past "firm"
+      // as its OWN discovery backfiring — a Team's unfavourable finds spend the same bound
+      // the opponent's Exhibits do, and digging is the only half of that a Team controls.
+      const discoverUntil = st.bandCut
+        ? (heard && heard !== 'firm' ? 0 : st.discoverUntil)
+        : st.discoverUntil + (heard === 'firm' ? 0.15 : 0);
+      const concedeRate = st.concede * (heard === 'ready' || heard === 'resigned' ? 1.6 : 1);
+
+      // ── Preparation half ──
+      // The retained expert, if this strategy wants it and the lead time still allows it.
+      const expertLatest = D - byKey.expert.lead;
+      const wantExpert = !s._boughtExpert &&
+        (progress >= st.expertDay || day >= expertLatest) &&
+        day <= expertLatest && progress <= discoverUntil + 0.2;
+      if (wantExpert && s.prep >= byKey.expert.cost) {
+        spend(s, byKey.expert, day, entry);
+        s._boughtExpert = true;
+      }
+
+      // Consult the Client — the only way to read the Reaction Band.
+      // Price may rise across the Simulation: a late Consult is a last-minute call on a
+      // client who has other things on, an early one is a routine check-in.
+      const consultNow = { ...byKey.consult,
+        cost: P.costConsult * (1 + P.lateConsultSlope * progress) };
+      // Two triggers. A cadence buys the band on a timetable. `onEvent` buys it only when
+      // something has just made the Team's picture wrong — an Event is the sole thing that
+      // moves a Client OUTWARD (#270), so it is the one moment a stale belief is not merely
+      // drifting but pointing the wrong way.
+      const wantConsult = st.onEvent ? !!s._eventPending : (day % st.consultEvery === 0);
+      if (wantConsult && s.prep >= consultNow.cost) {
+        s._eventPending = false;
+        spend(s, consultNow, day, entry);
+        s.consults++;
+        const b = bandOf(s, P);
+        consultBelief(s, P, day);
+        entry[s.role].push(`Consult: the Client reads as “${b}”.`);
+        s.lastBand = b;
+        s.actionsPaidOff++; // knowing where you stand is a payoff
+      }
+
+      // #281's rejected candidate, off unless sharpenMult is raised above 1.
+      if (st.sharpens && P.sharpenMult > 1 && progress >= P.sharpenFrom) {
+        let g2 = 0;
+        while (s.prep >= P.costSharpen && day + P.leadSharpen <= D && g2++ < 12) {
+          const aimed = new Set(s.pendingSharpen.flatMap(p => p.targets));
+          const eligible = s.exhibits.filter(x => (x.sharpenedTimes || 0) < P.sharpenCap && !aimed.has(x));
+          if (!eligible.length) break;
+          const targets = P.sharpenScope >= 1 ? eligible : [eligible[0]];
+          s.prep -= P.costSharpen; s.spentTotal += P.costSharpen;
+          s.actionsTaken++; s.sharpens++;
+          if (P.leadSharpen <= 0) {
+            for (const x of targets) { x.shift *= P.sharpenMult; x.sharpenedTimes = (x.sharpenedTimes || 0) + 1; }
+          } else {
+            s.pendingSharpen.push({ landsOn: day + P.leadSharpen, targets });
+          }
+          entry[s.role].push(
+            `Prepare ${targets.length > 1 ? 'the Exhibits' : 'an Exhibit'} — ` +
+            `${P.costSharpen} Budget${P.leadSharpen ? `, lands Day ${day + P.leadSharpen}.` : ', lands today.'}`);
+          if (P.sharpenScope >= 1) break;   // one buy covers everything held
+        }
+      }
+
+      // Ordinary discovery, while this strategy is still acquiring.
+      const discovery = menu.filter(a => a.yields > 0 && a.key !== 'expert');
+      let guard = 0;
+      while (progress <= discoverUntil && guard++ < 12) {
+        const affordable = discovery.filter(a => a.cost <= s.prep && day + a.lead <= D);
+        if (!affordable.length) break;
+        spend(s, affordable[Math.floor(rand() * affordable.length)], day, entry);
+      }
+
+      // ── Exchange half ──
+      // Concede toward (and, near the end, past) the reservation point. The reservation
+      // point is a scoring floor, never a veto, so a Team may go below it.
+      const dir = s.isP ? -1 : 1;
+      // A Team walks from its opening demand to its floor over the Days available, and
+      // late on goes a little past that floor to close: the reservation point is a
+      // scoring floor, never a veto, so nothing in the engine stops it. `concede` shapes
+      // the curve — a low value holds firm and folds late, a high value concedes early.
+      const target = effRp(s, P) + dir * P.endgameOvershoot;
+      const k = 1 / Math.max(0.05, concedeRate * 5);
+      s.demand = s.aspiration + (target - s.aspiration) * Math.pow(progress, k);
+
+      const opp = s === P_ ? D_ : P_;
+
+      // Accept the Offer on the table if it beats where we were heading anyway.
+      if (opp._openOffer && !settled) {
+        const v = opp._openOffer.value;
+        const better = s.isP ? v >= s.demand - 1e-9 : v <= s.demand + 1e-9;
+        if (better) {
+          settled = { day, value: v, by: s.role };
+          entry[s.role].push(`Accepts the ${opp.role}’s Offer at ${v.toFixed(2)}. Settled.`);
+          break;
+        }
+      }
+
+      // Commit an Offer, with any Exhibits riding it.
+      // Hold the Offer if we are carrying Exhibits and this Day's exchange half cannot
+      // afford to play any of them — unless the Simulation is nearly out of Days.
+      const canPlayOne = s.exch >= P.costOffer + P.costPlayExhibit;
+      const holdingBack = s.exhibits.length > 0 && !canPlayOne && progress < 0.8;
+      const mayOffer = progress >= st.offerFrom && !holdingBack;
+      if (mayOffer && s.exch >= P.costOffer && !settled) {
+        const offerTerms = pickTerms(terms, rand);
+        s.exch -= P.costOffer;
+        s.spentTotal += P.costOffer;
+        s.actionsTaken++;
+
+        // Play Exhibits riding this Offer. Relevance is the gate: an Exhibit moves the
+        // Client only where the Offer touches the Terms it bears on.
+        const dumping = progress >= st.holdUntil;
+        let played = 0;
+        if (dumping) {
+          const queue = st.relevanceAware
+            ? s.exhibits.filter(x => x.terms.some(t => offerTerms.includes(t)))
+            : s.exhibits.slice();
+          for (const x of queue) {
+            if (s.exch < P.costPlayExhibit) break;
+            s.exch -= P.costPlayExhibit;
+            s.spentTotal += P.costPlayExhibit;
+            s.exhibits.splice(s.exhibits.indexOf(x), 1);
+            s.exhibitsPlayed++; played++;
+            const relevant = x.terms.some(t => offerTerms.includes(t));
+            if (relevant) {
+              s.relevanceHits++;
+              s.actionsPaidOff++;
+              if (x.sharpenedTimes) s.actionsPaidOff += x.sharpenedTimes;
+              const r = shiftClient(opp, x.shift, P);
+              if (r.clipped) s.exhibitsClipped++;
+            }
+          }
+        }
+        s._openOffer = { value: s.demand, day };
+        entry[s.role].push(
+          `Commits an Offer at ${s.demand.toFixed(2)}` +
+          (played ? `, with ${played} Exhibit${played > 1 ? 's' : ''} riding it.` : '.'));
+      }
+    }
+
+    for (const s of sides) {
+      s.wastePrepByDay[day - 1] = s.prep;
+      s.wasteExchByDay[day - 1] = s.exch;
+      s.heldByDay[day - 1] = s.exhibits.length;
+    }
+    log.push(entry);
+  }
+
+  // No settlement in the Days available: the Simulation goes to arbitration and the
+  // Instructor is the judge, over a drafted award (#263).
+  //
+  // The award is FINAL-OFFER: it is one of the two last committed Offers, whichever sits
+  // closer to the merits — never a split between them. Splitting the difference pays
+  // extremity, and under a private reservation point that makes refusing to negotiate the
+  // dominant strategy: a Side that never moves off its opening demand drags the midpoint
+  // with it. Final-offer arbitration is real practice and costs the engine one comparison.
+  // The merits are the true settleability window, which neither Side can posture about.
+  let value, outcome;
+  if (settled) { value = settled.value; outcome = `Settled on Day ${settled.day}`; }
+  else {
+    const merits = (P_.rp + D_.rp) / 2;
+    const finals = [P_._openOffer, D_._openOffer].filter(Boolean).map(o => o.value);
+    value = finals.length
+      ? finals.reduce((a, b) => (Math.abs(b - merits) < Math.abs(a - merits) ? b : a))
+      : merits;
+    outcome = 'Arbitration';
+  }
+
+  return {
+    outcome, value, settledOn: settled ? settled.day : null,
+    plaintiff: score(P_, value, P), defendant: score(D_, value, P),
+    log, events,
+  };
+}
+
+function pickTerms(terms, rand) {
+  const n = 1 + Math.floor(rand() * Math.min(3, terms.length));
+  const pool = terms.slice();
+  const out = [];
+  for (let i = 0; i < n && pool.length; i++) out.push(pool.splice(Math.floor(rand() * pool.length), 1)[0]);
+  return out;
+}
+
+function spend(side, action, day, entry) {
+  side.prep -= action.cost;
+  side.spentTotal += action.cost;
+  side.actionsTaken++;
+  side.pending.push({ landsOn: day + action.lead, action });
+  entry[side.role].push(
+    `${action.label} — ${action.cost} Budget` +
+    (action.lead ? `, lands Day ${day + action.lead}.` : ', lands today.'));
+}
+
+/* ── Scoring. Collaboration (20) is per-student and not modelled: totals are out of 80. ── */
+function score(s, value, P) {
+  // Settlement quality (40): ramps from an AUTHORED, IMMOBILE floor to Par, clipped.
+  // The floor is Par minus qualityFloorSpread x bound. It is deliberately not the live
+  // reservation point: that number is moved by the OPPONENT's Exhibits, so ramping from
+  // it sets one Side's grading scale by how hard the other Side worked.
+  let quality;
+  const reachedPar = s.isP ? value >= s.par - P.parGraceBand : value <= s.par + P.parGraceBand;
+  const spread = P.qualityFloorSpread * P.bound;
+  const floor = s.isP ? s.par - spread : s.par + spread;
+  if (s.isP) {
+    quality = value >= s.par ? 40 : 40 * clamp((value - floor) / spread, 0, 1);
+  } else {
+    quality = value <= s.par ? 40 : 40 * clamp((floor - value) / spread, 0, 1);
+  }
+
+  // Legal strategy (30): relevance hits off the Docket, never keyword-matched text.
+  const strategy = 30 * clamp(s.relevanceHits / Math.max(1, P.expectedRelevantPlays), 0, 1);
+
+  // Efficiency (10): Actions that paid off, with Exhibits' share capped.
+  const held = s.exhibitsPlayed + s.exhibits.length;
+  const exhibitPart = held ? clamp(s.exhibitsPlayed / held, 0, 1) : 0;
+  const otherPart = s.actionsTaken ? clamp(s.actionsPaidOff / s.actionsTaken, 0, 1) : 0;
+  const cap = clamp(P.exhibitEfficiencyCap, 0, 1);
+  const efficiency = 10 * (exhibitPart * cap + otherPart * (1 - cap));
+
+  return {
+    quality, strategy, efficiency,
+    total: quality + strategy + efficiency, // out of 80
+    reachedPar,
+    rp: s.rp, consumed: s.consumed, band: bandOf(s, P),
+    exhibitsPlayed: s.exhibitsPlayed, exhibitsHeld: s.exhibits.length,
+    relevanceHits: s.relevanceHits, clipped: s.exhibitsClipped,
+    consults: s.consults, actions: s.actionsTaken, wasted: s.wastedBudget,
+    sharpens: s.sharpens,
+    wastePrepByDay: s.wastePrepByDay, wasteExchByDay: s.wasteExchByDay, heldByDay: s.heldByDay,
+    // How wrong the Team's picture of its own Client was, and how often daily
+    // consulting pinned it exactly. The binary-search trap, measured.
+    beliefErr: s.beliefReads ? s.beliefErrSum / s.beliefReads : null,
+    beliefBest: s.beliefReads ? s.beliefErrMin : null,
+    pinned: s.pinnedReads,
+    beliefFinal: Math.abs(s.beliefConsumed - s.consumed),
+  };
+}
+
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+/* ── The sweep: every archetype against a Team that works the case ─────────── */
+function sweep(P, runs) {
+  const out = {};
+  for (const key of Object.keys(STRATEGIES)) {
+    const acc = { par: 0, total: 0, quality: 0, strategy: 0, efficiency: 0,
+                  arb: 0, played: 0, held: 0, wasted: 0, n: 0,
+                  consults: 0, bErr: 0, bErrN: 0, bBest: 0, pinned: 0,
+                  lateSlack: 0, sharpens: 0 };
+    for (let i = 0; i < runs; i++) {
+      const r = simulate(P, key, 'worker', 1000 + i * 7919);
+      const me = r.plaintiff;
+      acc.par += me.reachedPar ? 1 : 0;
+      acc.total += me.total; acc.quality += me.quality;
+      acc.strategy += me.strategy; acc.efficiency += me.efficiency;
+      acc.arb += r.outcome === 'Arbitration' ? 1 : 0;
+      acc.played += me.exhibitsPlayed; acc.held += me.exhibitsHeld;
+      acc.wasted += me.wasted; acc.n++;
+      acc.consults += me.consults; acc.pinned += me.pinned;
+      acc.sharpens += me.sharpens;
+      // #281: preparation Budget that expired on the closing Days specifically. Slack in
+      // general is the price of per-Day non-carry (#277); slack concentrated at the end is
+      // a stretch of Simulation where a Team has nothing to do.
+      // The window is fixed at the last 40% of the Simulation, NOT at closingKnee, so the
+      // number stays comparable between a flat Budget and a tapered one.
+      const from = Math.ceil(Math.round(P.days) * 0.6);
+      for (let d = from; d < me.wastePrepByDay.length; d++) acc.lateSlack += me.wastePrepByDay[d];
+      if (me.beliefErr !== null) { acc.bErr += me.beliefErr; acc.bBest += me.beliefBest; acc.bErrN++; }
+    }
+    const n = acc.n;
+    out[key] = {
+      parRate: acc.par / n, total: acc.total / n, quality: acc.quality / n,
+      strategy: acc.strategy / n, efficiency: acc.efficiency / n,
+      arbRate: acc.arb / n, played: acc.played / n, held: acc.held / n,
+      wasted: acc.wasted / n, consults: acc.consults / n,
+      lateSlack: acc.lateSlack / n, sharpens: acc.sharpens / n,
+      beliefErr: acc.bErrN ? acc.bErr / acc.bErrN : null,
+      beliefBest: acc.bErrN ? acc.bBest / acc.bErrN : null,
+      pinned: acc.pinned / n,
+    };
+  }
+  out._separation = out.worker.parRate - out.hoarder.parRate;
+  out._gradeGap = out.worker.total - out.hoarder.total;
+  return out;
+}
+</script>
+
+<!-- ═════════════════════════════════════════════════════════════════════
+     THE SHELL — throwaway. Nothing above reaches into this.
+     ═════════════════════════════════════════════════════════════════════ -->
+<script>
+"use strict";
+let PRICES = { ...DEFAULTS };
+
+function buildKnobs() {
+  for (const [id, rows] of Object.entries(KNOB_GROUPS)) {
+    const host = document.getElementById(id);
+    host.innerHTML = '';
+    for (const [key, label] of rows) {
+      const d = document.createElement('div');
+      d.className = 'knob';
+      d.innerHTML = `<label for="in-${key}">${label}</label>` +
+        `<input id="in-${key}" type="number" step="any" value="${PRICES[key]}">`;
+      d.querySelector('input').addEventListener('input', e => {
+        const v = parseFloat(e.target.value);
+        if (!Number.isNaN(v)) PRICES[key] = v;
+      });
+      host.appendChild(d);
+    }
+  }
+}
+
+const pct = v => (v * 100).toFixed(0) + '%';
+const n1 = v => v.toFixed(1);
+
+function renderSweep(res) {
+  const order = ['worker', 'bandReader', 'bandCutter', 'eventReader', 'dailyConsult',
+                 'quietWorker', 'lateExpert', 'blind', 'sprinter', 'hoarder'];
+  let h = '<table><thead><tr>' +
+    '<th>Archetype</th><th>Reaches Par</th><th>Rubric /80</th>' +
+    '<th>Settlement /40</th><th>Strategy /30</th><th>Efficiency /10</th>' +
+    '<th>Exhibits played</th><th>Left unplayed</th><th>Closing-Days slack</th><th>To arbitration</th>' +
+    '</tr></thead><tbody>';
+  for (const k of order) {
+    const r = res[k];
+    const w = Math.round(r.parRate * 90);
+    h += `<tr><td><strong>${STRATEGIES[k].label}</strong><br>` +
+      `<span class="muted" style="font-size:.78rem">${STRATEGIES[k].blurb}</span></td>` +
+      `<td class="num">${pct(r.parRate)} <span class="bar" style="width:${w}px"></span></td>` +
+      `<td class="num">${n1(r.total)}</td><td class="num">${n1(r.quality)}</td>` +
+      `<td class="num">${n1(r.strategy)}</td><td class="num">${n1(r.efficiency)}</td>` +
+      `<td class="num">${r.played.toFixed(1)}</td><td class="num">${r.held.toFixed(1)}</td>` +
+      `<td class="num">${r.lateSlack.toFixed(1)}</td>` +
+      `<td class="num">${pct(r.arbRate)}</td></tr>`;
+  }
+  h += '</tbody></table>';
+  document.getElementById('sweep-out').innerHTML = h;
+
+  const sep = res._separation, gap = res._gradeGap;
+  const pass = res.worker.parRate >= 0.45 && res.hoarder.parRate <= 0.25 && gap >= 8;
+  document.getElementById('verdict').innerHTML =
+    `<div class="verdict ${pass ? 'pass' : 'fail'}">` +
+    `<strong>${pass ? 'These prices separate good play from bad.' : 'These prices do not separate good play from bad.'}</strong><br>` +
+    `A Team that works the case reaches Par <strong>${pct(res.worker.parRate)}</strong> of the time; ` +
+    `a Team that hoards and dumps reaches it <strong>${pct(res.hoarder.parRate)}</strong> of the time ` +
+    `(gap ${(sep * 100).toFixed(0)} points). On the rubric the case-worker is ` +
+    `<strong>${gap >= 0 ? '+' : ''}${n1(gap)}</strong> ahead of the hoarder out of 80.` +
+    `<div class="muted" style="margin-top:.5rem;font-size:.85rem">` +
+    `Bar is set at: case-worker reaches Par at least 45% of runs, hoarder at most 25%, and at least ` +
+    `8 rubric points between them. Move the bar if you disagree with it — it is a judgement, not a fact.` +
+    `</div></div>`;
+}
+
+document.getElementById('run-sweep').addEventListener('click', () => {
+  const runs = parseInt(document.getElementById('seeds').value, 10) || 300;
+  const st = document.getElementById('sweep-status');
+  st.textContent = 'running…';
+  setTimeout(() => {
+    const t0 = performance.now();
+    const res = sweep(PRICES, runs);
+    renderSweep(res);
+    st.textContent = `${runs * 5} Simulations in ${Math.round(performance.now() - t0)} ms`;
+  }, 10);
+});
+
+/* ── Sensitivity ──────────────────────────────────────────────────────────── */
+const SENS = [
+  ['budgetPerDay', 3, 16, 1],
+  ['exchangePool', 1, 6, 0.5],
+  ['costPlayExhibit', 0, 5, 0.5],
+  ['costConsult', 1, 6, 0.5],
+  ['costExpert', 2, 10, 1],
+  ['leadExpert', 0, 6, 1],
+  ['shiftFavorable', 0.04, 0.30, 0.02],
+  ['shiftUnfavorable', 0, 0.20, 0.02],
+  ['bandWavering', 0.10, 0.55, 0.05],
+  ['bandReady', 0.40, 0.95, 0.05],
+  ['bandCount', 2, 4, 1],
+  ['priorShift', 0.02, 0.22, 0.02],
+  ['lateConsultSlope', 0, 2, 0.25],
+  ['eventCount', 0, 8, 1],
+  ['bound', 0.25, 1.10, 0.05],
+  ['exhibitEfficiencyCap', 0, 1, 0.1],
+  ['qualityFloorSpread', 0.10, 1.00, 0.05],
+  ['expectedRelevantPlays', 1, 10, 1],
+  ['days', 6, 14, 1],
+];
+const sensSel = document.getElementById('sens-knob');
+for (const [k] of SENS) {
+  const label = Object.values(KNOB_GROUPS).flat().find(r => r[0] === k);
+  const o = document.createElement('option');
+  o.value = k; o.textContent = label ? label[1] : k;
+  sensSel.appendChild(o);
+}
+
+document.getElementById('run-sens').addEventListener('click', () => {
+  const key = sensSel.value;
+  const spec = SENS.find(s => s[0] === key);
+  const st = document.getElementById('sens-status');
+  st.textContent = 'running…';
+  setTimeout(() => {
+    const rows = [];
+    for (let v = spec[1]; v <= spec[2] + 1e-9; v += spec[3]) {
+      const P = { ...PRICES, [key]: Math.round(v * 1000) / 1000 };
+      const res = sweep(P, 120);
+      rows.push({ v: P[key], w: res.worker.parRate, h: res.hoarder.parRate,
+                  gap: res._gradeGap, arb: res.worker.arbRate });
+    }
+    const best = rows.reduce((a, b) => (b.w - b.h > a.w - a.h ? b : a));
+    let out = '<table><thead><tr><th>Value</th><th>Case-worker reaches Par</th>' +
+      '<th>Hoarder reaches Par</th><th>Separation</th><th>Rubric gap /80</th>' +
+      '<th>To arbitration</th></tr></thead><tbody>';
+    for (const r of rows) {
+      const sep = r.w - r.h;
+      const mark = r === best ? ' style="background:#f6f1fa"' : '';
+      out += `<tr${mark}><td class="num"><strong>${r.v}</strong>${r === best ? ' <span class="muted">← widest</span>' : ''}</td>` +
+        `<td class="num">${pct(r.w)}</td><td class="num">${pct(r.h)}</td>` +
+        `<td class="num ${sep > 0.2 ? 'good' : sep < 0.05 ? 'bad' : ''}">${(sep * 100).toFixed(0)} pts</td>` +
+        `<td class="num">${n1(r.gap)}</td><td class="num">${pct(r.arb)}</td></tr>`;
+    }
+    out += '</tbody></table>';
+    document.getElementById('sens-out').innerHTML = out;
+    st.textContent = `${rows.length} values × 600 Simulations each`;
+  }, 10);
+});
+
+/* ── One run, written out ─────────────────────────────────────────────────── */
+for (const sel of [document.getElementById('p-strat'), document.getElementById('d-strat')]) {
+  for (const [k, s] of Object.entries(STRATEGIES)) {
+    const o = document.createElement('option');
+    o.value = k; o.textContent = s.label;
+    sel.appendChild(o);
+  }
+}
+document.getElementById('p-strat').value = 'worker';
+document.getElementById('d-strat').value = 'hoarder';
+
+document.getElementById('run-one').addEventListener('click', () => {
+  const r = simulate(PRICES,
+    document.getElementById('p-strat').value,
+    document.getElementById('d-strat').value,
+    parseInt(document.getElementById('one-seed').value, 10) || 1);
+
+  const sideCard = (name, s) =>
+    `<td><strong>${name}</strong><br>` +
+    `<span class="muted">Rubric ${n1(s.total)}/80 — settlement ${n1(s.quality)}, ` +
+    `strategy ${n1(s.strategy)}, efficiency ${n1(s.efficiency)}</span><br>` +
+    `<span class="muted">Client reads “${s.band}”, ${pct(s.consumed)} of the bound consumed, ` +
+    `reservation point now ${s.rp.toFixed(2)}</span><br>` +
+    `<span class="muted">${s.exhibitsPlayed} Exhibits played (${s.relevanceHits} relevant, ` +
+    `${s.clipped} clipped), ${s.exhibitsHeld} left unplayed, ${s.consults} Consults, ` +
+    `${s.wasted.toFixed(0)} Budget expired unspent</span>` +
+    (s.reachedPar ? ' <span class="good">— reached Par</span>' : ' <span class="bad">— short of Par</span>') +
+    `</td>`;
+
+  let h = `<div class="panel"><strong>${r.outcome}</strong> at <strong>${r.value.toFixed(2)}</strong> ` +
+    `<span class="muted">(bound-units)</span><table style="margin-top:.6rem"><tbody><tr>` +
+    sideCard('Plaintiff', r.plaintiff) + sideCard('Defendant', r.defendant) +
+    `</tr></tbody></table></div><div class="log">`;
+
+  for (const d of r.log) {
+    h += `<div class="day"><div class="day-hd">Day ${d.day}` +
+      (d.events.length ? `<span>${d.events.join(' ')}</span>` : '') + `</div>` +
+      `<div class="side-log">` +
+      `<div><h4>Plaintiff</h4><ul>${d.plaintiff.map(x => `<li>${x}</li>`).join('') || '<li class="muted">Nothing.</li>'}</ul></div>` +
+      `<div><h4>Defendant</h4><ul>${d.defendant.map(x => `<li>${x}</li>`).join('') || '<li class="muted">Nothing.</li>'}</ul></div>` +
+      `</div></div>`;
+  }
+  h += '</div>';
+  document.getElementById('one-out').innerHTML = h;
+});
+
+document.getElementById('reset').addEventListener('click', () => {
+  PRICES = { ...DEFAULTS };
+  buildKnobs();
+});
+
+buildKnobs();
+</script>
+</body>
+</html>

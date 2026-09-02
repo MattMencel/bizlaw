@@ -1,18 +1,24 @@
-# frozen_string_literal: true
-
 require_relative "boot"
 
-require "rails/all"
+require "rails"
+# Pick the frameworks you want:
+require "active_model/railtie"
+require "active_job/railtie"
+require "active_record/railtie"
+require "active_storage/engine"
+require "action_controller/railtie"
+require "action_mailer/railtie"
+require "action_mailbox/engine"
+require "action_text/engine"
+require "action_view/railtie"
+require "action_cable/engine"
+# require "rails/test_unit/railtie"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
-# Require middleware
-require_relative "../app/middleware/session_timeout_handler"
-require_relative "../app/middleware/api_version_header"
-
-module Rb
+module Bizlaw
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.0
@@ -30,19 +36,12 @@ module Rb
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
 
-    # Support both API and frontend functionality
-    config.api_only = false
+    # Don't generate system test files.
+    config.generators.system_tests = nil
 
-    # Add middleware paths to autoload
-    config.autoload_paths << Rails.root.join("app/middleware")
-
-    # Add session timeout handler and API version header
-    config.middleware.use SessionTimeoutHandler
-    config.middleware.use ApiVersionHeader
-
-    # Enable session/cookie middleware for Turbo
-    config.middleware.use ActionDispatch::Cookies
-    config.middleware.use ActionDispatch::Session::CookieStore
-    config.middleware.use ActionDispatch::Flash
+    # ADR 0002: the runtime schema is an append-only ledger whose one
+    # materialized value is maintained by an AFTER INSERT trigger. Triggers do
+    # not survive a schema.rb dump, so the repo tracks structure.sql instead.
+    config.active_record.schema_format = :sql
   end
 end

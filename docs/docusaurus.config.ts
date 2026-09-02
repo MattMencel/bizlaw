@@ -49,7 +49,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/matt.mencel/bizlaw/tree/main/docs/',
+          editUrl: 'https://github.com/MattMencel/bizlaw/tree/main/docs/',
         },
         blog: false, // Disable blog for now
         theme: {
@@ -61,7 +61,7 @@ const config: Config = {
 
   themeConfig: {
     // Replace with your project's social card
-    image: 'img/bizlaw-social-card.jpg',
+    image: 'img/docusaurus-social-card.jpg',
     navbar: {
       title: 'Legal Simulation Platform',
       logo: {
@@ -71,36 +71,12 @@ const config: Config = {
       items: [
         {
           type: 'docSidebar',
-          sidebarId: 'gettingStartedSidebar',
+          sidebarId: 'docsSidebar',
           position: 'left',
-          label: 'Getting Started',
+          label: 'Docs',
         },
         {
-          type: 'docSidebar',
-          sidebarId: 'studentsSidebar',
-          position: 'left',
-          label: 'For Students',
-        },
-        {
-          type: 'docSidebar',
-          sidebarId: 'instructorsSidebar',
-          position: 'left',
-          label: 'For Instructors',
-        },
-        {
-          type: 'docSidebar',
-          sidebarId: 'adminsSidebar',
-          position: 'left',
-          label: 'For Admins',
-        },
-        {
-          type: 'docSidebar',
-          sidebarId: 'apiSidebar',
-          position: 'left',
-          label: 'API',
-        },
-        {
-          href: 'https://github.com/matt.mencel/bizlaw',
+          href: 'https://github.com/MattMencel/bizlaw',
           label: 'GitHub',
           position: 'right',
         },
@@ -113,16 +89,8 @@ const config: Config = {
           title: 'Documentation',
           items: [
             {
-              label: 'Getting Started',
-              to: '/docs/getting-started/overview',
-            },
-            {
-              label: 'For Students',
-              to: '/docs/students/quick-start',
-            },
-            {
-              label: 'For Instructors',
-              to: '/docs/instructors/course-creation',
+              label: 'Introduction',
+              to: '/docs/intro',
             },
           ],
         },
@@ -130,25 +98,12 @@ const config: Config = {
           title: 'Resources',
           items: [
             {
-              label: 'API Reference',
-              to: '/docs/api/authentication',
-            },
-            {
               label: 'GitHub',
-              href: 'https://github.com/matt.mencel/bizlaw',
+              href: 'https://github.com/MattMencel/bizlaw',
             },
-          ],
-        },
-        {
-          title: 'Support',
-          items: [
             {
               label: 'Issues',
-              href: 'https://github.com/matt.mencel/bizlaw/issues',
-            },
-            {
-              label: 'Discussions',
-              href: 'https://github.com/matt.mencel/bizlaw/discussions',
+              href: 'https://github.com/MattMencel/bizlaw/issues',
             },
           ],
         },

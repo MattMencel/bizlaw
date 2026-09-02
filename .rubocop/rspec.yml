@@ -1,8 +1,6 @@
 ---
 plugins:
   - rubocop-rspec
-  - rubocop-capybara
-  - rubocop-factory_bot
 
 # Disable all cops by default,
 # only enable those defined explcitly in this configuration file
@@ -46,13 +44,4 @@ RSpec/MissingExampleGroupArgument:
   Enabled: true
 
 RSpec/ReceiveCounts:
-  Enabled: true
-
-Capybara/CurrentPathExpectation:
-  Enabled: true
-
-FactoryBot/AttributeDefinedStatically:
-  Enabled: true
-
-FactoryBot/CreateList:
   Enabled: true
