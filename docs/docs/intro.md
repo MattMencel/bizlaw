@@ -2,46 +2,32 @@
 sidebar_position: 1
 ---
 
-# Tutorial Intro
+# BizLaw
 
-Let's discover **Docusaurus in less than 5 minutes**.
+A two-team, asynchronous legal negotiation simulation for college business law
+courses. Two student teams take opposing sides of one authored case and negotiate
+toward a settlement their client will accept, across a calendar of Days at a firm.
+An instructor runs sections, drives the clock and grades.
 
-## Getting Started
+## Status
 
-Get started by **creating a new site**.
+The engine is being rebuilt. The previous Rails application was ruled throwaway in
+[Map #257](https://github.com/MattMencel/bizlaw/issues/257), and
+[#283](https://github.com/MattMencel/bizlaw/issues/283) stripped the repository
+back to a Rails 8 skeleton on SQLite. There is no running application to document
+yet, so this site is deliberately close to empty — user documentation returns when
+there are rooms to describe.
 
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
+## Where the design lives
 
-### What you'll need
+Three records in the repository carry the design, and none of them is published
+here yet:
 
-- [Node.js](https://nodejs.org/en/download/) version 18.0 or above:
-  - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
-
-## Generate a new site
-
-Generate a new Docusaurus site using the **classic template**.
-
-The classic template will automatically be added to your project after you run the command:
-
-```bash
-npm init docusaurus@latest my-website classic
-```
-
-You can type this command into Command Prompt, Powershell, Terminal, or any other integrated terminal of your code editor.
-
-The command also installs all necessary dependencies you need to run Docusaurus.
-
-## Start your site
-
-Run the development server:
-
-```bash
-cd my-website
-npm run start
-```
-
-The `cd` command changes the directory you're working with. In order to work with your newly created Docusaurus site, you'll need to navigate the terminal there.
-
-The `npm run start` command builds your website locally and serves it through a development server, ready for you to view at http://localhost:3000/.
-
-Open `docs/intro.md` (this page) and edit some lines: the site **reloads automatically** and displays your changes.
+- **`CONTEXT.md`** — the domain glossary. What a Day, an Action Budget, an Offer, a
+  Docket, an Exhibit and a Reaction Band each mean, written as the vocabulary the
+  code is expected to use.
+- **`docs/adr/`** — the decisions of record. ADR 0001 fixes the stack and language;
+  ADR 0002 fixes the runtime schema as an append-only ledger with derived state.
+- **`docs/design/`** and **`docs/rubric.md`** — research findings on avatar systems
+  and browser stacks, and the grading rubric carried over from the old
+  application.

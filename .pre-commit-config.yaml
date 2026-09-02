@@ -13,7 +13,7 @@ repos:
       - id: check-xml
       - id: check-yaml
         args: [--allow-multiple-documents]
-        exclude: ^(deploy/helm/|config/cucumber\.yml)
+        exclude: ^config/cucumber\.yml
       - id: end-of-file-fixer
       - id: fix-byte-order-marker
       - id: mixed-line-ending
@@ -25,11 +25,6 @@ repos:
     rev: v2.13.1-beta
     hooks:
       - id: hadolint
-
-  - repo: https://github.com/gruntwork-io/pre-commit
-    rev: v0.1.29
-    hooks:
-      - id: helmlint
 
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.7
@@ -51,7 +46,7 @@ repos:
     hooks:
       - id: rubocop
         name: Rubocop
-        entry: bundle exec rubocop
+        entry: bundle exec rubocop --force-exclusion
         language: system
         types: [ruby]
         files: \.rb$

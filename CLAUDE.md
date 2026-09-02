@@ -1,56 +1,43 @@
 # CLAUDE.md
 
-Legal education simulation platform for college business law courses: students work in teams on legal case simulations (primarily sexual harassment lawsuit negotiations), with instructors running concurrent simulations per case.
+Engine for a two-team, asynchronous legal negotiation simulation used in college business law courses. Two student teams take opposing sides of one authored case and negotiate toward a settlement their client will accept, across a calendar of Days; an instructor runs sections, drives the clock and grades.
 
-## Architecture
+The engine is Apache-2.0 and lives here. Authored Cases are proprietary content and live in a separate private repository.
 
-Hybrid API/web application — the same domain is served both as versioned JSON:API endpoints under `/api/v1/` and as traditional Rails views. Business logic lives in service objects under `app/services/` rather than in models or controllers.
+## State of the repository
+
+Greenfield. [#283](https://github.com/MattMencel/bizlaw/issues/283) stripped the previous Rails application — ruled throwaway by [Map #257](https://github.com/MattMencel/bizlaw/issues/257) — back to a Rails 8 skeleton on SQLite. There are no engine tables, models or rooms yet; they arrive with [#282](https://github.com/MattMencel/bizlaw/issues/282)'s chain. Inertia and Svelte are mandated by ADR 0001 for the game view but are deliberately not installed until there is a room to render.
+
+`CONTEXT.md` is the domain glossary and the source of the vocabulary the code should use. Read it before naming anything.
 
 ## Conventions that differ from Rails defaults
 
-These are not guessable from the framework, and getting them wrong produces migrations and queries that look correct but aren't:
+These come from `docs/adr/0002-runtime-schema.md`, and getting them wrong produces migrations and queries that look correct but aren't:
 
-- **UUID primary keys** for all major entities — never write an integer-PK migration.
-- **Soft deletion** via the `SoftDeletable` concern. Deleting a record means setting `deleted_at`, and default scopes exclude soft-deleted rows; a query that must see them has to opt in.
-- **PostgreSQL enums** back status fields, so adding a status value requires a migration, not just a constant.
-- **JSONB metadata columns** hold flexible per-case data (`plaintiff_info` / `defendant_info` on `Case`).
+- **Everything that moves is an append-only ledger, derived on read.** Action Budget remaining, a Client's reservation point, bound consumed, Reaction Band, Case File membership, Exhibit spent-state and Simulation status are folds over rows, not columns. There is no status column anywhere. It is not event sourcing — ordinary Rails tables, no projections, no replay.
+- **`day_budgets.spent` is the one materialized exception**, carrying `CHECK (spent <= budget)` and maintained by an `AFTER INSERT` trigger on `docket_entries` that re-folds the sum rather than incrementing it. Adding a second materialized aggregate needs an ADR, not a migration.
+- **The rule for a ceiling is what it does when reached.** A ceiling that refuses gets a database CHECK; a ceiling that saturates gets a value computed by the model. The Client's bound saturates, so it is never a CHECK — one placed there would crash on a legal play.
+- **`schema_format` is `:sql` and the repo tracks `db/structure.sql`.** Triggers do not survive a `schema.rb` dump. `spec/schema_format_spec.rb` proves the format still round-trips one.
+- **Deletion is hard deletion, on Retention's clocks.** There is no soft-delete concern and no `deleted_at`. Every table declares `:prose`, `:skeleton` or `:authored`; soft deletion would make Retention's two periods decorative.
+- **SQLite, so the schema stays portable**: no PostgreSQL enums and no PG-specific JSONB operators. Postgres is deferred on cost, not rejected.
+- **Invariants live in the database wherever they fit in one** — a Second as a CHECK, an Exhibit playable once by unique index, a shift landing once by unique index on its source, tenancy as composite foreign keys. Rules that span tables stay in Ruby.
 
-Leverage the existing patterns rather than introducing new architectural approaches.
+## The LLM boundary
 
-## Development
-
-```bash
-bin/dev    # Rails + Tailwind watch via Foreman (Procfile.dev)
-```
-
-Standard Rails and RSpec invocations work as expected. Two non-obvious ones:
-
-```bash
-bundle exec rspec --tag accessibility   # axe-core WCAG 2.0/2.1 AA specs only
-bundle exec rspec spec/e2e/             # Playwright-driven end-to-end specs
-```
-
-System tests are RSpec under `spec/system/`, not Minitest — `rails test:system` runs nothing.
+Dialogue is generated offline by a rake task and stored; the request path is pure Rails against stored rows. **The LLM client is never autoloaded into the web tier**, and the model never reads student prose — not for grading, not for summarizing, not as a safety pass. See `docs/adr/0001-stack-and-language.md`.
 
 ## Verification
 
-Run the suites that cover what you changed, then the linters:
-
 ```bash
-bundle exec rspec spec/models/     # model changes
-bundle exec rspec spec/requests/   # API changes
-bundle exec rspec spec/system/     # UI changes
-bundle exec cucumber               # feature/behavior changes
+bundle exec rspec       # specs
+bundle exec cucumber    # features
 ```
 
 `bin/rubocop` and `bin/brakeman` run automatically on every commit via pre-commit, so a clean commit means both passed. Run them directly only to see failures before committing.
 
+Test gems are added when a ticket needs them rather than kept ahead of use, so reach for `factory_bot`, `timecop` or `capybara` by adding them, not by assuming they are there.
+
 Distinguish pre-existing test failures from ones your change introduced before reporting results.
-
-## Project documentation
-
-- `.prd/` — product requirements documents
-- `.cursor/` — task lists and project planning
 
 ## Agent skills
 
@@ -64,4 +51,4 @@ Default vocabulary — `needs-triage`, `needs-info`, `ready-for-agent`, `ready-f
 
 ### Domain docs
 
-Single-context — `CONTEXT.md` and `docs/adr/` at the repo root, both created lazily. See `docs/agents/domain.md`.
+Single-context — `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.

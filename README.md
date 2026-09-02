@@ -1,168 +1,55 @@
-# BizLaw - Legal Education Simulation Platform
+# BizLaw
 
-[![Coverage Status](https://coveralls.io/repos/github/MattMencel/bizlaw/badge.svg?branch=main)](https://coveralls.io/github/MattMencel/bizlaw?branch=main)
 [![Ruby Code Style](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://github.com/standardrb/standard)
 
-A comprehensive Rails application designed for college business law courses, enabling students to work in teams on legal case simulations, particularly focused on sexual harassment lawsuit negotiations.
+Engine for a two-team, asynchronous legal negotiation simulation used in college
+business law courses. Two student teams take opposing sides of one authored case
+and negotiate toward a settlement their client will accept, across a calendar of
+Days at a firm. An instructor runs sections, drives the clock and grades.
 
-## 🏗️ Architecture
+## Status
 
-**Hybrid API/Web Application** built with Rails 8.0.2, supporting both JSON API endpoints (`/api/v1/`) and traditional Rails views with an API-first design approach.
+Greenfield. The previous Rails application was ruled throwaway in
+[Map #257](https://github.com/MattMencel/bizlaw/issues/257) and stripped in
+[#283](https://github.com/MattMencel/bizlaw/issues/283); what is here now is a
+Rails 8 skeleton on SQLite with `structure.sql` tracked. The engine's tables,
+models and rooms arrive with
+[#282](https://github.com/MattMencel/bizlaw/issues/282)'s chain.
 
-### Technology Stack
+## Stack
 
-- **Backend**: Rails 8.0.2, PostgreSQL with UUIDs, Solid Queue/Cache/Cable
-- **Frontend**: Hotwire (Turbo + Stimulus), Tailwind CSS, Importmap
-- **Authentication**: Devise with JWT tokens, Google OAuth2, Pundit authorization
-- **Testing**: RSpec + Cucumber + Capybara with Playwright driver
+Ruby on Rails 8 on SQLite, with Solid Queue, Solid Cache and Solid Cable on the
+same volume. Inertia and Svelte drive the game view and are installed when there
+is a room to render. No LLM client runs in the web tier — NPC dialogue is
+generated offline and stored.
 
-### Core Models
+Decisions of record are in [`docs/adr/`](docs/adr/); the domain vocabulary is in
+[`CONTEXT.md`](CONTEXT.md).
 
-- `User` - Students, instructors, and administrators with role-based access
-- `Team` - User groups with many-to-many relationships
-- `Case` - Legal simulations with JSONB metadata for plaintiff/defendant info
-- `Document` - File attachments with polymorphic associations
-- `CaseEvent` - Audit trail for activity tracking
-- `Course` - Educational courses with instructor management
-- `License` - Multi-tenant licensing system
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Ruby 3.3.0+
-- PostgreSQL 14+
-- Node.js 18+ (for asset compilation)
-- Redis (for caching and real-time features)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-org/bizlaw.git
-   cd bizlaw
-   ```
-
-2. **Install dependencies**
-   ```bash
-   bundle install
-   ```
-
-3. **Database setup**
-   ```bash
-   bin/rails db:create
-   bin/rails db:migrate
-   bin/rails db:seed
-   ```
-
-4. **Start the development server**
-   ```bash
-   bin/dev                    # Start with Foreman (Rails + Tailwind watch)
-   # OR
-   bin/rails server          # Rails server only
-   ```
-
-## 🧪 Testing
-
-### Test Suites
+## Getting started
 
 ```bash
-bin/rspec                  # Run RSpec unit/integration tests
-bin/cucumber               # Run Cucumber BDD tests
-bin/rails test:system     # Run system tests with Capybara + Playwright
+bin/setup
 ```
 
-### Code Quality
+Then:
 
 ```bash
-bin/rubocop                # Run linter with Omakase Ruby styling
-bin/brakeman               # Security vulnerability scanner
+bin/rails server
 ```
 
-## 📊 Database
-
-### Key Patterns
-
-- **UUID Primary Keys** for all major entities
-- **Soft Deletion** via `SoftDeletable` concern
-- **PostgreSQL Enums** for type-safe status fields
-- **JSONB Columns** for flexible metadata storage
-
-### Database Commands
+## Verification
 
 ```bash
-bin/rails db:reset         # Drop, create, migrate, and seed
-bin/rails db:migrate       # Run pending migrations
-bin/rails db:seed          # Seed database
+bundle exec rspec
+bundle exec cucumber
+bin/rubocop
+bin/brakeman
 ```
 
-## 🔌 API Documentation
+`bin/rubocop` and `bin/brakeman` also run on every commit through pre-commit.
 
-The application provides versioned REST APIs with JSON:API compliance:
+## Licence
 
-- **Base URL**: `/api/v1/`
-- **Authentication**: JWT tokens via Devise
-- **Rate Limiting**: Rack::Attack protection
-- **Pagination**: Kaminari for efficient data access
-
-### API Endpoints
-
-- `POST /api/v1/sessions` - Authentication
-- `GET /api/v1/teams` - Team management
-- `GET /api/v1/cases` - Case simulations
-- `POST /api/v1/documents` - File uploads
-
-## 🏫 Educational Features
-
-### Case Simulations
-- Sexual harassment lawsuit negotiations
-- Team-based collaborative workflows
-- Document management and sharing
-- Real-time activity tracking
-
-### Course Management
-- Instructor-led course creation
-- Student enrollment via invitations
-- Multi-tenant organization support
-- License-based access control
-
-## 🚢 Deployment
-
-The application is configured for deployment on Fly.io:
-
-```bash
-fly deploy                 # Deploy to production
-```
-
-### Environment Variables
-
-Key configuration variables (see `config/credentials.yml.enc`):
-- `DATABASE_URL`
-- `REDIS_URL`
-- `SECRET_KEY_BASE`
-- `GOOGLE_CLIENT_ID`
-- `GOOGLE_CLIENT_SECRET`
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/new-feature`)
-3. Run the test suite (`bin/rspec && bin/cucumber`)
-4. Commit your changes (`git commit -am 'Add new feature'`)
-5. Push to the branch (`git push origin feature/new-feature`)
-6. Create a Pull Request
-
-### Development Guidelines
-
-- Follow Rails Omakase conventions
-- Write tests for new features (RSpec + Cucumber)
-- Use existing architectural patterns
-- Ensure code passes Rubocop and Brakeman scans
-
-## 📝 License
-
-This project is licensed under [Your License] - see the LICENSE file for details.
-
-## 📞 Support
-
-For technical support or questions about the educational platform, please contact [your-support-email].
+The engine is Apache-2.0; see [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
+Authored Cases are proprietary content and live in a separate private repository.

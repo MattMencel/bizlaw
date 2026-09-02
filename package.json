@@ -1,8 +1,0 @@
-{
-  "name": "bizlaw",
-  "private": true,
-  "description": "Playwright CLI for the Capybara playwright driver used by spec/e2e and spec/system. The version must match Playwright::COMPATIBLE_PLAYWRIGHT_VERSION from the playwright-ruby-client gem.",
-  "devDependencies": {
-    "playwright": "1.62.1"
-  }
-}

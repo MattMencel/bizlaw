@@ -1,160 +1,68 @@
+---
 name: CI
 
 on:
   pull_request:
   push:
-    branches: [ main ]
-
-permissions:
-  contents: read
+    branches: [main]
 
 jobs:
-  changed:
-    if: github.event_name == 'pull_request'
+  scan_ruby:
     runs-on: ubuntu-latest
-    outputs:
-      all_changed_files: ${{ steps.changed.outputs.all_changed_files }}
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.0
 
-      - name: Get changed files
-        id: changed
-        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
-
-      - name: List all changed files
-        run: |
-          echo "All changed files:"
-          echo "${{ steps.changed.outputs.all_changed_files }}"
-
-  lint:
-    if: github.event_name == 'pull_request'
-    needs: changed
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install packages
-        run: |
-          sudo apt-get update && \
-          sudo apt-get install --no-install-recommends -y \
-            build-essential \
-            git \
-            libyaml-dev \
-            pkg-config \
-            google-chrome-stable \
-            postgresql-client
-
-      - name: Checkout code
-        uses: actions/checkout@v6
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
         with:
           ruby-version: .ruby-version
           bundler-cache: true
-      - name: Lint code for consistent style
-        run: bin/rubocop -f github --only-recognized-file-types ${{ needs.changed.outputs.all_changed_files }}
+
       - name: Scan for common Rails security vulnerabilities using static analysis
-        run: bin/brakeman --no-pager --no-exit-on-warn
-      - name: Scan for security vulnerabilities in JavaScript dependencies
-        run: bin/importmap audit
+        run: bin/brakeman --no-pager
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.0
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Lint code for consistent style
+        run: bin/rubocop -f github
 
   test:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: bizlaw_test
-        ports:
-          - 5432:5432
-        options: --health-cmd "pg_isready -U postgres" --health-interval 10s --health-timeout 5s --health-retries 5
-    steps:
-      - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config google-chrome-stable libpq-dev postgresql-client
-      - name: Checkout code
-        uses: actions/checkout@v6
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
-      - name: Setup test database
-        env:
-          RAILS_ENV: test
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/bizlaw_test
-        run: |
-          bin/rails db:test:prepare
-      - name: Run tests
-        id: tests
-        run: |
-          bundle exec rspec --exclude-pattern spec/e2e/**/*_spec.rb
-          bundle exec cucumber
-          bundle exec rails test:system
-      - name: Upload coverage to Coveralls
-        if: always()
-        uses: coverallsapp/github-action@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          RAILS_ENV: test
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/bizlaw_test
-      - name: Keep screenshots from failed system tests
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: screenshots
-          path: ${{ github.workspace }}/tmp/screenshots
-          if-no-files-found: ignore
 
-  e2e:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: bizlaw_test
-        ports:
-          - 5432:5432
-        options: --health-cmd "pg_isready -U postgres" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config google-chrome-stable libpq-dev postgresql-client
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.0
+
+      # ActiveRecord dumps and loads structure.sql by shelling out to the
+      # sqlite3 CLI, which spec/schema_format_spec.rb exercises directly.
+      - name: Install sqlite3 CLI
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y sqlite3
+
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
         with:
           ruby-version: .ruby-version
           bundler-cache: true
-      - name: Set up Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-        with:
-          node-version: lts/*
-          cache: npm
-      - name: Install Playwright CLI
-        run: npm ci
-      - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-      - name: Setup test database
+
+      - name: Run specs
         env:
           RAILS_ENV: test
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/bizlaw_test
-        run: |
-          bin/rails db:test:prepare
-      - name: Build CSS
+        run: bin/rails db:test:prepare && bundle exec rspec
+
+      - name: Run features
         env:
           RAILS_ENV: test
-        run: |
-          bin/rails tailwindcss:build
-      - name: Run E2E tests
-        id: e2e_tests
-        run: |
-          bundle exec rspec spec/e2e/
+        run: bundle exec cucumber
