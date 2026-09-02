@@ -2,8 +2,8 @@
 
 # Enable jemalloc for reduced memory usage and latency.
 if [ -z "${LD_PRELOAD+x}" ]; then
-    LD_PRELOAD=$(find /usr/lib -name libjemalloc.so.2 -print -quit)
-    export LD_PRELOAD
+  LD_PRELOAD=$(find /usr/lib -name libjemalloc.so.2 -print -quit)
+  export LD_PRELOAD
 fi
 
 # If running the rails server then create or migrate existing database.
@@ -11,7 +11,7 @@ fi
 # is an array expansion in a test and trips ShellCheck SC2198.
 args=("$@")
 n=${#args[@]}
-if [ "$n" -ge 2 ] && [ "${args[n-2]}" = "./bin/rails" ] && [ "${args[n-1]}" = "server" ]; then
+if [ "$n" -ge 2 ] && [ "${args[n - 2]}" = "./bin/rails" ] && [ "${args[n - 1]}" = "server" ]; then
   ./bin/rails db:prepare
 fi
 

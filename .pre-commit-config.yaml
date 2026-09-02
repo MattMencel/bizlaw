@@ -7,6 +7,8 @@ repos:
       - id: check-added-large-files
       - id: check-executables-have-shebangs
       - id: check-json
+        # tsconfig.json is JSONC — TypeScript allows the comments Docusaurus ships.
+        exclude: ^docs/tsconfig\.json$
       - id: check-merge-conflict
       - id: check-shebang-scripts-are-executable
       - id: check-symlinks
@@ -37,8 +39,31 @@ repos:
       - id: conventional-pre-commit
         stages: [commit-msg]
 
+  # shfmt formats in place. No formatting flags are passed on purpose: shfmt reads
+  # .editorconfig only when none are given, which is what keeps it on the repo's
+  # two-space indent rather than its own tab default.
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.13.1-1
+    hooks:
+      - id: shfmt
+        args: [--write]
+
+  - repo: local
+    hooks:
+      # ShellCheck's own fixes come out as a patch rather than an in-place edit,
+      # so apply them here and let the checker below decide what is left.
+      - id: shellcheck-fix
+        name: ShellCheck (apply suggested fixes)
+        entry: >-
+          bash -c 'for f in "$@"; do
+          shellcheck --format=diff "$f" 2>/dev/null | git apply --allow-empty - || true;
+          done' --
+        language: system
+        types: [shell]
+        require_serial: true
+
   - repo: https://github.com/koalaman/shellcheck-precommit
-    rev: v0.10.0
+    rev: v0.11.0
     hooks:
       - id: shellcheck
 
