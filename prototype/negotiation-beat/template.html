@@ -1,0 +1,619 @@
+<!doctype html>
+<!--
+  THROWAWAY PROTOTYPE — MattMencel/bizlaw#264, "One negotiation beat on screen".
+  Not production code. No tests, no error handling, no persistence, stubbed reactions.
+
+  Three structurally different answers to "what does one negotiation beat look like",
+  on one route, switchable with ?variant=A|B|C (arrow keys, or the bar at the bottom).
+  Add ?chrome=off to hide the bar for screenshots.
+
+  The beat: Priya has staged an Offer, you decide which Exhibits ride it, you Second
+  it, and it lands in the boardroom. Three NPCs react.
+
+  Built by build.mjs — edit template.html, not index.html.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Negotiation beat — prototype (#264)</title>
+<style>
+:root {
+  --ink: #f2ece4;
+  --dim: #a2958a;
+  --faint: #6d6058;
+  --paper: #efe7da;
+  --wall: #2b2320;
+  --wall-lit: #3b302a;
+  --wood: #6d4726;
+  --wood-lit: #96663a;
+  --brass: #c9a227;
+  --glass: #8fa9bd;
+  --danger: #c2543d;
+  --good: #6f9c5f;
+  --rule: rgba(242,236,228,.14);
+  --sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --serif: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: #100d0b; color: var(--ink);
+  font-family: var(--sans); font-size: 15px; line-height: 1.45;
+  -webkit-font-smoothing: antialiased; overflow: hidden;
+}
+#stage { position: fixed; inset: 0; display: flex; flex-direction: column; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.mono { font-family: var(--mono); font-size: 12px; letter-spacing: .01em; }
+.caps { text-transform: uppercase; letter-spacing: .13em; font-size: 10.5px; font-weight: 600; }
+
+/* ---------- shared: avatar + reaction motion ---------- */
+.av { aspect-ratio: 1; width: 100%; }
+.av svg { width: 100%; height: 100%; display: block; }
+@keyframes recoil { 0% { transform: none } 30% { transform: translateY(-6px) scale(1.015) } 100% { transform: none } }
+@keyframes settle  { 0% { transform: none } 40% { transform: translateY(4px) scale(.99) } 100% { transform: none } }
+.react-up { animation: recoil .5s ease-out; }
+.react-down { animation: settle .6s ease-out; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ---------- shared: HUD bits reused across variants ---------- */
+.hud-sim { color: var(--dim); }
+.hud-sim b { color: var(--ink); font-weight: 600; }
+.pip { display: inline-block; width: 9px; height: 9px; border-radius: 2px; background: var(--brass); margin-right: 3px; }
+.pip.spent { background: rgba(242,236,228,.18); }
+.btn {
+  border: 1px solid var(--rule); background: rgba(242,236,228,.05);
+  padding: 9px 16px; border-radius: 6px; transition: background .15s, border-color .15s;
+}
+.btn:hover { background: rgba(242,236,228,.12); }
+.btn.primary { background: var(--brass); border-color: var(--brass); color: #221a06; font-weight: 650; }
+.btn.primary:hover { background: #dcb42f; }
+.btn:disabled { opacity: .4; cursor: default; }
+
+/* ================= VARIANT A — The Table ================= */
+.v-a { position: relative; height: 100%; }
+.v-a .room { position: absolute; inset: 0; overflow: hidden; }
+.v-a .wall {
+  position: absolute; inset: 0;
+  background: radial-gradient(125% 95% at 46% 4%, var(--wall-lit) 0%, var(--wall) 52%, #17120f 100%);
+}
+.v-a .window {
+  position: absolute; left: 5%; top: 5%; width: 30%; height: 39%;
+  background: linear-gradient(180deg, #c2d6e2 0%, var(--glass) 42%, #4e6875 100%);
+  box-shadow: 0 0 110px 34px rgba(143,169,189,.20); border: 7px solid #241d19;
+}
+.v-a .window::after {
+  content: ""; position: absolute; inset: 0;
+  background: repeating-linear-gradient(180deg, rgba(20,16,14,.5) 0 3px, transparent 3px 16px);
+}
+.v-a .frame {
+  position: absolute; right: 8%; top: 9%; width: 13%; height: 23%;
+  border: 6px solid #241d19; background: linear-gradient(150deg, #4a3a2c, #2b221b);
+  box-shadow: inset 0 0 30px rgba(0,0,0,.6);
+}
+.v-a .frame::after {
+  content: ""; position: absolute; left: 15%; right: 15%; top: 20%; bottom: 20%;
+  border: 2px solid rgba(201,162,39,.3);
+}
+.v-a .credenza {
+  position: absolute; left: 0; right: 0; bottom: 46%; height: 6%;
+  background: linear-gradient(180deg, #4a3a2c, #2a201a); opacity: .8;
+  box-shadow: 0 -1px 0 rgba(255,220,170,.14);
+}
+
+.v-a .seats { position: absolute; inset: 0; }
+.v-a .seat { position: absolute; }
+.v-a .seat .av { position: relative; z-index: 1; filter: drop-shadow(0 16px 22px rgba(0,0,0,.6)); }
+.v-a .chair {
+  position: absolute; left: 50%; transform: translateX(-50%); bottom: 4%;
+  width: 88%; height: 52%; background: linear-gradient(180deg, #3d2f24, #221913);
+  border-radius: 44px 44px 6px 6px; box-shadow: inset 0 8px 20px rgba(0,0,0,.55);
+}
+/* across the table, cut at the chest by the near table edge — front-facing reads
+   correctly here because they are looking at us */
+.v-a .seat.counsel   { left: 36%; bottom: 42vh; width: 33vh; }
+.v-a .seat.defendant { left: 58%; bottom: 42.8vh; width: 28vh; }
+/* our end of the table: closer to camera, angled in, cropped by the frame edge */
+.v-a .seat.client {
+  left: -3%; bottom: 12vh; width: 40vh; z-index: 3;
+  transform: perspective(950px) rotateY(21deg); transform-origin: right center;
+}
+
+.v-a .table {
+  position: absolute; left: -10%; right: -10%; bottom: 18%; height: 27%; z-index: 2;
+  clip-path: polygon(15% 0, 85% 0, 100% 100%, 0 100%);
+  background: linear-gradient(180deg, #c08d59 0%, #8d5f34 6%, #6a4426 26%, #472d17 72%, #2e1c0d 100%);
+  box-shadow: 0 -26px 55px rgba(0,0,0,.5);
+}
+.v-a .table::after {
+  content: ""; position: absolute; left: 15%; right: 15%; top: 0; height: 2px;
+  background: rgba(255,228,186,.55);
+}
+.v-a .props { position: absolute; left: 0; right: 0; bottom: 18%; height: 27%; z-index: 3; pointer-events: none; }
+.v-a .paper {
+  position: absolute; background: var(--paper); border-radius: 1px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.55); opacity: .93;
+}
+.v-a .paper::after {
+  content: ""; position: absolute; inset: 16% 13%;
+  background: repeating-linear-gradient(180deg, rgba(60,50,40,.3) 0 1px, transparent 1px 5px);
+}
+.v-a .glassprop {
+  position: absolute; width: 22px; height: 30px; border-radius: 3px 3px 7px 7px;
+  background: linear-gradient(180deg, rgba(220,240,255,.45), rgba(150,190,215,.2));
+  border: 1px solid rgba(255,255,255,.3);
+}
+.v-a .plates { position: absolute; inset: 0; z-index: 4; }
+.v-a .nameplate {
+  position: absolute; transform: translateX(-50%); white-space: nowrap;
+  background: rgba(16,13,11,.8); border: 1px solid var(--rule);
+  padding: 3px 10px; border-radius: 3px; color: var(--dim);
+}
+.v-a .nameplate b { color: var(--ink); font-weight: 600; }
+.v-a .vignette {
+  position: absolute; inset: 0; z-index: 5; pointer-events: none;
+  background: radial-gradient(78% 68% at 50% 42%, transparent 38%, rgba(0,0,0,.66) 100%);
+}
+
+.v-a .caption {
+  position: absolute; z-index: 6; left: 50%; transform: translateX(-50%); bottom: 20.5%;
+  max-width: 640px; text-align: center; font-family: var(--serif); font-size: 20px;
+  color: #ffeccd; text-shadow: 0 2px 16px rgba(0,0,0,.95); opacity: 0; transition: opacity .45s;
+}
+.v-a .caption.on { opacity: 1; }
+
+.v-a .topbar {
+  position: absolute; z-index: 7; top: 0; left: 0; right: 0; padding: 14px 22px;
+  display: flex; gap: 26px; align-items: baseline; flex-wrap: wrap;
+  background: linear-gradient(180deg, rgba(10,8,7,.82), transparent);
+}
+.v-a .dock {
+  position: absolute; z-index: 7; left: 0; right: 0; bottom: 0; height: 18%; min-height: 118px;
+  background: linear-gradient(180deg, rgba(10,8,7,.5), rgba(10,8,7,.96) 45%);
+  border-top: 1px solid var(--rule);
+  display: flex; align-items: center; gap: 20px; padding: 0 22px 30px;
+}
+.v-a .offercard { flex: 0 0 250px; }
+.v-a .offercard .money { font-family: var(--serif); font-size: 26px; line-height: 1.1; }
+.v-a .offercard .terms { color: var(--dim); font-size: 13px; }
+.v-a .exlist { flex: 1; display: flex; gap: 10px; }
+.v-a .ex {
+  flex: 1; text-align: left; border: 1px solid var(--rule); border-radius: 5px;
+  background: rgba(239,231,218,.04); padding: 8px 11px; font-size: 13px;
+}
+.v-a .ex.on { background: rgba(201,162,39,.16); border-color: var(--brass); }
+.v-a .ex .bears { color: var(--faint); font-size: 11px; }
+.v-a .ex.dead { opacity: .45; cursor: default; border-style: dashed; }
+
+/* ================= VARIANT B — The Terms Board ================= */
+.v-b { height: 100%; display: grid; grid-template-rows: 27% 1fr; background: #17120f; }
+.v-b .shelf {
+  position: relative; overflow: hidden;
+  background: linear-gradient(180deg, #241d19 0%, #191411 70%, #100d0b 100%);
+  border-bottom: 1px solid var(--rule);
+  display: flex; align-items: flex-end; justify-content: center; gap: 5%; padding-bottom: 24px;
+}
+.v-b .shelf::before {
+  content: ""; position: absolute; left: 6%; top: 14%; width: 26%; height: 52%;
+  background: linear-gradient(180deg, #a9c1d1, #5d7786); border: 5px solid #241d19; opacity: .5;
+}
+.v-b .face { position: relative; width: 21vh; max-width: 210px; text-align: center; }
+.v-b .face .av { filter: drop-shadow(0 10px 18px rgba(0,0,0,.55)); }
+.v-b .face .who { position: absolute; bottom: -20px; left: 0; right: 0; color: var(--dim); }
+.v-b .face .mood {
+  position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+  padding: 2px 8px; border-radius: 99px; border: 1px solid var(--rule);
+  background: rgba(16,13,11,.75); color: var(--brass);
+}
+.v-b .board {
+  display: grid; grid-template-columns: 260px 1fr 300px; min-height: 0;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.45), transparent 18%),
+    linear-gradient(180deg, #7a5330 0%, #5e3d21 45%, #3d2716 100%);
+}
+.v-b .rail, .v-b .side { overflow: auto; padding: 16px; }
+.v-b .rail { background: rgba(16,13,11,.62); border-right: 1px solid rgba(0,0,0,.4); }
+.v-b .side { background: rgba(16,13,11,.62); border-left: 1px solid rgba(0,0,0,.4); }
+.v-b h3 { margin: 0 0 10px; color: var(--dim); font-weight: 600; }
+.v-b .doc {
+  display: block; width: 100%; text-align: left; margin-bottom: 9px; padding: 10px 12px;
+  background: var(--paper); color: #241d17; border: none; border-radius: 2px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.45); transform: rotate(-.5deg);
+  border-left: 4px solid transparent;
+}
+.v-b .doc:nth-child(odd) { transform: rotate(.6deg); }
+.v-b .doc.on { border-left-color: var(--brass); box-shadow: 0 0 0 2px var(--brass), 0 6px 16px rgba(0,0,0,.5); }
+.v-b .doc.dead { background: #cfc3b1; color: #5b5044; cursor: default; }
+.v-b .doc .t { font-weight: 650; font-size: 13px; }
+.v-b .doc .b { font-size: 11px; color: #6b5f4f; }
+.v-b .terms { padding: 22px 30px; overflow: auto; min-height: 0; }
+.v-b .term { margin-bottom: 15px; }
+.v-b .term .lbl { display: flex; justify-content: space-between; color: #f6ead6; margin-bottom: 5px; }
+.v-b .track {
+  position: relative; height: 12px; border-radius: 99px;
+  background: rgba(0,0,0,.35); box-shadow: inset 0 1px 3px rgba(0,0,0,.6);
+}
+.v-b .mark { position: absolute; top: 50%; width: 15px; height: 15px; border-radius: 50%; transform: translate(-50%,-50%); transition: left .5s cubic-bezier(.4,1.4,.5,1); }
+.v-b .mark.ours { background: var(--brass); box-shadow: 0 0 0 3px rgba(201,162,39,.25); }
+.v-b .mark.theirs { background: #d8cbb8; opacity: .55; }
+.v-b .mark.par { width: 3px; height: 20px; border-radius: 1px; background: rgba(255,255,255,.5); }
+.v-b .tray {
+  margin-top: 20px; padding: 15px 18px; border-radius: 6px;
+  background: rgba(16,13,11,.7); border: 1px solid var(--rule);
+  display: flex; align-items: center; gap: 18px;
+}
+.v-b .tray .money { font-family: var(--serif); font-size: 25px; }
+.v-b .dockrow { padding: 7px 0; border-bottom: 1px dashed rgba(242,236,228,.12); color: var(--dim); font-size: 12.5px; }
+.v-b .dockrow b { color: var(--ink); font-weight: 600; }
+
+/* ================= VARIANT C — The Cut ================= */
+.v-c { position: relative; height: 100%; overflow: hidden; background: #0d0a09; cursor: pointer; }
+.v-c .backdrop {
+  position: absolute; inset: -6%;
+  background:
+    radial-gradient(46% 42% at 26% 26%, rgba(163,192,212,.5), transparent 72%),
+    radial-gradient(40% 40% at 78% 62%, rgba(201,162,39,.16), transparent 70%),
+    linear-gradient(180deg, #45362a 0%, #241b16 58%, #0d0a09 100%);
+  filter: blur(11px); transform: scale(1.06);
+}
+.v-c .closeup {
+  position: absolute; left: 50%; bottom: 3vh; width: 88vh;
+  transform: translateX(-50%); filter: drop-shadow(0 26px 44px rgba(0,0,0,.75)) saturate(1.05) brightness(1.06);
+}
+.v-c .closeup.left  { left: 42%; }
+.v-c .closeup.right { left: 58%; }
+@keyframes cutin { from { opacity: 0; transform: translateX(-50%) scale(1.05) } to { opacity: 1; transform: translateX(-50%) scale(1) } }
+.v-c .closeup { animation: cutin .28s ease-out; }
+.v-c .grade {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(62% 56% at 50% 40%, transparent 26%, rgba(0,0,0,.6) 100%);
+}
+.v-c .plate { border-left: 3px solid var(--brass); padding: 1px 0 1px 12px; margin-bottom: 12px; }
+.v-c .plate .n { font-family: var(--serif); font-size: 22px; }
+.v-c .plate .r { color: var(--dim); }
+.v-c .box {
+  position: absolute; left: 8%; right: 8%; bottom: 7%; min-height: 132px;
+  background: rgba(12,10,9,.88); border: 1px solid var(--rule); border-radius: 8px;
+  padding: 20px 26px; backdrop-filter: blur(6px);
+}
+.v-c .box .line { font-family: var(--serif); font-size: 21px; line-height: 1.5; color: #f6ead6; }
+.v-c .box .line.narr { font-family: var(--sans); font-size: 15.5px; color: var(--dim); font-style: italic; }
+.v-c .choices { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+.v-c .next { position: absolute; right: 20px; bottom: 14px; color: var(--faint); }
+.v-c .card {
+  position: absolute; right: 3%; top: 5%; width: 250px;
+  background: rgba(12,10,9,.86); border: 1px solid var(--rule); border-radius: 7px; padding: 14px 16px;
+}
+.v-c .card .money { font-family: var(--serif); font-size: 24px; }
+.v-c .card .terms { color: var(--dim); font-size: 12.5px; }
+.v-c .card hr { border: none; border-top: 1px solid var(--rule); margin: 11px 0; }
+
+/* ================= prototype chrome (not part of any design) ================= */
+#bar {
+  position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 99;
+  display: flex; align-items: stretch; gap: 2px; background: #f2ece4; color: #100d0b;
+  border-radius: 99px; box-shadow: 0 10px 34px rgba(0,0,0,.6); overflow: hidden;
+  font-size: 13px; font-weight: 600;
+}
+#bar button { border: none; background: transparent; padding: 9px 15px; }
+#bar button:hover { background: rgba(0,0,0,.09); }
+#bar .lbl { padding: 9px 6px; min-width: 190px; text-align: center; }
+#bar .x { border-left: 1px solid rgba(0,0,0,.13); }
+#dump {
+  position: fixed; right: 16px; bottom: 70px; z-index: 99; width: 360px; max-height: 60vh; overflow: auto;
+  background: #f2ece4; color: #241d17; border-radius: 8px; padding: 14px 16px;
+  box-shadow: 0 10px 34px rgba(0,0,0,.6); white-space: pre-wrap;
+}
+#dump[hidden] { display: none; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>/*AVATARS*/</script>
+<script>
+// ---------------------------------------------------------------- state (in memory only)
+const CAST = {
+  client:    { name: "Dana Whitfield",  role: "Your client · plaintiff" },
+  counsel:   { name: "Marcus Reyes",    role: "Opposing counsel" },
+  defendant: { name: "Eleanor Voss",    role: "Arrowmark Logistics · VP People" },
+};
+
+const START = () => ({
+  sim: "Whitfield v. Arrowmark Logistics",
+  side: "Plaintiff", team: "Kestrel", you: "Tom Ellis",
+  day: 4, days: 10, budgetSize: 6, spentBefore: 2,
+  offer: { by: "Priya Nair", money: 185000, terms: ["Written apology", "Neutral reference"] },
+  exhibits: [
+    { id: "log",    name: "HR Complaint Log, 2023–24",       bears: "Money, Policy change", terms: ["Money", "Policy change"], cost: 1, riding: false },
+    { id: "depo",   name: "Ex-Supervisor Deposition, p.41", bears: "Money, Apology",       terms: ["Money", "Written apology"], cost: 1, riding: false },
+    { id: "review", name: "Performance Review, Mar 2024",       bears: "Unfavorable — already landed", dead: true },
+  ],
+  seconded: false,
+  faces: { client: "wary", counsel: "neutral", defendant: "neutral" },
+  docket: [
+    { day: 3, who: "Jordan Beck", what: "Deposed ex-supervisor", lands: "Day 4" },
+    { day: 4, who: "Priya Nair",  what: "Consulted Client",      lands: "Day 4" },
+    { day: 4, who: "Priya Nair",  what: "Staged Offer",          lands: "— needs a Second" },
+  ],
+});
+let S = START();
+
+// Terms board. 0..100 is "how far toward the plaintiff's ask", not money.
+const TERMS = [
+  { k: "Money",             ours: 62,  theirs: 21, par: 55, note: "$185,000" },
+  { k: "Written apology",   ours: 100, theirs: 0,  par: 100 },
+  { k: "Neutral reference", ours: 100, theirs: 88, par: 60 },
+  { k: "NDA",               ours: 20,  theirs: 96, par: 45 },
+  { k: "Training",          ours: 0,   theirs: 34, par: 50 },
+  { k: "Policy change",     ours: 0,   theirs: 8,  par: 70 },
+];
+
+const LINES = {
+  counsel: {
+    neutral:   "Let’s hear it, then.",
+    skeptical: "One eighty-five. On what — a complaint log you’ve never shown me?",
+    wary:      "You’re serving that now? … Give me a minute with my client.",
+    insulted:  "Two exhibits and a number. This is theatre, counsel.",
+  },
+  defendant: {
+    neutral:   "",
+    wary:      "Is that — is that what this costs?",
+    skeptical: "They have nothing. Tell them no.",
+    resigned:  "How much of this ends up in a filing?",
+  },
+  client: {
+    wary:      "You’re sure about the apology? They’ll fight that one.",
+    resigned:  "So we just … take it. Fine.",
+    neutral:   "That’s the number we talked about.",
+    pleased:   "You made them look at it. Thank you.",
+  },
+};
+
+const money = n => "$" + n.toLocaleString("en-US");
+const riding = () => S.exhibits.filter(e => e.riding && !e.dead);
+const spent = () => S.spentBefore + riding().length + (S.seconded ? 1 : 0);
+
+// Stubbed reaction. Authored decision logic is the point (#257 Notes) — no model here.
+function resolve() {
+  const n = riding().length;
+  if (n === 0) return { counsel: "skeptical", defendant: "wary",      client: "resigned" };
+  if (n === 1) return { counsel: "wary",      defendant: "skeptical", client: "neutral"  };
+  return         { counsel: "insulted",  defendant: "resigned",  client: "pleased"  };
+}
+
+function second() {
+  if (S.seconded) return;
+  S.seconded = true;
+  S.faces = resolve();
+  for (const e of riding()) S.docket.push({ day: 4, who: S.you, what: "Played Exhibit — " + e.name, lands: "Day 4" });
+  S.docket.push({ day: 4, who: S.you, what: "Seconded Offer — " + money(S.offer.money), lands: "Day 4" });
+  render();
+}
+function toggleEx(id) {
+  if (S.seconded) return;
+  const e = S.exhibits.find(x => x.id === id);
+  if (!e || e.dead) return;
+  e.riding = !e.riding;
+  render();
+}
+function reset() { S = START(); beat = 0; render(); }
+
+const av = (who, cls = "") => `<div class="av ${cls}">${window.AVATARS[who][S.faces[who]]}</div>`;
+const pips = () => Array.from({ length: S.budgetSize }, (_, i) =>
+  `<span class="pip ${i < spent() ? "spent" : ""}"></span>`).join("");
+
+// ---------------------------------------------------------------- A — The Table
+// Null hypothesis: can staging and faces alone carry the beat, with no board and no cuts?
+function renderA() {
+  const r = S.seconded;
+  return `<div class="v-a">
+    <div class="room">
+      <div class="wall"></div><div class="window"></div><div class="frame"></div><div class="credenza"></div>
+      <div class="seats">
+        <div class="seat counsel"><div class="chair"></div>${av("counsel", r ? "react-up" : "")}</div>
+        <div class="seat defendant"><div class="chair"></div>${av("defendant", r ? "react-up" : "")}</div>
+      </div>
+      <div class="table"></div>
+      <div class="props">
+        <div class="paper" style="left:44%;top:26%;width:8%;height:20%;transform:rotate(-8deg)"></div>
+        <div class="paper" style="left:53%;top:33%;width:7.5%;height:18%;transform:rotate(6deg)"></div>
+        <div class="paper" style="left:28%;top:52%;width:9%;height:22%;transform:rotate(3deg)"></div>
+        <div class="glassprop" style="left:39%;top:26%"></div>
+        <div class="glassprop" style="left:70%;top:40%"></div>
+      </div>
+      <div class="plates">
+        <div class="nameplate mono" style="left:47.5%;bottom:25%"><b>${CAST.counsel.name}</b> · opposing counsel</div>
+        <div class="nameplate mono" style="left:70%;bottom:28.5%"><b>${CAST.defendant.name}</b> · Arrowmark</div>
+      </div>
+      <div class="seats">
+        <div class="seat client">${av("client", r && S.faces.client === "resigned" ? "react-down" : "")}</div>
+      </div>
+      <div class="vignette"></div>
+    </div>
+    <div class="topbar">
+      <div class="hud-sim mono">DAY <b>${S.day}</b> of ${S.days} · <b>${S.sim}</b> · ${S.side}, team ${S.team}</div>
+      <div class="hud-sim mono">ACTION BUDGET ${pips()}</div>
+      <div class="hud-sim mono">${CAST.client.name} <b>${S.faces.client}</b></div>
+    </div>
+    <div class="caption ${r ? "on" : ""}">“${r ? LINES.counsel[S.faces.counsel] : ""}”</div>
+    <div class="dock">
+      <div class="offercard">
+        <div class="caps" style="color:var(--faint)">Staged by ${S.offer.by}${r ? " · seconded by " + S.you : " · needs your Second"}</div>
+        <div class="money">${money(S.offer.money)}</div>
+        <div class="terms">+ ${S.offer.terms.join(" · ")}</div>
+      </div>
+      <div class="exlist">
+        ${S.exhibits.map(e => `<button class="ex ${e.riding ? "on" : ""} ${e.dead ? "dead" : ""}" data-ex="${e.id}">
+            <div>${e.name}</div><div class="bears">${e.bears}${e.dead ? "" : " · 1 Action to ride"}</div>
+          </button>`).join("")}
+      </div>
+      <button class="btn primary" data-act="second" ${r ? "disabled" : ""}>${r ? "Landed" : "Second the Offer"}</button>
+      <button class="btn" data-act="reset">Reset</button>
+    </div>
+  </div>`;
+}
+
+// ---------------------------------------------------------------- B — The Terms Board
+// Objects carry the beat: chips move on a shared board, faces shrink to a reaction strip.
+function renderB() {
+  const n = riding().length, r = S.seconded;
+  // An Exhibit moves a Client only on the Terms it bears on (CONTEXT.md, "Exhibit").
+  const shift = t => {
+    if (!r) return t.theirs;
+    const hits = riding().filter(e => e.terms.includes(t.k)).length;
+    if (!hits) return t.theirs;
+    return Math.round(t.theirs + (t.ours - t.theirs) * (hits === 1 ? 0.3 : 0.5));
+  };
+  return `<div class="v-b">
+    <div class="shelf">
+      ${["counsel", "defendant", "client"].map(w => `<div class="face">
+        ${av(w, r ? "react-up" : "")}
+        <div class="mood caps">${r || w === "client" ? S.faces[w] : "—"}</div>
+        <div class="who mono">${CAST[w].name}</div>
+      </div>`).join("")}
+    </div>
+    <div class="board">
+      <div class="rail">
+        <h3 class="caps">Case File · ${S.exhibits.length} documents</h3>
+        ${S.exhibits.map(e => `<button class="doc ${e.riding ? "on" : ""} ${e.dead ? "dead" : ""}" data-ex="${e.id}">
+            <div class="t">${e.name}</div><div class="b">${e.bears}</div>
+          </button>`).join("")}
+        <div class="mono" style="color:var(--faint);margin-top:14px">Click a document to ride it on the staged Offer. It moves a Client only on Terms it bears on.</div>
+      </div>
+      <div class="terms">
+        <div class="mono" style="color:rgba(246,234,214,.65);margin-bottom:16px">
+          DAY ${S.day}/${S.days} · ${S.sim} · budget ${pips()}
+        </div>
+        ${TERMS.map(t => `<div class="term">
+          <div class="lbl mono"><span>${t.k}${t.note ? " · " + t.note : ""}</span>
+            <span style="color:rgba(246,234,214,.5)">${r && shift(t) !== t.theirs ? "moved " + (shift(t) - t.theirs > 0 ? "+" : "") + (shift(t) - t.theirs) : ""}</span></div>
+          <div class="track">
+            <div class="mark par" style="left:${t.par}%" title="Par"></div>
+            <div class="mark theirs" style="left:${shift(t)}%"></div>
+            <div class="mark ours" style="left:${t.ours}%"></div>
+          </div>
+        </div>`).join("")}
+        <div class="tray">
+          <div><div class="caps" style="color:var(--faint)">Staged Offer · ${S.offer.by}</div>
+            <div class="money">${money(S.offer.money)}</div></div>
+          <div class="mono" style="color:var(--dim);flex:1">riding: ${n ? riding().map(e => e.name).join(", ") : "nothing"}</div>
+          <button class="btn primary" data-act="second" ${r ? "disabled" : ""}>${r ? "Landed" : "Second (" + S.you + ")"}</button>
+          <button class="btn" data-act="reset">Reset</button>
+        </div>
+      </div>
+      <div class="side">
+        <h3 class="caps">Docket</h3>
+        ${S.docket.map(d => `<div class="dockrow">Day ${d.day} · <b>${d.who}</b><br>${d.what}<br><span style="color:var(--faint)">${d.lands}</span></div>`).join("")}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ---------------------------------------------------------------- C — The Cut
+// Dialogue-driven close-ups: one face fills the frame, the camera cuts between speakers.
+let beat = 0;
+function beatsC() {
+  const b = [
+    { who: "client", pos: "left", line: "You’re sure about the apology? They’ll fight that one." },
+    { narr: "Priya staged the Offer this morning. The whole Side can see it and it costs nothing until it lands. It needs a Second — yours." },
+    { who: "client", pos: "left", line: "Anything you want to put in front of them, put it in now.", choices: true },
+  ];
+  if (S.seconded) {
+    b.push({ narr: `You Second. ${money(S.offer.money)}, an apology and a neutral reference cross the table` +
+      (riding().length ? `, with ${riding().map(e => e.name).join(" and ")} served alongside.` : ", with nothing served alongside.") });
+    b.push({ who: "counsel", pos: "right", line: LINES.counsel[S.faces.counsel] });
+    if (LINES.defendant[S.faces.defendant]) b.push({ who: "defendant", pos: "right", line: LINES.defendant[S.faces.defendant] });
+    b.push({ who: "client", pos: "left", line: LINES.client[S.faces.client] });
+    b.push({ narr: `Docket updated — ${spent()} of ${S.budgetSize} Actions spent. Day ${S.day} continues.` });
+  }
+  return b;
+}
+function renderC() {
+  const bs = beatsC();
+  beat = Math.min(beat, bs.length - 1);
+  const b = bs[beat], last = beat >= bs.length - 1;
+  return `<div class="v-c" data-act="advance">
+    <div class="backdrop"></div>
+    <div class="grade"></div>
+    ${b.who ? `<div class="closeup ${b.pos}">${av(b.who)}</div>` : ""}
+    <div class="card">
+      <div class="caps" style="color:var(--faint)">Staged Offer · ${S.offer.by}</div>
+      <div class="money">${money(S.offer.money)}</div>
+      <div class="terms">+ ${S.offer.terms.join(" · ")}</div>
+      <hr>
+      <div class="mono" style="color:var(--dim)">DAY ${S.day}/${S.days}<br>${pips()}<br>${S.seconded ? "Seconded by " + S.you : "Awaiting your Second"}</div>
+    </div>
+    <div class="box">
+      ${b.who ? `<div class="plate"><div class="n">${CAST[b.who].name}</div><div class="r mono">${CAST[b.who].role} · ${S.faces[b.who]}</div></div>` : ""}
+      <div class="line ${b.narr ? "narr" : ""}">${b.narr ? b.narr : "“" + b.line + "”"}</div>
+      ${b.choices ? `<div class="choices">
+        ${S.exhibits.filter(e => !e.dead).map(e => `<button class="btn ${e.riding ? "primary" : ""}" data-ex="${e.id}">${e.riding ? "✓ " : ""}Serve ${e.name} <span style="opacity:.7">(1 Action)</span></button>`).join("")}
+        <button class="btn primary" data-act="second">Second the Offer →</button>
+      </div>` : ""}
+      ${!b.choices && !last ? `<div class="next mono">click, or ␣ to continue ▸</div>` : ""}
+      ${last && S.seconded ? `<div class="choices"><button class="btn" data-act="reset">Reset the beat</button></div>` : ""}
+    </div>
+  </div>`;
+}
+
+// ---------------------------------------------------------------- prototype chrome
+const VARIANTS = [["A", "The Table"], ["B", "The Terms Board"], ["C", "The Cut"]];
+const RENDER = { A: renderA, B: renderB, C: renderC };
+const params = new URLSearchParams(location.search);
+let variant = (params.get("variant") || "A").toUpperCase();
+if (!RENDER[variant]) variant = "A";
+
+function go(v) {
+  variant = v; beat = 0;
+  const u = new URL(location.href); u.searchParams.set("variant", v);
+  history.replaceState(null, "", u);
+  render();
+}
+function cycle(d) {
+  const i = VARIANTS.findIndex(([k]) => k === variant);
+  go(VARIANTS[(i + d + VARIANTS.length) % VARIANTS.length][0]);
+}
+
+function render() {
+  document.getElementById("stage").innerHTML = RENDER[variant]();
+  const [k, name] = VARIANTS.find(([x]) => x === variant);
+  document.querySelector("#bar .lbl").textContent = `${k} — ${name}`;
+  // Rule 5: surface the full state after every action.
+  document.getElementById("dump").textContent = JSON.stringify(
+    { variant, beat, spent: spent(), budget: S.budgetSize, seconded: S.seconded,
+      faces: S.faces, riding: riding().map(e => e.id), docket: S.docket }, null, 1);
+}
+
+document.addEventListener("click", e => {
+  const ex = e.target.closest("[data-ex]");
+  if (ex) { e.stopPropagation(); toggleEx(ex.dataset.ex); return; }
+  const act = e.target.closest("[data-act]");
+  if (!act) return;
+  if (act.dataset.act === "second") { e.stopPropagation(); second(); if (variant === "C") beat = 3; render(); }
+  else if (act.dataset.act === "reset") { e.stopPropagation(); reset(); }
+  else if (act.dataset.act === "advance") { beat = Math.min(beat + 1, beatsC().length - 1); render(); }
+});
+document.addEventListener("keydown", e => {
+  const t = e.target;
+  if (t.matches("input, textarea, [contenteditable]")) return;
+  if (e.key === "ArrowLeft") cycle(-1);
+  else if (e.key === "ArrowRight") cycle(1);
+  else if (variant === "C" && (e.key === " " || e.key === "Enter")) {
+    e.preventDefault(); beat = Math.min(beat + 1, beatsC().length - 1); render();
+  }
+});
+
+document.body.insertAdjacentHTML("beforeend", `
+  <div id="bar">
+    <button title="Previous variant (←)" onclick="cycle(-1)">◀</button>
+    <div class="lbl"></div>
+    <button class="x" title="Next variant (→)" onclick="cycle(1)">▶</button>
+    <button class="x" onclick="const d=document.getElementById('dump');d.hidden=!d.hidden">state</button>
+  </div>
+  <pre id="dump" class="mono" hidden></pre>`);
+if (params.get("chrome") === "off") document.getElementById("bar").style.display = "none";
+render();
+</script>
+</body>
+</html>

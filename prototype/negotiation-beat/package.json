@@ -1,0 +1,13 @@
+{
+  "name": "negotiation-beat-prototype",
+  "private": true,
+  "type": "module",
+  "description": "THROWAWAY prototype for MattMencel/bizlaw#264. Not production code.",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@dicebear/collection": "^9.4.2",
+    "@dicebear/core": "^9.4.3"
+  }
+}
