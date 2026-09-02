@@ -19,7 +19,7 @@ module Cases
     def initialize(path)
       @path = Pathname(path)
       @data = YAML.safe_load_file(@path, permitted_classes: [Date])
-    rescue Psych::Exception => e
+    rescue Psych::Exception, SystemCallError => e
       raise InvalidCase, "#{path} is not readable as a Case: #{e.message}"
     end
 

@@ -76,6 +76,18 @@ RSpec.describe Cases::Import do
       .to raise_error(described_class::InvalidCase, /order/)
   end
 
+  it "refuses a path that cannot be read" do
+    expect { described_class.call(File.join(@dir, "absent.yml")) }
+      .to raise_error(described_class::InvalidCase, /not readable as a Case/)
+  end
+
+  it "refuses a file that is not YAML" do
+    path = File.join(@dir, "broken.yml").tap { |file| File.write(file, "\tnot: yaml") }
+
+    expect { described_class.call(path) }
+      .to raise_error(described_class::InvalidCase, /not readable as a Case/)
+  end
+
   it "refuses a Case missing its licence" do
     expect { described_class.call(authored(licence: nil)) }
       .to raise_error(described_class::InvalidCase, /licence/)
