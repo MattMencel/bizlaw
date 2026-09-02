@@ -6,7 +6,9 @@ The engine is Apache-2.0 and lives here. Authored Cases are proprietary content 
 
 ## State of the repository
 
-Greenfield. [#283](https://github.com/MattMencel/bizlaw/issues/283) stripped the previous Rails application — ruled throwaway by [Map #257](https://github.com/MattMencel/bizlaw/issues/257) — back to a Rails 8 skeleton on SQLite. There are no engine tables, models or rooms yet; they arrive with [#282](https://github.com/MattMencel/bizlaw/issues/282)'s chain. Inertia and Svelte are mandated by ADR 0001 for the game view but are deliberately not installed until there is a room to render.
+Early. [#283](https://github.com/MattMencel/bizlaw/issues/283) stripped the previous Rails application — ruled throwaway by [Map #257](https://github.com/MattMencel/bizlaw/issues/257) — back to a Rails 8 skeleton on SQLite, and [#284](https://github.com/MattMencel/bizlaw/issues/284) laid the first tables on it: the authored Case, Version and calendar, and the run's Organization, Section, Simulation, Sides and Days. The Day's economy — Budgets, Actions, the Docket, Offers — arrives with the rest of [#282](https://github.com/MattMencel/bizlaw/issues/282)'s chain. There are no rooms yet; Inertia and Svelte are mandated by ADR 0001 for the game view but are deliberately not installed until there is one to render.
+
+A Case is loaded through one seam, `Cases::Import`, from a YAML file — `db/cases/reference.yml` is the engine's own minimal reference Case, not authored teaching material. `rake case:import[path]` runs it. `Simulations::Create` is the only path that lays out a Simulation.
 
 `CONTEXT.md` is the domain glossary and the source of the vocabulary the code should use. Read it before naming anything.
 

@@ -23,8 +23,6 @@ require "cucumber/rails"
 #
 ActionController::Base.allow_rescue = false
 
-# The engine runs on transactional tests rather than DatabaseCleaner: with an
-# append-only ledger there is nothing to truncate between scenarios that a
-# rolled-back transaction does not already undo. Add database_cleaner back here
-# if a scenario ever needs a strategy a transaction cannot express.
+# The engine rolls each scenario back rather than cleaning after it — see
+# features/support/transactional_scenarios.rb, which is where that happens.
 Cucumber::Rails::Database.autorun_database_cleaner = false
