@@ -21,9 +21,8 @@ module Cases
     BUDGET_COUNTS =
       %w[per_day exchange_pool closing_preparation closing_exchange].freeze
 
-    # Below two points nothing can be played at all — an Offer costs one and the
-    # Exhibit riding it costs another — and the design stops discriminating.
-    PLAYABLE_EXCHANGE_HALF = 2
+    # The floor belongs to the half itself, so it is the model's to state.
+    PLAYABLE_EXCHANGE_HALF = DayBudget::PLAYABLE_EXCHANGE_HALF
 
     def self.call(path) = new(path).call
 

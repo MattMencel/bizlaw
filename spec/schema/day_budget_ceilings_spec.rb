@@ -38,12 +38,12 @@ RSpec.describe "the Action Budget's ceilings" do
       .to raise_error(ActiveRecord::RecordNotUnique)
   end
 
+  # The model refuses this too. This one goes underneath it, because the point
+  # is that the database refuses it for an insert path that never asked.
   it "refuses a quota whose exchange half cannot play an Offer with an Exhibit behind it" do
-    expect {
-      DayBudget.create!(side: simulation.defendant_side, day: day,
-        preparation_budget: 8, exchange_budget: 1)
-    }.to raise_error(ActiveRecord::StatementInvalid,
-      /day_budgets_exchange_budget_plays_an_offer/)
+    expect { quota.update_column(:exchange_budget, 1) }
+      .to raise_error(ActiveRecord::StatementInvalid,
+        /day_budgets_exchange_budget_plays_an_offer/)
   end
 
   it "opens both halves at nothing spent" do

@@ -17,6 +17,10 @@ class DayBudget < ApplicationRecord
   EXCHANGE = "exchange"
   HALVES = [PREPARATION, EXCHANGE].freeze
 
+  # Below two points nothing can be played at all — an Offer costs one and the
+  # Exhibit riding it costs another — and the design stops discriminating.
+  PLAYABLE_EXCHANGE_HALF = 2
+
   belongs_to :side, inverse_of: :budgets
   belongs_to :day, inverse_of: :budgets
 
@@ -28,8 +32,13 @@ class DayBudget < ApplicationRecord
     self.simulation_id ||= day&.simulation_id || side&.simulation_id
   end
 
-  validates :preparation_budget, :exchange_budget,
+  validates :preparation_budget,
     numericality: {only_integer: true, greater_than_or_equal_to: 0}
+  # The floor the database refuses at is the floor the model refuses at, so a
+  # quota below it comes back as a validation error rather than as a CHECK
+  # violation raised from inside an insert.
+  validates :exchange_budget,
+    numericality: {only_integer: true, greater_than_or_equal_to: PLAYABLE_EXCHANGE_HALF}
 
   # What is left **today**, and only today. There is no cumulative unspent total
   # here or anywhere else: roughly an eighth of the Budget expires unspent by

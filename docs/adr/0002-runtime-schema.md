@@ -37,12 +37,15 @@ ceilings rather than one, so the exception is **two counter pairs in one row**,
 each with its own CHECK:
 
 ```
-day_budgets(side_id, day_id,
+day_budgets(organization_id, simulation_id, side_id, day_id,
             preparation_budget, preparation_spent,
             exchange_budget,    exchange_spent)
   CHECK (preparation_spent <= preparation_budget)
   CHECK (exchange_spent    <= exchange_budget)
+  CHECK (exchange_budget   >= 2)
   UNIQUE (side_id, day_id)
+  FOREIGN KEY (side_id, simulation_id, organization_id)
+  FOREIGN KEY (day_id,  simulation_id, organization_id)
 ```
 
 The row is written when the Day opens and never recomputed, so a Section edit
