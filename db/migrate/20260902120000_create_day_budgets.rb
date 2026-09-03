@@ -31,10 +31,19 @@ class CreateDayBudgets < ActiveRecord::Migration[8.0]
     # the knob has nothing recorded to disagree with it.
     add_column :sections, :budget_per_day, :integer
 
+    # Tenancy widens from the Organization to the Simulation for everything
+    # under a run. A Section runs many concurrent Simulations inside one
+    # Organization, so `(side_id, organization_id)` alone permits a quota row
+    # pairing a Side from one run with a Day from another. These are the targets
+    # of the three-column composite keys below.
+    add_index :sides, [:id, :simulation_id, :organization_id], unique: true
+    add_index :days, [:id, :simulation_id, :organization_id], unique: true
+
     # Written when the Day opens and never recomputed, so a Section edit
     # mid-Simulation reaches later Days only.
     create_table :day_budgets do |t|
       t.bigint :organization_id, null: false
+      t.bigint :simulation_id, null: false
       t.bigint :side_id, null: false
       t.bigint :day_id, null: false
       t.integer :preparation_budget, null: false
@@ -65,9 +74,11 @@ class CreateDayBudgets < ActiveRecord::Migration[8.0]
     add_index :day_budgets, [:side_id, :day_id], unique: true
     add_index :day_budgets, :day_id
     add_foreign_key :day_budgets, :sides,
-      column: [:side_id, :organization_id], primary_key: [:id, :organization_id]
+      column: [:side_id, :simulation_id, :organization_id],
+      primary_key: [:id, :simulation_id, :organization_id]
     add_foreign_key :day_budgets, :days,
-      column: [:day_id, :organization_id], primary_key: [:id, :organization_id]
+      column: [:day_id, :simulation_id, :organization_id],
+      primary_key: [:id, :simulation_id, :organization_id]
   end
 
   # Written out rather than left to `change`, because Rails cannot auto-reverse
@@ -76,6 +87,8 @@ class CreateDayBudgets < ActiveRecord::Migration[8.0]
   # rollback raises. Dropping the table takes its keys with it.
   def down
     drop_table :day_budgets
+    remove_index :days, [:id, :simulation_id, :organization_id]
+    remove_index :sides, [:id, :simulation_id, :organization_id]
     remove_column :sections, :budget_per_day
     remove_check_constraint :case_versions, "exchange_pool >= 2",
       name: "case_versions_exchange_pool_plays_an_offer"

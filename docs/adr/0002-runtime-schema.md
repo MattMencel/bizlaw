@@ -80,7 +80,11 @@ that rather than after fifty migrations.
 unique index. A shift lands once by unique index on
 `(side_id, source_kind, source_ref)`, which is what makes a double Day-open
 harmless rather than merely improbable. Tenancy is composite foreign keys, so a
-child cannot point at a parent in another Organization. The rules that span
+child cannot point at a parent in another Organization — and for the run's own
+tables the key carries the **Simulation** as well, `(parent_id, simulation_id,
+organization_id)`, because a Section runs many concurrent Simulations inside one
+Organization and the Organization alone would permit a row pairing a Side from
+one run with a Day from another. The rules that span
 tables — the waiver-or-Second gate — stay in Ruby, where the instructor UI has to
 explain them anyway.
 

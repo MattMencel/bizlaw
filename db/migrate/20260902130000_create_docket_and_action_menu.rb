@@ -50,6 +50,9 @@ class CreateDocketAndActionMenu < ActiveRecord::Migration[8.0]
     # them without a join.
     create_table :docket_entries do |t|
       t.bigint :organization_id, null: false
+      # Tenancy is the Simulation as well as the Organization, so a row cannot
+      # pair a Side from one run with a Day from another inside one institution.
+      t.bigint :simulation_id, null: false
       t.bigint :side_id, null: false
       t.bigint :day_id, null: false
       t.bigint :lands_on_day_id, null: false
@@ -66,11 +69,15 @@ class CreateDocketAndActionMenu < ActiveRecord::Migration[8.0]
     add_index :docket_entries, [:side_id, :day_id]
     add_index :docket_entries, :lands_on_day_id
     add_foreign_key :docket_entries, :sides,
-      column: [:side_id, :organization_id], primary_key: [:id, :organization_id]
+      column: [:side_id, :simulation_id, :organization_id],
+      primary_key: [:id, :simulation_id, :organization_id]
     add_foreign_key :docket_entries, :days,
-      column: [:day_id, :organization_id], primary_key: [:id, :organization_id]
+      column: [:day_id, :simulation_id, :organization_id],
+      primary_key: [:id, :simulation_id, :organization_id]
+    # A result cannot land on a Day of another run either.
     add_foreign_key :docket_entries, :days,
-      column: [:lands_on_day_id, :organization_id], primary_key: [:id, :organization_id]
+      column: [:lands_on_day_id, :simulation_id, :organization_id],
+      primary_key: [:id, :simulation_id, :organization_id]
     add_foreign_key :docket_entries, :users,
       column: [:spent_by_user_id, :organization_id], primary_key: [:id, :organization_id]
 

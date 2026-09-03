@@ -3,7 +3,10 @@
 require "rails_helper"
 
 # Tenancy is composite foreign keys rather than a scope: a child carries its
-# `organization_id` and points at its parent by `(parent_id, organization_id)`.
+# tenancy columns and points at its parent by them. For the run's own tables
+# that key is `(parent_id, simulation_id, organization_id)`, because a Section
+# runs many concurrent Simulations inside one Organization and the Organization
+# alone would let a row pair a Side from one run with a Day from another.
 # These specs write the row the boundary is supposed to refuse, at the level
 # below the models, and expect the database to raise.
 RSpec.describe "the Organization boundary" do
@@ -45,6 +48,35 @@ RSpec.describe "the Organization boundary" do
         organization_id: other_organization.id
       )
     }.to raise_error(ActiveRecord::InvalidForeignKey)
+  end
+
+  describe "two Simulations of one Case under one Section" do
+    let(:section) { a_section }
+    let(:case_version) { a_case_version }
+    let(:mine) { a_simulation(section: section, case_version: case_version) }
+    let(:theirs) { a_simulation(section: section, case_version: case_version) }
+
+    it "refuses a Budget pairing a Side with a Day of the other Simulation" do
+      expect {
+        DayBudget.create!(side: mine.plaintiff_side, day: theirs.days.first,
+          preparation_budget: 8, exchange_budget: 2)
+      }.to raise_error(ActiveRecord::InvalidForeignKey)
+    end
+
+    it "refuses a Docket row whose result lands on a Day of the other Simulation" do
+      day = mine.days.first
+
+      expect {
+        mine.plaintiff_side.docket_entries.create!(
+          day: day,
+          lands_on_day: theirs.days.first,
+          spent_by: a_user(organization: section.organization),
+          case_action: case_version.actions.first,
+          cost: 1,
+          half: DayBudget::PREPARATION
+        )
+      }.to raise_error(ActiveRecord::InvalidForeignKey)
+    end
   end
 
   it "refuses a Docket row attributed to a member of another Organization" do

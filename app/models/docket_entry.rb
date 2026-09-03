@@ -24,7 +24,10 @@ class DocketEntry < ApplicationRecord
     inverse_of: :docket_entries
   belongs_to :case_action
 
-  before_validation { self.organization_id ||= side&.organization_id || day&.organization_id }
+  before_validation do
+    self.organization_id ||= side&.organization_id || day&.organization_id
+    self.simulation_id ||= side&.simulation_id || day&.simulation_id
+  end
 
   validates :cost, numericality: {only_integer: true, greater_than_or_equal_to: 1}
   validates :half, inclusion: {in: DayBudget::HALVES}

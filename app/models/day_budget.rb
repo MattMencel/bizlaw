@@ -20,7 +20,13 @@ class DayBudget < ApplicationRecord
   belongs_to :side, inverse_of: :budgets
   belongs_to :day, inverse_of: :budgets
 
-  before_validation { self.organization_id ||= day&.organization_id || side&.organization_id }
+  # Tenancy is written rather than joined for, and it is the Simulation as well
+  # as the Organization: the composite key underneath refuses a row pairing a
+  # Side from one run with a Day from another.
+  before_validation do
+    self.organization_id ||= day&.organization_id || side&.organization_id
+    self.simulation_id ||= day&.simulation_id || side&.simulation_id
+  end
 
   validates :preparation_budget, :exchange_budget,
     numericality: {only_integer: true, greater_than_or_equal_to: 0}

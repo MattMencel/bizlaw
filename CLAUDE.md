@@ -22,7 +22,7 @@ These come from `docs/adr/0002-runtime-schema.md`, and getting them wrong produc
 - **`schema_format` is `:sql` and the repo tracks `db/structure.sql`.** Triggers do not survive a `schema.rb` dump. `spec/schema_format_spec.rb` proves the format still round-trips one.
 - **Deletion is hard deletion, on Retention's clocks.** There is no soft-delete concern and no `deleted_at`. Every table declares `:prose`, `:skeleton` or `:authored`; soft deletion would make Retention's two periods decorative.
 - **SQLite, so the schema stays portable**: no PostgreSQL enums and no PG-specific JSONB operators. Postgres is deferred on cost, not rejected.
-- **Invariants live in the database wherever they fit in one** — a Second as a CHECK, an Exhibit playable once by unique index, a shift landing once by unique index on its source, tenancy as composite foreign keys. Rules that span tables stay in Ruby.
+- **Invariants live in the database wherever they fit in one** — a Second as a CHECK, an Exhibit playable once by unique index, a shift landing once by unique index on its source, tenancy as composite foreign keys. A run's own tables key on `(parent_id, simulation_id, organization_id)`, not the Organization alone: a Section runs many concurrent Simulations, so the narrower key would permit a row pairing a Side from one run with a Day from another. Rules that span tables stay in Ruby.
 
 ## The LLM boundary
 
