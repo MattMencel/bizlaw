@@ -63,6 +63,15 @@ RSpec.describe "the Organization boundary" do
       }.to raise_error(ActiveRecord::InvalidForeignKey)
     end
 
+    it "refuses a Day commitment pairing a Side with a Day of the other Simulation" do
+      expect {
+        DayCommitment.create!(
+          side: mine.plaintiff_side, day: theirs.days.first,
+          committed_by: a_user(organization: section.organization)
+        )
+      }.to raise_error(ActiveRecord::InvalidForeignKey)
+    end
+
     it "refuses a Docket row whose result lands on a Day of the other Simulation" do
       day = mine.days.first
 
@@ -77,6 +86,18 @@ RSpec.describe "the Organization boundary" do
         )
       }.to raise_error(ActiveRecord::InvalidForeignKey)
     end
+  end
+
+  it "refuses a Day commitment attributed to a member of another Organization" do
+    simulation = a_simulation
+
+    expect {
+      DayCommitment.create!(
+        side: simulation.plaintiff_side,
+        day: simulation.days.first,
+        committed_by: a_user(organization: other_organization, email: "elsewhere@example.edu")
+      )
+    }.to raise_error(ActiveRecord::InvalidForeignKey)
   end
 
   it "refuses a Docket row attributed to a member of another Organization" do

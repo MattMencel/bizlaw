@@ -32,13 +32,6 @@ FOREIGN KEY ("simulation_id", "organization_id")
 , CONSTRAINT sides_role_known CHECK (role IN ('plaintiff', 'defendant')));
 CREATE UNIQUE INDEX "index_sides_on_simulation_id_and_role" ON "sides" ("simulation_id", "role") /*application='Bizlaw'*/;
 CREATE UNIQUE INDEX "index_sides_on_id_and_organization_id" ON "sides" ("id", "organization_id") /*application='Bizlaw'*/;
-CREATE TABLE IF NOT EXISTS "days" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "simulation_id" bigint NOT NULL, "ordinal" integer NOT NULL, "in_fiction_date" date NOT NULL, "closed_at" datetime(6), "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_56a62740e3"
-FOREIGN KEY ("simulation_id", "organization_id")
-  REFERENCES "simulations" ("id", "organization_id")
-, CONSTRAINT days_ordinal_positive CHECK (ordinal >= 1));
-CREATE UNIQUE INDEX "index_days_on_simulation_id_and_ordinal" ON "days" ("simulation_id", "ordinal") /*application='Bizlaw'*/;
-CREATE UNIQUE INDEX "index_days_on_simulation_id_and_in_fiction_date" ON "days" ("simulation_id", "in_fiction_date") /*application='Bizlaw'*/;
-CREATE UNIQUE INDEX "index_days_on_id_and_organization_id" ON "days" ("id", "organization_id") /*application='Bizlaw'*/;
 CREATE TABLE IF NOT EXISTS "case_versions" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "case_id" integer NOT NULL, "version" varchar NOT NULL, "published_at" datetime(6), "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, "budget_per_day" integer NOT NULL, "exchange_pool" integer NOT NULL, "closing_knee" decimal(3,2) NOT NULL, "closing_preparation" integer NOT NULL, "closing_exchange" integer NOT NULL, CONSTRAINT "fk_rails_607cd4326b"
 FOREIGN KEY ("case_id")
   REFERENCES "cases" ("id")
@@ -46,7 +39,6 @@ FOREIGN KEY ("case_id")
 CREATE INDEX "index_case_versions_on_case_id" ON "case_versions" ("case_id") /*application='Bizlaw'*/;
 CREATE UNIQUE INDEX "index_case_versions_on_case_id_and_version" ON "case_versions" ("case_id", "version") /*application='Bizlaw'*/;
 CREATE UNIQUE INDEX "index_sides_on_id_and_simulation_id_and_organization_id" ON "sides" ("id", "simulation_id", "organization_id") /*application='Bizlaw'*/;
-CREATE UNIQUE INDEX "index_days_on_id_and_simulation_id_and_organization_id" ON "days" ("id", "simulation_id", "organization_id") /*application='Bizlaw'*/;
 CREATE TABLE IF NOT EXISTS "day_budgets" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "simulation_id" bigint NOT NULL, "side_id" bigint NOT NULL, "day_id" bigint NOT NULL, "preparation_budget" integer NOT NULL, "preparation_spent" integer DEFAULT 0 NOT NULL, "exchange_budget" integer NOT NULL, "exchange_spent" integer DEFAULT 0 NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_69c54af8ae"
 FOREIGN KEY ("side_id", "simulation_id", "organization_id")
   REFERENCES "sides" ("id", "simulation_id", "organization_id")
@@ -170,7 +162,36 @@ FOREIGN KEY ("day_id", "simulation_id", "organization_id")
 , CONSTRAINT client_shifts_applied_within_requested CHECK (abs(applied_fraction) <= abs(requested_fraction)), CONSTRAINT client_shifts_requested_is_a_fraction_of_the_bound CHECK (requested_fraction != 0 AND abs(requested_fraction) <= 1), CONSTRAINT client_shifts_source_kind_known CHECK (source_kind IN ('unfavorable_discovery')));
 CREATE UNIQUE INDEX "index_client_shifts_on_side_id_and_source_kind_and_source_ref" ON "client_shifts" ("side_id", "source_kind", "source_ref") /*application='Bizlaw'*/;
 CREATE INDEX "index_client_shifts_on_day_id" ON "client_shifts" ("day_id") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "days" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "simulation_id" bigint NOT NULL, "ordinal" integer NOT NULL, "in_fiction_date" date NOT NULL, "closed_at" datetime(6), "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, "deadline_at" datetime(6) /*application='Bizlaw'*/, CONSTRAINT "fk_rails_56a62740e3"
+FOREIGN KEY ("simulation_id", "organization_id")
+  REFERENCES "simulations" ("id", "organization_id")
+, CONSTRAINT days_ordinal_positive CHECK (ordinal >= 1));
+CREATE UNIQUE INDEX "index_days_on_simulation_id_and_ordinal" ON "days" ("simulation_id", "ordinal") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_days_on_simulation_id_and_in_fiction_date" ON "days" ("simulation_id", "in_fiction_date") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_days_on_id_and_organization_id" ON "days" ("id", "organization_id") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_days_on_id_and_simulation_id_and_organization_id" ON "days" ("id", "simulation_id", "organization_id") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "day_commitments" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "simulation_id" bigint NOT NULL, "side_id" bigint NOT NULL, "day_id" bigint NOT NULL, "committed_by_user_id" bigint NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_d4bc83c4b4"
+FOREIGN KEY ("day_id", "simulation_id", "organization_id")
+  REFERENCES "days" ("id", "simulation_id", "organization_id")
+, CONSTRAINT "fk_rails_38d63c4cec"
+FOREIGN KEY ("side_id", "simulation_id", "organization_id")
+  REFERENCES "sides" ("id", "simulation_id", "organization_id")
+, CONSTRAINT "fk_rails_34fd404b10"
+FOREIGN KEY ("committed_by_user_id", "organization_id")
+  REFERENCES "users" ("id", "organization_id")
+);
+CREATE UNIQUE INDEX "index_day_commitments_on_side_id_and_day_id" ON "day_commitments" ("side_id", "day_id") /*application='Bizlaw'*/;
+CREATE INDEX "index_day_commitments_on_day_id" ON "day_commitments" ("day_id") /*application='Bizlaw'*/;
+CREATE TRIGGER docket_entries_need_an_unclosed_day
+BEFORE INSERT ON docket_entries
+WHEN EXISTS (
+  SELECT 1 FROM days WHERE id = NEW.day_id AND closed_at IS NOT NULL
+)
+BEGIN
+  SELECT RAISE(ABORT, 'docket_entries_need_an_unclosed_day');
+END;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260904120000'),
 ('20260903120000'),
 ('20260902130000'),
 ('20260902120000'),

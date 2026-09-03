@@ -23,6 +23,7 @@ RSpec.describe Retention do
     Side => :skeleton,
     Day => :skeleton,
     DayBudget => :skeleton,
+    DayCommitment => :skeleton,
     DocketEntry => :skeleton,
     CaseFileDocument => :skeleton,
     ClientShift => :skeleton

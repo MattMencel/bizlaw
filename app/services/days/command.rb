@@ -124,6 +124,10 @@ module Days
 
       budget = side.budget_on(day)
       return refusal(:the_day_has_not_opened, landing_day: landing_day) if budget.nil?
+      # Remaining Budget expires at close. The trigger underneath refuses the
+      # insert either way; this is what turns it into a refusal a control can
+      # render rather than a fault.
+      return refusal(:the_day_has_closed, landing_day: landing_day) if day.closed?
 
       remaining_after = budget.remaining_in(action.half) - action.cost
       return refusal(:the_budget_cannot_cover_it, landing_day: landing_day) if remaining_after.negative?

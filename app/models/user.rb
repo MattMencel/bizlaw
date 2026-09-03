@@ -16,6 +16,11 @@ class User < ApplicationRecord
     inverse_of: :spent_by,
     dependent: :restrict_with_error
 
+  has_many :day_commitments,
+    foreign_key: :committed_by_user_id,
+    inverse_of: :committed_by,
+    dependent: :restrict_with_error
+
   validates :name, presence: true
   validates :email, presence: true, uniqueness: {scope: :organization_id}
 end

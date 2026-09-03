@@ -17,6 +17,9 @@ class Side < ApplicationRecord
   # calendar, because every row names the Day its result lands on.
   has_many :docket_entries, -> { order(:id) }, inverse_of: :side, dependent: :restrict_with_error
 
+  # The Days this Side has declared itself finished with.
+  has_many :day_commitments, inverse_of: :side, dependent: :restrict_with_error
+
   # The Case File: what this Team knows, filled by the Actions that have landed.
   has_many :case_file_documents, inverse_of: :side, dependent: :restrict_with_error
 
