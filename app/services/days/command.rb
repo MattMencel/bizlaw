@@ -21,6 +21,10 @@ module Days
   class Command
     ACTS = %i[spend].freeze
 
+    # The two ceilings a fold can trip. Anything else out of the database is a
+    # fault rather than a refusal, and is not caught.
+    BUDGET_CEILING = /day_budgets_(preparation|exchange)_within_budget/
+
     # What a student is shown before they confirm, and what `apply` then
     # charges. A refused quote carries no remaining-after and no landing Day:
     # there is no negative Budget and no Day past the last one to render.
@@ -55,10 +59,10 @@ module Days
       @details = details
     end
 
+    # A Quote is never nil, so `||=` memoizes it and assigning nil clears it.
+    # `apply` clears it on a lost race and asks again.
     def quote
-      return @quote if defined?(@quote)
-
-      @quote = build_quote
+      @quote ||= build_quote
     end
 
     def apply
@@ -75,6 +79,21 @@ module Days
         cost: quote.cost,
         half: quote.half
       )
+    rescue ActiveRecord::StatementInvalid => e
+      raise unless BUDGET_CEILING.match?(e.message)
+
+      # A teammate spent between this quote and this insert. Reads are not
+      # serialized, so both quotes can read the same half as affordable and only
+      # the second insert finds the ceiling. The CHECK is what caught it; asking
+      # again turns it back into the refusal a caller already knows how to
+      # render, rather than a fault it does not.
+      @quote = nil
+      raise Refused, quote if quote.refused?
+
+      # The half moved back under the ceiling between the failed insert and the
+      # re-read. Nothing releases Budget, so this should not happen; say so with
+      # the original fault rather than a Refused carrying an affordable quote.
+      raise
     end
 
     private

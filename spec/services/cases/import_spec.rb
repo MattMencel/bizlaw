@@ -164,6 +164,42 @@ RSpec.describe Cases::Import do
       .to raise_error(described_class::InvalidCase, /exchange/)
   end
 
+  it "refuses a Budget value authored as a string rather than a number" do
+    quoted = {"per_day" => 10, "exchange_pool" => "2", "closing_knee" => 0.60,
+              "closing_preparation" => 2, "closing_exchange" => 3}
+
+    expect { described_class.call(authored(budget: quoted)) }
+      .to raise_error(described_class::InvalidCase, /not a whole number of points/)
+  end
+
+  # It would otherwise import cleanly and trip a `day_budgets` CHECK on the
+  # first closing Day, mid-Simulation.
+  it "refuses a negative closing preparation half" do
+    negative = {"per_day" => 10, "exchange_pool" => 2, "closing_knee" => 0.60,
+                "closing_preparation" => -2, "closing_exchange" => 3}
+
+    expect { described_class.call(authored(budget: negative)) }
+      .to raise_error(described_class::InvalidCase, /less than nothing/)
+  end
+
+  it "refuses a closing knee that is not a fraction of the Simulation" do
+    past_the_end = {"per_day" => 10, "exchange_pool" => 2, "closing_knee" => 6,
+                    "closing_preparation" => 2, "closing_exchange" => 3}
+
+    expect { described_class.call(authored(budget: past_the_end)) }
+      .to raise_error(described_class::InvalidCase, /not a fraction of the Simulation/)
+  end
+
+  # The taper takes a Budget cut out of the preparation half and never out of
+  # the brake, so this authors a negative preparation half on Day 1.
+  it "refuses a Budget smaller than its own exchange half" do
+    inverted = {"per_day" => 1, "exchange_pool" => 2, "closing_knee" => 0.60,
+                "closing_preparation" => 2, "closing_exchange" => 3}
+
+    expect { described_class.call(authored(budget: inverted)) }
+      .to raise_error(described_class::InvalidCase, /leaving nothing to prepare with/)
+  end
+
   it "refuses a Case that authors no Action Budget" do
     expect { described_class.call(authored(budget: nil)) }
       .to raise_error(described_class::InvalidCase, /budget/)

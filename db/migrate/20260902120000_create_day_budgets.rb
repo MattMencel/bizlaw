@@ -9,7 +9,7 @@
 # yet — both `spent` columns stay at zero until the Docket and its trigger
 # arrive.
 class CreateDayBudgets < ActiveRecord::Migration[8.0]
-  def change
+  def up
     # Authored per Version, because a published Version never changes again and
     # Par was measured against these numbers. The exchange half is an absolute
     # count of points, never a share of the Budget: held as a fraction the brake
@@ -54,8 +54,13 @@ class CreateDayBudgets < ActiveRecord::Migration[8.0]
       # negative preparation half rather than refusing.
       t.check_constraint "preparation_budget >= 0",
         name: "day_budgets_preparation_budget_non_negative"
-      t.check_constraint "exchange_budget >= 0",
-        name: "day_budgets_exchange_budget_non_negative"
+      # Below two points nothing can be played at all — an Offer costs one and
+      # the Exhibit riding it costs another. The Case's own halves are CHECKed
+      # at two, but the taper narrows the exchange half to the Budget size, so
+      # a Section shrinking the Budget under the pool would quietly take it out
+      # of the brake. This is where that lands loudly instead.
+      t.check_constraint "exchange_budget >= 2",
+        name: "day_budgets_exchange_budget_plays_an_offer"
     end
     add_index :day_budgets, [:side_id, :day_id], unique: true
     add_index :day_budgets, :day_id
@@ -63,5 +68,22 @@ class CreateDayBudgets < ActiveRecord::Migration[8.0]
       column: [:side_id, :organization_id], primary_key: [:id, :organization_id]
     add_foreign_key :day_budgets, :days,
       column: [:day_id, :organization_id], primary_key: [:id, :organization_id]
+  end
+
+  # Written out rather than left to `change`, because Rails cannot auto-reverse
+  # `add_foreign_key` on a composite key under SQLite: the key lives inside the
+  # table definition, so `remove_foreign_key` finds nothing to remove and the
+  # rollback raises. Dropping the table takes its keys with it.
+  def down
+    drop_table :day_budgets
+    remove_column :sections, :budget_per_day
+    remove_check_constraint :case_versions, "exchange_pool >= 2",
+      name: "case_versions_exchange_pool_plays_an_offer"
+    remove_check_constraint :case_versions, "closing_exchange >= 2",
+      name: "case_versions_closing_exchange_plays_an_offer"
+    change_table :case_versions, bulk: true do |t|
+      t.remove :budget_per_day, :exchange_pool, :closing_knee,
+        :closing_preparation, :closing_exchange
+    end
   end
 end

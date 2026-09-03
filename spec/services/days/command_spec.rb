@@ -123,13 +123,15 @@ RSpec.describe Days::Command do
     end
 
     it "still charges the number it quoted once the Case reprices the Action" do
-      simulation.case_version.actions.find_by!(kind: CaseAction::DEPOSE_WITNESS)
-        .update!(cost: 4, lead_time_days: 3)
       command = command_for(CaseAction::DEPOSE_WITNESS)
       quote = command.quote
 
+      simulation.case_version.actions.find_by!(kind: CaseAction::DEPOSE_WITNESS)
+        .update!(cost: 4, lead_time_days: 3)
       entry = command.apply
 
+      # The row records what was charged, not what the Action costs now.
+      expect(entry.cost).to eq(3)
       expect(entry.cost).to eq(quote.cost)
       expect(entry.lands_on_day).to eq(quote.landing_day)
       expect(budget.reload.remaining_in(quote.half)).to eq(quote.remaining_after)
@@ -165,6 +167,50 @@ RSpec.describe Days::Command do
     it "refuses an Action whose result would land past the Simulation's last Day" do
       expect { command_for(CaseAction::DEPOSE_WITNESS, on: simulation.days.last).apply }
         .to raise_error(Days::Command::Refused, /the_result_would_land_past_the_last_day/)
+    end
+
+    # Reads are not serialized, so two members of one Side can both quote the
+    # same half as affordable and only the second insert finds the ceiling. The
+    # CHECK catches it either way; what this pins is that the loser gets the
+    # refusal a caller can render rather than a database fault it cannot.
+    context "when a teammate spends between this quote and this insert" do
+      let(:mine) { command_for(CaseAction::RETAIN_EXPERT) }
+      let(:theirs) { command_for(CaseAction::RETAIN_EXPERT) }
+
+      before do
+        mine.quote
+        theirs.quote
+        theirs.apply
+      end
+
+      it "refuses rather than raising the ceiling's own error" do
+        # The quote it is holding still says affordable, so this is the CHECK
+        # being caught at the insert and not the refusal before it.
+        expect(mine.quote).to be_affordable
+
+        expect { mine.apply }
+          .to raise_error(Days::Command::Refused, /the_budget_cannot_cover_it/)
+      end
+
+      it "appends no Docket row" do
+        expect {
+          begin
+            mine.apply
+          rescue Days::Command::Refused
+            nil
+          end
+        }.not_to change(DocketEntry, :count)
+      end
+
+      it "leaves the half where the teammate's spend left it" do
+        begin
+          mine.apply
+        rescue Days::Command::Refused
+          nil
+        end
+
+        expect(budget.reload.preparation_spent).to eq(5)
+      end
     end
 
     it "carries the refusing quote on the refusal, so a caller can say why" do

@@ -16,6 +16,10 @@ module Cases
     REQUIRED_BUDGET_KEYS =
       %w[per_day exchange_pool closing_knee closing_preparation closing_exchange].freeze
     REQUIRED_ACTION_KEYS = %w[cost lead_time_days half].freeze
+    # The Budget's whole numbers. `closing_knee` is the one fraction and is
+    # checked on its own.
+    BUDGET_COUNTS =
+      %w[per_day exchange_pool closing_preparation closing_exchange].freeze
 
     # Below two points nothing can be played at all — an Offer costs one and the
     # Exhibit riding it costs another — and the design stops discriminating.
@@ -111,6 +115,8 @@ module Cases
       missing = REQUIRED_BUDGET_KEYS.reject { |key| budget[key].present? }
       raise InvalidCase, "#{path} authors a budget missing #{missing.join(", ")}" if missing.any?
 
+      validate_budget_shape!
+
       [["exchange_pool", "exchange half"], ["closing_exchange", "closing exchange half"]]
         .each do |key, name|
           next if budget[key] >= PLAYABLE_EXCHANGE_HALF
@@ -119,6 +125,42 @@ module Cases
             "#{path} authors a #{name} of #{budget[key]}, under the #{PLAYABLE_EXCHANGE_HALF} " \
             "points an Offer with one Exhibit behind it costs"
         end
+    end
+
+    # Types and ranges before any comparison, because a value of the wrong shape
+    # otherwise passes import and fails much later and much further away — a
+    # string blows up the comparison below, and a negative allowance reaches the
+    # Day it opens and trips a `day_budgets` CHECK mid-Simulation.
+    def validate_budget_shape!
+      BUDGET_COUNTS.each do |key|
+        next if budget[key].is_a?(Integer)
+
+        raise InvalidCase,
+          "#{path} authors a budget #{key.tr("_", " ")} of #{budget[key].inspect}, " \
+          "which is not a whole number of points"
+      end
+
+      knee = budget["closing_knee"]
+      unless knee.is_a?(Numeric) && knee.positive? && knee <= 1
+        raise InvalidCase,
+          "#{path} authors a closing knee of #{knee.inspect}, which is not a " \
+          "fraction of the Simulation"
+      end
+
+      if budget["closing_preparation"].negative?
+        raise InvalidCase,
+          "#{path} authors a closing preparation half of " \
+          "#{budget["closing_preparation"]}, which is less than nothing"
+      end
+
+      # The taper takes a Section's Budget cut out of the preparation half and
+      # never out of the brake, so a Budget authored under its own exchange pool
+      # writes a negative preparation half on the first Day that opens.
+      return if budget["per_day"] >= budget["exchange_pool"]
+
+      raise InvalidCase,
+        "#{path} authors #{budget["per_day"]} points a Day against an exchange " \
+        "half of #{budget["exchange_pool"]}, leaving nothing to prepare with"
     end
 
     # An Action kind is engine, so a Case may price the kinds it offers and may

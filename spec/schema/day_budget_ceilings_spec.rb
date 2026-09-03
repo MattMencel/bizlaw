@@ -38,6 +38,14 @@ RSpec.describe "the Action Budget's ceilings" do
       .to raise_error(ActiveRecord::RecordNotUnique)
   end
 
+  it "refuses a quota whose exchange half cannot play an Offer with an Exhibit behind it" do
+    expect {
+      DayBudget.create!(side: simulation.defendant_side, day: day,
+        preparation_budget: 8, exchange_budget: 1)
+    }.to raise_error(ActiveRecord::StatementInvalid,
+      /day_budgets_exchange_budget_plays_an_offer/)
+  end
+
   it "opens both halves at nothing spent" do
     expect(quota.preparation_spent).to eq(0)
     expect(quota.exchange_spent).to eq(0)
