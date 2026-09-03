@@ -106,3 +106,66 @@ jobs:
         env:
           RAILS_ENV: test
         run: bin/rails db:test:prepare && bundle exec cucumber
+
+  # A broken `down` is invisible: it changes no schema, no dump and no spec, and
+  # only fails when someone actually rolls back — which is when they least want
+  # to find it. ADR 0002 makes tenancy composite foreign keys, and Rails cannot
+  # auto-reverse `add_foreign_key` on one under SQLite, so every table added
+  # under a run is a chance to reintroduce it.
+  #
+  # This job runs the chain rather than inspecting it, because the only honest
+  # test of a `down` is a rollback: up from nothing, all the way down, and up
+  # again.
+  migrations:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.0
+        with:
+          # No job here runs an authenticated git command, so the checkout has
+          # no reason to leave GITHUB_TOKEN behind for the code it checks out.
+          persist-credentials: false
+
+      # ActiveRecord dumps and loads structure.sql by shelling out to the
+      # sqlite3 CLI, and the rollback assertion below reads the database with it.
+      - name: Install sqlite3 CLI
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y sqlite3
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Build the schema from the migrations alone
+        run: |
+          bin/rails db:create
+          # `db:migrate` loads db/structure.sql instead of running the
+          # migrations when the database is empty, so the file has to be out of
+          # the way for every `up` to actually run.
+          rm db/structure.sql
+          bin/rails db:migrate
+
+      - name: Check the tracked schema is what the migrations produce
+        run: |
+          # Rails ends its dump with a blank line that pre-commit's
+          # end-of-file-fixer collapses, so a fresh dump differs from the
+          # tracked file by exactly that and nothing else. Normalise it the
+          # same way rather than teaching the diff to ignore blank lines.
+          perl -0pi -e 's/\n+\z/\n/' db/structure.sql
+          git diff --exit-code -- db/structure.sql
+
+      - name: Roll the whole chain back, then re-apply it
+        run: |
+          # `wc -l` pads its count on some platforms, and a padded STEP is
+          # silently a no-op rather than an error.
+          steps=$(find db/migrate -name '*.rb' | wc -l | tr -d '[:space:]')
+          bin/rails db:rollback STEP="$steps"
+          applied=$(sqlite3 storage/development.sqlite3 \
+            "SELECT COUNT(*) FROM schema_migrations;")
+          if [ "$applied" != "0" ]; then
+            echo "::error::rollback left $applied migrations applied; a down is incomplete"
+            exit 1
+          fi
+          bin/rails db:migrate
