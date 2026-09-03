@@ -8,7 +8,7 @@
 # so a child in one Organization cannot reference a parent in another — the
 # boundary is a schema shape rather than a scope someone has to remember.
 class CreateSimulationSkeleton < ActiveRecord::Migration[8.0]
-  def change
+  def up
     create_table :organizations do |t|
       t.string :name, null: false
 
@@ -70,5 +70,20 @@ class CreateSimulationSkeleton < ActiveRecord::Migration[8.0]
     add_index :days, [:id, :organization_id], unique: true
     add_foreign_key :days, :simulations,
       column: [:simulation_id, :organization_id], primary_key: [:id, :organization_id]
+  end
+
+  # Written out rather than left to `change`, because Rails cannot auto-reverse
+  # `add_foreign_key` on a composite key under SQLite. The key is part of the
+  # table definition rather than a separate object, so the reverse of the
+  # migration calls `remove_foreign_key`, finds nothing to remove, and raises
+  # `Table 'days' has no foreign key for simulations` — leaving the schema
+  # half-reverted. Dropping each table takes its keys with it; children first,
+  # so nothing is dropped out from under a key still pointing at it.
+  def down
+    drop_table :days
+    drop_table :sides
+    drop_table :simulations
+    drop_table :sections
+    drop_table :organizations
   end
 end
