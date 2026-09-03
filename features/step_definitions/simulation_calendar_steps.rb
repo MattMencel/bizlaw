@@ -10,7 +10,15 @@ Given("a Section at Western Illinois University") do
 end
 
 Given("the reference Case also has a draft version") do
-  @draft = @case_version.case.versions.create!(version: "1.1.0")
+  # A draft carries the same authored Budget as the version it is worked from.
+  @draft = @case_version.case.versions.create!(
+    version: "1.1.0",
+    budget_per_day: @case_version.budget_per_day,
+    exchange_pool: @case_version.exchange_pool,
+    closing_knee: @case_version.closing_knee,
+    closing_preparation: @case_version.closing_preparation,
+    closing_exchange: @case_version.closing_exchange
+  )
   @draft.calendar_days.create!(ordinal: 1, in_fiction_date: Date.new(2026, 3, 2))
 end
 

@@ -29,6 +29,16 @@ RSpec.describe Simulations::Create do
     expect(simulation.sides.map(&:case_version)).to all(eq(case_version))
   end
 
+  it "opens Day 1, so the first Day arrives with both halves of each Side's Budget" do
+    simulation = described_class.call(section: a_section, case_version: a_case_version)
+
+    quotas = DayBudget.where(day: simulation.days.first)
+    expect(quotas.count).to eq(2)
+    expect(quotas.map(&:preparation_budget)).to all(eq(8))
+    expect(quotas.map(&:exchange_budget)).to all(eq(2))
+    expect(DayBudget.where(day: simulation.days.second)).to be_empty
+  end
+
   it "refuses a draft Case Version" do
     draft = a_case_version(published: false)
 

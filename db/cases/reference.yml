@@ -10,6 +10,17 @@ name: The Reference Case
 licence: Apache-2.0
 version: "1.0.0"
 published: true
+# The Action Budget, measured on prototype/action-budget-pricing rather than
+# chosen. The exchange half is an absolute count of points: held as a fraction
+# it would couple the brake to the Budget size. Past the knee the preparation
+# allowance collapses to roughly the price of a Consult and the exchange half
+# widens by one point.
+budget:
+  per_day: 10
+  exchange_pool: 2
+  closing_knee: 0.60
+  closing_preparation: 2
+  closing_exchange: 3
 calendar:
   - 2026-03-02
   - 2026-03-03
@@ -21,3 +32,35 @@ calendar:
   - 2026-03-11
   - 2026-03-12
   - 2026-03-13
+# The Action menu. The kind is engine — the engine knows what deposing a witness
+# means — while the cost, the lead time in Days and the half it draws on are
+# authored here, because the economy is teaching material rather than engine
+# constants. A lead time of 0 lands the result on the Day it was bought.
+#
+# All of it draws on the preparation half: the exchange half buys an Offer and
+# the Exhibits riding it, and nothing else.
+actions:
+  consult_client:
+    cost: 1
+    lead_time_days: 0
+    half: preparation
+  request_documents:
+    cost: 2
+    lead_time_days: 1
+    half: preparation
+  research_precedent:
+    cost: 2
+    lead_time_days: 1
+    half: preparation
+  manage_press:
+    cost: 2
+    lead_time_days: 1
+    half: preparation
+  depose_witness:
+    cost: 3
+    lead_time_days: 2
+    half: preparation
+  retain_expert:
+    cost: 5
+    lead_time_days: 2
+    half: preparation

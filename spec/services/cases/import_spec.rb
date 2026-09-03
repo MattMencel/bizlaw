@@ -18,7 +18,18 @@ RSpec.describe Cases::Import do
       "licence" => "Apache-2.0",
       "version" => "1.0.0",
       "published" => true,
-      "calendar" => (0..9).map { |index| Date.new(2026, 3, 2) + index }
+      "calendar" => (0..9).map { |index| Date.new(2026, 3, 2) + index },
+      "budget" => {
+        "per_day" => 10,
+        "exchange_pool" => 2,
+        "closing_knee" => 0.60,
+        "closing_preparation" => 2,
+        "closing_exchange" => 3
+      },
+      "actions" => {
+        "consult_client" => {"cost" => 1, "lead_time_days" => 0, "half" => "preparation"},
+        "depose_witness" => {"cost" => 3, "lead_time_days" => 2, "half" => "preparation"}
+      }
     }.merge(overrides.transform_keys(&:to_s))
 
     File.join(@dir, "case.yml").tap { |path| File.write(path, data.to_yaml) }
@@ -40,6 +51,163 @@ RSpec.describe Cases::Import do
 
     expect(version).to be_published
     expect(version.day_count).to eq(10)
+  end
+
+  it "loads the authored Action Budget the Day's quota is sized from" do
+    version = described_class.call(Rails.root.join("db/cases/reference.yml"))
+
+    expect(version.budget_per_day).to eq(10)
+    expect(version.exchange_pool).to eq(2)
+    expect(version.closing_knee).to eq(0.60)
+    expect(version.closing_preparation).to eq(2)
+    expect(version.closing_exchange).to eq(3)
+  end
+
+  it "loads the reference Case's Action menu, each Action with its cost, lead time and half" do
+    version = described_class.call(Rails.root.join("db/cases/reference.yml"))
+
+    expect(version.actions.map { |action|
+      [action.kind, action.cost, action.lead_time_days, action.half]
+    }).to contain_exactly(
+      [CaseAction::CONSULT_CLIENT, 1, 0, DayBudget::PREPARATION],
+      [CaseAction::REQUEST_DOCUMENTS, 2, 1, DayBudget::PREPARATION],
+      [CaseAction::RESEARCH_PRECEDENT, 2, 1, DayBudget::PREPARATION],
+      [CaseAction::MANAGE_PRESS, 2, 1, DayBudget::PREPARATION],
+      [CaseAction::DEPOSE_WITNESS, 3, 2, DayBudget::PREPARATION],
+      [CaseAction::RETAIN_EXPERT, 5, 2, DayBudget::PREPARATION]
+    )
+  end
+
+  it "replaces the Action menu of a draft, as it does the calendar" do
+    described_class.call(authored(published: false))
+
+    version = described_class.call(
+      authored(published: false,
+        actions: {"manage_press" => {"cost" => 4, "lead_time_days" => 1, "half" => "preparation"}})
+    )
+
+    expect(version.actions.map(&:kind)).to eq([CaseAction::MANAGE_PRESS])
+    expect(CaseAction.count).to eq(1)
+  end
+
+  it "refuses a Case that authors no Action menu" do
+    expect { described_class.call(authored(actions: nil)) }
+      .to raise_error(described_class::InvalidCase, /actions/)
+  end
+
+  it "refuses a Case authoring an Action kind the engine does not know" do
+    expect {
+      described_class.call(authored(actions: {
+        "subpoena_the_mayor" => {"cost" => 2, "lead_time_days" => 1, "half" => "preparation"}
+      }))
+    }.to raise_error(described_class::InvalidCase, /subpoena_the_mayor/)
+  end
+
+  it "refuses an Action authored without a cost, a lead time or a half" do
+    expect { described_class.call(authored(actions: {"consult_client" => {"cost" => 1}})) }
+      .to raise_error(described_class::InvalidCase, /consult_client/)
+  end
+
+  it "refuses an Action that costs nothing, because an Action is a spend" do
+    expect {
+      described_class.call(authored(actions: {
+        "consult_client" => {"cost" => 0, "lead_time_days" => 0, "half" => "preparation"}
+      }))
+    }.to raise_error(described_class::InvalidCase, /consult_client/)
+  end
+
+  it "refuses an Action priced in fractions of a point" do
+    expect {
+      described_class.call(authored(actions: {
+        "consult_client" => {"cost" => 2.7, "lead_time_days" => 0, "half" => "preparation"}
+      }))
+    }.to raise_error(described_class::InvalidCase, /not a whole number/)
+  end
+
+  it "refuses an Action whose lead time is not a whole number of Days" do
+    expect {
+      described_class.call(authored(actions: {
+        "consult_client" => {"cost" => 1, "lead_time_days" => 1.5, "half" => "preparation"}
+      }))
+    }.to raise_error(described_class::InvalidCase, /not a whole number/)
+  end
+
+  it "refuses an Action whose lead time reaches backwards" do
+    expect {
+      described_class.call(authored(actions: {
+        "consult_client" => {"cost" => 1, "lead_time_days" => -1, "half" => "preparation"}
+      }))
+    }.to raise_error(described_class::InvalidCase, /consult_client/)
+  end
+
+  it "refuses an Action drawing on a half the Budget does not have" do
+    expect {
+      described_class.call(authored(actions: {
+        "consult_client" => {"cost" => 1, "lead_time_days" => 0, "half" => "goodwill"}
+      }))
+    }.to raise_error(described_class::InvalidCase, /consult_client/)
+  end
+
+  it "refuses a Case whose exchange half cannot play an Offer with an Exhibit behind it" do
+    under = {"per_day" => 10, "exchange_pool" => 1, "closing_knee" => 0.60,
+             "closing_preparation" => 2, "closing_exchange" => 3}
+
+    expect { described_class.call(authored(budget: under)) }
+      .to raise_error(described_class::InvalidCase, /exchange/)
+  end
+
+  it "refuses a Case whose closing exchange half falls under two points" do
+    under = {"per_day" => 10, "exchange_pool" => 2, "closing_knee" => 0.60,
+             "closing_preparation" => 2, "closing_exchange" => 1}
+
+    expect { described_class.call(authored(budget: under)) }
+      .to raise_error(described_class::InvalidCase, /exchange/)
+  end
+
+  it "refuses a Budget value authored as a string rather than a number" do
+    quoted = {"per_day" => 10, "exchange_pool" => "2", "closing_knee" => 0.60,
+              "closing_preparation" => 2, "closing_exchange" => 3}
+
+    expect { described_class.call(authored(budget: quoted)) }
+      .to raise_error(described_class::InvalidCase, /not a whole number of points/)
+  end
+
+  # It would otherwise import cleanly and trip a `day_budgets` CHECK on the
+  # first closing Day, mid-Simulation.
+  it "refuses a negative closing preparation half" do
+    negative = {"per_day" => 10, "exchange_pool" => 2, "closing_knee" => 0.60,
+                "closing_preparation" => -2, "closing_exchange" => 3}
+
+    expect { described_class.call(authored(budget: negative)) }
+      .to raise_error(described_class::InvalidCase, /less than nothing/)
+  end
+
+  it "refuses a closing knee that is not a fraction of the Simulation" do
+    past_the_end = {"per_day" => 10, "exchange_pool" => 2, "closing_knee" => 6,
+                    "closing_preparation" => 2, "closing_exchange" => 3}
+
+    expect { described_class.call(authored(budget: past_the_end)) }
+      .to raise_error(described_class::InvalidCase, /not a fraction of the Simulation/)
+  end
+
+  # The taper takes a Budget cut out of the preparation half and never out of
+  # the brake, so this authors a negative preparation half on Day 1.
+  it "refuses a Budget smaller than its own exchange half" do
+    inverted = {"per_day" => 1, "exchange_pool" => 2, "closing_knee" => 0.60,
+                "closing_preparation" => 2, "closing_exchange" => 3}
+
+    expect { described_class.call(authored(budget: inverted)) }
+      .to raise_error(described_class::InvalidCase, /leaving nothing to prepare with/)
+  end
+
+  it "refuses a Case that authors no Action Budget" do
+    expect { described_class.call(authored(budget: nil)) }
+      .to raise_error(described_class::InvalidCase, /budget/)
+  end
+
+  it "refuses a Case whose Budget is missing a value" do
+    expect { described_class.call(authored(budget: {"per_day" => 10})) }
+      .to raise_error(described_class::InvalidCase, /budget/)
   end
 
   it "loads an unpublished version as a draft" do
