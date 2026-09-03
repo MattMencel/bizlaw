@@ -4,6 +4,18 @@
 # They are plain creates rather than factories: this ticket's specs need four
 # objects, and a factory library is added when a ticket needs one.
 module AuthoredAndRunBuilders
+  # The reference Case's Action menu: cost and lead time in Days, all of it on
+  # the preparation half. Nothing draws on the exchange half until an Offer can
+  # commit.
+  REFERENCE_ACTIONS = {
+    CaseAction::CONSULT_CLIENT => [1, 0],
+    CaseAction::REQUEST_DOCUMENTS => [2, 1],
+    CaseAction::RESEARCH_PRECEDENT => [2, 1],
+    CaseAction::MANAGE_PRESS => [2, 1],
+    CaseAction::DEPOSE_WITNESS => [3, 2],
+    CaseAction::RETAIN_EXPERT => [5, 2]
+  }.freeze
+
   def an_organization(name: "Western Illinois University")
     Organization.create!(name: name)
   end
@@ -30,6 +42,12 @@ module AuthoredAndRunBuilders
       closing_preparation: closing_preparation,
       closing_exchange: closing_exchange
     ).tap do |pinned|
+      REFERENCE_ACTIONS.each do |kind, (cost, lead_time_days)|
+        pinned.actions.create!(
+          kind: kind, cost: cost, lead_time_days: lead_time_days,
+          half: DayBudget::PREPARATION
+        )
+      end
       days.times do |index|
         pinned.calendar_days.create!(
           ordinal: index + 1,
@@ -37,6 +55,10 @@ module AuthoredAndRunBuilders
         )
       end
     end
+  end
+
+  def a_user(organization: an_organization, name: "Dana Okafor", email: "dana@example.edu")
+    User.create!(organization: organization, name: name, email: email)
   end
 
   def a_simulation(section: a_section, case_version: a_case_version)

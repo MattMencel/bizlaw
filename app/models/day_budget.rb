@@ -13,6 +13,10 @@
 class DayBudget < ApplicationRecord
   retention :skeleton
 
+  PREPARATION = "preparation"
+  EXCHANGE = "exchange"
+  HALVES = [PREPARATION, EXCHANGE].freeze
+
   belongs_to :side, inverse_of: :budgets
   belongs_to :day, inverse_of: :budgets
 
@@ -20,4 +24,16 @@ class DayBudget < ApplicationRecord
 
   validates :preparation_budget, :exchange_budget,
     numericality: {only_integer: true, greater_than_or_equal_to: 0}
+
+  # What is left **today**, and only today. There is no cumulative unspent total
+  # here or anywhere else: roughly an eighth of the Budget expires unspent by
+  # design, so a running waste figure would grade a Team on a number the design
+  # requires of it.
+  def remaining_in(half)
+    case half
+    when PREPARATION then preparation_budget - preparation_spent
+    when EXCHANGE then exchange_budget - exchange_spent
+    else raise ArgumentError, "unknown half #{half.inspect}"
+    end
+  end
 end

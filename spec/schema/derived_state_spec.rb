@@ -8,8 +8,9 @@ require "rails_helper"
 RSpec.describe "the tables of the Simulation skeleton" do
   let(:tables) do
     %w[
-      cases case_versions case_calendar_days
+      cases case_versions case_calendar_days case_actions
       organizations sections simulations sides days day_budgets
+      users docket_entries
     ]
   end
 

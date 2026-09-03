@@ -9,6 +9,13 @@ class Day < ApplicationRecord
 
   belongs_to :simulation, inverse_of: :days
   has_many :budgets, class_name: "DayBudget", inverse_of: :day, dependent: :restrict_with_error
+  has_many :docket_entries, inverse_of: :day, dependent: :restrict_with_error
+  # What arrives when this Day opens. Nothing materialises it yet.
+  has_many :landing_docket_entries,
+    class_name: "DocketEntry",
+    foreign_key: :lands_on_day_id,
+    inverse_of: :lands_on_day,
+    dependent: :restrict_with_error
 
   before_validation { self.organization_id ||= simulation&.organization_id }
 

@@ -14,6 +14,12 @@ class CaseVersion < ApplicationRecord
     class_name: "CaseCalendarDay",
     inverse_of: :case_version,
     dependent: :destroy
+  # The Action menu, cheapest first, which is the order an Action Board reads in.
+  has_many :actions,
+    -> { order(:cost, :kind) },
+    class_name: "CaseAction",
+    inverse_of: :case_version,
+    dependent: :destroy
 
   validates :version, presence: true, uniqueness: {scope: :case_id}
 

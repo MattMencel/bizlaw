@@ -25,6 +25,10 @@ RSpec.describe Cases::Import do
         "closing_knee" => 0.60,
         "closing_preparation" => 2,
         "closing_exchange" => 3
+      },
+      "actions" => {
+        "consult_client" => {"cost" => 1, "lead_time_days" => 0, "half" => "preparation"},
+        "depose_witness" => {"cost" => 3, "lead_time_days" => 2, "half" => "preparation"}
       }
     }.merge(overrides.transform_keys(&:to_s))
 
@@ -57,6 +61,91 @@ RSpec.describe Cases::Import do
     expect(version.closing_knee).to eq(0.60)
     expect(version.closing_preparation).to eq(2)
     expect(version.closing_exchange).to eq(3)
+  end
+
+  it "loads the reference Case's Action menu, each Action with its cost, lead time and half" do
+    version = described_class.call(Rails.root.join("db/cases/reference.yml"))
+
+    expect(version.actions.map { |action|
+      [action.kind, action.cost, action.lead_time_days, action.half]
+    }).to contain_exactly(
+      [CaseAction::CONSULT_CLIENT, 1, 0, DayBudget::PREPARATION],
+      [CaseAction::REQUEST_DOCUMENTS, 2, 1, DayBudget::PREPARATION],
+      [CaseAction::RESEARCH_PRECEDENT, 2, 1, DayBudget::PREPARATION],
+      [CaseAction::MANAGE_PRESS, 2, 1, DayBudget::PREPARATION],
+      [CaseAction::DEPOSE_WITNESS, 3, 2, DayBudget::PREPARATION],
+      [CaseAction::RETAIN_EXPERT, 5, 2, DayBudget::PREPARATION]
+    )
+  end
+
+  it "replaces the Action menu of a draft, as it does the calendar" do
+    described_class.call(authored(published: false))
+
+    version = described_class.call(
+      authored(published: false,
+        actions: {"manage_press" => {"cost" => 4, "lead_time_days" => 1, "half" => "preparation"}})
+    )
+
+    expect(version.actions.map(&:kind)).to eq([CaseAction::MANAGE_PRESS])
+    expect(CaseAction.count).to eq(1)
+  end
+
+  it "refuses a Case that authors no Action menu" do
+    expect { described_class.call(authored(actions: nil)) }
+      .to raise_error(described_class::InvalidCase, /actions/)
+  end
+
+  it "refuses a Case authoring an Action kind the engine does not know" do
+    expect {
+      described_class.call(authored(actions: {
+        "subpoena_the_mayor" => {"cost" => 2, "lead_time_days" => 1, "half" => "preparation"}
+      }))
+    }.to raise_error(described_class::InvalidCase, /subpoena_the_mayor/)
+  end
+
+  it "refuses an Action authored without a cost, a lead time or a half" do
+    expect { described_class.call(authored(actions: {"consult_client" => {"cost" => 1}})) }
+      .to raise_error(described_class::InvalidCase, /consult_client/)
+  end
+
+  it "refuses an Action that costs nothing, because an Action is a spend" do
+    expect {
+      described_class.call(authored(actions: {
+        "consult_client" => {"cost" => 0, "lead_time_days" => 0, "half" => "preparation"}
+      }))
+    }.to raise_error(described_class::InvalidCase, /consult_client/)
+  end
+
+  it "refuses an Action priced in fractions of a point" do
+    expect {
+      described_class.call(authored(actions: {
+        "consult_client" => {"cost" => 2.7, "lead_time_days" => 0, "half" => "preparation"}
+      }))
+    }.to raise_error(described_class::InvalidCase, /not a whole number/)
+  end
+
+  it "refuses an Action whose lead time is not a whole number of Days" do
+    expect {
+      described_class.call(authored(actions: {
+        "consult_client" => {"cost" => 1, "lead_time_days" => 1.5, "half" => "preparation"}
+      }))
+    }.to raise_error(described_class::InvalidCase, /not a whole number/)
+  end
+
+  it "refuses an Action whose lead time reaches backwards" do
+    expect {
+      described_class.call(authored(actions: {
+        "consult_client" => {"cost" => 1, "lead_time_days" => -1, "half" => "preparation"}
+      }))
+    }.to raise_error(described_class::InvalidCase, /consult_client/)
+  end
+
+  it "refuses an Action drawing on a half the Budget does not have" do
+    expect {
+      described_class.call(authored(actions: {
+        "consult_client" => {"cost" => 1, "lead_time_days" => 0, "half" => "goodwill"}
+      }))
+    }.to raise_error(described_class::InvalidCase, /consult_client/)
   end
 
   it "refuses a Case whose exchange half cannot play an Offer with an Exhibit behind it" do

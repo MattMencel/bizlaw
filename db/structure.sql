@@ -54,7 +54,63 @@ FOREIGN KEY ("day_id", "organization_id")
 , CONSTRAINT day_budgets_preparation_within_budget CHECK (preparation_spent <= preparation_budget), CONSTRAINT day_budgets_exchange_within_budget CHECK (exchange_spent <= exchange_budget), CONSTRAINT day_budgets_preparation_budget_non_negative CHECK (preparation_budget >= 0), CONSTRAINT day_budgets_exchange_budget_non_negative CHECK (exchange_budget >= 0));
 CREATE UNIQUE INDEX "index_day_budgets_on_side_id_and_day_id" ON "day_budgets" ("side_id", "day_id") /*application='Bizlaw'*/;
 CREATE INDEX "index_day_budgets_on_day_id" ON "day_budgets" ("day_id") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "users" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" integer NOT NULL, "name" varchar NOT NULL, "email" varchar NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_d7b9ff90af"
+FOREIGN KEY ("organization_id")
+  REFERENCES "organizations" ("id")
+);
+CREATE INDEX "index_users_on_organization_id" ON "users" ("organization_id") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_users_on_organization_id_and_email" ON "users" ("organization_id", "email") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_users_on_id_and_organization_id" ON "users" ("id", "organization_id") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "case_actions" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "case_version_id" integer NOT NULL, "kind" varchar NOT NULL, "cost" integer NOT NULL, "lead_time_days" integer NOT NULL, "half" varchar NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_b1790da577"
+FOREIGN KEY ("case_version_id")
+  REFERENCES "case_versions" ("id")
+, CONSTRAINT case_actions_cost_is_a_spend CHECK (cost >= 1), CONSTRAINT case_actions_lead_time_not_negative CHECK (lead_time_days >= 0), CONSTRAINT case_actions_half_known CHECK (half IN ('preparation', 'exchange')));
+CREATE INDEX "index_case_actions_on_case_version_id" ON "case_actions" ("case_version_id") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_case_actions_on_case_version_id_and_kind" ON "case_actions" ("case_version_id", "kind") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "docket_entries" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "side_id" bigint NOT NULL, "day_id" bigint NOT NULL, "lands_on_day_id" bigint NOT NULL, "spent_by_user_id" bigint NOT NULL, "case_action_id" integer NOT NULL, "cost" integer NOT NULL, "half" varchar NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_94daf2d7e8"
+FOREIGN KEY ("lands_on_day_id", "organization_id")
+  REFERENCES "days" ("id", "organization_id")
+, CONSTRAINT "fk_rails_16e51d2cdb"
+FOREIGN KEY ("side_id", "organization_id")
+  REFERENCES "sides" ("id", "organization_id")
+, CONSTRAINT "fk_rails_a48ee3309b"
+FOREIGN KEY ("case_action_id")
+  REFERENCES "case_actions" ("id")
+, CONSTRAINT "fk_rails_581e22525d"
+FOREIGN KEY ("day_id", "organization_id")
+  REFERENCES "days" ("id", "organization_id")
+, CONSTRAINT "fk_rails_1e692ded11"
+FOREIGN KEY ("spent_by_user_id", "organization_id")
+  REFERENCES "users" ("id", "organization_id")
+, CONSTRAINT docket_entries_cost_is_a_spend CHECK (cost >= 1), CONSTRAINT docket_entries_half_known CHECK (half IN ('preparation', 'exchange')));
+CREATE INDEX "index_docket_entries_on_case_action_id" ON "docket_entries" ("case_action_id") /*application='Bizlaw'*/;
+CREATE INDEX "index_docket_entries_on_side_id_and_day_id" ON "docket_entries" ("side_id", "day_id") /*application='Bizlaw'*/;
+CREATE INDEX "index_docket_entries_on_lands_on_day_id" ON "docket_entries" ("lands_on_day_id") /*application='Bizlaw'*/;
+CREATE TRIGGER docket_entries_need_an_opened_day
+BEFORE INSERT ON docket_entries
+WHEN NOT EXISTS (
+  SELECT 1 FROM day_budgets
+  WHERE side_id = NEW.side_id AND day_id = NEW.day_id
+)
+BEGIN
+  SELECT RAISE(ABORT, 'docket_entries_need_an_opened_day');
+END;
+CREATE TRIGGER docket_entries_refold_day_budget_spent
+AFTER INSERT ON docket_entries
+BEGIN
+  UPDATE day_budgets
+  SET preparation_spent = (
+        SELECT COALESCE(SUM(cost), 0) FROM docket_entries
+        WHERE side_id = NEW.side_id AND day_id = NEW.day_id
+          AND half = 'preparation'),
+      exchange_spent = (
+        SELECT COALESCE(SUM(cost), 0) FROM docket_entries
+        WHERE side_id = NEW.side_id AND day_id = NEW.day_id
+          AND half = 'exchange')
+  WHERE side_id = NEW.side_id AND day_id = NEW.day_id;
+END;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260902130000'),
 ('20260902120000'),
 ('20260901120100'),
 ('20260901120000');

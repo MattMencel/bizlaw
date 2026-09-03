@@ -11,11 +11,15 @@ RSpec.describe Retention do
     Case => :authored,
     CaseVersion => :authored,
     CaseCalendarDay => :authored,
+    CaseAction => :authored,
     Organization => :skeleton,
+    User => :skeleton,
     Section => :skeleton,
     Simulation => :skeleton,
     Side => :skeleton,
-    Day => :skeleton
+    Day => :skeleton,
+    DayBudget => :skeleton,
+    DocketEntry => :skeleton
   }.each do |model, tier|
     it "declares #{model.name} as #{tier}" do
       expect(model.retention_tier).to eq(tier)

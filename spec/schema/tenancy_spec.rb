@@ -46,4 +46,20 @@ RSpec.describe "the Organization boundary" do
       )
     }.to raise_error(ActiveRecord::InvalidForeignKey)
   end
+
+  it "refuses a Docket row attributed to a member of another Organization" do
+    simulation = a_simulation
+    day = simulation.days.first
+
+    expect {
+      simulation.plaintiff_side.docket_entries.create!(
+        day: day,
+        lands_on_day: day,
+        spent_by: a_user(organization: other_organization, email: "elsewhere@example.edu"),
+        case_action: simulation.case_version.actions.first,
+        cost: 1,
+        half: DayBudget::PREPARATION
+      )
+    }.to raise_error(ActiveRecord::InvalidForeignKey)
+  end
 end

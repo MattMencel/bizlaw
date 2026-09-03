@@ -32,3 +32,35 @@ calendar:
   - 2026-03-11
   - 2026-03-12
   - 2026-03-13
+# The Action menu. The kind is engine — the engine knows what deposing a witness
+# means — while the cost, the lead time in Days and the half it draws on are
+# authored here, because the economy is teaching material rather than engine
+# constants. A lead time of 0 lands the result on the Day it was bought.
+#
+# All of it draws on the preparation half: the exchange half buys an Offer and
+# the Exhibits riding it, and nothing else.
+actions:
+  consult_client:
+    cost: 1
+    lead_time_days: 0
+    half: preparation
+  request_documents:
+    cost: 2
+    lead_time_days: 1
+    half: preparation
+  research_precedent:
+    cost: 2
+    lead_time_days: 1
+    half: preparation
+  manage_press:
+    cost: 2
+    lead_time_days: 1
+    half: preparation
+  depose_witness:
+    cost: 3
+    lead_time_days: 2
+    half: preparation
+  retain_expert:
+    cost: 5
+    lead_time_days: 2
+    half: preparation
