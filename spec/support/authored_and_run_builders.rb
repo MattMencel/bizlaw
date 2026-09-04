@@ -16,6 +16,44 @@ module AuthoredAndRunBuilders
     CaseAction::RETAIN_EXPERT => [5, 2]
   }.freeze
 
+  # The Terms vocabulary an Offer is built from and an Exhibit bears on.
+  REFERENCE_TERMS = %w[
+    money apology nda reinstatement training reference_letter policy_change
+  ].freeze
+
+  # The reference Case's documents, each waiting behind the Action that
+  # discovers it. Whether an Exhibit is favorable is not authored: the
+  # deposition points at the plaintiff Client, so the defendant holds it to play
+  # and the plaintiff has it land on them the moment they find it.
+  #
+  # These mirror `db/cases/reference.yml` down to the titles, so that a spec and
+  # a Cucumber walk — which imports the file itself — are reading one Case and
+  # not two. A builder rather than an import because a spec varies the Budget,
+  # the Day count and publication, which an authored file does not.
+  REFERENCE_DOCUMENTS = {
+    "deposition_of_the_supervisor" => {
+      action: CaseAction::DEPOSE_WITNESS,
+      title: "Deposition of the plant supervisor",
+      exhibit_target_role: Side::PLAINTIFF,
+      exhibit_shift_fraction: 0.25,
+      bears_on: %w[money reinstatement]
+    },
+    "personnel_file" => {
+      action: CaseAction::REQUEST_DOCUMENTS,
+      title: "The claimant's personnel file",
+      exhibit_target_role: Side::DEFENDANT,
+      exhibit_shift_fraction: 0.20,
+      bears_on: %w[money apology]
+    },
+    "memorandum_on_comparable_awards" => {
+      action: CaseAction::RESEARCH_PRECEDENT,
+      title: "Memorandum on comparable awards",
+      exhibit_target_role: nil,
+      exhibit_shift_fraction: nil,
+      bears_on: []
+    }
+  }.freeze
+
   def an_organization(name: "Western Illinois University")
     Organization.create!(name: name)
   end
@@ -53,6 +91,29 @@ module AuthoredAndRunBuilders
           ordinal: index + 1,
           in_fiction_date: Date.new(2026, 3, 2) + index
         )
+      end
+      an_authored_dispute(pinned)
+    end
+  end
+
+  # The Clients an Exhibit targets, the Terms it bears on, and the documents
+  # waiting behind the Action menu above.
+  def an_authored_dispute(pinned)
+    pinned.clients.create!(role: Side::PLAINTIFF, bound_cents: 40_000_00)
+    pinned.clients.create!(role: Side::DEFENDANT, bound_cents: 60_000_00)
+    vocabulary = REFERENCE_TERMS.index_with { |key| pinned.terms.create!(key: key) }
+
+    REFERENCE_DOCUMENTS.each do |identifier, authored|
+      document = pinned.documents.create!(
+        case_action: pinned.actions.find_by!(kind: authored.fetch(:action)),
+        identifier: identifier,
+        title: authored.fetch(:title),
+        body: "Authored prose for #{identifier}.",
+        exhibit_target_role: authored.fetch(:exhibit_target_role),
+        exhibit_shift_fraction: authored.fetch(:exhibit_shift_fraction)
+      )
+      authored.fetch(:bears_on).each do |key|
+        document.document_terms.create!(case_term: vocabulary.fetch(key))
       end
     end
   end

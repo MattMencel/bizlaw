@@ -22,6 +22,9 @@ class CaseAction < ApplicationRecord
   ].freeze
 
   belongs_to :case_version, inverse_of: :actions
+  # What this Action yields when it lands. An Action may yield none — a Consult
+  # is answered by the Client rather than by paper.
+  has_many :documents, class_name: "CaseDocument", inverse_of: :case_action, dependent: :destroy
 
   validates :kind, inclusion: {in: KINDS}, uniqueness: {scope: :case_version_id}
   validates :cost, numericality: {only_integer: true, greater_than_or_equal_to: 1}

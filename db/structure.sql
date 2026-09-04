@@ -111,7 +111,67 @@ BEGIN
           AND half = 'exchange')
   WHERE side_id = NEW.side_id AND day_id = NEW.day_id;
 END;
+CREATE TABLE IF NOT EXISTS "case_clients" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "case_version_id" integer NOT NULL, "role" varchar NOT NULL, "bound_cents" integer NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_15151301f5"
+FOREIGN KEY ("case_version_id")
+  REFERENCES "case_versions" ("id")
+, CONSTRAINT case_clients_role_known CHECK (role IN ('plaintiff', 'defendant')), CONSTRAINT case_clients_bound_is_travel CHECK (bound_cents > 0));
+CREATE INDEX "index_case_clients_on_case_version_id" ON "case_clients" ("case_version_id") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_case_clients_on_case_version_id_and_role" ON "case_clients" ("case_version_id", "role") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "case_terms" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "case_version_id" integer NOT NULL, "key" varchar NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_52eee3c7cb"
+FOREIGN KEY ("case_version_id")
+  REFERENCES "case_versions" ("id")
+);
+CREATE INDEX "index_case_terms_on_case_version_id" ON "case_terms" ("case_version_id") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_case_terms_on_case_version_id_and_key" ON "case_terms" ("case_version_id", "key") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_case_terms_on_id_and_case_version_id" ON "case_terms" ("id", "case_version_id") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_case_actions_on_id_and_case_version_id" ON "case_actions" ("id", "case_version_id") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "case_documents" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "case_version_id" bigint NOT NULL, "case_action_id" bigint NOT NULL, "identifier" varchar NOT NULL, "title" varchar NOT NULL, "body" text NOT NULL, "exhibit_target_role" varchar, "exhibit_shift_fraction" decimal(5,4), "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_4be829a175"
+FOREIGN KEY ("case_version_id")
+  REFERENCES "case_versions" ("id")
+, CONSTRAINT "fk_rails_fd5d2e0c71"
+FOREIGN KEY ("case_action_id", "case_version_id")
+  REFERENCES "case_actions" ("id", "case_version_id")
+, CONSTRAINT case_documents_exhibit_is_whole_or_absent CHECK ((exhibit_target_role IS NULL) = (exhibit_shift_fraction IS NULL)), CONSTRAINT case_documents_exhibit_target_known CHECK (exhibit_target_role IS NULL OR exhibit_target_role IN ('plaintiff', 'defendant')), CONSTRAINT case_documents_exhibit_shift_is_inward CHECK (exhibit_shift_fraction IS NULL OR (exhibit_shift_fraction > 0 AND exhibit_shift_fraction <= 1)));
+CREATE UNIQUE INDEX "index_case_documents_on_case_version_id_and_identifier" ON "case_documents" ("case_version_id", "identifier") /*application='Bizlaw'*/;
+CREATE INDEX "index_case_documents_on_case_action_id" ON "case_documents" ("case_action_id") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_case_documents_on_id_and_case_version_id" ON "case_documents" ("id", "case_version_id") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "case_document_terms" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "case_version_id" bigint NOT NULL, "case_document_id" bigint NOT NULL, "case_term_id" bigint NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_2095294cd9"
+FOREIGN KEY ("case_document_id", "case_version_id")
+  REFERENCES "case_documents" ("id", "case_version_id")
+, CONSTRAINT "fk_rails_476585756c"
+FOREIGN KEY ("case_term_id", "case_version_id")
+  REFERENCES "case_terms" ("id", "case_version_id")
+);
+CREATE UNIQUE INDEX "index_case_document_terms_on_case_document_id_and_case_term_id" ON "case_document_terms" ("case_document_id", "case_term_id") /*application='Bizlaw'*/;
+CREATE INDEX "index_case_document_terms_on_case_term_id" ON "case_document_terms" ("case_term_id") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_simulations_on_id_and_case_version_id" ON "simulations" ("id", "case_version_id") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "case_file_documents" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "simulation_id" bigint NOT NULL, "case_version_id" bigint NOT NULL, "side_id" bigint NOT NULL, "day_id" bigint NOT NULL, "case_document_id" bigint NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_35a3da4c80"
+FOREIGN KEY ("case_document_id", "case_version_id")
+  REFERENCES "case_documents" ("id", "case_version_id")
+, CONSTRAINT "fk_rails_1e19db662b"
+FOREIGN KEY ("side_id", "simulation_id", "organization_id")
+  REFERENCES "sides" ("id", "simulation_id", "organization_id")
+, CONSTRAINT "fk_rails_a76cc18798"
+FOREIGN KEY ("day_id", "simulation_id", "organization_id")
+  REFERENCES "days" ("id", "simulation_id", "organization_id")
+, CONSTRAINT "fk_rails_f55f30e0e0"
+FOREIGN KEY ("simulation_id", "case_version_id")
+  REFERENCES "simulations" ("id", "case_version_id")
+);
+CREATE UNIQUE INDEX "index_case_file_documents_on_side_id_and_case_document_id" ON "case_file_documents" ("side_id", "case_document_id") /*application='Bizlaw'*/;
+CREATE INDEX "index_case_file_documents_on_day_id" ON "case_file_documents" ("day_id") /*application='Bizlaw'*/;
+CREATE INDEX "index_case_file_documents_on_case_document_id" ON "case_file_documents" ("case_document_id") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "client_shifts" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "simulation_id" bigint NOT NULL, "side_id" bigint NOT NULL, "day_id" bigint NOT NULL, "source_kind" varchar NOT NULL, "source_ref" bigint NOT NULL, "requested_fraction" decimal(5,4) NOT NULL, "applied_fraction" decimal(5,4) NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_a60751b1fb"
+FOREIGN KEY ("side_id", "simulation_id", "organization_id")
+  REFERENCES "sides" ("id", "simulation_id", "organization_id")
+, CONSTRAINT "fk_rails_07f62ab2c4"
+FOREIGN KEY ("day_id", "simulation_id", "organization_id")
+  REFERENCES "days" ("id", "simulation_id", "organization_id")
+, CONSTRAINT client_shifts_applied_within_requested CHECK (abs(applied_fraction) <= abs(requested_fraction)), CONSTRAINT client_shifts_requested_is_a_fraction_of_the_bound CHECK (requested_fraction != 0 AND abs(requested_fraction) <= 1), CONSTRAINT client_shifts_source_kind_known CHECK (source_kind IN ('unfavorable_discovery')));
+CREATE UNIQUE INDEX "index_client_shifts_on_side_id_and_source_kind_and_source_ref" ON "client_shifts" ("side_id", "source_kind", "source_ref") /*application='Bizlaw'*/;
+CREATE INDEX "index_client_shifts_on_day_id" ON "client_shifts" ("day_id") /*application='Bizlaw'*/;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260903120000'),
 ('20260902130000'),
 ('20260902120000'),
 ('20260901120100'),

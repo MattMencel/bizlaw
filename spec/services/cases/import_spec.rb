@@ -29,6 +29,23 @@ RSpec.describe Cases::Import do
       "actions" => {
         "consult_client" => {"cost" => 1, "lead_time_days" => 0, "half" => "preparation"},
         "depose_witness" => {"cost" => 3, "lead_time_days" => 2, "half" => "preparation"}
+      },
+      "clients" => {
+        "plaintiff" => {"bound" => 40_000},
+        "defendant" => {"bound" => 60_000}
+      },
+      "terms" => %w[money reinstatement],
+      "documents" => {
+        "deposition_of_the_supervisor" => {
+          "action" => "depose_witness",
+          "title" => "Deposition of the plant supervisor",
+          "body" => "Two dated memoranda and a signed acknowledgement.",
+          "exhibit" => {
+            "target" => "plaintiff",
+            "shift" => 0.25,
+            "bears_on" => %w[money reinstatement]
+          }
+        }
       }
     }.merge(overrides.transform_keys(&:to_s))
 
@@ -83,7 +100,14 @@ RSpec.describe Cases::Import do
 
     version = described_class.call(
       authored(published: false,
-        actions: {"manage_press" => {"cost" => 4, "lead_time_days" => 1, "half" => "preparation"}})
+        actions: {"manage_press" => {"cost" => 4, "lead_time_days" => 1, "half" => "preparation"}},
+        documents: {
+          "the_local_paper" => {
+            "action" => "manage_press",
+            "title" => "Coverage in the local paper",
+            "body" => "Six column inches, and a photograph of the gates."
+          }
+        })
     )
 
     expect(version.actions.map(&:kind)).to eq([CaseAction::MANAGE_PRESS])
@@ -242,6 +266,138 @@ RSpec.describe Cases::Import do
 
     expect { described_class.call(authored(calendar: out_of_order)) }
       .to raise_error(described_class::InvalidCase, /order/)
+  end
+
+  describe "the Clients an Exhibit targets" do
+    it "loads one for each Side, with its bound held in money" do
+      version = described_class.call(Rails.root.join("db/cases/reference.yml"))
+
+      expect(version.clients.map(&:role)).to match_array(Side::ROLES)
+      expect(version.clients.find_by!(role: Side::PLAINTIFF).bound_cents).to eq(40_000_00)
+      expect(version.clients.find_by!(role: Side::DEFENDANT).bound_cents).to eq(60_000_00)
+    end
+
+    it "refuses a Case that authors a Client for only one Side" do
+      expect { described_class.call(authored(clients: {"plaintiff" => {"bound" => 40_000}})) }
+        .to raise_error(described_class::InvalidCase, /one for each of/)
+    end
+
+    it "refuses a Client with no bound to be moved by" do
+      unmovable = {"plaintiff" => {"bound" => 0}, "defendant" => {"bound" => 60_000}}
+
+      expect { described_class.call(authored(clients: unmovable)) }
+        .to raise_error(described_class::InvalidCase, /whole amount of money/)
+    end
+  end
+
+  describe "the Terms vocabulary" do
+    it "loads the Terms an Offer is built from" do
+      version = described_class.call(Rails.root.join("db/cases/reference.yml"))
+
+      expect(version.terms.map(&:key)).to include("money", "reinstatement", "policy_change")
+    end
+
+    it "refuses a Case that authors no Terms" do
+      expect { described_class.call(authored(terms: [])) }
+        .to raise_error(described_class::InvalidCase, /terms/)
+    end
+
+    it "refuses a Terms list that is not a list of Terms" do
+      expect { described_class.call(authored(terms: [{"key" => "money"}])) }
+        .to raise_error(described_class::InvalidCase, /no terms for an Offer/)
+    end
+
+    it "refuses a Term authored twice, because Terms are atomic" do
+      expect { described_class.call(authored(terms: %w[money money])) }
+        .to raise_error(described_class::InvalidCase, /Terms are atomic/)
+    end
+  end
+
+  describe "the documents waiting behind an Action" do
+    let(:reference) { described_class.call(Rails.root.join("db/cases/reference.yml")) }
+
+    it "loads each behind the Action that discovers it" do
+      deposition = reference.documents.find_by!(identifier: "deposition_of_the_supervisor")
+
+      expect(deposition.case_action.kind).to eq(CaseAction::DEPOSE_WITNESS)
+      expect(deposition.title).to eq("Deposition of the plant supervisor")
+      expect(deposition.body).to include("signed acknowledgement")
+    end
+
+    it "loads the Exhibit property a document carries, with the Terms it bears on" do
+      deposition = reference.documents.find_by!(identifier: "deposition_of_the_supervisor")
+
+      expect(deposition).to be_exhibit
+      expect(deposition.exhibit_target_role).to eq(Side::PLAINTIFF)
+      expect(deposition.exhibit_shift_fraction).to eq(0.25)
+      expect(deposition.bears_on_terms.map(&:key)).to match_array(%w[money reinstatement])
+    end
+
+    it "leaves a document that carries no Exhibit carrying none" do
+      memorandum = reference.documents.find_by!(identifier: "memorandum_on_comparable_awards")
+
+      expect(memorandum).not_to be_exhibit
+      expect(memorandum.bears_on_terms).to be_empty
+    end
+
+    # A tip, hidden behind whichever Action or Exhibit each example is about.
+    def a_tip(**overrides)
+      {"an_anonymous_tip" => {
+        "action" => "depose_witness", "title" => "An anonymous tip", "body" => "Prose."
+      }.merge(overrides.transform_keys(&:to_s))}
+    end
+
+    it "refuses a document that waits behind no Action, because Provenance is checkable" do
+      expect { described_class.call(authored(documents: a_tip(action: "subpoena_the_mayor"))) }
+        .to raise_error(described_class::InvalidCase, /not on this Case's Action menu/)
+    end
+
+    it "refuses a document authored without a title or a body" do
+      expect { described_class.call(authored(documents: a_tip(body: nil))) }
+        .to raise_error(described_class::InvalidCase, /without action, title, body/)
+    end
+
+    it "refuses an Exhibit missing a target, a shift or the Terms it bears on" do
+      exhibit = {"target" => "plaintiff", "shift" => 0.25}
+
+      expect { described_class.call(authored(documents: a_tip(exhibit: exhibit))) }
+        .to raise_error(described_class::InvalidCase, /without target, shift, bears_on/)
+    end
+
+    it "refuses an Exhibit pointing at somebody who is not a Client" do
+      exhibit = {"target" => "the_judge", "shift" => 0.25, "bears_on" => %w[money]}
+
+      expect { described_class.call(authored(documents: a_tip(exhibit: exhibit))) }
+        .to raise_error(described_class::InvalidCase, /which is not a Client/)
+    end
+
+    # Player-caused movement is a ratchet: an Exhibit only ever moves a
+    # reservation point toward settleability.
+    it "refuses an Exhibit whose shift reaches back outward" do
+      exhibit = {"target" => "plaintiff", "shift" => -0.25, "bears_on" => %w[money]}
+
+      expect { described_class.call(authored(documents: a_tip(exhibit: exhibit))) }
+        .to raise_error(described_class::InvalidCase, /toward settleability/)
+    end
+
+    it "refuses an Exhibit bearing on a Term the Case authors no vocabulary for" do
+      exhibit = {"target" => "plaintiff", "shift" => 0.25, "bears_on" => %w[a_pony]}
+
+      expect { described_class.call(authored(documents: a_tip(exhibit: exhibit))) }
+        .to raise_error(described_class::InvalidCase, /authors no Term for/)
+    end
+
+    it "replaces the documents of a draft, as it does the Action menu" do
+      described_class.call(authored(published: false))
+
+      version = described_class.call(
+        authored(published: false, documents: a_tip(title: "A second deposition"))
+      )
+
+      expect(version.documents.map(&:identifier)).to eq(["an_anonymous_tip"])
+      expect(CaseDocument.count).to eq(1)
+      expect(CaseDocumentTerm.count).to be_zero
+    end
   end
 
   it "refuses a path that cannot be read" do
