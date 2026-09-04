@@ -115,6 +115,17 @@ RSpec.describe Offers::Stage do
     }.to raise_error(ActiveRecord::StatementInvalid, /staged_offer_terms_need_an_unclosed_day/)
   end
 
+  # Nothing writes a Term this way today — a revision deletes and rewrites them
+  # — but the rule is in the database so that an insert path added later cannot
+  # move a position on a Day that has ended.
+  it "refuses a Term moved in place once the Day has closed" do
+    term = stage.offer_terms.sole
+    Days::Close.call(day)
+
+    expect { term.update!(amount_cents: 1_000_00) }
+      .to raise_error(ActiveRecord::StatementInvalid, /staged_offer_terms_stay_on_an_unclosed_day/)
+  end
+
   describe "the commit control a student is left holding" do
     it "names the teammates who may second it" do
       Days::Command.apply(

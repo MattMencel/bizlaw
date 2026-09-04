@@ -273,6 +273,17 @@ WHEN EXISTS (
 BEGIN
   SELECT RAISE(ABORT, 'staged_offer_terms_need_an_unclosed_day');
 END;
+CREATE TRIGGER staged_offer_terms_stay_on_an_unclosed_day
+BEFORE UPDATE ON staged_offer_terms
+WHEN EXISTS (
+  SELECT 1 FROM staged_offers
+  JOIN days ON days.id = staged_offers.day_id
+  WHERE staged_offers.id = NEW.staged_offer_id
+    AND days.closed_at IS NOT NULL
+)
+BEGIN
+  SELECT RAISE(ABORT, 'staged_offer_terms_stay_on_an_unclosed_day');
+END;
 CREATE TRIGGER second_waivers_need_an_unclosed_day
 BEFORE INSERT ON second_waivers
 WHEN EXISTS (

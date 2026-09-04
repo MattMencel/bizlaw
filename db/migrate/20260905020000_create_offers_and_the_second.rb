@@ -198,6 +198,28 @@ class CreateOffersAndTheSecond < ActiveRecord::Migration[8.0]
       END;
     SQL
 
+    # Nothing updates a Term row today — a revision deletes and rewrites them —
+    # but an invariant lives in the database wherever it fits in one, and this
+    # one fits: a Term is `:skeleton` and carries no prose, so unlike the note
+    # above there is no purge for the rule to get in the way of.
+    #
+    # There is deliberately no BEFORE DELETE. Discarding on a closed Day is the
+    # service's refusal, and Retention's later purge is a hard delete that a
+    # guard here would refuse.
+    execute <<~SQL
+      CREATE TRIGGER staged_offer_terms_stay_on_an_unclosed_day
+      BEFORE UPDATE ON staged_offer_terms
+      WHEN EXISTS (
+        SELECT 1 FROM staged_offers
+        JOIN days ON days.id = staged_offers.day_id
+        WHERE staged_offers.id = NEW.staged_offer_id
+          AND days.closed_at IS NOT NULL
+      )
+      BEGIN
+        SELECT RAISE(ABORT, 'staged_offer_terms_stay_on_an_unclosed_day');
+      END;
+    SQL
+
     # A waiver of a gate on a Day nobody can still commit into is the same
     # nothing, and an Instructor granting one has misread the board rather than
     # helped a Team.
@@ -219,6 +241,7 @@ class CreateOffersAndTheSecond < ActiveRecord::Migration[8.0]
   # rollback raises. Dropping each table takes its keys with it; children first.
   def down
     execute "DROP TRIGGER IF EXISTS second_waivers_need_an_unclosed_day"
+    execute "DROP TRIGGER IF EXISTS staged_offer_terms_stay_on_an_unclosed_day"
     execute "DROP TRIGGER IF EXISTS staged_offer_terms_need_an_unclosed_day"
     execute "DROP TRIGGER IF EXISTS staged_offers_need_an_unclosed_day"
     drop_table :committed_offers
