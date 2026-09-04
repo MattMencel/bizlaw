@@ -9,11 +9,21 @@
 class CaseTerm < ApplicationRecord
   retention :authored
 
+  # The one Term the engine knows by name, because it is the one Term that
+  # carries an amount and the one worth its face to both Clients. A Case that
+  # authors no money Term simply has none on offer.
+  MONEY = "money"
+
   belongs_to :case_version, inverse_of: :terms
   has_many :document_terms,
     class_name: "CaseDocumentTerm",
     inverse_of: :case_term,
     dependent: :destroy
+  # Run data over authored data: a Term a Team has put on the table cannot be
+  # edited out from under it by a re-import.
+  has_many :staged_offer_terms, inverse_of: :case_term, dependent: :restrict_with_error
 
   validates :key, presence: true, uniqueness: {scope: :case_version_id}
+
+  def money? = key == MONEY
 end
