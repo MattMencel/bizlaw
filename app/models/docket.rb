@@ -41,7 +41,8 @@ class Docket
   # Sorted with the position as a tiebreak, because `sort_by` is not stable and
   # three ledgers written inside one test — or one fast Day — can share a
   # timestamp. Rows of one ledger then keep the order that ledger returned them
-  # in, which for the Docket's own spends is the order they were written.
+  # in, and all three relations order by `id`, so that order is the order they
+  # were written rather than whatever the database felt like returning.
   def entries
     (spends + stagings + waivers)
       .each_with_index

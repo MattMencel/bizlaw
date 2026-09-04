@@ -26,11 +26,17 @@ class Side < ApplicationRecord
   # The Team's live draft, one per Day, and the Offers committed out of them.
   # They are separate tables per ADR 0002, so that every cross-Side read targets
   # one that structurally contains no live positions.
-  has_many :staged_offers, inverse_of: :side, dependent: :restrict_with_error
-  has_many :committed_offers, inverse_of: :side, dependent: :restrict_with_error
+  #
+  # Ordered like the Docket, because the Docket folds all three together and a
+  # relation with no order lets the database return tied rows either way round.
+  has_many :staged_offers, -> { order(:id) }, inverse_of: :side,
+    dependent: :restrict_with_error
+  has_many :committed_offers, -> { order(:id) }, inverse_of: :side,
+    dependent: :restrict_with_error
 
   # The Days an Instructor released this Team's Second on.
-  has_many :second_waivers, inverse_of: :side, dependent: :restrict_with_error
+  has_many :second_waivers, -> { order(:id) }, inverse_of: :side,
+    dependent: :restrict_with_error
 
   # Every movement of this Side's own Client. Both Sides draw on one bound per
   # Client — the opposing Team's favorable Exhibits and this Team's own

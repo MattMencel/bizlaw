@@ -103,6 +103,18 @@ RSpec.describe Offers::Stage do
     }.to raise_error(ActiveRecord::StatementInvalid, /staged_offers_need_an_unclosed_day/)
   end
 
+  # A revision touches no `staged_offers` row that an INSERT trigger would see,
+  # so the Terms carry the rule too — otherwise the Day the service read as open
+  # could close between that read and this write.
+  it "refuses a revision underneath the model once the Day has closed" do
+    offer = stage
+    Days::Close.call(day)
+
+    expect {
+      offer.offer_terms.create!(case_term: side.case_version.terms.find_by!(key: "nda"))
+    }.to raise_error(ActiveRecord::StatementInvalid, /staged_offer_terms_need_an_unclosed_day/)
+  end
+
   describe "the commit control a student is left holding" do
     it "names the teammates who may second it" do
       Days::Command.apply(

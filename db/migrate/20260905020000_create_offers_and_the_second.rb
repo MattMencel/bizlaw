@@ -175,6 +175,29 @@ class CreateOffersAndTheSecond < ActiveRecord::Migration[8.0]
       END;
     SQL
 
+    # Revising is where the guard above has nothing to catch: it replaces the
+    # Terms and touches no `staged_offers` row that an INSERT trigger would see.
+    # So the Terms carry the rule too, reaching the Day through the Offer they
+    # hang off.
+    #
+    # There is deliberately no trigger on `UPDATE staged_offers`. The note is
+    # `:prose`, and Retention's earlier purge empties prose columns where they
+    # sit long after every Day has closed — a guard there would refuse the
+    # purge.
+    execute <<~SQL
+      CREATE TRIGGER staged_offer_terms_need_an_unclosed_day
+      BEFORE INSERT ON staged_offer_terms
+      WHEN EXISTS (
+        SELECT 1 FROM staged_offers
+        JOIN days ON days.id = staged_offers.day_id
+        WHERE staged_offers.id = NEW.staged_offer_id
+          AND days.closed_at IS NOT NULL
+      )
+      BEGIN
+        SELECT RAISE(ABORT, 'staged_offer_terms_need_an_unclosed_day');
+      END;
+    SQL
+
     # A waiver of a gate on a Day nobody can still commit into is the same
     # nothing, and an Instructor granting one has misread the board rather than
     # helped a Team.
@@ -196,6 +219,7 @@ class CreateOffersAndTheSecond < ActiveRecord::Migration[8.0]
   # rollback raises. Dropping each table takes its keys with it; children first.
   def down
     execute "DROP TRIGGER IF EXISTS second_waivers_need_an_unclosed_day"
+    execute "DROP TRIGGER IF EXISTS staged_offer_terms_need_an_unclosed_day"
     execute "DROP TRIGGER IF EXISTS staged_offers_need_an_unclosed_day"
     drop_table :committed_offers
     drop_table :second_waivers
