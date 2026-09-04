@@ -57,6 +57,13 @@ RSpec.describe "two Sides finishing a Day at the same moment" do
       a_user(organization: organization, name: "Student #{index}", email: "student#{index}@example.edu")
     }
 
+    # Bought on Day 1 with a lead time of one, so it lands as Day 2 opens — the
+    # other half of the open work, and the half a second closer could double.
+    Days::Command.apply(
+      act: :spend, side: sides[0], day: day, by: students[0],
+      kind: CaseAction::REQUEST_DOCUMENTS
+    )
+
     in_parallel do |index|
       Days::Commit.call(side: sides[index], day: day, by: students[index])
     end
@@ -64,6 +71,7 @@ RSpec.describe "two Sides finishing a Day at the same moment" do
     expect(DayCommitment.where(day: day).count).to eq(2)
     expect(day.reload).to be_closed
     expect(DayBudget.where(day: following).count).to eq(2)
+    expect(CaseFileDocument.where(day: following).count).to eq(1)
   end
 
   it "hands the affected row to exactly one of two callers racing the close itself" do

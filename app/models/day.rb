@@ -40,10 +40,6 @@ class Day < ApplicationRecord
   # as counting Sides.
   def committed_by_both_sides? = commitments.count >= simulation.sides.count
 
-  # Null is a Day with no clock on it, which is every Day until an Instructor
-  # sets one.
-  def deadline_passed?(at = Time.current) = deadline_at.present? && deadline_at <= at
-
   # The Day the close opens. Nil on the last Day of the Simulation, which is
   # what stops the close reaching for a Day that does not exist.
   def following = simulation.days.find_by(ordinal: ordinal + 1)

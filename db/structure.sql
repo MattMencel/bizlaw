@@ -182,6 +182,14 @@ FOREIGN KEY ("committed_by_user_id", "organization_id")
 );
 CREATE UNIQUE INDEX "index_day_commitments_on_side_id_and_day_id" ON "day_commitments" ("side_id", "day_id") /*application='Bizlaw'*/;
 CREATE INDEX "index_day_commitments_on_day_id" ON "day_commitments" ("day_id") /*application='Bizlaw'*/;
+CREATE TRIGGER day_commitments_need_an_unclosed_day
+BEFORE INSERT ON day_commitments
+WHEN EXISTS (
+  SELECT 1 FROM days WHERE id = NEW.day_id AND closed_at IS NOT NULL
+)
+BEGIN
+  SELECT RAISE(ABORT, 'day_commitments_need_an_unclosed_day');
+END;
 CREATE TRIGGER docket_entries_need_an_unclosed_day
 BEFORE INSERT ON docket_entries
 WHEN EXISTS (

@@ -62,4 +62,15 @@ RSpec.describe Days::Commit do
     expect { described_class.call(side: simulation.plaintiff_side, day: day.reload, by: student) }
       .to raise_error(Days::Commit::DayClosed)
   end
+
+  # The service reads a Day it holds in memory, which a force-close landing on
+  # another connection has already moved on from. The trigger is the rule a
+  # stale object cannot get past.
+  it "refuses a commitment on a closed Day even from a Side holding a stale Day" do
+    stale = simulation.days.find(day.id)
+    Days::Close.call(day)
+
+    expect { DayCommitment.create!(side: simulation.plaintiff_side, day: stale, committed_by: student) }
+      .to raise_error(ActiveRecord::StatementInvalid, /day_commitments_need_an_unclosed_day/)
+  end
 end

@@ -69,6 +69,16 @@ RSpec.describe Days::Close do
     end
   end
 
+  # The close and the open are one transaction, so a Simulation cannot come to
+  # hold a Day that ended without the next one starting.
+  it "rolls the close back when the next Day's open fails" do
+    day # laid out before the stub, because Day 1's own open goes through here too
+    allow(Days::Open).to receive(:call).and_raise("the quota could not be written")
+
+    expect { described_class.call(day) }.to raise_error("the quota could not be written")
+    expect(day.reload).to be_open
+  end
+
   describe "the last Day" do
     let(:day) { simulation.days.last }
 

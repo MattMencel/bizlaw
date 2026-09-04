@@ -46,6 +46,21 @@ class CreateDayCommitments < ActiveRecord::Migration[8.0]
       column: [:committed_by_user_id, :organization_id],
       primary_key: [:id, :organization_id]
 
+    # A commitment written after the close would be a record saying both Sides
+    # finished a Day that was taken from them. The service refuses it too, but
+    # against a Day it holds in memory; this is the rule where a stale object
+    # cannot get past it.
+    execute <<~SQL
+      CREATE TRIGGER day_commitments_need_an_unclosed_day
+      BEFORE INSERT ON day_commitments
+      WHEN EXISTS (
+        SELECT 1 FROM days WHERE id = NEW.day_id AND closed_at IS NOT NULL
+      )
+      BEGIN
+        SELECT RAISE(ABORT, 'day_commitments_need_an_unclosed_day');
+      END;
+    SQL
+
     # Remaining Budget expires at close, and this is what makes that structural
     # rather than a rule the command seam has to remember. It is the mirror of
     # `docket_entries_need_an_opened_day`, which refuses a spend on a Day whose
@@ -69,6 +84,7 @@ class CreateDayCommitments < ActiveRecord::Migration[8.0]
   # rollback raises. Dropping the table takes its keys with it.
   def down
     execute "DROP TRIGGER IF EXISTS docket_entries_need_an_unclosed_day"
+    execute "DROP TRIGGER IF EXISTS day_commitments_need_an_unclosed_day"
     drop_table :day_commitments
     remove_column :days, :deadline_at
   end
