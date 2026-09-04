@@ -8,10 +8,10 @@
 # which structurally contains no live positions — the leak this guards is the
 # opponent's current negotiating position.
 #
-# `staged_by` is whoever put the position now on the table there, so a revision
-# moves it. That is what makes the Second a real gate rather than a formality:
-# the member who wrote these terms is never among the members who may confirm
-# them.
+# `staged_by` is the member who put the Offer on the table, and it does not move
+# when the Offer is revised: the Second is defined against whoever staged it, so
+# a revision that reassigned it would erase the one member the gate exists to
+# exclude.
 class StagedOffer < ApplicationRecord
   retention :skeleton, prose: [:note]
 

@@ -41,15 +41,15 @@ RSpec.describe Docket do
     expect(entry).not_to be_spend
   end
 
-  # Revising costs nothing and adds no line. The Attribution moves, because
-  # whoever wrote the position now on the table is who a teammate reading this
-  # would be seconding.
-  it "adds no line for a revision" do
+  # Revising costs nothing and adds no line, and the line that is there keeps
+  # naming the member who put the Offer on the table — which is the member a
+  # teammate reading this is being asked to second for.
+  it "adds no line for a revision, and does not move its Attribution" do
     ravi = a_user(organization: organization, name: "Ravi", email: "ravi@wiu.edu")
     Offers::Stage.call(side: side, day: day, by: dana, terms: {"money" => 45_000_00})
     Offers::Stage.call(side: side, day: day, by: ravi, terms: {"money" => 40_000_00})
 
-    expect(side.docket.map(&:by)).to eq([ravi])
+    expect(side.docket.map(&:by)).to eq([dana])
   end
 
   it "puts the Instructor's waiver on the record as an Instructor action" do

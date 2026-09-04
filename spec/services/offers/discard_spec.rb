@@ -28,4 +28,13 @@ RSpec.describe Offers::Discard do
   it "is a no-op on a Day with no draft on it" do
     expect { described_class.call(side: side, day: day) }.not_to raise_error
   end
+
+  # The draft on a closed Day is the Team's record of what it was holding when
+  # the Day was taken from it.
+  it "refuses a Day that has already closed" do
+    Offers::Stage.call(side: side, day: day, by: dana, terms: {"money" => 45_000_00})
+    Days::Close.call(day)
+
+    expect { described_class.call(side: side, day: day) }.to raise_error(Offers::DayClosed)
+  end
 end

@@ -50,13 +50,17 @@ RSpec.describe Offers::Stage do
     expect(side.staged_offers.count).to eq(1)
   end
 
-  # Whoever wrote the position now on the table is who the Second is measured
-  # against, so a revision moves the Attribution with it.
-  it "attributes a revision to the member who made it" do
+  # The Second is defined against the member who staged the Offer, so a
+  # revision leaves that Attribution where it is. Reassigning it would erase
+  # the one member the gate exists to exclude — and take them out of the Team,
+  # since there is no roster and members are folded from Attribution.
+  it "leaves the staging attributed to whoever put the Offer on the table" do
     stage(by: dana)
     revised = stage(by: ravi, terms: {"money" => 40_000_00})
 
-    expect(revised.staged_by).to eq(ravi)
+    expect(revised.staged_by).to eq(dana)
+    expect(side.members).to include(dana)
+    expect(revised.eligible_seconders).not_to include(dana)
   end
 
   it "carries a note for the Instructor to read" do

@@ -40,8 +40,15 @@ RSpec.describe "the Second" do
   end
 
   # The committed table is where every cross-Side read goes precisely because it
-  # holds no live positions. This ticket creates it and leaves it empty.
-  it "starts empty" do
+  # holds no live positions. This ticket creates it and nothing it builds writes
+  # to it: staging, revising, waiving and discarding all leave it empty, and the
+  # commit that fills it arrives with the rest of #282's chain.
+  it "is left empty by everything this ticket builds" do
+    Offers::Stage.call(side: side, day: day, by: dana, terms: {"money" => 45_000_00})
+    Offers::Stage.call(side: side, day: day, by: dana, terms: {"money" => 40_000_00})
+    Offers::WaiveSecond.call(side: side, day: day, by: ravi)
+    Offers::Discard.call(side: side, day: day)
+
     expect(CommittedOffer.count).to eq(0)
   end
 end

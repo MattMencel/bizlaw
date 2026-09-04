@@ -49,6 +49,20 @@ Feature: A Team stages an Offer and nobody can commit it alone
       | money | 45000  |
     Then the Offer on Day 1 can be seconded by Priya
 
+  Scenario: A revision does not take the member who staged it out of the Team
+    Given Priya spends a consult_client on Day 1 for the plaintiff Side
+    And Dana stages an Offer on Day 1 of
+      | term  | amount |
+      | money | 45000  |
+    When Priya revises the Offer on Day 1 to
+      | term  | amount |
+      | money | 42000  |
+    Then the plaintiff Docket reads as acts
+      | act          | by    | cost |
+      | spend        | Priya | 1    |
+      | offer_staged | Dana  |      |
+    And the Offer on Day 1 can be seconded by Priya
+
   Scenario: A Team alone stages an Offer it cannot commit
     When Dana stages an Offer on Day 1 of
       | term  | amount |

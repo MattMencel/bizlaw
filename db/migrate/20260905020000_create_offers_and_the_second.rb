@@ -35,10 +35,10 @@ class CreateOffersAndTheSecond < ActiveRecord::Migration[8.0]
       t.bigint :case_version_id, null: false
       t.bigint :side_id, null: false
       t.bigint :day_id, null: false
-      # Who put the position now on the table there — the stager, or whoever
-      # last revised it. It is what the Second is measured against, so a
-      # revision moves it: the member who wrote these terms is never the member
-      # who confirms them.
+      # The member who put the Offer on the table. It is what the Second is
+      # measured against and it does not move when the Offer is revised — a
+      # revision that reassigned it would erase the one member the gate exists
+      # to exclude.
       t.bigint :staged_by_user_id, null: false
       t.text :note
 
@@ -67,6 +67,13 @@ class CreateOffersAndTheSecond < ActiveRecord::Migration[8.0]
     # `amount_cents` is money's, and money's alone. That rule spans two tables —
     # it needs the Term's key — so per ADR 0002 it stays in Ruby; what the
     # database holds is that an amount is never negative.
+    #
+    # It carries no `simulation_id` or `organization_id`, unlike the run's other
+    # tables. The tenancy key exists because a Section runs many concurrent
+    # Simulations and a row could otherwise pair a Side from one run with a Day
+    # from another; this row names neither. Its only run-shaped parent is the
+    # staged Offer, which carries the full key itself, and the composite key
+    # below is what a Term from another Case is refused by.
     create_table :staged_offer_terms do |t|
       t.bigint :case_version_id, null: false
       t.bigint :staged_offer_id, null: false

@@ -37,8 +37,16 @@ class Docket
 
   # In the order it was written. Seen forward it is the Team's calendar, because
   # every spend names the Day its result lands on.
+  #
+  # Sorted with the position as a tiebreak, because `sort_by` is not stable and
+  # three ledgers written inside one test — or one fast Day — can share a
+  # timestamp. Rows of one ledger then keep the order that ledger returned them
+  # in, which for the Docket's own spends is the order they were written.
   def entries
-    (spends + stagings + waivers).sort_by { |entry| [entry.at, entry.act.to_s] }
+    (spends + stagings + waivers)
+      .each_with_index
+      .sort_by { |entry, position| [entry.at, position] }
+      .map(&:first)
   end
 
   private

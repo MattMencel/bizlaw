@@ -21,27 +21,40 @@ def an_instructor
   )
 end
 
-Given("Priya spends a {word} on Day {int} for the plaintiff Side") do |kind, ordinal|
-  # There is no roster yet, so a Team's members are folded from Attribution:
-  # Priya joins the Team by acting for it.
-  @teammate = User.create!(
+# There is no roster yet, so a Team's members are folded from Attribution:
+# Priya joins the Team by acting for it.
+def priya
+  @teammate ||= User.create!(
     organization: @section.organization, name: "Priya", email: "priya@wiu.edu"
   )
+end
+
+Given("Priya spends a {word} on Day {int} for the plaintiff Side") do |kind, ordinal|
   Days::Command.apply(
-    act: :spend, side: @side, day: a_plaintiff_day(ordinal), by: @teammate, kind: kind
+    act: :spend, side: @side, day: a_plaintiff_day(ordinal), by: priya, kind: kind
+  )
+end
+
+When("Priya revises the Offer on Day {int} to") do |ordinal, table|
+  Offers::Stage.call(
+    side: @side, day: a_plaintiff_day(ordinal), by: priya, terms: offered_terms(table)
+  )
+end
+
+# Staging and revising are the same act — a revision replaces the position
+# rather than amending it — so the two phrasings run the same seam.
+def dana_stages(ordinal, table)
+  Offers::Stage.call(
+    side: @side, day: a_plaintiff_day(ordinal), by: @student, terms: offered_terms(table)
   )
 end
 
 When("Dana stages an Offer on Day {int} of") do |ordinal, table|
-  Offers::Stage.call(
-    side: @side, day: a_plaintiff_day(ordinal), by: @student, terms: offered_terms(table)
-  )
+  dana_stages(ordinal, table)
 end
 
 When("Dana revises the Offer on Day {int} to") do |ordinal, table|
-  Offers::Stage.call(
-    side: @side, day: a_plaintiff_day(ordinal), by: @student, terms: offered_terms(table)
-  )
+  dana_stages(ordinal, table)
 end
 
 When("Dana discards the Offer on Day {int}") do |ordinal|

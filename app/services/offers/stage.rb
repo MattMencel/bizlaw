@@ -39,9 +39,12 @@ module Offers
         offer = StagedOffer.create_or_find_by!(side_id: side.id, day_id: day.id) do |row|
           row.staged_by_user_id = by.id
         end
-        # A revision moves the Attribution, because whoever wrote the position
-        # now on the table is who the Second is measured against.
-        offer.update!(staged_by_user_id: by.id, note: note)
+        # `staged_by` is who staged it and does not move. The Second is
+        # measured against the member who put the Offer on the table — a
+        # revision revises a position that is already there, and moving the
+        # Attribution with it would quietly erase the one member the gate is
+        # defined against.
+        offer.update!(note: note)
         offer.offer_terms.destroy_all
         terms.each do |key, amount_cents|
           offer.offer_terms.create!(
