@@ -24,9 +24,13 @@ class CaseVersion < ApplicationRecord
   has_many :clients, class_name: "CaseClient", inverse_of: :case_version, dependent: :destroy
   # The Terms vocabulary an Offer is built from and an Exhibit bears on.
   has_many :terms, class_name: "CaseTerm", inverse_of: :case_version, dependent: :destroy
-  # Everything a Team could come to hold, each waiting behind the Action that
-  # discovers it.
-  has_many :documents, class_name: "CaseDocument", inverse_of: :case_version, dependent: :destroy
+  # Everything a Team could come to hold, in authored order, each waiting behind
+  # the Action that discovers it.
+  has_many :documents,
+    -> { order(:id) },
+    class_name: "CaseDocument",
+    inverse_of: :case_version,
+    dependent: :destroy
 
   validates :version, presence: true, uniqueness: {scope: :case_id}
 

@@ -135,6 +135,32 @@ RSpec.describe Days::Land do
     end
   end
 
+  # The total consumed is the same whichever lands first, but an unordered
+  # association would record an arbitrary split between the two rows.
+  describe "two unfavorable discoveries that cannot both fit the bound" do
+    before do
+      version = simulation.case_version
+      action = version.actions.find_by!(kind: CaseAction::MANAGE_PRESS)
+      [["a_hostile_column", 0.8], ["a_second_hostile_column", 0.5]].each do |identifier, shift|
+        version.documents.create!(
+          case_action: action, identifier: identifier, title: identifier, body: "Prose.",
+          exhibit_target_role: Side::PLAINTIFF, exhibit_shift_fraction: shift
+        )
+      end
+    end
+
+    it "clips the second against what the first left, in authored order" do
+      spend(CaseAction::MANAGE_PRESS, side: plaintiff, on: simulation.days.first)
+      open_day(2)
+
+      expect(plaintiff.client_shifts.order(:source_ref).map(&:requested_fraction))
+        .to eq([0.8, 0.5])
+      expect(plaintiff.client_shifts.order(:source_ref).map(&:applied_fraction))
+        .to eq([0.8, 0.2])
+      expect(plaintiff.bound_consumed).to eq(1)
+    end
+  end
+
   it "files a document once when the same Action is bought on two Days" do
     spend(CaseAction::REQUEST_DOCUMENTS, side: plaintiff, on: simulation.days.first)
     open_day(2)

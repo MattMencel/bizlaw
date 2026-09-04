@@ -234,7 +234,17 @@ module Cases
           "fraction of the target Client's bound moving them toward settleability"
       end
 
-      unknown = Array(exhibit["bears_on"]) - Array(terms)
+      # Checked as authored rather than coerced: a lone Term written without a
+      # list passes every check above, and would reach `import_documents` to be
+      # iterated as a String rather than come back as this importer's refusal.
+      bears_on = exhibit["bears_on"]
+      unless bears_on.is_a?(Array) && bears_on.all? { |key| key.is_a?(String) && key.present? }
+        raise InvalidCase,
+          "#{path} has #{identifier}'s Exhibit bearing on #{bears_on.inspect}, " \
+          "which is not a list of the Terms it bears on"
+      end
+
+      unknown = bears_on - terms
       return if unknown.empty?
 
       raise InvalidCase,

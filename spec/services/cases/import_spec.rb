@@ -380,6 +380,22 @@ RSpec.describe Cases::Import do
         .to raise_error(described_class::InvalidCase, /toward settleability/)
     end
 
+    # A lone Term written without a list passes every other check, and would
+    # otherwise reach the importer to be iterated as a String.
+    it "refuses an Exhibit bearing on a Term written without a list around it" do
+      exhibit = {"target" => "plaintiff", "shift" => 0.25, "bears_on" => "money"}
+
+      expect { described_class.call(authored(documents: a_tip(exhibit: exhibit))) }
+        .to raise_error(described_class::InvalidCase, /not a list of the Terms it bears on/)
+    end
+
+    it "refuses an Exhibit bearing on something that is not a Term at all" do
+      exhibit = {"target" => "plaintiff", "shift" => 0.25, "bears_on" => [{"key" => "money"}]}
+
+      expect { described_class.call(authored(documents: a_tip(exhibit: exhibit))) }
+        .to raise_error(described_class::InvalidCase, /not a list of the Terms it bears on/)
+    end
+
     it "refuses an Exhibit bearing on a Term the Case authors no vocabulary for" do
       exhibit = {"target" => "plaintiff", "shift" => 0.25, "bears_on" => %w[a_pony]}
 
