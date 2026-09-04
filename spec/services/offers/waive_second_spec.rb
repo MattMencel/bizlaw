@@ -43,11 +43,16 @@ RSpec.describe Offers::WaiveSecond do
   end
 
   # Attribution would otherwise name someone who did not take the position.
-  it "never makes the Instructor the seconder of record" do
-    waive
+  # The proof is structural rather than a query over an empty table: what the
+  # waiver writes has nowhere to put a seconder, so no commit path built later
+  # can read one out of it. It also leaves the Instructor outside the Team,
+  # which is what keeps them off `eligible_seconders`.
+  it "writes a row with nowhere for a seconder to go" do
+    waiver = waive
 
+    expect(waiver.granted_by).to eq(instructor)
+    expect(SecondWaiver.column_names.grep(/second/)).to be_empty
     expect(side.members).not_to include(instructor)
-    expect(CommittedOffer.where(seconded_by_user_id: instructor.id)).to be_empty
   end
 
   it "is harmless to grant twice, keeping whoever granted it first" do

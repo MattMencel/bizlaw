@@ -124,9 +124,13 @@ Then("the defendant Second is not waived on Day {int}") do |ordinal|
 end
 
 # The Instructor never Seconds on a Team's behalf: Attribution would then name
-# someone who did not take the position.
-Then("no Offer names Professor Adeyemi as its seconder") do
-  expect(CommittedOffer.where(seconded_by_user_id: an_instructor.id)).to be_empty
+# someone who did not take the position. So the row the waiver writes names who
+# granted it and has nowhere to put a seconder at all.
+Then("the waiver names Professor Adeyemi as its granter and nobody as a Second") do
+  waiver = SecondWaiver.find_by!(side: @side, day: a_plaintiff_day(1))
+
+  expect(waiver.granted_by).to eq(an_instructor)
+  expect(SecondWaiver.column_names.grep(/second/)).to be_empty
 end
 
 Then("the plaintiff Side has no Offer on Day {int}") do |ordinal|

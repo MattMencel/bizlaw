@@ -80,7 +80,7 @@ Feature: A Team stages an Offer and nobody can commit it alone
       | offer_staged  | Dana               |      |
       | second_waived | Professor Adeyemi  |      |
     And the plaintiff Second is not waived on Day 2
-    And no Offer names Professor Adeyemi as its seconder
+    And the waiver names Professor Adeyemi as its granter and nobody as a Second
 
   Scenario: The other Team's gate is untouched by the waiver
     When the Instructor waives the plaintiff Second on Day 1
