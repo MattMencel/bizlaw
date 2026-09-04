@@ -109,6 +109,25 @@ RSpec.describe Days::Close do
       expect(quota.preparation_spent).to eq(0)
     end
 
+    # The Day ended between the quote and the insert. The trigger caught it;
+    # the seam turns that back into the refusal a control already renders.
+    it "comes back as a refusal, not a fault, when the Day closes under a quote" do
+      side = simulation.plaintiff_side
+      student = a_user(organization: simulation.section.organization)
+      command = Days::Command.new(
+        act: :spend, side: side, day: simulation.days.find(day.id), by: student,
+        kind: CaseAction::CONSULT_CLIENT
+      )
+      expect(command.quote).to be_affordable
+
+      described_class.call(day)
+
+      expect { command.apply }.to raise_error(Days::Command::Refused) { |error|
+        expect(error.quote.refusal).to eq(:the_day_has_closed)
+      }
+      expect(DocketEntry.where(side: side, day: day)).to be_empty
+    end
+
     it "cannot be spent on the Day after it closed" do
       side = simulation.plaintiff_side
       student = a_user(organization: simulation.section.organization)

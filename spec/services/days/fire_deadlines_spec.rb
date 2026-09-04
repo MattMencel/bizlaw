@@ -80,4 +80,26 @@ RSpec.describe Days::ExtendDeadline do
     expect { described_class.call(day, to: deadline) }
       .to raise_error(Days::ExtendDeadline::NotAnExtension)
   end
+
+  # The rule is in the predicate of the write, so a caller holding a Day from
+  # before another Instructor's extension cannot persist the earlier time.
+  it "refuses a caller whose Day predates a longer extension someone else made" do
+    day.update!(deadline_at: deadline)
+    stale = simulation.days.find(day.id)
+    described_class.call(day, to: deadline + 1.day)
+
+    expect { described_class.call(stale, to: deadline + 1.hour) }
+      .to raise_error(Days::ExtendDeadline::NotAnExtension)
+    expect(day.reload.deadline_at).to eq(deadline + 1.day)
+  end
+
+  it "refuses a Day that has closed, whose clock can never fire" do
+    day.update!(deadline_at: deadline)
+    stale = simulation.days.find(day.id)
+    Days::Close.call(day)
+
+    expect { described_class.call(stale, to: deadline + 1.day) }
+      .to raise_error(Days::ExtendDeadline::NotAnExtension, /has closed/)
+    expect(day.reload.deadline_at).to eq(deadline)
+  end
 end
