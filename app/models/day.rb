@@ -18,6 +18,10 @@ class Day < ApplicationRecord
     dependent: :restrict_with_error
   has_many :case_file_documents, inverse_of: :day, dependent: :restrict_with_error
   has_many :client_shifts, inverse_of: :day, dependent: :restrict_with_error
+  # The ledger the close counts from: one row per Side that has declared itself
+  # finished with this Day.
+  has_many :commitments, class_name: "DayCommitment", inverse_of: :day,
+    dependent: :restrict_with_error
 
   before_validation { self.organization_id ||= simulation&.organization_id }
 
@@ -30,4 +34,13 @@ class Day < ApplicationRecord
   def open? = closed_at.nil?
 
   def closed? = !open?
+
+  # A fold over the commitment ledger rather than a column, like everything else
+  # that moves. The unique index underneath is what makes counting rows the same
+  # as counting Sides.
+  def committed_by_both_sides? = commitments.count >= simulation.sides.count
+
+  # The Day the close opens. Nil on the last Day of the Simulation, which is
+  # what stops the close reaching for a Day that does not exist.
+  def following = simulation.days.find_by(ordinal: ordinal + 1)
 end

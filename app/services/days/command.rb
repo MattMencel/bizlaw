@@ -21,9 +21,14 @@ module Days
   class Command
     ACTS = %i[spend].freeze
 
-    # The two ceilings a fold can trip. Anything else out of the database is a
-    # fault rather than a refusal, and is not caught.
+    # The two ceilings a fold can trip, and the Day ending under a quote that
+    # already read it as open. Each is a rule this seam expresses as a refusal,
+    # so a race that hits it in the database is turned back into that refusal
+    # rather than surfacing as a fault. Anything else out of the database is a
+    # fault, and is not caught.
     BUDGET_CEILING = /day_budgets_(preparation|exchange)_within_budget/
+    DAY_ALREADY_CLOSED = /docket_entries_need_an_unclosed_day/
+    RACED_REFUSAL = Regexp.union(BUDGET_CEILING, DAY_ALREADY_CLOSED)
 
     # What a student is shown before they confirm, and what `apply` then
     # charges. A refused quote carries no remaining-after and no landing Day:
@@ -90,19 +95,25 @@ module Days
         entry
       end
     rescue ActiveRecord::StatementInvalid => e
-      raise unless BUDGET_CEILING.match?(e.message)
+      raise unless RACED_REFUSAL.match?(e.message)
 
-      # A teammate spent between this quote and this insert. Reads are not
-      # serialized, so both quotes can read the same half as affordable and only
-      # the second insert finds the ceiling. The CHECK is what caught it; asking
-      # again turns it back into the refusal a caller already knows how to
-      # render, rather than a fault it does not.
+      # A teammate spent, or the Day ended, between this quote and this insert.
+      # Reads are not serialized, so both quotes can read the same half as
+      # affordable — or the Day as open — and only the second insert finds the
+      # ceiling or the closed Day. The database caught it; asking again turns it
+      # back into the refusal a caller already knows how to render, rather than
+      # a fault it does not.
+      #
+      # The Day is reloaded because the close landed on another connection and
+      # the object this seam was handed still reads as open.
+      day.reload
       @quote = nil
       raise Refused, quote if quote.refused?
 
-      # The half moved back under the ceiling between the failed insert and the
-      # re-read. Nothing releases Budget, so this should not happen; say so with
-      # the original fault rather than a Refused carrying an affordable quote.
+      # The half moved back under the ceiling, or the Day reopened, between the
+      # failed insert and the re-read. Nothing releases Budget and nothing
+      # reopens a Day, so this should not happen; say so with the original fault
+      # rather than a Refused carrying an affordable quote.
       raise
     end
 
@@ -124,6 +135,10 @@ module Days
 
       budget = side.budget_on(day)
       return refusal(:the_day_has_not_opened, landing_day: landing_day) if budget.nil?
+      # Remaining Budget expires at close. The trigger underneath refuses the
+      # insert either way; this is what turns it into a refusal a control can
+      # render rather than a fault.
+      return refusal(:the_day_has_closed, landing_day: landing_day) if day.closed?
 
       remaining_after = budget.remaining_in(action.half) - action.cost
       return refusal(:the_budget_cannot_cover_it, landing_day: landing_day) if remaining_after.negative?

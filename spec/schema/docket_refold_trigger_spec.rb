@@ -95,6 +95,21 @@ RSpec.describe "the Docket's re-fold trigger" do
     }.to raise_error(ActiveRecord::StatementInvalid, /docket_entries_need_an_opened_day/)
   end
 
+  # Remaining Budget expires at close, and this is the half of that the schema
+  # holds: the quota row survives the close, so without this a caller handed
+  # yesterday's Day could still fold points out of it.
+  it "refuses a Docket row for a Day that has closed, so the Budget cannot outlive it" do
+    Days::Close.call(day)
+    action = simulation.case_version.actions.find_by!(kind: CaseAction::CONSULT_CLIENT)
+
+    expect {
+      side.docket_entries.create!(
+        day: day, lands_on_day: day, spent_by: student,
+        case_action: action, cost: action.cost, half: action.half
+      )
+    }.to raise_error(ActiveRecord::StatementInvalid, /docket_entries_need_an_unclosed_day/)
+  end
+
   it "leaves the exchange half at nothing spent, because nothing draws on it yet" do
     a_docket_row(CaseAction::DEPOSE_WITNESS)
 
