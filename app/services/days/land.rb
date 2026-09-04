@@ -1,0 +1,68 @@
+# frozen_string_literal: true
+
+module Days
+  # Preparation pays off on a schedule the Team chose. An Action spent on Day 1
+  # with a lead time of 2 produces its documents when Day 3 opens; one with a
+  # lead time of zero produces them on the Day it was bought.
+  #
+  # Landing writes each yielded document into the finder's Case File. Where the
+  # document carries an Exhibit the finder cannot play — one targeting their
+  # *own* Client — the shift lands with it, because an unfavorable discovery
+  # moves the finder toward realism at the moment it is found.
+  #
+  # It is idempotent, and by unique index rather than by a check-then-write: a
+  # Day opened twice, or the same Action bought twice, fills the Case File once
+  # and moves the bound once.
+  class Land
+    def self.call(...) = new(...).call
+
+    def initialize(day)
+      @day = day
+    end
+
+    # Returns the Case File rows this Day's landings account for, whether they
+    # were written now or on an earlier pass.
+    def call
+      ActiveRecord::Base.transaction do
+        # Reloaded because a spend calls this immediately after appending its own
+        # row, and a Day handed in with the association already loaded would
+        # otherwise land everything but the Action that just bought it.
+        day.landing_docket_entries.reload.flat_map { |entry| land(entry) }
+      end
+    end
+
+    private
+
+    attr_reader :day
+
+    def land(entry)
+      entry.case_action.documents.map do |document|
+        filed = file(entry.side, document)
+        discover_unfavorably(filed) if filed.unfavorable?
+        filed
+      end
+    end
+
+    def file(side, document)
+      CaseFileDocument.create_or_find_by!(side: side, case_document: document) do |filed|
+        filed.day = day
+      end
+    end
+
+    # The shift is keyed to the Case File row rather than to the Docket entry:
+    # two Actions cannot yield the same document to the same Side twice, so this
+    # is the one row the discovery exists as, and its id is stable across a
+    # re-open.
+    def discover_unfavorably(filed)
+      ClientShift.create_or_find_by!(
+        side: filed.side,
+        source_kind: ClientShift::UNFAVORABLE_DISCOVERY,
+        source_ref: filed.id
+      ) do |shift|
+        shift.day = day
+        # The applied figure is the model's; only the request is ours.
+        shift.requested_fraction = filed.exhibit_shift_fraction
+      end
+    end
+  end
+end

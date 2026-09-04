@@ -12,6 +12,10 @@ RSpec.describe Retention do
     CaseVersion => :authored,
     CaseCalendarDay => :authored,
     CaseAction => :authored,
+    CaseClient => :authored,
+    CaseTerm => :authored,
+    CaseDocument => :authored,
+    CaseDocumentTerm => :authored,
     Organization => :skeleton,
     User => :skeleton,
     Section => :skeleton,
@@ -19,7 +23,9 @@ RSpec.describe Retention do
     Side => :skeleton,
     Day => :skeleton,
     DayBudget => :skeleton,
-    DocketEntry => :skeleton
+    DocketEntry => :skeleton,
+    CaseFileDocument => :skeleton,
+    ClientShift => :skeleton
   }.each do |model, tier|
     it "declares #{model.name} as #{tier}" do
       expect(model.retention_tier).to eq(tier)

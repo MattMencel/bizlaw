@@ -64,3 +64,64 @@ actions:
     cost: 5
     lead_time_days: 2
     half: preparation
+# The two Clients. The bound is how far a Client may be moved across one whole
+# Simulation, and it is the one thing about a Client authored as money. Every
+# shift against it is a fraction of it, so an Exhibit is worth the same share of
+# a Client's travel whether the Section made that Client easy or hard.
+clients:
+  plaintiff:
+    bound: 40000
+  defendant:
+    bound: 60000
+# The vocabulary an Offer is built from and an Exhibit bears on. Terms are
+# atomic: a public apology and a private one would be two Terms, never one Term
+# with a setting.
+terms:
+  - money
+  - apology
+  - nda
+  - reinstatement
+  - training
+  - reference_letter
+  - policy_change
+# What preparation yields. Every discoverable document sits behind some Action,
+# which is what makes *doors visible, contents hidden* checkable.
+#
+# Some documents also carry an **exhibit** — a target Client, a shift as a
+# fraction of that Client's bound, and the Terms it bears on. Whether it is
+# favorable is not authored: an Exhibit pointing at the other Side's Client is
+# held and played, and one pointing at your own lands the moment you find it.
+# So the deposition below is ammunition for the defendant and a hard lesson for
+# the plaintiff, and one authored document is both.
+documents:
+  deposition_of_the_supervisor:
+    action: depose_witness
+    title: Deposition of the plant supervisor
+    body: |
+      Asked whether the claimant had been warned before the reassignment, the
+      supervisor produced two dated memoranda and a signed acknowledgement.
+    exhibit:
+      target: plaintiff
+      shift: 0.25
+      bears_on:
+        - money
+        - reinstatement
+  personnel_file:
+    action: request_documents
+    title: The claimant's personnel file
+    body: |
+      Eleven years of reviews, none below "meets expectations", and no record of
+      the performance concerns raised in the termination letter.
+    exhibit:
+      target: defendant
+      shift: 0.20
+      bears_on:
+        - money
+        - apology
+  memorandum_on_comparable_awards:
+    action: research_precedent
+    title: Memorandum on comparable awards
+    body: |
+      Fourteen settlements in this circuit over six years, with the terms each
+      one turned on. Useful to argue from; not a document to put in front of
+      anyone.

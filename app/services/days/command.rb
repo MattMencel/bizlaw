@@ -68,17 +68,27 @@ module Days
     def apply
       raise Refused, quote if quote.refused?
 
-      # One row, and the trigger on it re-folds the half's spent counter. The
-      # Budget's CHECK is underneath both, so a half pushed past its ceiling by
-      # any insert path takes the insert down rather than going negative.
-      side.docket_entries.create!(
-        day: day,
-        lands_on_day: quote.landing_day,
-        spent_by: by,
-        case_action: action,
-        cost: quote.cost,
-        half: quote.half
-      )
+      ActiveRecord::Base.transaction do
+        # One row, and the trigger on it re-folds the half's spent counter. The
+        # Budget's CHECK is underneath both, so a half pushed past its ceiling
+        # by any insert path takes the insert down rather than going negative.
+        entry = side.docket_entries.create!(
+          day: day,
+          lands_on_day: quote.landing_day,
+          spent_by: by,
+          case_action: action,
+          cost: quote.cost,
+          half: quote.half
+        )
+        # A lead time of zero lands the result on the Day it was bought, and
+        # that Day's open has already happened. There is one landing seam, so
+        # the spend calls it rather than materialising anything itself — and it
+        # calls it for the whole Day rather than for this row, because landing
+        # is idempotent and a seam narrowed to one caller's row is a second
+        # path to keep true.
+        Land.call(day) if quote.landing_day == day
+        entry
+      end
     rescue ActiveRecord::StatementInvalid => e
       raise unless BUDGET_CEILING.match?(e.message)
 

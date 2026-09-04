@@ -12,10 +12,17 @@ module Cases
     InvalidCase = Class.new(StandardError)
     PublishedVersionExists = Class.new(StandardError)
 
-    REQUIRED_KEYS = %w[identifier name licence version calendar budget actions].freeze
+    REQUIRED_KEYS =
+      %w[identifier name licence version calendar budget actions clients terms documents].freeze
     REQUIRED_BUDGET_KEYS =
       %w[per_day exchange_pool closing_knee closing_preparation closing_exchange].freeze
     REQUIRED_ACTION_KEYS = %w[cost lead_time_days half].freeze
+    REQUIRED_DOCUMENT_KEYS = %w[action title body].freeze
+    REQUIRED_EXHIBIT_KEYS = %w[target shift bears_on].freeze
+    # A Client's bound is authored in whole money, because that is how an author
+    # thinks about how far a party can be moved. It is held in cents, because
+    # that is how money is held.
+    CENTS_PER_UNIT = 100
     # The Budget's whole numbers. `closing_knee` is the one fraction and is
     # checked on its own.
     BUDGET_COUNTS =
@@ -42,6 +49,9 @@ module Cases
         calendar.each_with_index do |date, index|
           version.calendar_days.create!(ordinal: index + 1, in_fiction_date: date)
         end
+        # Documents wait behind Actions and bear on Terms, so they go first on
+        # the way out and last on the way back in.
+        version.documents.destroy_all
         version.actions.destroy_all
         actions.each do |kind, authored_action|
           version.actions.create!(
@@ -51,6 +61,13 @@ module Cases
             half: authored_action["half"]
           )
         end
+        version.clients.destroy_all
+        clients.each do |role, authored_client|
+          version.clients.create!(role: role, bound_cents: authored_client["bound"] * CENTS_PER_UNIT)
+        end
+        version.terms.destroy_all
+        terms.each { |key| version.terms.create!(key: key) }
+        import_documents(version)
         version.reload
       end
     end
@@ -82,11 +99,39 @@ module Cases
       version
     end
 
+    # An Exhibit is a property some documents carry and most do not, so it is
+    # written with the document rather than beside it.
+    def import_documents(version)
+      menu = version.actions.index_by(&:kind)
+      vocabulary = version.terms.index_by(&:key)
+
+      documents.each do |identifier, authored_document|
+        exhibit = authored_document["exhibit"]
+        document = version.documents.create!(
+          case_action: menu.fetch(authored_document["action"]),
+          identifier: identifier,
+          title: authored_document["title"],
+          body: authored_document["body"],
+          exhibit_target_role: exhibit&.fetch("target"),
+          exhibit_shift_fraction: exhibit&.fetch("shift")
+        )
+        exhibit&.fetch("bears_on")&.each do |key|
+          document.document_terms.create!(case_term: vocabulary.fetch(key))
+        end
+      end
+    end
+
     def calendar = data["calendar"]
 
     def actions = data["actions"]
 
     def budget = data["budget"]
+
+    def clients = data["clients"]
+
+    def terms = data["terms"]
+
+    def documents = data["documents"]
 
     def validate!
       raise InvalidCase, "#{path} does not hold a Case" unless data.is_a?(Hash)
@@ -106,6 +151,105 @@ module Cases
 
       validate_budget!
       validate_actions!
+      validate_clients!
+      validate_terms!
+      validate_documents!
+    end
+
+    # An Exhibit targets a Client, so a Case authors one for each Side.
+    def validate_clients!
+      raise InvalidCase, "#{path} authors no clients" unless clients.is_a?(Hash)
+
+      unless clients.keys.sort == Side::ROLES.sort
+        raise InvalidCase,
+          "#{path} authors clients for #{clients.keys.sort.join(", ")} rather than " \
+          "one for each of #{Side::ROLES.sort.join(", ")}"
+      end
+
+      clients.each do |role, authored_client|
+        bound = authored_client.is_a?(Hash) ? authored_client["bound"] : nil
+        next if bound.is_a?(Integer) && bound.positive?
+
+        raise InvalidCase,
+          "#{path} authors the #{role} Client with a bound of #{bound.inspect}, " \
+          "which is not a whole amount of money it can be moved by"
+      end
+    end
+
+    # The vocabulary an Offer is built from and an Exhibit bears on.
+    def validate_terms!
+      unless terms.is_a?(Array) && terms.any? && terms.all?(String)
+        raise InvalidCase, "#{path} authors no terms for an Offer to be built from"
+      end
+
+      duplicated = terms.tally.select { |_key, count| count > 1 }.keys
+      return if duplicated.empty?
+
+      raise InvalidCase, "#{path} authors #{duplicated.join(", ")} twice; Terms are atomic"
+    end
+
+    def validate_documents!
+      raise InvalidCase, "#{path} authors no documents" unless documents.is_a?(Hash) && documents.any?
+
+      documents.each { |identifier, authored| validate_document!(identifier, authored) }
+    end
+
+    def validate_document!(identifier, authored_document)
+      authored = authored_document.is_a?(Hash) ? authored_document : {}
+      if REQUIRED_DOCUMENT_KEYS.any? { |key| authored[key].blank? }
+        raise InvalidCase,
+          "#{path} authors #{identifier} without #{REQUIRED_DOCUMENT_KEYS.join(", ")}"
+      end
+
+      # Provenance: every discoverable document sits behind some Action.
+      unless actions.key?(authored["action"])
+        raise InvalidCase,
+          "#{path} hides #{identifier} behind #{authored["action"]}, " \
+          "which is not on this Case's Action menu"
+      end
+
+      validate_exhibit!(identifier, authored["exhibit"])
+    end
+
+    # A document may carry an Exhibit and most do not. One that does carries a
+    # target, a shift as a fraction of that target's bound, and the Terms it
+    # bears on — all three or none of them.
+    def validate_exhibit!(identifier, exhibit)
+      return if exhibit.nil?
+
+      unless exhibit.is_a?(Hash) && REQUIRED_EXHIBIT_KEYS.none? { |key| exhibit[key].blank? }
+        raise InvalidCase,
+          "#{path} gives #{identifier} an Exhibit without #{REQUIRED_EXHIBIT_KEYS.join(", ")}"
+      end
+
+      unless Side::ROLES.include?(exhibit["target"])
+        raise InvalidCase,
+          "#{path} points #{identifier}'s Exhibit at #{exhibit["target"]}, which is not a Client"
+      end
+
+      shift = exhibit["shift"]
+      unless shift.is_a?(Numeric) && shift.positive? && shift <= 1
+        raise InvalidCase,
+          "#{path} gives #{identifier}'s Exhibit a shift of #{shift.inspect}, which is not a " \
+          "fraction of the target Client's bound moving them toward settleability"
+      end
+
+      # Checked as authored rather than coerced: a lone Term written without a
+      # list passes every check above, and would reach `import_documents` to be
+      # iterated as a String rather than come back as this importer's refusal.
+      bears_on = exhibit["bears_on"]
+      unless bears_on.is_a?(Array) && bears_on.all? { |key| key.is_a?(String) && key.present? }
+        raise InvalidCase,
+          "#{path} has #{identifier}'s Exhibit bearing on #{bears_on.inspect}, " \
+          "which is not a list of the Terms it bears on"
+      end
+
+      unknown = bears_on - terms
+      return if unknown.empty?
+
+      raise InvalidCase,
+        "#{path} has #{identifier}'s Exhibit bearing on #{unknown.join(", ")}, " \
+        "which this Case authors no Term for"
     end
 
     def validate_budget!
