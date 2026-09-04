@@ -23,6 +23,21 @@ class Side < ApplicationRecord
   # The Case File: what this Team knows, filled by the Actions that have landed.
   has_many :case_file_documents, inverse_of: :side, dependent: :restrict_with_error
 
+  # The Team's live draft, one per Day, and the Offers committed out of them.
+  # They are separate tables per ADR 0002, so that every cross-Side read targets
+  # one that structurally contains no live positions.
+  #
+  # Ordered like the Docket, because the Docket folds all three together and a
+  # relation with no order lets the database return tied rows either way round.
+  has_many :staged_offers, -> { order(:id) }, inverse_of: :side,
+    dependent: :restrict_with_error
+  has_many :committed_offers, -> { order(:id) }, inverse_of: :side,
+    dependent: :restrict_with_error
+
+  # The Days an Instructor released this Team's Second on.
+  has_many :second_waivers, -> { order(:id) }, inverse_of: :side,
+    dependent: :restrict_with_error
+
   # Every movement of this Side's own Client. Both Sides draw on one bound per
   # Client — the opposing Team's favorable Exhibits and this Team's own
   # unfavorable discoveries spend the same budget — so they all land here.
@@ -37,6 +52,33 @@ class Side < ApplicationRecord
   validates :role, inclusion: {in: ROLES}, uniqueness: {scope: :simulation_id}
 
   def budget_on(day) = budgets.find_by(day: day)
+
+  # The Team's live draft on a Day, if it has one.
+  def staged_offer_on(day) = staged_offers.find_by(day: day)
+
+  # Whether the Instructor released the Second for this Team on this Day. A
+  # waiver is granted for one Day and read for that Day alone; there is no query
+  # here that could carry it into the next one.
+  def second_waived_on?(day) = second_waivers.exists?(day: day)
+
+  # The people on this Team, folded from Attribution.
+  #
+  # There is no roster and no Pairing yet, so the only record of who is on a
+  # Team is who has acted for it: the Docket, the commitment ledger and the
+  # staged Offer all name a member. That is enough for what depends on it — the
+  # teammates eligible to second an Offer — and it is one method for the roster
+  # to replace when it arrives.
+  def members
+    acted = docket_entries.pluck(:spent_by_user_id) +
+      day_commitments.pluck(:committed_by_user_id) +
+      staged_offers.pluck(:staged_by_user_id)
+
+    User.where(id: acted.uniq).order(:name)
+  end
+
+  # What this Team has done and what is coming — a fold over three ledgers
+  # rather than one table. See `Docket`.
+  def docket(day: nil) = Docket.for(self, day: day)
 
   # The Client this Side represents, authored on the Case Version its Simulation
   # pinned.

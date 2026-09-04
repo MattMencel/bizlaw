@@ -198,7 +198,102 @@ WHEN EXISTS (
 BEGIN
   SELECT RAISE(ABORT, 'docket_entries_need_an_unclosed_day');
 END;
+CREATE TABLE IF NOT EXISTS "staged_offers" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "simulation_id" bigint NOT NULL, "case_version_id" bigint NOT NULL, "side_id" bigint NOT NULL, "day_id" bigint NOT NULL, "staged_by_user_id" bigint NOT NULL, "note" text, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_2dc87b5de0"
+FOREIGN KEY ("staged_by_user_id", "organization_id")
+  REFERENCES "users" ("id", "organization_id")
+, CONSTRAINT "fk_rails_fe0b9dfc42"
+FOREIGN KEY ("side_id", "simulation_id", "organization_id")
+  REFERENCES "sides" ("id", "simulation_id", "organization_id")
+, CONSTRAINT "fk_rails_4c0dd9fcec"
+FOREIGN KEY ("day_id", "simulation_id", "organization_id")
+  REFERENCES "days" ("id", "simulation_id", "organization_id")
+, CONSTRAINT "fk_rails_5f8b238e08"
+FOREIGN KEY ("simulation_id", "case_version_id")
+  REFERENCES "simulations" ("id", "case_version_id")
+);
+CREATE UNIQUE INDEX "index_staged_offers_on_side_id_and_day_id" ON "staged_offers" ("side_id", "day_id") /*application='Bizlaw'*/;
+CREATE INDEX "index_staged_offers_on_day_id" ON "staged_offers" ("day_id") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_staged_offers_on_id_and_case_version_id" ON "staged_offers" ("id", "case_version_id") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "staged_offer_terms" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "case_version_id" bigint NOT NULL, "staged_offer_id" bigint NOT NULL, "case_term_id" bigint NOT NULL, "amount_cents" integer, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_395d1889c8"
+FOREIGN KEY ("staged_offer_id", "case_version_id")
+  REFERENCES "staged_offers" ("id", "case_version_id")
+, CONSTRAINT "fk_rails_daab549416"
+FOREIGN KEY ("case_term_id", "case_version_id")
+  REFERENCES "case_terms" ("id", "case_version_id")
+, CONSTRAINT staged_offer_terms_amount_is_money CHECK (amount_cents IS NULL OR amount_cents >= 0));
+CREATE UNIQUE INDEX "index_staged_offer_terms_on_staged_offer_id_and_case_term_id" ON "staged_offer_terms" ("staged_offer_id", "case_term_id") /*application='Bizlaw'*/;
+CREATE INDEX "index_staged_offer_terms_on_case_term_id" ON "staged_offer_terms" ("case_term_id") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "second_waivers" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "simulation_id" bigint NOT NULL, "side_id" bigint NOT NULL, "day_id" bigint NOT NULL, "granted_by_user_id" bigint NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_010eac39ac"
+FOREIGN KEY ("day_id", "simulation_id", "organization_id")
+  REFERENCES "days" ("id", "simulation_id", "organization_id")
+, CONSTRAINT "fk_rails_9c304aad44"
+FOREIGN KEY ("side_id", "simulation_id", "organization_id")
+  REFERENCES "sides" ("id", "simulation_id", "organization_id")
+, CONSTRAINT "fk_rails_437b25ffa8"
+FOREIGN KEY ("granted_by_user_id", "organization_id")
+  REFERENCES "users" ("id", "organization_id")
+);
+CREATE UNIQUE INDEX "index_second_waivers_on_side_id_and_day_id" ON "second_waivers" ("side_id", "day_id") /*application='Bizlaw'*/;
+CREATE INDEX "index_second_waivers_on_day_id" ON "second_waivers" ("day_id") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "committed_offers" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "simulation_id" bigint NOT NULL, "case_version_id" bigint NOT NULL, "side_id" bigint NOT NULL, "day_id" bigint NOT NULL, "staged_by_user_id" bigint NOT NULL, "seconded_by_user_id" bigint, "note" text, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_f2794a35dc"
+FOREIGN KEY ("seconded_by_user_id", "organization_id")
+  REFERENCES "users" ("id", "organization_id")
+, CONSTRAINT "fk_rails_c73ff59f12"
+FOREIGN KEY ("day_id", "simulation_id", "organization_id")
+  REFERENCES "days" ("id", "simulation_id", "organization_id")
+, CONSTRAINT "fk_rails_70ad0915bd"
+FOREIGN KEY ("side_id", "simulation_id", "organization_id")
+  REFERENCES "sides" ("id", "simulation_id", "organization_id")
+, CONSTRAINT "fk_rails_99574e6040"
+FOREIGN KEY ("staged_by_user_id", "organization_id")
+  REFERENCES "users" ("id", "organization_id")
+, CONSTRAINT "fk_rails_f8ee115146"
+FOREIGN KEY ("simulation_id", "case_version_id")
+  REFERENCES "simulations" ("id", "case_version_id")
+, CONSTRAINT committed_offers_second_is_another_member CHECK (seconded_by_user_id != staged_by_user_id));
+CREATE UNIQUE INDEX "index_committed_offers_on_side_id_and_day_id" ON "committed_offers" ("side_id", "day_id") /*application='Bizlaw'*/;
+CREATE INDEX "index_committed_offers_on_day_id" ON "committed_offers" ("day_id") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_committed_offers_on_id_and_case_version_id" ON "committed_offers" ("id", "case_version_id") /*application='Bizlaw'*/;
+CREATE TRIGGER staged_offers_need_an_unclosed_day
+BEFORE INSERT ON staged_offers
+WHEN EXISTS (
+  SELECT 1 FROM days WHERE id = NEW.day_id AND closed_at IS NOT NULL
+)
+BEGIN
+  SELECT RAISE(ABORT, 'staged_offers_need_an_unclosed_day');
+END;
+CREATE TRIGGER staged_offer_terms_need_an_unclosed_day
+BEFORE INSERT ON staged_offer_terms
+WHEN EXISTS (
+  SELECT 1 FROM staged_offers
+  JOIN days ON days.id = staged_offers.day_id
+  WHERE staged_offers.id = NEW.staged_offer_id
+    AND days.closed_at IS NOT NULL
+)
+BEGIN
+  SELECT RAISE(ABORT, 'staged_offer_terms_need_an_unclosed_day');
+END;
+CREATE TRIGGER staged_offer_terms_stay_on_an_unclosed_day
+BEFORE UPDATE ON staged_offer_terms
+WHEN EXISTS (
+  SELECT 1 FROM staged_offers
+  JOIN days ON days.id = staged_offers.day_id
+  WHERE staged_offers.id = NEW.staged_offer_id
+    AND days.closed_at IS NOT NULL
+)
+BEGIN
+  SELECT RAISE(ABORT, 'staged_offer_terms_stay_on_an_unclosed_day');
+END;
+CREATE TRIGGER second_waivers_need_an_unclosed_day
+BEFORE INSERT ON second_waivers
+WHEN EXISTS (
+  SELECT 1 FROM days WHERE id = NEW.day_id AND closed_at IS NOT NULL
+)
+BEGIN
+  SELECT RAISE(ABORT, 'second_waivers_need_an_unclosed_day');
+END;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260905020000'),
 ('20260904120000'),
 ('20260903120000'),
 ('20260902130000'),

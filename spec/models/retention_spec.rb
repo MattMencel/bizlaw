@@ -26,7 +26,11 @@ RSpec.describe Retention do
     DayCommitment => :skeleton,
     DocketEntry => :skeleton,
     CaseFileDocument => :skeleton,
-    ClientShift => :skeleton
+    ClientShift => :skeleton,
+    StagedOffer => :skeleton,
+    StagedOfferTerm => :skeleton,
+    CommittedOffer => :skeleton,
+    SecondWaiver => :skeleton
   }.each do |model, tier|
     it "declares #{model.name} as #{tier}" do
       expect(model.retention_tier).to eq(tier)
@@ -57,5 +61,14 @@ RSpec.describe Retention do
 
   it "names no prose columns where a table holds none" do
     expect(Day.prose_columns).to eq([])
+  end
+
+  # The Offer's shape is the graded skeleton and outlives the run by a year. The
+  # note is free text the Instructor reads, and it is Student Prose on the
+  # 30-day clock — so the row survives the earlier purge as a tombstone with the
+  # writing emptied out of it where it sat.
+  it "names the Offer note as the prose on an otherwise skeleton row" do
+    expect(StagedOffer.prose_columns).to eq(["note"])
+    expect(CommittedOffer.prose_columns).to eq(["note"])
   end
 end

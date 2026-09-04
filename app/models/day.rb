@@ -22,6 +22,11 @@ class Day < ApplicationRecord
   # finished with this Day.
   has_many :commitments, class_name: "DayCommitment", inverse_of: :day,
     dependent: :restrict_with_error
+  # The live drafts on this Day, the Offers committed out of them, and the
+  # Seconds the Instructor released — each scoped to this Day and no further.
+  has_many :staged_offers, inverse_of: :day, dependent: :restrict_with_error
+  has_many :committed_offers, inverse_of: :day, dependent: :restrict_with_error
+  has_many :second_waivers, inverse_of: :day, dependent: :restrict_with_error
 
   before_validation { self.organization_id ||= simulation&.organization_id }
 
