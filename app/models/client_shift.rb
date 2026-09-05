@@ -19,7 +19,15 @@ class ClientShift < ApplicationRecord
 
   # An Exhibit the finder cannot play, landing at the moment of discovery.
   UNFAVORABLE_DISCOVERY = "unfavorable_discovery"
-  SOURCE_KINDS = [UNFAVORABLE_DISCOVERY].freeze
+  # An Exhibit a Team put in front of the other Side, riding a committing Offer.
+  # `source_ref` is the `played_exhibits` row, so the ledger's existing
+  # `(side_id, source_kind, source_ref)` index is what lands it once.
+  EXHIBIT_PLAYED = "exhibit_played"
+  SOURCE_KINDS = [UNFAVORABLE_DISCOVERY, EXHIBIT_PLAYED].freeze
+  # The two player-caused kinds. Both key `source_ref` to the receiving Side's
+  # own Case File row, so one document is one key — ADR 0003. An Event's shift
+  # will point somewhere else, which is why the index over them is partial.
+  RATCHET_SOURCE_KINDS = [UNFAVORABLE_DISCOVERY, EXHIBIT_PLAYED].freeze
 
   # A Client's whole travel, as a fraction of itself. Shifts are fractions of
   # the bound rather than money, so an Exhibit is worth the same share whether
@@ -28,6 +36,21 @@ class ClientShift < ApplicationRecord
 
   belongs_to :side, inverse_of: :client_shifts
   belongs_to :day, inverse_of: :client_shifts
+
+  # Whether this document has already moved this Client, however it reached
+  # them. One document moves one Client once: the same authored document can
+  # arrive twice — found unfavorably by their own Team, and played as an Exhibit
+  # by the other — and the second arrival moves nothing, because it is the same
+  # argument put a second time.
+  #
+  # The partial unique index underneath is the rule. Both seams ask this first
+  # rather than letting it raise, because neither has anything sensible to do
+  # with the fault: a Day open would fail, and a commit would take an
+  # irreversible act down with it.
+  def self.already_moved?(filed)
+    where(source_kind: RATCHET_SOURCE_KINDS)
+      .exists?(side_id: filed.side_id, source_ref: filed.id)
+  end
 
   before_validation do
     self.organization_id ||= side&.organization_id || day&.organization_id
