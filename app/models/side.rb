@@ -47,6 +47,11 @@ class Side < ApplicationRecord
   # unfavorable discoveries spend the same budget — so they all land here.
   has_many :client_shifts, inverse_of: :side, dependent: :restrict_with_error
 
+  # The Exhibits this Team has spent. What is left to play is the Case File's
+  # own read — see `CaseFileDocument#playable?` — rather than a second list.
+  has_many :played_exhibits, -> { order(:id) }, inverse_of: :side,
+    dependent: :restrict_with_error
+
   # A Side runs on the Case Version its Simulation pinned; pinning it twice
   # would be a second source of truth.
   delegate :case_version, to: :simulation
@@ -54,6 +59,10 @@ class Side < ApplicationRecord
   before_validation { self.organization_id ||= simulation&.organization_id }
 
   validates :role, inclusion: {in: ROLES}, uniqueness: {scope: :simulation_id}
+
+  # The Side across the table. There are exactly two Sides in a dispute, so
+  # there is exactly one, and `sole` says so rather than trusting an ordering.
+  def opponent = simulation.sides.where.not(id: id).sole
 
   def budget_on(day) = budgets.find_by(day: day)
 

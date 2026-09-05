@@ -47,6 +47,13 @@ class CommittedOffer < ApplicationRecord
     inverse_of: :committed_offer,
     dependent: :destroy
   has_many :terms, through: :offer_terms, source: :case_term
+  # The Exhibits that rode this Offer, spent as it landed. There is no staged
+  # copy to make: the play ledger *is* the committed record of what was put in
+  # front of the other Side.
+  has_many :played_exhibits,
+    -> { order(:id) },
+    inverse_of: :committed_offer,
+    dependent: :restrict_with_error
   # The other Side taking it. At most one, by unique index.
   has_one :acceptance, class_name: "OfferAcceptance", inverse_of: :committed_offer,
     dependent: :restrict_with_error

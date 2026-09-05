@@ -181,9 +181,9 @@ RSpec.describe "committing an Offer" do
     before do
       a_teammate
       stage
-      # Nothing but an Offer draws on this half yet — the Exhibits that ride one
-      # arrive with ticket 9 — so the ledger row that half's spend takes is
-      # written straight in, leaving the Side nothing to commit with.
+      # This Side holds no Exhibit to ride the Offer, so the ledger row that
+      # half's other spend takes is written straight in, leaving the Side
+      # nothing to commit with.
       side.docket_entries.create!(
         day: day, lands_on_day: day, spent_by: ravi,
         case_action: nil, cost: 2, half: DayBudget::EXCHANGE

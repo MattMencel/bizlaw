@@ -23,12 +23,40 @@ class CaseFileDocument < ApplicationRecord
     self.case_version_id ||= case_document&.case_version_id
   end
 
-  delegate :title, :body, :exhibit?, :exhibit_shift_fraction, to: :case_document
+  # The play that spent this Exhibit, if it has been played. At most one, by
+  # unique index: an Exhibit plays exactly once across the Simulation.
+  has_one :played_exhibit, inverse_of: :case_file_document, dependent: :restrict_with_error
+
+  delegate :title, :body, to: :case_document
+
+  # Whether this Team was shown the document or found it. A served document
+  # arrives when the other Side plays it, at the instant it is played.
+  def served? = served_at.present?
+
+  # Spent. A fold over the play ledger rather than a column here, like
+  # everything else that moves.
+  def played? = played_exhibit.present?
+
+  # Service gives a Team knowledge, never ammunition, so a document that
+  # arrived because the other Side played it carries no Exhibit property at
+  # all — not the target, not the shift, and nothing to play back.
+  def exhibit? = !served? && case_document.exhibit?
+
+  def exhibit_shift_fraction = exhibit? ? case_document.exhibit_shift_fraction : nil
+
+  # Whether an Offer over these Terms touches what this Exhibit bears on. A
+  # document arguing for reinstatement is worth nothing attached to a cash-only
+  # Offer.
+  def bears_on?(case_term_ids)
+    exhibit? && case_document.document_terms.pluck(:case_term_id).intersect?(case_term_ids)
+  end
 
   # A document is visibly playable or visibly not, and which one depends on who
   # is holding it: an Exhibit pointing at the other Side's Client is held to be
-  # played, and one pointing at your own is not playable at all.
-  def playable? = case_document.favorable_to?(side)
+  # played, and one pointing at your own is not playable at all. A spent one is
+  # neither — it has already been put in front of them, and the ratchet leaves
+  # nothing to do twice.
+  def playable? = exhibit? && !played? && case_document.favorable_to?(side)
 
-  def unfavorable? = case_document.unfavorable_to?(side)
+  def unfavorable? = exhibit? && case_document.unfavorable_to?(side)
 end

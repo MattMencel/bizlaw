@@ -72,6 +72,45 @@ RSpec.describe "the Organization boundary" do
       }.to raise_error(ActiveRecord::InvalidForeignKey)
     end
 
+    # Both parents of a riding Exhibit are the run's own, so the key is what
+    # stops a row pairing this Team's Offer with the other run's Case File.
+    it "refuses an Exhibit riding an Offer staged in the other Simulation" do
+      mine_day = mine.days.first
+      Days::Open.call(mine_day)
+      Days::Open.call(theirs.days.first)
+      member = a_user(organization: section.organization)
+      offer = Offers::Stage.call(
+        side: mine.plaintiff_side, day: mine_day, by: member, terms: {"money" => 1_000_00}
+      )
+      theirs_document = CaseFileDocument.create!(
+        side: theirs.plaintiff_side, day: theirs.days.first,
+        case_document: case_version.documents.first
+      )
+
+      expect {
+        StagedOfferExhibit.create!(staged_offer: offer, case_file_document: theirs_document)
+      }.to raise_error(ActiveRecord::InvalidForeignKey)
+    end
+
+    it "refuses a played Exhibit pairing a Side with a Day of the other Simulation" do
+      day = mine.days.first
+      Days::Open.call(day)
+      member = a_user(organization: section.organization)
+      committed = CommittedOffer.create!(
+        side: mine.plaintiff_side, day: day, staged_by: member
+      )
+      filed = CaseFileDocument.create!(
+        side: mine.plaintiff_side, day: day, case_document: case_version.documents.first
+      )
+
+      expect {
+        PlayedExhibit.create!(
+          side: mine.plaintiff_side, day: theirs.days.first,
+          committed_offer: committed, case_file_document: filed
+        )
+      }.to raise_error(ActiveRecord::InvalidForeignKey)
+    end
+
     it "refuses a Docket row whose result lands on a Day of the other Simulation" do
       day = mine.days.first
 
