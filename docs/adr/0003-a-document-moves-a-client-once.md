@@ -8,8 +8,9 @@ Both Sides draw on one bound per Client, and two different acts can spend it
 with the same authored document. A Team that buys `request_documents` finds the
 personnel file, which is unfavorable to them, and the shift lands at the moment
 of discovery. The other Team may hold that same file and play it as an Exhibit
-riding a committed Offer — and where the Offer touches the Terms it bears on, a
-second shift lands against the same Client's same bound.
+riding a committed Offer, and where the Offer touches the Terms it bears on,
+nothing relates the two acts: a second shift would land against the same
+Client's same bound.
 
 The ledger records **one** movement for that document. `client_shifts` keys both
 kinds to the receiving Side's own `case_file_documents` row — the row the finder
