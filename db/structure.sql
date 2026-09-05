@@ -312,33 +312,38 @@ WHEN EXISTS (
 BEGIN
   SELECT RAISE(ABORT, 'offer_acceptances_need_an_unclosed_day');
 END;
-CREATE TABLE IF NOT EXISTS "case_file_documents" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "simulation_id" bigint NOT NULL, "case_version_id" bigint NOT NULL, "side_id" bigint NOT NULL, "day_id" bigint NOT NULL, "case_document_id" bigint NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, "served_at" datetime(6) /*application='Bizlaw'*/, CONSTRAINT "fk_rails_f55f30e0e0"
-FOREIGN KEY ("simulation_id", "case_version_id")
-  REFERENCES "simulations" ("id", "case_version_id")
-, CONSTRAINT "fk_rails_a76cc18798"
-FOREIGN KEY ("day_id", "simulation_id", "organization_id")
-  REFERENCES "days" ("id", "simulation_id", "organization_id")
+CREATE TABLE IF NOT EXISTS "case_file_documents" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "simulation_id" bigint NOT NULL, "case_version_id" bigint NOT NULL, "side_id" bigint NOT NULL, "day_id" bigint NOT NULL, "case_document_id" bigint NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, "served_at" datetime(6) /*application='Bizlaw'*/, CONSTRAINT "fk_rails_35a3da4c80"
+FOREIGN KEY ("case_document_id", "case_version_id")
+  REFERENCES "case_documents" ("id", "case_version_id")
 , CONSTRAINT "fk_rails_1e19db662b"
 FOREIGN KEY ("side_id", "simulation_id", "organization_id")
   REFERENCES "sides" ("id", "simulation_id", "organization_id")
-, CONSTRAINT "fk_rails_35a3da4c80"
-FOREIGN KEY ("case_document_id", "case_version_id")
-  REFERENCES "case_documents" ("id", "case_version_id")
+, CONSTRAINT "fk_rails_a76cc18798"
+FOREIGN KEY ("day_id", "simulation_id", "organization_id")
+  REFERENCES "days" ("id", "simulation_id", "organization_id")
+, CONSTRAINT "fk_rails_f55f30e0e0"
+FOREIGN KEY ("simulation_id", "case_version_id")
+  REFERENCES "simulations" ("id", "case_version_id")
 );
 CREATE UNIQUE INDEX "index_case_file_documents_on_side_id_and_case_document_id" ON "case_file_documents" ("side_id", "case_document_id") /*application='Bizlaw'*/;
 CREATE INDEX "index_case_file_documents_on_day_id" ON "case_file_documents" ("day_id") /*application='Bizlaw'*/;
 CREATE INDEX "index_case_file_documents_on_case_document_id" ON "case_file_documents" ("case_document_id") /*application='Bizlaw'*/;
-CREATE UNIQUE INDEX "index_staged_offers_on_id_simulation_and_organization" ON "staged_offers" ("id", "simulation_id", "organization_id") /*application='Bizlaw'*/;
 CREATE UNIQUE INDEX "index_case_file_documents_on_id_simulation_and_organization" ON "case_file_documents" ("id", "simulation_id", "organization_id") /*application='Bizlaw'*/;
-CREATE TABLE IF NOT EXISTS "staged_offer_exhibits" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "simulation_id" bigint NOT NULL, "staged_offer_id" bigint NOT NULL, "case_file_document_id" bigint NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_0d175ef57e"
-FOREIGN KEY ("staged_offer_id", "simulation_id", "organization_id")
-  REFERENCES "staged_offers" ("id", "simulation_id", "organization_id")
-, CONSTRAINT "fk_rails_9510957b90"
-FOREIGN KEY ("case_file_document_id", "simulation_id", "organization_id")
-  REFERENCES "case_file_documents" ("id", "simulation_id", "organization_id")
+CREATE UNIQUE INDEX "index_staged_offers_on_id_and_side_id" ON "staged_offers" ("id", "side_id") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_case_file_documents_on_id_and_side_id" ON "case_file_documents" ("id", "side_id") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "staged_offer_exhibits" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "simulation_id" bigint NOT NULL, "side_id" bigint NOT NULL, "staged_offer_id" bigint NOT NULL, "case_file_document_id" bigint NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_64ed1367f8"
+FOREIGN KEY ("staged_offer_id", "side_id")
+  REFERENCES "staged_offers" ("id", "side_id")
+, CONSTRAINT "fk_rails_870dea83ab"
+FOREIGN KEY ("side_id", "simulation_id", "organization_id")
+  REFERENCES "sides" ("id", "simulation_id", "organization_id")
+, CONSTRAINT "fk_rails_36605d2544"
+FOREIGN KEY ("case_file_document_id", "side_id")
+  REFERENCES "case_file_documents" ("id", "side_id")
 );
 CREATE UNIQUE INDEX "index_staged_offer_exhibits_on_offer_and_document" ON "staged_offer_exhibits" ("staged_offer_id", "case_file_document_id") /*application='Bizlaw'*/;
 CREATE INDEX "index_staged_offer_exhibits_on_case_file_document_id" ON "staged_offer_exhibits" ("case_file_document_id") /*application='Bizlaw'*/;
+CREATE INDEX "index_staged_offer_exhibits_on_side_id" ON "staged_offer_exhibits" ("side_id") /*application='Bizlaw'*/;
 CREATE TRIGGER staged_offer_exhibits_need_an_unclosed_day
 BEFORE INSERT ON staged_offer_exhibits
 WHEN EXISTS (

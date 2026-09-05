@@ -28,7 +28,6 @@
 class ExhibitsRideTheOffer < ActiveRecord::Migration[8.0]
   # Named rather than left to Rails, which hashes names this long into something
   # a later migration cannot recognise.
-  STAGED_OFFER_TENANCY_INDEX = "index_staged_offers_on_id_simulation_and_organization"
   CASE_FILE_DOCUMENT_TENANCY_INDEX =
     "index_case_file_documents_on_id_simulation_and_organization"
   RIDING_EXHIBIT_INDEX = "index_staged_offer_exhibits_on_offer_and_document"
@@ -41,13 +40,14 @@ class ExhibitsRideTheOffer < ActiveRecord::Migration[8.0]
     # the way back out.
     add_column :case_file_documents, :served_at, :datetime
 
-    # The targets of the composite keys below. Tenancy for a run's own tables is
-    # the Simulation as well as the Organization, so that a row cannot pair an
-    # Offer staged in one run with a Case File document held in another.
-    add_index :staged_offers, [:id, :simulation_id, :organization_id],
-      unique: true, name: STAGED_OFFER_TENANCY_INDEX
+    # The targets of the composite keys below. `played_exhibits` keys the Case
+    # File by tenancy, and the riding Exhibit keys both its parents by the Side
+    # itself — a narrower key than the tenancy pair, because a Side belongs to
+    # exactly one Simulation in exactly one Organization.
     add_index :case_file_documents, [:id, :simulation_id, :organization_id],
       unique: true, name: CASE_FILE_DOCUMENT_TENANCY_INDEX
+    add_index :staged_offers, [:id, :side_id], unique: true
+    add_index :case_file_documents, [:id, :side_id], unique: true
 
     riding_exhibits
     played_exhibits
@@ -60,8 +60,9 @@ class ExhibitsRideTheOffer < ActiveRecord::Migration[8.0]
     drop_table :played_exhibits
     drop_table :staged_offer_exhibits
     restore_the_shift_ledger_source_kinds
+    remove_index :case_file_documents, [:id, :side_id]
+    remove_index :staged_offers, [:id, :side_id]
     remove_index :case_file_documents, name: CASE_FILE_DOCUMENT_TENANCY_INDEX
-    remove_index :staged_offers, name: STAGED_OFFER_TENANCY_INDEX
     remove_column :case_file_documents, :served_at
   end
 
@@ -71,13 +72,20 @@ class ExhibitsRideTheOffer < ActiveRecord::Migration[8.0]
   # what stops a Team dumping its hoard is the exchange half, which does not
   # carry to the next Day.
   #
-  # Unlike `staged_offer_terms` this row carries the full tenancy key, because
-  # both its parents are the run's own: without it a row could pair this Team's
-  # Offer with the other run's Case File.
+  # Both parents are the run's own, so unlike `staged_offer_terms` this row
+  # carries a key — and it is the **Side**, not the tenancy pair. The rule worth
+  # holding is that a Team plays out of its own Case File, and tenancy alone
+  # does not say so: two Sides share a Simulation and an Organization, so a
+  # `(parent_id, simulation_id, organization_id)` key on both parents would
+  # cheerfully take the opponent's document. `side_id` is the narrower key and
+  # gives tenancy for nothing, because a Side belongs to exactly one Simulation
+  # in exactly one Organization — the tenancy triple below is what pins it
+  # there, and the two keys over `side_id` then meet in the middle.
   def riding_exhibits
     create_table :staged_offer_exhibits do |t|
       t.bigint :organization_id, null: false
       t.bigint :simulation_id, null: false
+      t.bigint :side_id, null: false
       t.bigint :staged_offer_id, null: false
       t.bigint :case_file_document_id, null: false
 
@@ -88,12 +96,16 @@ class ExhibitsRideTheOffer < ActiveRecord::Migration[8.0]
     add_index :staged_offer_exhibits, [:staged_offer_id, :case_file_document_id],
       unique: true, name: RIDING_EXHIBIT_INDEX
     add_index :staged_offer_exhibits, :case_file_document_id
+    add_index :staged_offer_exhibits, :side_id
+    add_foreign_key :staged_offer_exhibits, :sides,
+      column: [:side_id, :simulation_id, :organization_id],
+      primary_key: [:id, :simulation_id, :organization_id]
     add_foreign_key :staged_offer_exhibits, :staged_offers,
-      column: [:staged_offer_id, :simulation_id, :organization_id],
-      primary_key: [:id, :simulation_id, :organization_id]
+      column: [:staged_offer_id, :side_id], primary_key: [:id, :side_id]
+    # The key that does the work: an Exhibit rides out of the Case File of the
+    # Team whose Offer it rides, and never out of the one across the table.
     add_foreign_key :staged_offer_exhibits, :case_file_documents,
-      column: [:case_file_document_id, :simulation_id, :organization_id],
-      primary_key: [:id, :simulation_id, :organization_id]
+      column: [:case_file_document_id, :side_id], primary_key: [:id, :side_id]
 
     # The mirror of `staged_offer_terms_need_an_unclosed_day`, and for the same
     # reason: revising the play touches no `staged_offers` row an INSERT trigger

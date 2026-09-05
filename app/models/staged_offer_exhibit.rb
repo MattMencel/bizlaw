@@ -9,6 +9,12 @@
 #
 # An Exhibit cannot be played alone: `staged_offer_id` is `NOT NULL`, so there
 # is no row here without an Offer to ride.
+#
+# `side_id` is carried rather than joined for, and it is the key both parents
+# are reached by: a Team plays out of its own Case File, and the tenancy pair
+# every other run table keys on cannot say that, because the two Sides share a
+# Simulation and an Organization. It is taken from the Offer, so the Case File
+# row is the one refused when it belongs to the Team across the table.
 class StagedOfferExhibit < ApplicationRecord
   retention :skeleton
 
@@ -18,5 +24,6 @@ class StagedOfferExhibit < ApplicationRecord
   before_validation do
     self.organization_id ||= staged_offer&.organization_id
     self.simulation_id ||= staged_offer&.simulation_id
+    self.side_id ||= staged_offer&.side_id
   end
 end
