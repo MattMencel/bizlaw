@@ -4,13 +4,17 @@ require "rails_helper"
 
 # A Team plays out of its own Case File. That is a boundary the run's usual
 # tenancy key cannot express — the two Sides share a Simulation and an
-# Organization, so `(parent_id, simulation_id, organization_id)` on both parents
-# would cheerfully take the opponent's document. `staged_offer_exhibits` keys
-# both its parents by `side_id` instead, which is narrower and gives tenancy for
-# nothing: a Side belongs to exactly one Simulation in exactly one Organization.
+# Organization, so `(parent_id, simulation_id, organization_id)` on either
+# parent would cheerfully take the opponent's row. `staged_offer_exhibits` and
+# `played_exhibits` key their Side-scoped parents by `side_id` instead, which is
+# narrower and gives tenancy for nothing: a Side belongs to exactly one
+# Simulation in exactly one Organization.
+#
+# A Day is not Side-scoped, so `played_exhibits` still reaches it by tenancy.
+# There is no narrower thing to say about it.
 #
 # These specs write the row the boundary is supposed to refuse, at the level
-# below `Offers::Stage`'s own guard, and expect the database to raise.
+# below the seams' own guards, and expect the database to raise.
 RSpec.describe "the Side boundary" do
   let(:simulation) { a_simulation }
   let(:side) { simulation.plaintiff_side }
@@ -64,5 +68,33 @@ RSpec.describe "the Side boundary" do
         staged_offer: offer, case_file_document: ours, side_id: opponent.id
       )
     }.to raise_error(ActiveRecord::InvalidForeignKey)
+  end
+
+  # The other half of the same rule: an Exhibit is spent out of the Case File of
+  # the Team whose Offer it rode, and never out of the one across the table.
+  describe "a played Exhibit" do
+    let(:committed) { CommittedOffer.create!(side: side, day: day, staged_by: dana) }
+
+    def play(offer:, document:)
+      PlayedExhibit.create!(
+        side: side, day: day, committed_offer: offer, case_file_document: document
+      )
+    end
+
+    it "refuses one spent out of the other Team's Case File" do
+      expect { play(offer: committed, document: a_case_file_row(opponent)) }
+        .to raise_error(ActiveRecord::InvalidForeignKey)
+    end
+
+    it "refuses one riding the other Team's Offer" do
+      theirs = CommittedOffer.create!(side: opponent, day: day, staged_by: dana)
+
+      expect { play(offer: theirs, document: a_case_file_row(side)) }
+        .to raise_error(ActiveRecord::InvalidForeignKey)
+    end
+
+    it "takes one out of the Team's own Case File, riding its own Offer" do
+      expect { play(offer: committed, document: a_case_file_row(side)) }.not_to raise_error
+    end
   end
 end
