@@ -85,6 +85,15 @@ module Offers
         named = filed.is_a?(CaseFileDocument) ? filed.title.inspect : filed.inspect
         raise ArgumentError, "#{named} is not an Exhibit this Team holds to play"
       end
+
+      # An Exhibit rides an Offer once, and the unique index underneath says so
+      # too. The Terms cannot be named twice because they arrive as a Hash;
+      # these arrive as a list, so the seam has to. Without it a doubled control
+      # press comes back as a database fault rather than as this seam's own
+      # refusal, which is the one thing every other bad menu here gets.
+      return exhibits if exhibits.map(&:id).uniq.size == exhibits.size
+
+      raise ArgumentError, "an Exhibit rides an Offer once, and one is named twice"
     end
 
     def this_team_can_play?(filed)
