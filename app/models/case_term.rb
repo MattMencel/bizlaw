@@ -22,6 +22,7 @@ class CaseTerm < ApplicationRecord
   # Run data over authored data: a Term a Team has put on the table cannot be
   # edited out from under it by a re-import.
   has_many :staged_offer_terms, inverse_of: :case_term, dependent: :restrict_with_error
+  has_many :committed_offer_terms, inverse_of: :case_term, dependent: :restrict_with_error
 
   validates :key, presence: true, uniqueness: {scope: :case_version_id}
 

@@ -7,7 +7,15 @@ module Days
   #
   # Every act has two verbs. `quote` returns the cost, the half it draws on,
   # what the Side will have left today if it goes through, and the Day the
-  # result lands on — and writes nothing. `apply` performs it.
+  # result lands on — and writes nothing. `apply` performs it and returns what
+  # the act produced: the Docket row for a spend, the committed Offer for a
+  # commit.
+  #
+  # There are two acts. `:spend` buys an Action off the Case's menu, out of the
+  # half that Action draws on. `:commit_offer` puts the Team's staged Offer on
+  # the table for one point of the exchange half — a Boardroom act rather than a
+  # menu entry, which is why it names no authored Action, and the only act here
+  # that is gated by a Second.
   #
   # The confirmation dialog every spend shows is rendered from `quote`, so the
   # number a student confirms is computed by the same code path that charges
@@ -19,7 +27,7 @@ module Days
   # `apply` on the same act raises, because a command that cannot be performed
   # is not a question.
   class Command
-    ACTS = %i[spend].freeze
+    ACTS = %i[spend commit_offer].freeze
 
     # The two ceilings a fold can trip, and the Day ending under a quote that
     # already read it as open. Each is a rule this seam expresses as a refusal,
@@ -27,8 +35,12 @@ module Days
     # rather than surfacing as a fault. Anything else out of the database is a
     # fault, and is not caught.
     BUDGET_CEILING = /day_budgets_(preparation|exchange)_within_budget/
-    DAY_ALREADY_CLOSED = /docket_entries_need_an_unclosed_day/
-    RACED_REFUSAL = Regexp.union(BUDGET_CEILING, DAY_ALREADY_CLOSED)
+    DAY_ALREADY_CLOSED = /(docket_entries|committed_offers)_need_an_unclosed_day/
+    # A Team commits at most one Offer a Day, and the unique index is what says
+    # so. Two teammates pressing the same control is the ordinary case, so the
+    # loser of that race gets the refusal rather than a fault.
+    OFFER_ALREADY_COMMITTED = /UNIQUE constraint failed: committed_offers\.side_id/
+    RACED_REFUSAL = Regexp.union(BUDGET_CEILING, DAY_ALREADY_CLOSED, OFFER_ALREADY_COMMITTED)
 
     # What a student is shown before they confirm, and what `apply` then
     # charges. A refused quote carries no remaining-after and no landing Day:
@@ -54,6 +66,10 @@ module Days
 
     def self.apply(...) = new(...).apply
 
+    # `details` is the act's own: `kind:` names the Action a `:spend` buys, and
+    # `seconded_by:` names the teammate confirming a `:commit_offer` — nil where
+    # the Instructor has waived the Second, which is the only other thing that
+    # opens the gate.
     def initialize(act:, side:, day:, by:, **details)
       raise ArgumentError, "unknown act #{act.inspect}" unless ACTS.include?(act)
 
@@ -92,7 +108,9 @@ module Days
         # is idempotent and a seam narrowed to one caller's row is a second
         # path to keep true.
         Land.call(day) if quote.landing_day == day
-        entry
+        # The act's own work, inside the same transaction as the charge. A Team
+        # is never charged for a play that half happened.
+        perform(entry)
       end
     rescue ActiveRecord::StatementInvalid => e
       raise unless RACED_REFUSAL.match?(e.message)
@@ -106,8 +124,12 @@ module Days
       #
       # The Day is reloaded because the close landed on another connection and
       # the object this seam was handed still reads as open.
+      # The draft is dropped with the quote: a teammate may have revised the
+      # position in the same window, and the re-read has to see what is on the
+      # table now rather than what was there when the quote was built.
       day.reload
       @quote = nil
+      @staged_offer = nil
       raise Refused, quote if quote.refused?
 
       # The half moved back under the ceiling, or the Day reopened, between the
@@ -121,13 +143,24 @@ module Days
 
     attr_reader :act, :side, :day, :by, :details
 
-    # The authored Action this act spends on. A kind the Case does not author is
-    # a caller with a menu the engine never offered, not a refusal a student
-    # should see.
+    # The authored Action this act spends on, and nil for the Offer commit,
+    # which is a Boardroom act rather than a menu entry. A kind the Case does
+    # not author is a caller with a menu the engine never offered, not a refusal
+    # a student should see.
     def action
+      return nil unless act == :spend
+
       @action ||= side.case_version.actions.find_by(kind: details.fetch(:kind)) ||
         raise(ArgumentError, "#{details.fetch(:kind)} is not on this Case's Action menu")
     end
+
+    # An Offer costs one point of the exchange half and lands the Day it is
+    # made: there is no preparation to wait for.
+    def cost = action ? action.cost : CommittedOffer::EXCHANGE_COST
+
+    def half = action ? action.half : DayBudget::EXCHANGE
+
+    def lead_time_days = action ? action.lead_time_days : 0
 
     def build_quote
       landing_day = landing_day_for
@@ -140,22 +173,48 @@ module Days
       # render rather than a fault.
       return refusal(:the_day_has_closed, landing_day: landing_day) if day.closed?
 
-      remaining_after = budget.remaining_in(action.half) - action.cost
+      # The act's own rules, before the money. A Team that cannot commit is told
+      # why rather than told the price.
+      gate = gate_refusal
+      return refusal(gate, landing_day: landing_day) if gate
+
+      remaining_after = budget.remaining_in(half) - cost
       return refusal(:the_budget_cannot_cover_it, landing_day: landing_day) if remaining_after.negative?
 
       Quote.new(
-        cost: action.cost,
-        half: action.half,
+        cost: cost,
+        half: half,
         remaining_after: remaining_after,
         landing_day: landing_day,
         refusal: nil
       )
     end
 
+    # What stands between the Side and the act, before its price is reached. A
+    # spend off the menu has nothing here: it is ungated by design, which is why
+    # every spend confirms instead.
+    def gate_refusal
+      return nil unless act == :commit_offer
+      return :there_is_no_offer_on_the_table if staged_offer.nil?
+      return :an_offer_has_already_been_committed_today if side.committed_offer_on(day)
+
+      # The waiver-or-Second gate, which spans the roster, the Day and the
+      # Instructor's waivers and so lives in Ruby — see `Second`.
+      return nil if Second.satisfied?(
+        side: side, day: day, taken_by: staged_offer.staged_by, seconded_by: seconded_by
+      )
+
+      :the_offer_has_not_been_seconded
+    end
+
+    def staged_offer = @staged_offer ||= side.staged_offer_on(day)
+
+    def seconded_by = details[:seconded_by]
+
     def refusal(reason, landing_day: nil)
       Quote.new(
-        cost: action.cost,
-        half: action.half,
+        cost: cost,
+        half: half,
         remaining_after: nil,
         landing_day: landing_day,
         refusal: reason
@@ -166,7 +225,56 @@ module Days
     # last Day there is no Day to land on, and burning points on discovery that
     # can never arrive is what the refusal exists to prevent.
     def landing_day_for
-      day.simulation.days.find_by(ordinal: day.ordinal + action.lead_time_days)
+      day.simulation.days.find_by(ordinal: day.ordinal + lead_time_days)
+    end
+
+    # A spend is done once its row is on the Docket. An Offer commit still has
+    # its position to copy and the Day it implies to commit, and both belong in
+    # the charge's own transaction.
+    def perform(entry)
+      return entry unless act == :commit_offer
+
+      committed = commit_the_offer
+      # An Offer commit implies the Day commit, and the reverse does not follow.
+      # This is that direction, and it runs after the Offer is on the table: the
+      # Day commit may be the second one and close the Day underneath us.
+      Commit.call(side: side, day: day, by: by)
+      committed
+    end
+
+    # The staged Offer is copied rather than moved. It stays on the Team's own
+    # table as the record of what it held — and as the `offer_staged` line the
+    # Docket folds from it, which destroying the draft would erase.
+    def commit_the_offer
+      staged = the_position_on_the_table_now
+      committed = CommittedOffer.create!(
+        side: side,
+        day: day,
+        staged_by: staged.staged_by,
+        seconded_by: seconded_by,
+        note: staged.note
+      )
+      staged.offer_terms.each do |term|
+        committed.offer_terms.create!(case_term: term.case_term, amount_cents: term.amount_cents)
+      end
+      committed
+    end
+
+    # The quote a student confirmed is as old as the confirmation dialog they
+    # read it in, and staging is ungated: a teammate can revise or discard the
+    # draft in that window. What lands is therefore the position on the table
+    # now, re-read inside the charge's own transaction rather than taken from
+    # the copy the quote was built against.
+    #
+    # A draft discarded in that window leaves nothing to commit, and the refusal
+    # takes the charge down with it — the same answer a Team gets for pressing
+    # commit with an empty table, which is what has happened.
+    def the_position_on_the_table_now
+      @staged_offer = side.staged_offer_on(day)
+      return @staged_offer unless @staged_offer.nil?
+
+      @quote = nil
+      raise Refused, quote
     end
   end
 end

@@ -34,6 +34,10 @@ class Side < ApplicationRecord
   has_many :committed_offers, -> { order(:id) }, inverse_of: :side,
     dependent: :restrict_with_error
 
+  # The Offers this Team has taken from the other Side.
+  has_many :offer_acceptances, -> { order(:id) }, inverse_of: :side,
+    dependent: :restrict_with_error
+
   # The Days an Instructor released this Team's Second on.
   has_many :second_waivers, -> { order(:id) }, inverse_of: :side,
     dependent: :restrict_with_error
@@ -56,6 +60,10 @@ class Side < ApplicationRecord
   # The Team's live draft on a Day, if it has one.
   def staged_offer_on(day) = staged_offers.find_by(day: day)
 
+  # The Offer this Team put on the table on a Day, if it committed one. At most
+  # one per Day, by unique index: committing an Offer is a Boardroom act.
+  def committed_offer_on(day) = committed_offers.find_by(day: day)
+
   # Whether the Instructor released the Second for this Team on this Day. A
   # waiver is granted for one Day and read for that Day alone; there is no query
   # here that could carry it into the next one.
@@ -64,20 +72,30 @@ class Side < ApplicationRecord
   # The people on this Team, folded from Attribution.
   #
   # There is no roster and no Pairing yet, so the only record of who is on a
-  # Team is who has acted for it: the Docket, the commitment ledger and the
-  # staged Offer all name a member. That is enough for what depends on it — the
-  # teammates eligible to second an Offer — and it is one method for the roster
-  # to replace when it arrives.
+  # Team is who has acted for it: the Docket, the commitment ledger, the staged
+  # Offer and the Acceptance all name a member. That is enough for what depends
+  # on it — the teammates eligible to second an Offer — and it is one method for
+  # the roster to replace when it arrives.
   def members
     acted = docket_entries.pluck(:spent_by_user_id) +
       day_commitments.pluck(:committed_by_user_id) +
-      staged_offers.pluck(:staged_by_user_id)
+      staged_offers.pluck(:staged_by_user_id) +
+      offer_acceptances.pluck(:accepted_by_user_id)
 
     User.where(id: acted.uniq).order(:name)
   end
 
-  # What this Team has done and what is coming — a fold over three ledgers
-  # rather than one table. See `Docket`.
+  # The teammates who may second an act one member has taken: everyone on the
+  # Team except them. The Second is a gate precisely because the member who took
+  # the position cannot pass it.
+  #
+  # A student who stages an Offer holds a commit control that is present and
+  # disabled, naming these people. This is the data it is rendered from, and the
+  # Acceptance asks the same question of the accepting Team.
+  def seconders_other_than(member) = members.where.not(id: member.id)
+
+  # What this Team has done and what is coming — a fold over four ledgers rather
+  # than one table. See `Docket`.
   def docket(day: nil) = Docket.for(self, day: day)
 
   # The Client this Side represents, authored on the Case Version its Simulation

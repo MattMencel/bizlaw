@@ -15,6 +15,7 @@ Given("the reference Case also has a draft version") do
     version: "1.1.0",
     budget_per_day: @case_version.budget_per_day,
     exchange_pool: @case_version.exchange_pool,
+    exhibit_price: @case_version.exhibit_price,
     closing_knee: @case_version.closing_knee,
     closing_preparation: @case_version.closing_preparation,
     closing_exchange: @case_version.closing_exchange

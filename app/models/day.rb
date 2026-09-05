@@ -27,6 +27,9 @@ class Day < ApplicationRecord
   has_many :staged_offers, inverse_of: :day, dependent: :restrict_with_error
   has_many :committed_offers, inverse_of: :day, dependent: :restrict_with_error
   has_many :second_waivers, inverse_of: :day, dependent: :restrict_with_error
+  # The Offers taken on this Day, which need not be the Days they were committed
+  # on.
+  has_many :offer_acceptances, inverse_of: :day, dependent: :restrict_with_error
 
   before_validation { self.organization_id ||= simulation&.organization_id }
 

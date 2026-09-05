@@ -35,7 +35,12 @@ module Days
 
     attr_reader :day
 
+    # An Offer commit is a spend with no authored Action behind it, so there is
+    # nothing for it to yield. The Exhibits that ride one land through their own
+    # seam when they are built.
     def land(entry)
+      return [] if entry.case_action.nil?
+
       entry.case_action.documents.map do |document|
         filed = file(entry.side, document)
         discover_unfavorably(filed) if filed.unfavorable?

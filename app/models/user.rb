@@ -37,6 +37,17 @@ class User < ApplicationRecord
     inverse_of: :seconded_by,
     dependent: :restrict_with_error
 
+  has_many :offer_acceptances,
+    foreign_key: :accepted_by_user_id,
+    inverse_of: :accepted_by,
+    dependent: :restrict_with_error
+
+  has_many :seconded_acceptances,
+    class_name: "OfferAcceptance",
+    foreign_key: :seconded_by_user_id,
+    inverse_of: :seconded_by,
+    dependent: :restrict_with_error
+
   has_many :second_waivers,
     foreign_key: :granted_by_user_id,
     inverse_of: :granted_by,
