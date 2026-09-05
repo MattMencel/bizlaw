@@ -16,14 +16,21 @@ module Offers
   #
   # A key the Case does not author is a caller with a vocabulary the engine
   # never offered, not a refusal a student should see, so it raises.
+  #
+  # `exhibits:` are the Case File rows riding the Offer, and they are part of
+  # the position for the same reason the Terms are: the teammate who Seconds is
+  # confirming the whole play, so a set of Exhibits chosen at the commit control
+  # would let them play cards the member who took the position never proposed.
+  # Any number may ride one Offer; they cost nothing until it commits.
   class Stage
     def self.call(...) = new(...).call
 
-    def initialize(side:, day:, by:, terms:, note: nil)
+    def initialize(side:, day:, by:, terms:, exhibits: [], note: nil)
       @side = side
       @day = day
       @by = by
       @terms = terms
+      @exhibits = exhibits
       @note = note
     end
 
@@ -31,6 +38,7 @@ module Offers
       raise DayClosed, "Day #{day.ordinal} has already closed" if day.closed?
 
       vocabulary = terms_authored_for(terms.keys)
+      riding = exhibits_held_for_play
 
       ActiveRecord::Base.transaction do
         # Keyed by id rather than by object, so that the insert this loses to a
@@ -51,13 +59,46 @@ module Offers
             case_term: vocabulary.fetch(key.to_s), amount_cents: amount_cents
           )
         end
+        # An Exhibit riding the Offer is part of the position, so a revision
+        # replaces the set rather than adding to it — the same rule the Terms
+        # above follow, and for the same reason.
+        offer.offer_exhibits.destroy_all
+        riding.each { |filed| offer.offer_exhibits.create!(case_file_document: filed) }
         offer.reload
       end
     end
 
     private
 
-    attr_reader :side, :day, :by, :terms, :note
+    attr_reader :side, :day, :by, :terms, :exhibits, :note
+
+    # An Exhibit rides an Offer out of this Team's own Case File, and only one
+    # the Team can actually play. A document carrying no Exhibit, one pointing
+    # at this Team's own Client, one already spent, or one out of somebody
+    # else's folder is a caller with a menu the engine never offered rather than
+    # a refusal a student should see — a Boardroom reads playability off the
+    # Case File before it offers the control.
+    def exhibits_held_for_play
+      exhibits.each do |filed|
+        next if this_team_can_play?(filed)
+
+        named = filed.is_a?(CaseFileDocument) ? filed.title.inspect : filed.inspect
+        raise ArgumentError, "#{named} is not an Exhibit this Team holds to play"
+      end
+
+      # An Exhibit rides an Offer once, and the unique index underneath says so
+      # too. The Terms cannot be named twice because they arrive as a Hash;
+      # these arrive as a list, so the seam has to. Without it a doubled control
+      # press comes back as a database fault rather than as this seam's own
+      # refusal, which is the one thing every other bad menu here gets.
+      return exhibits if exhibits.map(&:id).uniq.size == exhibits.size
+
+      raise ArgumentError, "an Exhibit rides an Offer once, and one is named twice"
+    end
+
+    def this_team_can_play?(filed)
+      filed.is_a?(CaseFileDocument) && filed.side_id == side.id && filed.playable?
+    end
 
     # An Offer naming no Term at all is not a position. A Team that wants
     # nothing on the table discards.

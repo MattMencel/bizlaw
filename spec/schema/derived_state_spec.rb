@@ -14,6 +14,7 @@ RSpec.describe "the tables of the Simulation skeleton" do
       users docket_entries case_file_documents client_shifts
       day_commitments staged_offers staged_offer_terms
       committed_offers second_waivers
+      staged_offer_exhibits played_exhibits
     ]
   end
 

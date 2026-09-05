@@ -73,6 +73,25 @@ RSpec.describe Offers::Stage do
       .to raise_error(ArgumentError, /a_pony is not on this Case's Terms vocabulary/)
   end
 
+  # The Terms arrive as a Hash and cannot be doubled; the Exhibits arrive as a
+  # list and can. Without the seam saying so, a doubled control press comes back
+  # as the unique index's fault rather than as a refusal.
+  it "refuses an Exhibit named twice on one Offer" do
+    simulation = a_simulation
+    riding = simulation.plaintiff_side.case_file_documents.create!(
+      day: simulation.days.first,
+      case_document: simulation.case_version.documents.find_by!(identifier: "personnel_file")
+    )
+
+    expect {
+      Offers::Stage.call(
+        side: simulation.plaintiff_side, day: simulation.days.first,
+        by: a_user(organization: simulation.section.organization, name: "Ada", email: "a@wiu.edu"),
+        terms: {"money" => 1_000_00}, exhibits: [riding, riding]
+      )
+    }.to raise_error(ArgumentError, /rides an Offer once/)
+  end
+
   it "refuses an Offer naming no Term at all" do
     expect { stage(terms: {}) }.to raise_error(ArgumentError, /at least one Term/)
   end

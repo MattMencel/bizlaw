@@ -28,6 +28,15 @@ class StagedOffer < ApplicationRecord
     inverse_of: :staged_offer,
     dependent: :destroy
   has_many :terms, through: :offer_terms, source: :case_term
+  # The Exhibits riding this draft. Any number may ride one Offer — the brake is
+  # the exchange half, which pays a point for each of them on commit and does
+  # not carry to the next Day. They cost nothing while the Offer is staged.
+  has_many :offer_exhibits,
+    -> { order(:case_file_document_id) },
+    class_name: "StagedOfferExhibit",
+    inverse_of: :staged_offer,
+    dependent: :destroy
+  has_many :exhibits, through: :offer_exhibits, source: :case_file_document
 
   before_validation do
     self.organization_id ||= side&.organization_id || day&.organization_id

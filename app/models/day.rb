@@ -18,6 +18,8 @@ class Day < ApplicationRecord
     dependent: :restrict_with_error
   has_many :case_file_documents, inverse_of: :day, dependent: :restrict_with_error
   has_many :client_shifts, inverse_of: :day, dependent: :restrict_with_error
+  # The Exhibits played on this Day, each riding an Offer committed on it.
+  has_many :played_exhibits, inverse_of: :day, dependent: :restrict_with_error
   # The ledger the close counts from: one row per Side that has declared itself
   # finished with this Day.
   has_many :commitments, class_name: "DayCommitment", inverse_of: :day,

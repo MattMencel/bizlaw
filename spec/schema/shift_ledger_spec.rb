@@ -11,15 +11,48 @@ RSpec.describe "the shift ledger's invariants" do
   let(:side) { simulation.plaintiff_side }
   let(:day) { simulation.days.first }
 
-  def insert_shift(requested:, applied:, source_ref: 1)
+  def insert_shift(requested:, applied:, source_ref: 1, kind: "unfavorable_discovery")
     ActiveRecord::Base.connection.exec_insert(<<~SQL, nil, [
       INSERT INTO client_shifts
         (organization_id, simulation_id, side_id, day_id, source_kind, source_ref,
          requested_fraction, applied_fraction, created_at, updated_at)
-      VALUES (?, ?, ?, ?, 'unfavorable_discovery', ?, ?, ?, datetime('now'), datetime('now'))
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
     SQL
-      side.organization_id, side.simulation_id, side.id, day.id, source_ref, requested, applied
+      side.organization_id, side.simulation_id, side.id, day.id, kind, source_ref,
+      requested, applied
     ])
+  end
+
+  # One document moves one Client once — ADR 0003. Both player-caused kinds key
+  # to the receiving Side's own Case File row, so they share a key and the index
+  # refuses the second however the document arrived.
+  describe "one movement per document" do
+    it "refuses a played Exhibit over a document already found unfavorably" do
+      insert_shift(requested: 0.25, applied: 0.25, source_ref: 7)
+
+      expect {
+        insert_shift(requested: 0.25, applied: 0.25, source_ref: 7, kind: "exhibit_played")
+      }.to raise_error(ActiveRecord::RecordNotUnique)
+    end
+
+    it "leaves a different document alone" do
+      insert_shift(requested: 0.25, applied: 0.25, source_ref: 7)
+
+      expect {
+        insert_shift(requested: 0.25, applied: 0.25, source_ref: 8, kind: "exhibit_played")
+      }.not_to raise_error
+    end
+
+    # Partial rather than plain, because `source_ref` carries no source table:
+    # an Event's shift will point somewhere else, and a plain key would refuse
+    # an Event whose row id collided with a Case File row's.
+    it "is scoped to the two kinds that key to a Case File row" do
+      index = ActiveRecord::Base.connection.indexes("client_shifts")
+        .find { |candidate| candidate.columns == ["side_id", "source_ref"] }
+
+      expect(index.unique).to be(true)
+      expect(index.where).to include("unfavorable_discovery", "exhibit_played")
+    end
   end
 
   # The clip is computed rather than constrained, because the bound saturates.

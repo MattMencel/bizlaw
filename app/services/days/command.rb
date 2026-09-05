@@ -13,9 +13,15 @@ module Days
   #
   # There are two acts. `:spend` buys an Action off the Case's menu, out of the
   # half that Action draws on. `:commit_offer` puts the Team's staged Offer on
-  # the table for one point of the exchange half — a Boardroom act rather than a
-  # menu entry, which is why it names no authored Action, and the only act here
-  # that is gated by a Second.
+  # the table for one point of the exchange half, plus the Case's Exhibit price
+  # for each Exhibit riding it — a Boardroom act rather than a menu entry, which
+  # is why it names no authored Action, and the only act here that is gated by a
+  # Second.
+  #
+  # The Exhibits are quoted and charged as one act with the Offer, so a half
+  # that cannot cover the Offer plus every one of them refuses entirely. A
+  # partial ride would silently drop an Exhibit the Team meant to play, which is
+  # the worst available failure on an irreversible act.
   #
   # The confirmation dialog every spend shows is rendered from `quote`, so the
   # number a student confirms is computed by the same code path that charges
@@ -40,7 +46,13 @@ module Days
     # so. Two teammates pressing the same control is the ordinary case, so the
     # loser of that race gets the refusal rather than a fault.
     OFFER_ALREADY_COMMITTED = /UNIQUE constraint failed: committed_offers\.side_id/
-    RACED_REFUSAL = Regexp.union(BUDGET_CEILING, DAY_ALREADY_CLOSED, OFFER_ALREADY_COMMITTED)
+    # An Exhibit plays exactly once. Two Days are open at a time, so a Team can
+    # attach one to tomorrow's draft and spend it on today's Offer before
+    # tomorrow's commits — the ordinary case rather than a fault.
+    EXHIBIT_ALREADY_PLAYED = /UNIQUE constraint failed: played_exhibits\.case_file_document_id/
+    RACED_REFUSAL = Regexp.union(
+      BUDGET_CEILING, DAY_ALREADY_CLOSED, OFFER_ALREADY_COMMITTED, EXHIBIT_ALREADY_PLAYED
+    )
 
     # What a student is shown before they confirm, and what `apply` then
     # charges. A refused quote carries no remaining-after and no landing Day:
@@ -90,6 +102,14 @@ module Days
       raise Refused, quote if quote.refused?
 
       ActiveRecord::Base.transaction do
+        # The quote a student confirmed is as old as the confirmation dialog
+        # they read it in, and staging is ungated: a teammate can revise or
+        # discard the draft in that window — including the Exhibits riding it,
+        # which is what the play costs. So the position is re-read here, inside
+        # the charge's own transaction, and the quote rebuilt against it. What
+        # is charged is then exactly what lands.
+        requote_against_the_table if act == :commit_offer
+
         # One row, and the trigger on it re-folds the half's spent counter. The
         # Budget's CHECK is underneath both, so a half pushed past its ceiling
         # by any insert path takes the insert down rather than going negative.
@@ -128,8 +148,7 @@ module Days
       # position in the same window, and the re-read has to see what is on the
       # table now rather than what was there when the quote was built.
       day.reload
-      @quote = nil
-      @staged_offer = nil
+      drop_the_quote_and_the_draft
       raise Refused, quote if quote.refused?
 
       # The half moved back under the ceiling, or the Day reopened, between the
@@ -155,8 +174,27 @@ module Days
     end
 
     # An Offer costs one point of the exchange half and lands the Day it is
-    # made: there is no preparation to wait for.
-    def cost = action ? action.cost : CommittedOffer::EXCHANGE_COST
+    # made: there is no preparation to wait for. Each Exhibit riding it costs
+    # the Case's authored Exhibit price out of the same half — one act, one
+    # price, so the half either covers the whole play or refuses it.
+    def cost
+      return action.cost if action
+
+      CommittedOffer::EXCHANGE_COST + (exhibit_price * riding_exhibits.size)
+    end
+
+    def exhibit_price = side.case_version.exhibit_price
+
+    # The Exhibits attached to the position on the table. An Exhibit cannot be
+    # played alone: this is the only list of them the engine has, and it hangs
+    # off an Offer.
+    #
+    # Read once and held, so that the set the quote prices is the same set that
+    # is played — rather than two reads that agree because nothing came between
+    # them. It is dropped with the draft and the quote whenever those are.
+    def riding_exhibits
+      @riding_exhibits ||= staged_offer ? staged_offer.exhibits.to_a : []
+    end
 
     def half = action ? action.half : DayBudget::EXCHANGE
 
@@ -197,6 +235,10 @@ module Days
       return nil unless act == :commit_offer
       return :there_is_no_offer_on_the_table if staged_offer.nil?
       return :an_offer_has_already_been_committed_today if side.committed_offer_on(day)
+      # An Exhibit spent on another open Day's Offer since this draft was built.
+      # The whole play is refused rather than the spent one quietly dropped: a
+      # partial ride is the worst available failure on an irreversible act.
+      return :an_exhibit_has_already_been_played if riding_exhibits.any?(&:played?)
 
       # The waiver-or-Second gate, which spans the roster, the Day and the
       # Instructor's waivers and so lives in Ruby — see `Second`.
@@ -235,6 +277,10 @@ module Days
       return entry unless act == :commit_offer
 
       committed = commit_the_offer
+      # The Exhibits ride it: the shift lands and the document reaches the other
+      # Side in this same transaction. Before the Day commit below, which may be
+      # the second one and close the Day underneath us.
+      Exhibits::Play.call(committed_offer: committed, riding: riding_exhibits)
       # An Offer commit implies the Day commit, and the reverse does not follow.
       # This is that direction, and it runs after the Offer is on the table: the
       # Day commit may be the second one and close the Day underneath us.
@@ -246,7 +292,7 @@ module Days
     # table as the record of what it held — and as the `offer_staged` line the
     # Docket folds from it, which destroying the draft would erase.
     def commit_the_offer
-      staged = the_position_on_the_table_now
+      staged = staged_offer
       committed = CommittedOffer.create!(
         side: side,
         day: day,
@@ -260,21 +306,22 @@ module Days
       committed
     end
 
-    # The quote a student confirmed is as old as the confirmation dialog they
-    # read it in, and staging is ungated: a teammate can revise or discard the
-    # draft in that window. What lands is therefore the position on the table
-    # now, re-read inside the charge's own transaction rather than taken from
-    # the copy the quote was built against.
+    # The draft is dropped along with the quote and both are read again, so that
+    # the price, the Terms and the Exhibits all come from the position on the
+    # table now rather than from the copy the quote was built against.
     #
-    # A draft discarded in that window leaves nothing to commit, and the refusal
-    # takes the charge down with it — the same answer a Team gets for pressing
-    # commit with an empty table, which is what has happened.
-    def the_position_on_the_table_now
-      @staged_offer = side.staged_offer_on(day)
-      return @staged_offer unless @staged_offer.nil?
+    # A draft discarded in that window leaves nothing to commit, and the rebuilt
+    # quote refuses — the same answer a Team gets for pressing commit with an
+    # empty table, which is what has happened.
+    def requote_against_the_table
+      drop_the_quote_and_the_draft
+      raise Refused, quote if quote.refused?
+    end
 
+    def drop_the_quote_and_the_draft
       @quote = nil
-      raise Refused, quote
+      @staged_offer = nil
+      @riding_exhibits = nil
     end
   end
 end

@@ -10,6 +10,11 @@ module Days
   # *own* Client — the shift lands with it, because an unfavorable discovery
   # moves the finder toward realism at the moment it is found.
   #
+  # Unless the other Side already served them that same document and moved them
+  # with it. One document moves one Client once, per ADR 0003, and the two kinds
+  # share a key: the finder's own Case File row, which is the row service wrote
+  # if service got there first.
+  #
   # It is idempotent, and by unique index rather than by a check-then-write: a
   # Day opened twice, or the same Action bought twice, fills the Case File once
   # and moves the bound once.
@@ -37,7 +42,7 @@ module Days
 
     # An Offer commit is a spend with no authored Action behind it, so there is
     # nothing for it to yield. The Exhibits that ride one land through their own
-    # seam when they are built.
+    # seam, `Exhibits::Play`, in the commit's own transaction.
     def land(entry)
       return [] if entry.case_action.nil?
 
@@ -48,10 +53,16 @@ module Days
       end
     end
 
+    # Found outranks served. A document this Team was shown by the other Side and
+    # has now found for itself is a document it found: service withholds the
+    # Exhibit property and is not a way to take one back. The Day stays the Day
+    # the document first arrived, because that is when this Team came to know it.
     def file(side, document)
-      CaseFileDocument.create_or_find_by!(side: side, case_document: document) do |filed|
-        filed.day = day
+      filed = CaseFileDocument.create_or_find_by!(side: side, case_document: document) do |row|
+        row.day = day
       end
+      filed.update!(served_at: nil) if filed.served?
+      filed
     end
 
     # The shift is keyed to the Case File row rather than to the Docket entry:
@@ -59,6 +70,12 @@ module Days
     # is the one row the discovery exists as, and its id is stable across a
     # re-open.
     def discover_unfavorably(filed)
+      # The ledger is checked rather than left to the index. `create_or_find_by!`
+      # retries its `find_by!` on the attributes it was handed, would not match
+      # the `exhibit_played` row already there, and would raise `RecordNotFound`
+      # out of a Day open. The rule is ADR 0003's, so it reads as the rule.
+      return if ClientShift.already_moved?(filed)
+
       ClientShift.create_or_find_by!(
         side: filed.side,
         source_kind: ClientShift::UNFAVORABLE_DISCOVERY,

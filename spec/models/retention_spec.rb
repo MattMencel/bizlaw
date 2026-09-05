@@ -30,7 +30,9 @@ RSpec.describe Retention do
     StagedOffer => :skeleton,
     StagedOfferTerm => :skeleton,
     CommittedOffer => :skeleton,
-    SecondWaiver => :skeleton
+    SecondWaiver => :skeleton,
+    StagedOfferExhibit => :skeleton,
+    PlayedExhibit => :skeleton
   }.each do |model, tier|
     it "declares #{model.name} as #{tier}" do
       expect(model.retention_tier).to eq(tier)
