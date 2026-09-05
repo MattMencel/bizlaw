@@ -18,6 +18,11 @@ published: true
 budget:
   per_day: 10
   exchange_pool: 2
+  # What an Exhibit costs to ride a committed Offer. It and the pool above are
+  # one decision rather than two: the Offer costs one point, so at a pool of two
+  # an Exhibit priced at two means nothing can ever be played, and separation
+  # across the joint grid falls from 84 to 10.
+  exhibit_price: 1
   closing_knee: 0.60
   closing_preparation: 2
   closing_exchange: 3

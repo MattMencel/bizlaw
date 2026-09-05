@@ -24,7 +24,7 @@ end
 # There is no roster yet, so a Team's members are folded from Attribution:
 # Priya joins the Team by acting for it.
 def priya
-  @teammate ||= User.create!(
+  @priya ||= User.create!(
     organization: @section.organization, name: "Priya", email: "priya@wiu.edu"
   )
 end

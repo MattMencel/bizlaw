@@ -3,9 +3,12 @@
 require "rails_helper"
 
 # ADR 0002 puts the Second in the database: `CHECK (seconded_by_user_id !=
-# staged_by_user_id)`. It is the one invariant the committed table carries now,
-# and it is written at the level below the models so that an insert path added
-# later cannot get round it.
+# staged_by_user_id)` on the committed Offer, and its mirror on the Acceptance —
+# the only two acts inside a Team that need one. It is written at the level
+# below the models so that an insert path added later cannot get round it.
+#
+# The rest of the gate — who is on the Team, and whether the Instructor has
+# waived it — spans tables and so stays in Ruby, in `Second`.
 #
 # The waiver is the reason the CHECK is written plainly rather than guarded for
 # null. In SQL a CHECK fails only on false, and `NULL != x` is neither true nor
@@ -39,11 +42,19 @@ RSpec.describe "the Second" do
     expect(commit(staged_by: dana, seconded_by: nil)).not_to be_seconded
   end
 
+  it "refuses an Acceptance a member seconded for themselves" do
+    expect {
+      OfferAcceptance.create!(
+        committed_offer: commit(staged_by: dana, seconded_by: ravi),
+        side: simulation.defendant_side, day: day, accepted_by: dana, seconded_by: dana
+      )
+    }.to raise_error(ActiveRecord::StatementInvalid, /offer_acceptances_second_is_another_member/)
+  end
+
   # The committed table is where every cross-Side read goes precisely because it
-  # holds no live positions. This ticket creates it and nothing it builds writes
-  # to it: staging, revising, waiving and discarding all leave it empty, and the
-  # commit that fills it arrives with the rest of #282's chain.
-  it "is left empty by everything this ticket builds" do
+  # holds no live positions. Only the commit fills it: staging, revising,
+  # waiving and discarding all leave it empty.
+  it "is left empty by everything a Team does before the commit" do
     Offers::Stage.call(side: side, day: day, by: dana, terms: {"money" => 45_000_00})
     Offers::Stage.call(side: side, day: day, by: dana, terms: {"money" => 40_000_00})
     Offers::WaiveSecond.call(side: side, day: day, by: ravi)

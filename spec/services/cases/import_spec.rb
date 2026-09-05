@@ -22,6 +22,7 @@ RSpec.describe Cases::Import do
       "budget" => {
         "per_day" => 10,
         "exchange_pool" => 2,
+        "exhibit_price" => 1,
         "closing_knee" => 0.60,
         "closing_preparation" => 2,
         "closing_exchange" => 3
@@ -75,6 +76,7 @@ RSpec.describe Cases::Import do
 
     expect(version.budget_per_day).to eq(10)
     expect(version.exchange_pool).to eq(2)
+    expect(version.exhibit_price).to eq(1)
     expect(version.closing_knee).to eq(0.60)
     expect(version.closing_preparation).to eq(2)
     expect(version.closing_exchange).to eq(3)
@@ -173,24 +175,43 @@ RSpec.describe Cases::Import do
   end
 
   it "refuses a Case whose exchange half cannot play an Offer with an Exhibit behind it" do
-    under = {"per_day" => 10, "exchange_pool" => 1, "closing_knee" => 0.60,
-             "closing_preparation" => 2, "closing_exchange" => 3}
+    under = {"per_day" => 10, "exchange_pool" => 1, "exhibit_price" => 1,
+             "closing_knee" => 0.60, "closing_preparation" => 2, "closing_exchange" => 3}
 
     expect { described_class.call(authored(budget: under)) }
       .to raise_error(described_class::InvalidCase, /exchange/)
   end
 
+  # The Exhibit's price and the pool are one decision rather than two. At a pool
+  # of two an Exhibit priced at two means nothing can ever be played, and
+  # separation across the joint grid falls from 84 to 10.
+  it "refuses an Exhibit priced past the Offer it has to ride" do
+    crowded = {"per_day" => 10, "exchange_pool" => 2, "exhibit_price" => 2,
+               "closing_knee" => 0.60, "closing_preparation" => 2, "closing_exchange" => 3}
+
+    expect { described_class.call(authored(budget: crowded)) }
+      .to raise_error(described_class::InvalidCase, /leaves no Offer for it to ride/)
+  end
+
+  it "refuses an Exhibit that costs nothing" do
+    free = {"per_day" => 10, "exchange_pool" => 2, "exhibit_price" => 0,
+            "closing_knee" => 0.60, "closing_preparation" => 2, "closing_exchange" => 3}
+
+    expect { described_class.call(authored(budget: free)) }
+      .to raise_error(described_class::InvalidCase, /Exhibit costing 0/)
+  end
+
   it "refuses a Case whose closing exchange half falls under two points" do
-    under = {"per_day" => 10, "exchange_pool" => 2, "closing_knee" => 0.60,
-             "closing_preparation" => 2, "closing_exchange" => 1}
+    under = {"per_day" => 10, "exchange_pool" => 2, "exhibit_price" => 1,
+             "closing_knee" => 0.60, "closing_preparation" => 2, "closing_exchange" => 1}
 
     expect { described_class.call(authored(budget: under)) }
       .to raise_error(described_class::InvalidCase, /exchange/)
   end
 
   it "refuses a Budget value authored as a string rather than a number" do
-    quoted = {"per_day" => 10, "exchange_pool" => "2", "closing_knee" => 0.60,
-              "closing_preparation" => 2, "closing_exchange" => 3}
+    quoted = {"per_day" => 10, "exchange_pool" => "2", "exhibit_price" => 1,
+              "closing_knee" => 0.60, "closing_preparation" => 2, "closing_exchange" => 3}
 
     expect { described_class.call(authored(budget: quoted)) }
       .to raise_error(described_class::InvalidCase, /not a whole number of points/)
@@ -199,16 +220,16 @@ RSpec.describe Cases::Import do
   # It would otherwise import cleanly and trip a `day_budgets` CHECK on the
   # first closing Day, mid-Simulation.
   it "refuses a negative closing preparation half" do
-    negative = {"per_day" => 10, "exchange_pool" => 2, "closing_knee" => 0.60,
-                "closing_preparation" => -2, "closing_exchange" => 3}
+    negative = {"per_day" => 10, "exchange_pool" => 2, "exhibit_price" => 1,
+                "closing_knee" => 0.60, "closing_preparation" => -2, "closing_exchange" => 3}
 
     expect { described_class.call(authored(budget: negative)) }
       .to raise_error(described_class::InvalidCase, /less than nothing/)
   end
 
   it "refuses a closing knee that is not a fraction of the Simulation" do
-    past_the_end = {"per_day" => 10, "exchange_pool" => 2, "closing_knee" => 6,
-                    "closing_preparation" => 2, "closing_exchange" => 3}
+    past_the_end = {"per_day" => 10, "exchange_pool" => 2, "exhibit_price" => 1,
+                    "closing_knee" => 6, "closing_preparation" => 2, "closing_exchange" => 3}
 
     expect { described_class.call(authored(budget: past_the_end)) }
       .to raise_error(described_class::InvalidCase, /not a fraction of the Simulation/)
@@ -217,8 +238,8 @@ RSpec.describe Cases::Import do
   # The taper takes a Budget cut out of the preparation half and never out of
   # the brake, so this authors a negative preparation half on Day 1.
   it "refuses a Budget smaller than its own exchange half" do
-    inverted = {"per_day" => 1, "exchange_pool" => 2, "closing_knee" => 0.60,
-                "closing_preparation" => 2, "closing_exchange" => 3}
+    inverted = {"per_day" => 1, "exchange_pool" => 2, "exhibit_price" => 1,
+                "closing_knee" => 0.60, "closing_preparation" => 2, "closing_exchange" => 3}
 
     expect { described_class.call(authored(budget: inverted)) }
       .to raise_error(described_class::InvalidCase, /leaving nothing to prepare with/)

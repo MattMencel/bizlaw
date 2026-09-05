@@ -15,7 +15,8 @@ module Cases
     REQUIRED_KEYS =
       %w[identifier name licence version calendar budget actions clients terms documents].freeze
     REQUIRED_BUDGET_KEYS =
-      %w[per_day exchange_pool closing_knee closing_preparation closing_exchange].freeze
+      %w[per_day exchange_pool exhibit_price closing_knee closing_preparation
+        closing_exchange].freeze
     REQUIRED_ACTION_KEYS = %w[cost lead_time_days half].freeze
     REQUIRED_DOCUMENT_KEYS = %w[action title body].freeze
     REQUIRED_EXHIBIT_KEYS = %w[target shift bears_on].freeze
@@ -26,10 +27,13 @@ module Cases
     # The Budget's whole numbers. `closing_knee` is the one fraction and is
     # checked on its own.
     BUDGET_COUNTS =
-      %w[per_day exchange_pool closing_preparation closing_exchange].freeze
+      %w[per_day exchange_pool exhibit_price closing_preparation closing_exchange].freeze
 
     # The floor belongs to the half itself, so it is the model's to state.
     PLAYABLE_EXCHANGE_HALF = DayBudget::PLAYABLE_EXCHANGE_HALF
+    # What an Offer costs to commit. It is engine rather than authored, and the
+    # Exhibit's price is checked against what is left of the pool over it.
+    OFFER_COST = CommittedOffer::EXCHANGE_COST
 
     def self.call(path) = new(path).call
 
@@ -92,6 +96,7 @@ module Cases
       version.published_at = data["published"] ? Time.current : nil
       version.budget_per_day = budget["per_day"]
       version.exchange_pool = budget["exchange_pool"]
+      version.exhibit_price = budget["exhibit_price"]
       version.closing_knee = budget["closing_knee"]
       version.closing_preparation = budget["closing_preparation"]
       version.closing_exchange = budget["closing_exchange"]
@@ -268,6 +273,27 @@ module Cases
             "#{path} authors a #{name} of #{budget[key]}, under the #{PLAYABLE_EXCHANGE_HALF} " \
             "points an Offer with one Exhibit behind it costs"
         end
+
+      validate_exhibit_price!
+    end
+
+    # The Exhibit's price and the exchange pool are one decision rather than
+    # two. An Exhibit rides a committed Offer, so a price that puts the pair past
+    # the pool prices out every Exhibit in the Case — at a pool of two an Exhibit
+    # costing two means nothing can ever be played, and separation across the
+    # joint grid falls from 84 to 10. The narrower of the two halves is the one
+    # to check: the closing half only ever widens.
+    def validate_exhibit_price!
+      price = budget["exhibit_price"]
+      unless price >= 1
+        raise InvalidCase, "#{path} authors an Exhibit costing #{price}, which is not a spend"
+      end
+
+      return if OFFER_COST + price <= budget["exchange_pool"]
+
+      raise InvalidCase,
+        "#{path} prices an Exhibit at #{price} against an exchange half of " \
+        "#{budget["exchange_pool"]}, which leaves no Offer for it to ride"
     end
 
     # Types and ranges before any comparison, because a value of the wrong shape

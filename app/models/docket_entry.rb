@@ -22,7 +22,11 @@ class DocketEntry < ApplicationRecord
     class_name: "User",
     foreign_key: :spent_by_user_id,
     inverse_of: :docket_entries
-  belongs_to :case_action
+  # Every spend off the Action menu names its Action. The one act that names
+  # none is the Offer commit — a Boardroom act rather than a menu entry, gated
+  # by a Second, which is why it has no `case_actions` row to point at. The
+  # CHECK underneath holds it to the exchange half.
+  belongs_to :case_action, optional: true
 
   before_validation do
     self.organization_id ||= side&.organization_id || day&.organization_id
@@ -32,5 +36,5 @@ class DocketEntry < ApplicationRecord
   validates :cost, numericality: {only_integer: true, greater_than_or_equal_to: 1}
   validates :half, inclusion: {in: DayBudget::HALVES}
 
-  delegate :kind, to: :case_action
+  delegate :kind, to: :case_action, allow_nil: true
 end

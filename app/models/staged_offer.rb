@@ -48,7 +48,7 @@ class StagedOffer < ApplicationRecord
   #
   # A student staging an Offer holds a commit control that is present and
   # disabled, naming these people. This is the data it is rendered from.
-  def eligible_seconders = side.members.reject { |member| member == staged_by }
+  def eligible_seconders = side.seconders_other_than(staged_by)
 
   # A Team whose other members are absent stages an Offer it cannot commit.
   # That is not a mechanic — it is what the Instructor's waiver exists for.
