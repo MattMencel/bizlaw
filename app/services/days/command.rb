@@ -246,17 +246,35 @@ module Days
     # table as the record of what it held — and as the `offer_staged` line the
     # Docket folds from it, which destroying the draft would erase.
     def commit_the_offer
+      staged = the_position_on_the_table_now
       committed = CommittedOffer.create!(
         side: side,
         day: day,
-        staged_by: staged_offer.staged_by,
+        staged_by: staged.staged_by,
         seconded_by: seconded_by,
-        note: staged_offer.note
+        note: staged.note
       )
-      staged_offer.offer_terms.each do |term|
+      staged.offer_terms.each do |term|
         committed.offer_terms.create!(case_term: term.case_term, amount_cents: term.amount_cents)
       end
       committed
+    end
+
+    # The quote a student confirmed is as old as the confirmation dialog they
+    # read it in, and staging is ungated: a teammate can revise or discard the
+    # draft in that window. What lands is therefore the position on the table
+    # now, re-read inside the charge's own transaction rather than taken from
+    # the copy the quote was built against.
+    #
+    # A draft discarded in that window leaves nothing to commit, and the refusal
+    # takes the charge down with it — the same answer a Team gets for pressing
+    # commit with an empty table, which is what has happened.
+    def the_position_on_the_table_now
+      @staged_offer = side.staged_offer_on(day)
+      return @staged_offer unless @staged_offer.nil?
+
+      @quote = nil
+      raise Refused, quote
     end
   end
 end

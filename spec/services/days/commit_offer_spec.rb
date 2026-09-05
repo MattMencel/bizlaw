@@ -236,6 +236,44 @@ RSpec.describe "committing an Offer" do
     end
   end
 
+  # The confirmation dialog a student reads is rendered from `quote`, and
+  # staging is ungated, so a teammate can move the draft while it is on screen.
+  describe "a draft that moves between the quote and the confirmation" do
+    it "commits the position on the table now rather than the one quoted" do
+      teammate = a_teammate
+      stage(note: "our opening position")
+      command = Days::Command.new(
+        act: :commit_offer, side: side, day: day, by: dana, seconded_by: teammate
+      )
+      expect(command.quote).to be_affordable
+      Offers::Stage.call(
+        side: side, day: day, by: dana, terms: {"money" => 40_000_00}, note: "revised"
+      )
+
+      committed = command.apply
+
+      expect(committed.note).to eq("revised")
+      expect(committed.amount_cents).to eq(40_000_00)
+      expect(committed.terms.map(&:key)).to eq(["money"])
+    end
+
+    # Pressing commit on a table a teammate has just cleared is pressing commit
+    # on an empty table, and gets the same answer.
+    it "refuses a draft discarded in that window, and charges nothing" do
+      teammate = a_teammate
+      stage
+      command = Days::Command.new(
+        act: :commit_offer, side: side, day: day, by: dana, seconded_by: teammate
+      )
+      expect(command.quote).to be_affordable
+      Offers::Discard.call(side: side, day: day)
+
+      expect { command.apply }.to raise_error(Days::Command::Refused, /no_offer_on_the_table/)
+      expect(side.budget_on(day).reload.remaining_in(DayBudget::EXCHANGE)).to eq(2)
+      expect(CommittedOffer.count).to eq(0)
+    end
+  end
+
   # Check, spend, copy — one transaction. A Team is never charged for a play
   # that half happened.
   it "leaves the Budget and both tables untouched when any step fails" do

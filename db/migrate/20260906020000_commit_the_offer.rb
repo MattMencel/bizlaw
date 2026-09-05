@@ -175,7 +175,19 @@ class CommitTheOffer < ActiveRecord::Migration[8.0]
     write_docket_entry_triggers
   end
 
+  # A committed Offer's Docket row names no Action, so restoring the column to
+  # NOT NULL would refuse the table rebuild once any Offer has landed. The
+  # rollback is refused before it starts rather than half done: the alternative
+  # is deleting ledger rows, and the Docket is append-only on Retention's clocks
+  # and nobody else's. On a Simulation where no Offer has committed — a fresh
+  # database, which is where a rollback is actually exercised — there is nothing
+  # to lose and it runs.
   def restore_the_docket_entry_action
+    if select_value("SELECT 1 FROM docket_entries WHERE case_action_id IS NULL LIMIT 1")
+      raise ActiveRecord::IrreversibleMigration,
+        "Offers have committed, and their Docket rows name no Action to restore"
+    end
+
     drop_docket_entry_triggers
     remove_check_constraint :docket_entries, name: "docket_entries_action_or_the_exchange_half"
     change_column_null :docket_entries, :case_action_id, false
