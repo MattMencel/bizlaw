@@ -114,7 +114,7 @@ A Case File document a Team can put in front of the other Side to move a Client'
 
 An Exhibit carries a target, a sign, a shift, and the **Terms** it bears on. **Favorable** Exhibits are played and move the *opposing* Client. **Unfavorable** ones are not playable at all — they land the moment they are discovered and move *your own* Client toward realism, lowering what they will hold out for. Deposing a witness who hurts you still teaches you something worth knowing.
 
-Playing one **rides a staged Offer** and costs Action Budget; it cannot be played alone, and any number may ride one Offer. It moves the Client only when the Offer touches the Terms it bears on — a document arguing for reinstatement is worth nothing attached to a cash-only Offer. Shifts stack additively against an authored bound on how far a Client may move across one Simulation.
+Playing one **rides a staged Offer** and costs Action Budget; it cannot be played alone, and any number may ride one Offer. An Exhibit is **attached** to the draft rather than named at the moment of commit, so what rides is part of the position a teammate seconds. It moves the Client only when the Offer touches the Terms it bears on — a document arguing for reinstatement is worth nothing attached to a cash-only Offer, and one that bears on none of the Terms on the table is still spent and still served. Shifts stack additively against an authored bound on how far a Client may move across one Simulation.
 
 The Exhibit is spent when played; the document is not, and stays in the Case File as what the Team knows. The shift lands the moment the Offer commits, and the document reaches the other Side at that same instant. The receiving Team is **served the document and never its effect** — playing an Exhibit is serving it.
 
@@ -125,6 +125,8 @@ An Exhibit played after its target's bound is exhausted is still spent, and its 
 ## Provenance
 
 How a document came to be in a Team's hands. Three are authored in the Case — in both Sides' hands at the open, in one Side's hands at the open, or waiting behind an Action to be discovered. The fourth, **served**, is never authored: it is what happens when the other Side plays an Exhibit.
+
+A Team that already found a document keeps it as found when the other Side serves it. Found is the stronger of the two: it carries the Exhibit property that service withholds, and service is not a way to take one back.
 
 Provenance is what makes *doors visible, contents hidden* checkable — every discoverable document must sit behind some Action, and nothing a Team starts with can also be something it finds.
 
@@ -189,6 +191,8 @@ What moves during a Simulation is the Client's **reservation point** — what th
 Their aspiration does not move: they still want what they wanted, so a Client's stated demands never reveal that they have softened.
 
 Player-caused movement is a **ratchet**. Exhibits and discoveries only ever move a reservation point toward settleability, never back out toward holding firm, and the total inward travel across one Simulation is bounded per Client by the Case. Both Sides draw on that one bound — the opposing Team's favorable Exhibits and the Team's own unfavorable discoveries spend the same budget. Only an Event can move a reservation point back out.
+
+One document moves one Client **once**. The same authored document can reach a Client twice — found unfavorably by their own Team, and played as an Exhibit by the other — and the second arrival moves nothing, because it is the same argument put a second time.
 
 The bound is the one thing about a Client authored as money; every shift against it — an Exhibit played, a bad discovery, an Event — is a **fraction** of it. So an Exhibit is worth the same share of a Client's travel whether the Section made that Client easy or hard.
 
