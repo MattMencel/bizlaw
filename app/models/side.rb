@@ -107,6 +107,9 @@ class Side < ApplicationRecord
   # than one table. See `Docket`.
   def docket(day: nil) = Docket.for(self, day: day)
 
+  # What this Team knows. See `CaseFile`.
+  def case_file = CaseFile.for(self)
+
   # The Client this Side represents, authored on the Case Version its Simulation
   # pinned.
   def client = case_version.clients.find_by(role: role)

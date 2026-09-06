@@ -86,11 +86,11 @@ Then("the plaintiff Side has {int} preparation points and {int} exchange points 
 end
 
 Then("the plaintiff Docket holds no spends") do
-  expect(@side.docket.select(&:spend?)).to be_empty
+  expect(@side.docket.entries.select(&:spend?)).to be_empty
 end
 
 Then("the plaintiff Docket reads as acts") do |table|
-  read = @side.docket.map do |entry|
+  read = @side.docket.entries.map do |entry|
     {"act" => entry.act.to_s, "by" => entry.by.name, "cost" => entry.cost.to_s}
   end
 

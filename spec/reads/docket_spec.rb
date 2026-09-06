@@ -24,7 +24,7 @@ RSpec.describe Docket do
       act: :spend, side: side, day: day, by: dana, kind: CaseAction::DEPOSE_WITNESS
     )
 
-    entry = side.docket.sole
+    entry = side.docket.entries.sole
 
     expect(entry).to have_attributes(
       act: Docket::SPEND, by: dana, cost: 3, half: DayBudget::PREPARATION
@@ -35,7 +35,7 @@ RSpec.describe Docket do
   it "shows the staging with Attribution, and no cost against it" do
     Offers::Stage.call(side: side, day: day, by: dana, terms: {"money" => 45_000_00})
 
-    entry = side.docket.sole
+    entry = side.docket.entries.sole
 
     expect(entry).to have_attributes(act: Docket::OFFER_STAGED, by: dana, cost: nil, half: nil)
     expect(entry).not_to be_spend
@@ -49,16 +49,16 @@ RSpec.describe Docket do
     Offers::Stage.call(side: side, day: day, by: dana, terms: {"money" => 45_000_00})
     Offers::Stage.call(side: side, day: day, by: ravi, terms: {"money" => 40_000_00})
 
-    expect(side.docket.map(&:by)).to eq([dana])
+    expect(side.docket.entries.map(&:by)).to eq([dana])
   end
 
   it "puts the Instructor's waiver on the record as an Instructor action" do
     Offers::WaiveSecond.call(side: side, day: day, by: instructor)
 
-    expect(side.docket.sole).to have_attributes(
+    expect(side.docket.entries.sole).to have_attributes(
       act: Docket::SECOND_WAIVED, by: instructor, cost: nil
     )
-    expect(side.docket.sole).to be_instructor_action
+    expect(side.docket.entries.sole).to be_instructor_action
   end
 
   it "reads in the order it was written" do
@@ -68,19 +68,43 @@ RSpec.describe Docket do
     Offers::Stage.call(side: side, day: day, by: dana, terms: {"money" => 45_000_00})
     Offers::WaiveSecond.call(side: side, day: day, by: instructor)
 
-    expect(side.docket.map(&:act))
+    expect(side.docket.entries.map(&:act))
       .to eq([Docket::SPEND, Docket::OFFER_STAGED, Docket::SECOND_WAIVED])
   end
 
   it "narrows to one Day when asked for one" do
     Offers::Stage.call(side: side, day: day, by: dana, terms: {"money" => 45_000_00})
 
-    expect(side.docket(day: simulation.days.second)).to be_empty
+    expect(side.docket(day: simulation.days.second).entries).to be_empty
   end
 
   it "shows the other Team nothing of this one's" do
     Offers::Stage.call(side: side, day: day, by: dana, terms: {"money" => 45_000_00})
 
-    expect(simulation.defendant_side.docket).to be_empty
+    expect(simulation.defendant_side.docket.entries).to be_empty
+  end
+
+  # The empty state is the tutorial: an empty Docket says what a Docket would
+  # hold. There is no first-run pass and no per-student progress flag, so this
+  # sentence does the work a tour would otherwise do.
+  describe "the empty state" do
+    it "describes what a Docket would hold" do
+      expect(side.docket).to be_empty
+      expect(side.docket.empty_state).to include("what it cost", "the Day its result arrives")
+    end
+
+    it "says nothing once there is something to read" do
+      Offers::Stage.call(side: side, day: day, by: dana, terms: {"money" => 45_000_00})
+
+      expect(side.docket.empty_state).to be_nil
+    end
+
+    # A Docket narrowed to a Day nothing happened on is as empty as a new one,
+    # and says the same thing.
+    it "speaks for a Day the Team did nothing on" do
+      Offers::Stage.call(side: side, day: day, by: dana, terms: {"money" => 45_000_00})
+
+      expect(side.docket(day: simulation.days.second).empty_state).to be_present
+    end
   end
 end

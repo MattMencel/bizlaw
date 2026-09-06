@@ -1,0 +1,38 @@
+# Fixed interface copy for the Day's read surfaces.
+#
+# Three kinds of text reach a student and only this one is written here. Authored
+# prose — a document's body, a Client's opening statement, an Event's news story
+# — belongs to the Case. Generated dialogue is a Dialogue Node, written offline
+# against a Client's persona. Everything that describes the *machine* rather than
+# the dispute is this: the Morning Briefing's framing, the Rubric as published,
+# and what an empty record surface would hold.
+#
+# The empty states are the whole of Onboarding. There is no first-run pass and no
+# per-student progress flag — the empty state is the tutorial, so these sentences
+# do the work a tour would otherwise do.
+en:
+  reads:
+    morning_briefing:
+      two_rooms: >-
+        Prepare in the Firm and deal in the Boardroom. Move between them freely,
+        in either direction, as often as you like. The Day ends when both Sides
+        have committed it.
+      rubric:
+        dimensions:
+          - Settlement quality, 40 points
+          - Legal strategy, 30 points
+          - Collaboration, 20 points
+          - Efficiency, 10 points
+        bonus: >-
+          Creative terms, up to 10 points above the 100. Your grade is released
+          by your instructor; nothing about it is visible before then.
+    docket:
+      empty: >-
+        Nothing yet. Every Action your Team spends on lands here — what it was,
+        which of you spent it, what it cost, and the Day its result arrives.
+        Read forward, this is your Team's calendar.
+    case_file:
+      empty: >-
+        Nothing yet. What your Actions turn up lands here, along with anything
+        the other Side puts in front of you. This is what your Team knows, as
+        against the Docket's what your Team has done.

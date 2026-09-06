@@ -72,7 +72,7 @@ RSpec.describe Offers::Accept do
 
     accept(offer, by: kofi, seconded_by: noor)
 
-    entry = accepting.docket.last
+    entry = accepting.docket.entries.last
     expect(entry.act).to eq(Docket::OFFER_ACCEPTED)
     expect(entry.by).to eq(kofi)
     expect(entry.cost).to be_nil
