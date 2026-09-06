@@ -130,6 +130,8 @@ A Team that already found a document keeps it as found when the other Side serve
 
 Provenance is what makes *doors visible, contents hidden* checkable — every discoverable document must sit behind some Action, and nothing a Team starts with can also be something it finds.
 
+A document in hand at the open may carry a **favorable** Exhibit: ammunition a Team walks in with is a position the Case authored, and Par is authored against it. An **unfavorable** one is refused. Its shift would land before the first Day is played, spending the Client's bound with no Docket line behind it and no beat to read it in — a number a Team could never account for, on the one quantity it is never shown.
+
 ## Firm
 
 The room a Team prepares in: its own conference table, its own Client, no opponent. The Case File lies on it as papers and the Action Board sits beside them.
@@ -151,6 +153,10 @@ Three is the engine's number, and the cast never changes. The seats are **roles*
 Where the shape of the deal is visible: each Term as a track carrying the Team's own position, the other Side's **last committed** Offer, and the Team's own Client's stated aspiration. Reachable from either room, because deliberation is preparation work even though the commit is not.
 
 It never shows Par. Par is what the grade is measured against, and no rubric-derived number reaches a student before Release. The Client's aspiration is the in-fiction stand-in, and it gives nothing away, because an aspiration does not move.
+
+The aspiration is authored per Client per Term and is **sparse**: a Term the Case authors no aspiration for is one that Client is indifferent about, and its track carries the two live positions and no marker. It is not the Client's private valuation of that Term — that is what an Offer is scored by, and no student ever sees it.
+
+The other Side's track is their last committed Offer read **whole**, never a per-Term latest assembled across several. A composite of the furthest each Term ever reached is a position nobody put on the table. A Term that Offer did not mention is silent rather than zero, because an offer of nothing is a position they did not take.
 
 ## Action Board
 
@@ -188,7 +194,7 @@ The party a Team represents, present in the game as an avatar with a private ran
 
 What moves during a Simulation is the Client's **reservation point** — what the Case considers the worst settlement worth taking. It is **a target for shifts and nothing else: never a veto, and not the scoring floor either**. A Team may accept any Offer, and a deal beneath the reservation point simply scores badly against Par. A Client who could refuse would hand over that number to any Team willing to probe for it; and a Client whose live number set the grading scale would hand one Side's scale to the other Side's diligence, because the opposing Team's Exhibits are what move it. The floor Settlement Quality ramps from is authored and immobile — see *Par*.
 
-Their aspiration does not move: they still want what they wanted, so a Client's stated demands never reveal that they have softened.
+Their aspiration does not move: they still want what they wanted, so a Client's stated demands never reveal that they have softened. It is authored per Term and is what the Client says out loud, which is what lets it be shown — as opposed to the private valuation the same Client puts on that Term, which is what the Offer is scored by.
 
 Player-caused movement is a **ratchet**. Exhibits and discoveries only ever move a reservation point toward settleability, never back out toward holding firm, and the total inward travel across one Simulation is bounded per Client by the Case. Both Sides draw on that one bound — the opposing Team's favorable Exhibits and the Team's own unfavorable discoveries spend the same budget. Only an Event can move a reservation point back out.
 
