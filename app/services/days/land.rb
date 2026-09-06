@@ -33,6 +33,15 @@ module Days
 
     def self.call(...) = new(...).call
 
+    # Dealing is its own verb rather than a branch inside `call`. It happens
+    # once, when Day 1 opens, and `call` is reached again by every lead-zero
+    # spend on that Day — which would re-attempt an insert per (Side, document)
+    # pair already filed, inside the transaction charging the student.
+    #
+    # Still one writer to `case_file_documents`: the same class, and the Day's
+    # open is its only caller.
+    def self.deal_the_open_hand(...) = new(...).deal_the_open_hand
+
     def initialize(day)
       @day = day
     end
@@ -44,13 +53,9 @@ module Days
         # Reloaded because a spend calls this immediately after appending its own
         # row, and a Day handed in with the association already loaded would
         # otherwise land everything but the Action that just bought it.
-        deal_the_open_hand + day.landing_docket_entries.reload.flat_map { |entry| land(entry) }
+        day.landing_docket_entries.reload.flat_map { |entry| land(entry) }
       end
     end
-
-    private
-
-    attr_reader :day
 
     # What each Team holds before it has done anything: the documents the Case
     # authors into a hand rather than behind a door. They arrive on Day 1
@@ -58,16 +63,30 @@ module Days
     # they are the whole of what a Case File holds.
     #
     # Idempotent by the same unique index as everything else here, so a Day 1
-    # re-opened — or a lead-time-zero spend calling this seam again — deals the
-    # hand once. An unfavorable Exhibit cannot be authored into a hand, so
-    # nothing here can move a Client before the first Day is played.
+    # re-opened deals the hand once — and it asks which rows are already there
+    # rather than re-attempting every insert, because a failed insert costs a
+    # savepoint rollback and a fallback select apiece.
+    #
+    # An unfavorable Exhibit cannot be authored into a hand, so nothing here can
+    # move a Client before the first Day is played.
     def deal_the_open_hand
       return [] unless day.ordinal == FIRST_DAY
 
-      day.simulation.sides.flat_map do |side|
-        open_hand.select { |document| document.held_at_the_open_by?(side.role) }
-          .map { |document| file(side, document) }
+      ActiveRecord::Base.transaction do
+        day.simulation.sides.flat_map { |side| deal_to(side) }
       end
+    end
+
+    private
+
+    attr_reader :day
+
+    def deal_to(side)
+      wanted = open_hand.select { |document| document.held_at_the_open_by?(side.role) }
+      already = side.case_file_documents.where(case_document: wanted).pluck(:case_document_id)
+
+      wanted.reject { |document| already.include?(document.id) }
+        .map { |document| file(side, document) }
     end
 
     def open_hand

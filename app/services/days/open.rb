@@ -36,6 +36,10 @@ module Days
             budget.exchange_budget = quota.fetch(:exchange)
           end
         end
+        # What each Team walked in with, on the Day there is no earlier Day for
+        # it to have arrived on. Its own verb rather than part of the landing
+        # below, which every lead-zero spend on this Day reaches again.
+        Land.deal_the_open_hand(day)
         Land.call(day)
         budgets
       end

@@ -53,6 +53,16 @@ Feature: The Morning Briefing and the Day's read surfaces
       | retain_expert      | 5 | 2 | 3 |
     And the plaintiff Exhibit affordances are unavailable
 
+  Scenario: The last Day still prices what it can no longer buy
+    Given every Day up to Day 10 is committed by both Sides
+    Then the plaintiff Action Board on Day 10 prices every Action
+      | consult_client     | 1 | 0 | 10 |
+      | manage_press       | 2 | 1 |    |
+      | request_documents  | 2 | 1 |    |
+      | research_precedent | 2 | 1 |    |
+      | depose_witness     | 3 | 2 |    |
+      | retain_expert      | 5 | 2 |    |
+
   Scenario: The Terms Board opens showing only what the Client wants
     Then the plaintiff Terms Board on Day 1 reads
       | money            |  |  | 250000 |

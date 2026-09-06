@@ -93,8 +93,10 @@ end
 
 Then("the plaintiff Action Board on Day {int} prices every Action") do |ordinal, table|
   board = ActionBoard.for(@side, day: a_plaintiff_day(ordinal))
+  # `landing_day` is nil where the result would land past the last Day, which is
+  # a refusal rather than a Day, and an empty cell is how the table says so.
   read = board.entries.map do |entry|
-    [entry.kind, entry.cost.to_s, entry.lead_time_days.to_s, entry.landing_day.ordinal.to_s]
+    [entry.kind, entry.cost.to_s, entry.lead_time_days.to_s, entry.landing_day&.ordinal.to_s]
   end
 
   expect(read).to eq(table.raw)

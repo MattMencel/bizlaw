@@ -16,6 +16,17 @@ RSpec.describe Days::Land do
     Days::Open.call(simulation.days.find_by!(ordinal: ordinal))
   end
 
+  def inserts_during
+    statements = []
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+      statements << payload[:sql]
+    end
+    yield
+    statements.grep(/INSERT INTO "case_file_documents"/).size
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+
   def case_file(side)
     side.case_file_documents.reload.map { |filed| filed.case_document.identifier }
   end
@@ -67,8 +78,25 @@ RSpec.describe Days::Land do
       expect { open_day(1) }.not_to change { plaintiff.case_file_documents.reload.count }
     end
 
-    # `Days::Command` calls this seam for a lead time of zero, on a Day 1 whose
-    # hand has already been dealt.
+    # A re-open asks which rows are already there rather than re-attempting
+    # every insert. This binds to the statements because that is the claim: a
+    # failed insert costs a savepoint rollback and a fallback select apiece, and
+    # a Case with a large opening hand pays for both on every re-open.
+    it "attempts no insert on a second open" do
+      simulation
+
+      expect(inserts_during { open_day(1) }).to be_zero
+    end
+
+    it "is not dealt again by the landing seam" do
+      expect { Days::Land.call(simulation.days.first) }
+        .not_to change { plaintiff.case_file_documents.reload.count }
+    end
+
+    # `Days::Command` calls the landing seam for a lead time of zero. Dealing is
+    # a separate verb precisely so that call does not re-attempt an insert per
+    # (Side, document) pair already filed, inside the transaction charging the
+    # student and holding the write lock.
     it "deals the hand once when a spend lands on Day 1" do
       simulation.case_version.actions
         .find_by!(kind: CaseAction::RESEARCH_PRECEDENT).update!(lead_time_days: 0)
