@@ -19,7 +19,7 @@ RSpec.describe "Provenance's invariants" do
       INSERT INTO case_documents
         (case_version_id, case_action_id, provenance, identifier, title, body,
          exhibit_target_role, exhibit_shift_fraction, created_at, updated_at)
-      VALUES (?, ?, ?, 'the_termination_letter', 'The termination letter', 'Prose.',
+      VALUES (?, ?, ?, 'a_second_termination_letter', 'A second termination letter', 'Prose.',
               ?, ?, datetime('now'), datetime('now'))
     SQL
       version.id, behind&.id, provenance, target, shift

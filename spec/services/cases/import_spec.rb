@@ -337,6 +337,75 @@ RSpec.describe Cases::Import do
     end
   end
 
+  # The Terms Board's third track, and what lets the board exist without ever
+  # showing Par. Not the private valuation the same Client puts on the same
+  # Term: that is what an Offer is scored by and no student ever sees it.
+  describe "what a Client says they want" do
+    def wanting(plaintiff, defendant = {"money" => 50_000})
+      {
+        "plaintiff" => {
+          "bound" => 40_000, "opening_statement" => "Loudly.", "aspirations" => plaintiff
+        },
+        "defendant" => {
+          "bound" => 60_000, "opening_statement" => "Quietly.", "aspirations" => defendant
+        }
+      }
+    end
+
+    it "loads an aspiration per Term, in the money the bound is authored in" do
+      version = described_class.call(Rails.root.join("db/cases/reference.yml"))
+      plaintiff = version.clients.find_by!(role: Side::PLAINTIFF)
+
+      expect(plaintiff.aspirations.joins(:case_term).pluck("case_terms.key", :amount_cents))
+        .to match_array([["money", 250_000_00], ["apology", nil], ["reinstatement", nil]])
+    end
+
+    # A Client wanting an apology wants an apology, and there is no figure to
+    # put on it.
+    it "loads a Term wanted without a figure carrying none" do
+      version = described_class.call(authored(clients: wanting({"reinstatement" => nil})))
+      aspiration = version.clients.find_by!(role: Side::PLAINTIFF).aspirations.sole
+
+      expect(aspiration.case_term.key).to eq("reinstatement")
+      expect(aspiration).not_to be_money
+    end
+
+    # Sparse on purpose: a Term absent here is one this Client is indifferent
+    # about, and its track carries the two live positions and no marker.
+    it "leaves the Terms a Client is indifferent about unauthored" do
+      version = described_class.call(authored(clients: wanting({"money" => 90_000})))
+      plaintiff = version.clients.find_by!(role: Side::PLAINTIFF)
+
+      expect(plaintiff.aspirations.count).to eq(1)
+      expect(version.terms.count).to eq(2)
+    end
+
+    it "accepts a Client who says nothing about any Term" do
+      version = described_class.call(authored(clients: wanting(nil, nil)))
+
+      expect(version.clients.flat_map(&:aspirations)).to be_empty
+    end
+
+    it "refuses an aspiration for a Term this Case authors none of" do
+      expect { described_class.call(authored(clients: wanting({"a_pony" => nil}))) }
+        .to raise_error(described_class::InvalidCase, /authors no Term for/)
+    end
+
+    it "refuses an amount that is not whole money" do
+      expect { described_class.call(authored(clients: wanting({"money" => 0}))) }
+        .to raise_error(described_class::InvalidCase, /neither a whole amount of money/)
+    end
+
+    it "replaces the aspirations of a draft, as it does the Terms" do
+      draft = {"published" => false, "version" => "0.1.0"}
+      described_class.call(authored(clients: wanting({"money" => 90_000}), **draft))
+      version = described_class.call(authored(clients: wanting({"reinstatement" => nil}), **draft))
+
+      expect(version.clients.find_by!(role: Side::PLAINTIFF).aspirations.sole.case_term.key)
+        .to eq("reinstatement")
+    end
+  end
+
   describe "the Terms vocabulary" do
     it "loads the Terms an Offer is built from" do
       version = described_class.call(Rails.root.join("db/cases/reference.yml"))
@@ -357,6 +426,87 @@ RSpec.describe Cases::Import do
     it "refuses a Term authored twice, because Terms are atomic" do
       expect { described_class.call(authored(terms: %w[money money])) }
         .to raise_error(described_class::InvalidCase, /Terms are atomic/)
+    end
+  end
+
+  # Provenance's other two authored kinds: what a Team walks in with. The xor
+  # against the Action menu is what makes *doors visible, contents hidden*
+  # checkable — nothing a Team starts with can also be something it finds.
+  describe "the documents in hand at the open" do
+    let(:reference) { described_class.call(Rails.root.join("db/cases/reference.yml")) }
+
+    def a_letter(**overrides)
+      {"the_letter_they_kept" => {
+        "hand" => "plaintiff", "title" => "The letter they kept", "body" => "Prose."
+      }.merge(overrides.transform_keys(&:to_s))}
+    end
+
+    it "loads a document in both Sides' hands, waiting behind nothing" do
+      letter = reference.documents.find_by!(identifier: "the_termination_letter")
+
+      expect(letter.provenance).to eq(CaseDocument::BOTH_SIDES)
+      expect(letter.case_action).to be_nil
+      expect(letter).to be_in_hand_at_the_open
+    end
+
+    it "loads a document in one Side's hand" do
+      notes = reference.documents.find_by!(identifier: "the_claimants_own_notes")
+
+      expect(notes.provenance).to eq(Side::PLAINTIFF)
+      expect(notes).to be_held_at_the_open_by(Side::PLAINTIFF)
+      expect(notes).not_to be_held_at_the_open_by(Side::DEFENDANT)
+    end
+
+    it "leaves a document behind an Action discoverable rather than in a hand" do
+      deposition = reference.documents.find_by!(identifier: "deposition_of_the_supervisor")
+
+      expect(deposition.provenance).to eq(CaseDocument::DISCOVERABLE)
+      expect(deposition).not_to be_in_hand_at_the_open
+    end
+
+    it "refuses a document that names both an Action and a hand" do
+      expect { described_class.call(authored(documents: a_letter(action: "depose_witness"))) }
+        .to raise_error(described_class::InvalidCase, /both an action and a hand/)
+    end
+
+    it "refuses a document that names neither" do
+      expect { described_class.call(authored(documents: a_letter(hand: nil))) }
+        .to raise_error(described_class::InvalidCase, /neither an action nor a hand/)
+    end
+
+    it "refuses a hand nobody holds" do
+      expect { described_class.call(authored(documents: a_letter(hand: "the_press"))) }
+        .to raise_error(described_class::InvalidCase, /not a hand at the open/)
+    end
+
+    # Ammunition a Team walks in with is a position the Case authored and Par is
+    # authored against it.
+    it "loads a favorable Exhibit in hand at the open" do
+      exhibit = {"target" => "defendant", "shift" => 0.15, "bears_on" => %w[money]}
+      version = described_class.call(authored(documents: a_letter(exhibit: exhibit)))
+      letter = version.documents.find_by!(identifier: "the_letter_they_kept")
+
+      expect(letter).to be_exhibit
+      expect(letter.exhibit_target_role).to eq(Side::DEFENDANT)
+    end
+
+    # Its shift would land before the first Day is played, spending the Client's
+    # bound with no Docket line behind it and no beat to read it in.
+    it "refuses an unfavorable Exhibit in hand at the open" do
+      exhibit = {"target" => "plaintiff", "shift" => 0.15, "bears_on" => %w[money]}
+
+      expect { described_class.call(authored(documents: a_letter(exhibit: exhibit))) }
+        .to raise_error(described_class::InvalidCase, /before the first Day is played/)
+    end
+
+    # A document in both hands is in the hand of whichever Client it would
+    # target, so it may carry no Exhibit at all.
+    it "refuses any Exhibit on a document in both Sides' hands" do
+      exhibit = {"target" => "defendant", "shift" => 0.15, "bears_on" => %w[money]}
+      both = a_letter(hand: "both_sides", exhibit: exhibit)
+
+      expect { described_class.call(authored(documents: both)) }
+        .to raise_error(described_class::InvalidCase, /before the first Day is played/)
     end
   end
 
@@ -401,7 +551,7 @@ RSpec.describe Cases::Import do
 
     it "refuses a document authored without a title or a body" do
       expect { described_class.call(authored(documents: a_tip(body: nil))) }
-        .to raise_error(described_class::InvalidCase, /without action, title, body/)
+        .to raise_error(described_class::InvalidCase, /without title, body/)
     end
 
     it "refuses an Exhibit missing a target, a shift or the Terms it bears on" do

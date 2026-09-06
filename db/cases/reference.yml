@@ -85,6 +85,15 @@ clients:
       Eleven years I gave them, and not one review below "meets expectations".
       They walked me out through the plant floor like I had stolen something. I
       want my name back, and I want them to say out loud what they did.
+    # What this Client says out loud about the Terms, and the Terms Board's
+    # third track. Sparse: a Term absent here is one they are indifferent
+    # about, and its track carries the two live positions and no marker. An
+    # amount is whole money like the bound; a Term written without one is
+    # wanted without a figure, which is most of them.
+    aspirations:
+      money: 250000
+      apology:
+      reinstatement:
   defendant:
     bound: 60000
     opening_statement: |
@@ -92,6 +101,9 @@ clients:
       a reason. What I cannot have is this in the trade press for six months. I
       want it closed, closed quietly, and closed without anyone admitting to
       something that did not happen.
+    aspirations:
+      money: 25000
+      nda:
 # The vocabulary an Offer is built from and an Exhibit bears on. Terms are
 # atomic: a public apology and a private one would be two Terms, never one Term
 # with a setting.
@@ -103,8 +115,10 @@ terms:
   - training
   - reference_letter
   - policy_change
-# What preparation yields. Every discoverable document sits behind some Action,
-# which is what makes *doors visible, contents hidden* checkable.
+# Every document names the Action it waits behind or the **hand** it sits in at
+# the open, and never both. That xor is what makes *doors visible, contents
+# hidden* checkable: nothing a Team starts with can also be something it finds.
+# A hand is `both_sides`, `plaintiff` or `defendant`.
 #
 # Some documents also carry an **exhibit** — a target Client, a shift as a
 # fraction of that Client's bound, and the Terms it bears on. Whether it is
@@ -112,7 +126,25 @@ terms:
 # held and played, and one pointing at your own lands the moment you find it.
 # So the deposition below is ammunition for the defendant and a hard lesson for
 # the plaintiff, and one authored document is both.
+#
+# A document in hand at the open may carry a favorable Exhibit and never an
+# unfavorable one; the two below carry none, so the Exhibit affordances stay
+# unavailable on Day 1 and appear the moment preparation first yields one.
 documents:
+  the_termination_letter:
+    hand: both_sides
+    title: The termination letter
+    body: |
+      Two paragraphs over the plant manager's signature, citing performance
+      concerns raised "on several occasions" and giving the reassignment as the
+      final one. It names no date and attaches nothing.
+  the_claimants_own_notes:
+    hand: plaintiff
+    title: The claimant's own notes
+    body: |
+      A pocket diary kept from the reassignment onward: who said what, on which
+      shift, and the two mornings the claimant was sent home early. It is one
+      person's account and reads like one.
   deposition_of_the_supervisor:
     action: depose_witness
     title: Deposition of the plant supervisor

@@ -18,7 +18,11 @@ module Cases
       %w[per_day exchange_pool exhibit_price closing_knee closing_preparation
         closing_exchange].freeze
     REQUIRED_ACTION_KEYS = %w[cost lead_time_days half].freeze
-    REQUIRED_DOCUMENT_KEYS = %w[action title body].freeze
+    REQUIRED_DOCUMENT_KEYS = %w[title body].freeze
+    # Provenance's authored three. A document names the Action it waits behind
+    # or the hand it sits in at the open, and never both — that xor is what
+    # makes *doors visible, contents hidden* checkable.
+    HANDS = (CaseDocument::PROVENANCES - [CaseDocument::DISCOVERABLE]).freeze
     REQUIRED_EXHIBIT_KEYS = %w[target shift bears_on].freeze
     # A Client's bound is authored in whole money, because that is how an author
     # thinks about how far a party can be moved. It is held in cents, because
@@ -53,10 +57,14 @@ module Cases
         calendar.each_with_index do |date, index|
           version.calendar_days.create!(ordinal: index + 1, in_fiction_date: date)
         end
-        # Documents wait behind Actions and bear on Terms, so they go first on
-        # the way out and last on the way back in.
+        # Documents wait behind Actions and bear on Terms, and a Client's
+        # aspirations name Terms too, so both go first on the way out and the
+        # vocabulary they point at goes last on the way back in.
         version.documents.destroy_all
+        version.clients.destroy_all
         version.actions.destroy_all
+        version.terms.destroy_all
+
         actions.each do |kind, authored_action|
           version.actions.create!(
             kind: kind,
@@ -65,16 +73,15 @@ module Cases
             half: authored_action["half"]
           )
         end
-        version.clients.destroy_all
+        terms.each { |key| version.terms.create!(key: key) }
         clients.each do |role, authored_client|
-          version.clients.create!(
+          client = version.clients.create!(
             role: role,
             bound_cents: authored_client["bound"] * CENTS_PER_UNIT,
             opening_statement: authored_client["opening_statement"]
           )
+          import_aspirations(client, authored_client["aspirations"])
         end
-        version.terms.destroy_all
-        terms.each { |key| version.terms.create!(key: key) }
         import_documents(version)
         version.reload
       end
@@ -108,6 +115,24 @@ module Cases
       version
     end
 
+    # What a Client says out loud about the Terms, and the Terms Board's third
+    # track. The set is sparse by design: a Term absent here is one this Client
+    # is indifferent about, and its track carries the two live positions and no
+    # marker — so nothing demands a row per Client per Term.
+    #
+    # An amount is authored in whole money like the bound, and is absent on a
+    # Term that carries no figure: a Client wanting an apology wants an apology.
+    def import_aspirations(client, authored_aspirations)
+      vocabulary = client.case_version.terms.index_by(&:key)
+
+      (authored_aspirations || {}).each do |key, amount|
+        client.aspirations.create!(
+          case_term: vocabulary.fetch(key),
+          amount_cents: amount && amount * CENTS_PER_UNIT
+        )
+      end
+    end
+
     # An Exhibit is a property some documents carry and most do not, so it is
     # written with the document rather than beside it.
     def import_documents(version)
@@ -116,12 +141,13 @@ module Cases
 
       documents.each do |identifier, authored_document|
         exhibit = authored_document["exhibit"]
+        hand = authored_document["hand"]
         document = version.documents.create!(
-          case_action: menu.fetch(authored_document["action"]),
-          # Every document this loader reads waits behind an Action. Saying so
-          # in the column rather than inferring it from the key means the
-          # Provenance a Case authored is the Provenance a read gets back.
-          provenance: CaseDocument::DISCOVERABLE,
+          # A door or a hand, never both. The Provenance is written into the
+          # column rather than left to be inferred from which key was authored,
+          # so what a read gets back is what the Case said.
+          case_action: (menu.fetch(authored_document["action"]) unless hand),
+          provenance: hand || CaseDocument::DISCOVERABLE,
           identifier: identifier,
           title: authored_document["title"],
           body: authored_document["body"],
@@ -191,11 +217,43 @@ module Cases
         # What the Client says they want, on the Day the Team first sits down.
         # It is one of the Morning Briefing's what-you-start-with sections, so a
         # Case without it imports into a briefing with a hole in it.
-        next if authored["opening_statement"].is_a?(String) && authored["opening_statement"].present?
+        unless authored["opening_statement"].is_a?(String) && authored["opening_statement"].present?
+          raise InvalidCase,
+            "#{path} authors no opening statement for the #{role} Client, " \
+            "which is what their Team reads on Day 1"
+        end
+
+        validate_aspirations!(role, authored["aspirations"])
+      end
+    end
+
+    # What a Client says out loud about the Terms. Sparse on purpose — a Term
+    # absent here is one this Client is indifferent about — so an empty set is
+    # authored rather than missing, and nothing checks for completeness.
+    def validate_aspirations!(role, authored_aspirations)
+      return if authored_aspirations.nil?
+
+      unless authored_aspirations.is_a?(Hash)
+        raise InvalidCase,
+          "#{path} authors the #{role} Client's aspirations as " \
+          "#{authored_aspirations.inspect}, which is not a set of Terms they want"
+      end
+
+      unknown = authored_aspirations.keys - terms
+      if unknown.any?
+        raise InvalidCase,
+          "#{path} has the #{role} Client wanting #{unknown.join(", ")}, " \
+          "which this Case authors no Term for"
+      end
+
+      authored_aspirations.each do |key, amount|
+        # Absent on a Term that carries no figure, which is most of them. A
+        # Client wanting an apology wants an apology.
+        next if amount.nil? || (amount.is_a?(Integer) && amount.positive?)
 
         raise InvalidCase,
-          "#{path} authors no opening statement for the #{role} Client, " \
-          "which is what their Team reads on Day 1"
+          "#{path} has the #{role} Client wanting #{amount.inspect} of #{key}, which is " \
+          "neither a whole amount of money nor the Term wanted without a figure"
       end
     end
 
@@ -224,14 +282,51 @@ module Cases
           "#{path} authors #{identifier} without #{REQUIRED_DOCUMENT_KEYS.join(", ")}"
       end
 
-      # Provenance: every discoverable document sits behind some Action.
-      unless actions.key?(authored["action"])
+      validate_provenance!(identifier, authored)
+      validate_exhibit!(identifier, authored["exhibit"])
+      validate_open_hand_exhibit!(identifier, authored)
+    end
+
+    # The xor. Every discoverable document sits behind some Action, and nothing
+    # a Team starts with can also be something it finds — which is the whole of
+    # what makes *doors visible, contents hidden* a thing a spec can check.
+    def validate_provenance!(identifier, authored)
+      door = authored["action"]
+      hand = authored["hand"]
+
+      if door.present? == hand.present?
         raise InvalidCase,
-          "#{path} hides #{identifier} behind #{authored["action"]}, " \
-          "which is not on this Case's Action menu"
+          "#{path} authors #{identifier} with #{door.present? ? "both an action and a hand" :
+            "neither an action nor a hand"}; a document waits behind one or sits in the other"
       end
 
-      validate_exhibit!(identifier, authored["exhibit"])
+      if hand.present? && !HANDS.include?(hand)
+        raise InvalidCase,
+          "#{path} puts #{identifier} in #{hand}, which is not a hand at the open"
+      end
+
+      return if hand.present? || actions.key?(door)
+
+      raise InvalidCase,
+        "#{path} hides #{identifier} behind #{door}, which is not on this Case's Action menu"
+    end
+
+    # Ammunition a Team walks in with is a position the Case authored and Par is
+    # authored against it. An unfavorable Exhibit at the open is refused: its
+    # shift would land before the first Day is played, spending the Client's
+    # bound with no Docket line behind it and no beat to read it in.
+    #
+    # A document in both hands is in the hand of whichever Client it would
+    # target, so it may carry no Exhibit at all.
+    def validate_open_hand_exhibit!(identifier, authored)
+      hand = authored["hand"]
+      target = authored.dig("exhibit", "target")
+      return if hand.blank? || target.nil?
+      return if hand != CaseDocument::BOTH_SIDES && target != hand
+
+      raise InvalidCase,
+        "#{path} puts #{identifier} in #{hand}'s hand at the open carrying an Exhibit " \
+        "against the #{target} Client, which would move them before the first Day is played"
     end
 
     # A document may carry an Exhibit and most do not. One that does carries a
