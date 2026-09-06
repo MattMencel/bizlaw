@@ -269,6 +269,7 @@ RSpec.describe "playing an Exhibit" do
       version = simulation.case_version
       document = version.documents.create!(
         case_action: version.actions.find_by!(kind: CaseAction::RESEARCH_PRECEDENT),
+        provenance: CaseDocument::DISCOVERABLE,
         identifier: "expert_report_on_reinstatement",
         title: "Expert report on reinstatement",
         body: "Authored prose for the expert report.",

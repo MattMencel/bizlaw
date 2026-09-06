@@ -15,7 +15,17 @@ class CaseClient < ApplicationRecord
   retention :authored
 
   belongs_to :case_version, inverse_of: :clients
+  # What this Client says out loud about the Terms, sparse and immobile. Not the
+  # private valuation the same Client puts on them.
+  has_many :aspirations,
+    class_name: "CaseClientAspiration",
+    inverse_of: :case_client,
+    dependent: :destroy
 
   validates :role, inclusion: {in: Side::ROLES}, uniqueness: {scope: :case_version_id}
   validates :bound_cents, numericality: {only_integer: true, greater_than: 0}
+  # Authored prose, and one of the Morning Briefing's what-you-start-with
+  # sections. It is an object in the dispute rather than a line about something
+  # the engine computed, so it never reaches the model.
+  validates :opening_statement, presence: true
 end

@@ -134,9 +134,9 @@ RSpec.describe "the authored Exhibit property's invariants" do
   def insert_document(target:, shift:)
     ActiveRecord::Base.connection.exec_insert(<<~SQL, nil, [
       INSERT INTO case_documents
-        (case_version_id, case_action_id, identifier, title, body,
+        (case_version_id, case_action_id, provenance, identifier, title, body,
          exhibit_target_role, exhibit_shift_fraction, created_at, updated_at)
-      VALUES (?, ?, 'a_leaked_memorandum', 'A leaked memorandum', 'Prose.',
+      VALUES (?, ?, 'discoverable', 'a_leaked_memorandum', 'A leaked memorandum', 'Prose.',
               ?, ?, datetime('now'), datetime('now'))
     SQL
       version.id, action.id, target, shift
@@ -179,6 +179,7 @@ RSpec.describe "the authored Exhibit property's invariants" do
       CaseDocument.create!(
         case_version: version,
         case_action: other.actions.find_by!(kind: CaseAction::MANAGE_PRESS),
+        provenance: CaseDocument::DISCOVERABLE,
         identifier: "a_borrowed_document", title: "A borrowed document", body: "Prose."
       )
     }.to raise_error(ActiveRecord::InvalidForeignKey)

@@ -143,7 +143,8 @@ RSpec.describe Days::Land do
       action = version.actions.find_by!(kind: CaseAction::MANAGE_PRESS)
       [["a_hostile_column", 0.8], ["a_second_hostile_column", 0.5]].each do |identifier, shift|
         version.documents.create!(
-          case_action: action, identifier: identifier, title: identifier, body: "Prose.",
+          case_action: action, provenance: CaseDocument::DISCOVERABLE,
+          identifier: identifier, title: identifier, body: "Prose.",
           exhibit_target_role: Side::PLAINTIFF, exhibit_shift_fraction: shift
         )
       end

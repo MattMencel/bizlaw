@@ -67,7 +67,11 @@ module Cases
         end
         version.clients.destroy_all
         clients.each do |role, authored_client|
-          version.clients.create!(role: role, bound_cents: authored_client["bound"] * CENTS_PER_UNIT)
+          version.clients.create!(
+            role: role,
+            bound_cents: authored_client["bound"] * CENTS_PER_UNIT,
+            opening_statement: authored_client["opening_statement"]
+          )
         end
         version.terms.destroy_all
         terms.each { |key| version.terms.create!(key: key) }
@@ -114,6 +118,10 @@ module Cases
         exhibit = authored_document["exhibit"]
         document = version.documents.create!(
           case_action: menu.fetch(authored_document["action"]),
+          # Every document this loader reads waits behind an Action. Saying so
+          # in the column rather than inferring it from the key means the
+          # Provenance a Case authored is the Provenance a read gets back.
+          provenance: CaseDocument::DISCOVERABLE,
           identifier: identifier,
           title: authored_document["title"],
           body: authored_document["body"],
@@ -172,12 +180,22 @@ module Cases
       end
 
       clients.each do |role, authored_client|
-        bound = authored_client.is_a?(Hash) ? authored_client["bound"] : nil
-        next if bound.is_a?(Integer) && bound.positive?
+        authored = authored_client.is_a?(Hash) ? authored_client : {}
+        bound = authored["bound"]
+        unless bound.is_a?(Integer) && bound.positive?
+          raise InvalidCase,
+            "#{path} authors the #{role} Client with a bound of #{bound.inspect}, " \
+            "which is not a whole amount of money it can be moved by"
+        end
+
+        # What the Client says they want, on the Day the Team first sits down.
+        # It is one of the Morning Briefing's what-you-start-with sections, so a
+        # Case without it imports into a briefing with a hole in it.
+        next if authored["opening_statement"].is_a?(String) && authored["opening_statement"].present?
 
         raise InvalidCase,
-          "#{path} authors the #{role} Client with a bound of #{bound.inspect}, " \
-          "which is not a whole amount of money it can be moved by"
+          "#{path} authors no opening statement for the #{role} Client, " \
+          "which is what their Team reads on Day 1"
       end
     end
 

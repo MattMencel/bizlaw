@@ -100,13 +100,20 @@ module AuthoredAndRunBuilders
   # The Clients an Exhibit targets, the Terms it bears on, and the documents
   # waiting behind the Action menu above.
   def an_authored_dispute(pinned)
-    pinned.clients.create!(role: Side::PLAINTIFF, bound_cents: 40_000_00)
-    pinned.clients.create!(role: Side::DEFENDANT, bound_cents: 60_000_00)
+    pinned.clients.create!(
+      role: Side::PLAINTIFF, bound_cents: 40_000_00,
+      opening_statement: "Eleven years, and they walked me out like a thief."
+    )
+    pinned.clients.create!(
+      role: Side::DEFENDANT, bound_cents: 60_000_00,
+      opening_statement: "We followed the policy. I want this closed quietly."
+    )
     vocabulary = REFERENCE_TERMS.index_with { |key| pinned.terms.create!(key: key) }
 
     REFERENCE_DOCUMENTS.each do |identifier, authored|
       document = pinned.documents.create!(
         case_action: pinned.actions.find_by!(kind: authored.fetch(:action)),
+        provenance: CaseDocument::DISCOVERABLE,
         identifier: identifier,
         title: authored.fetch(:title),
         body: "Authored prose for #{identifier}.",

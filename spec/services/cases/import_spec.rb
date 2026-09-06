@@ -32,8 +32,8 @@ RSpec.describe Cases::Import do
         "depose_witness" => {"cost" => 3, "lead_time_days" => 2, "half" => "preparation"}
       },
       "clients" => {
-        "plaintiff" => {"bound" => 40_000},
-        "defendant" => {"bound" => 60_000}
+        "plaintiff" => {"bound" => 40_000, "opening_statement" => "I want my name back."},
+        "defendant" => {"bound" => 60_000, "opening_statement" => "I want this closed quietly."}
       },
       "terms" => %w[money reinstatement],
       "documents" => {
@@ -299,15 +299,41 @@ RSpec.describe Cases::Import do
     end
 
     it "refuses a Case that authors a Client for only one Side" do
-      expect { described_class.call(authored(clients: {"plaintiff" => {"bound" => 40_000}})) }
+      lonely = {"plaintiff" => {"bound" => 40_000, "opening_statement" => "Alone."}}
+
+      expect { described_class.call(authored(clients: lonely)) }
         .to raise_error(described_class::InvalidCase, /one for each of/)
     end
 
     it "refuses a Client with no bound to be moved by" do
-      unmovable = {"plaintiff" => {"bound" => 0}, "defendant" => {"bound" => 60_000}}
+      unmovable = {
+        "plaintiff" => {"bound" => 0, "opening_statement" => "Immovable."},
+        "defendant" => {"bound" => 60_000, "opening_statement" => "Quietly."}
+      }
 
       expect { described_class.call(authored(clients: unmovable)) }
         .to raise_error(described_class::InvalidCase, /whole amount of money/)
+    end
+
+    # One of the Morning Briefing's what-you-start-with sections, so a Case
+    # without it imports into a briefing with a hole in it.
+    it "loads what each Client says they want on the Day their Team sits down" do
+      version = described_class.call(Rails.root.join("db/cases/reference.yml"))
+
+      expect(version.clients.find_by!(role: Side::PLAINTIFF).opening_statement)
+        .to include("Eleven years")
+      expect(version.clients.find_by!(role: Side::DEFENDANT).opening_statement)
+        .to include("closed quietly")
+    end
+
+    it "refuses a Client with no opening statement" do
+      silent = {
+        "plaintiff" => {"bound" => 40_000},
+        "defendant" => {"bound" => 60_000, "opening_statement" => "Quietly."}
+      }
+
+      expect { described_class.call(authored(clients: silent)) }
+        .to raise_error(described_class::InvalidCase, /no opening statement/)
     end
   end
 

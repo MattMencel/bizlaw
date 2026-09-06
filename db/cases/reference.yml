@@ -73,11 +73,25 @@ actions:
 # Simulation, and it is the one thing about a Client authored as money. Every
 # shift against it is a fraction of it, so an Exhibit is worth the same share of
 # a Client's travel whether the Section made that Client easy or hard.
+#
+# The opening statement is what they say they want on the Day their Team first
+# sits down, and one of the Morning Briefing's what-you-start-with sections. It
+# is authored prose that never reaches the model, because it is an object in the
+# dispute rather than a line about something the engine computed.
 clients:
   plaintiff:
     bound: 40000
+    opening_statement: |
+      Eleven years I gave them, and not one review below "meets expectations".
+      They walked me out through the plant floor like I had stolen something. I
+      want my name back, and I want them to say out loud what they did.
   defendant:
     bound: 60000
+    opening_statement: |
+      We followed the policy that was written down, and the policy was there for
+      a reason. What I cannot have is this in the trade press for six months. I
+      want it closed, closed quietly, and closed without anyone admitting to
+      something that did not happen.
 # The vocabulary an Offer is built from and an Exhibit bears on. Terms are
 # atomic: a public apology and a private one would be two Terms, never one Term
 # with a setting.
