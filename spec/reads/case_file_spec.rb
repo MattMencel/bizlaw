@@ -51,6 +51,69 @@ RSpec.describe CaseFile do
     expect(memorandum).not_to be_at_the_open
   end
 
+  # A hand belongs to a Side. A document the *other* Side walked in with can
+  # reach this one by service, and it is not something this Team started with —
+  # so the question is asked of this Side's hand, the way `Days::Land` deals it.
+  describe "a document the other Side walked in with, served across the table" do
+    let(:simulation) { a_simulation(case_version: a_case_version_with_ammunition) }
+
+    def a_case_version_with_ammunition
+      a_case_version.tap do |version|
+        document = version.documents.create!(
+          provenance: Side::PLAINTIFF,
+          case_version: version,
+          identifier: "the_claimants_recording",
+          title: "The claimant's recording of the meeting",
+          body: "Authored prose for the recording.",
+          exhibit_target_role: Side::DEFENDANT,
+          exhibit_shift_fraction: 0.15
+        )
+        document.document_terms.create!(case_term: version.terms.find_by!(key: CaseTerm::MONEY))
+      end
+    end
+
+    before do
+      Days::Command.apply(act: :spend, side: opponent, day: simulation.days.first,
+        by: student, kind: CaseAction::CONSULT_CLIENT)
+      offer = Offers::Stage.call(side: side, day: simulation.days.first, by: student,
+        terms: {CaseTerm::MONEY => 250_000_00})
+      offer.offer_exhibits.create!(
+        case_file_document: side.case_file_documents
+          .find { |filed| filed.title == "The claimant's recording of the meeting" }
+      )
+      teammate = a_user(organization: simulation.section.organization, name: "Priya Raman",
+        email: "priya@example.edu")
+      Days::Command.apply(act: :spend, side: side, day: simulation.days.first,
+        by: teammate, kind: CaseAction::CONSULT_CLIENT)
+      Days::Command.apply(act: :commit_offer, side: side, day: simulation.days.first,
+        by: student, seconded_by: teammate)
+    end
+
+    it "is what the plaintiff started with" do
+      recording = described_class.for(side).entries
+        .find { |entry| entry.identifier == "the_claimants_recording" }
+
+      expect(recording).to be_at_the_open
+      expect(recording).to be_found
+    end
+
+    it "is not what the defendant started with, however it arrived" do
+      recording = described_class.for(opponent).entries
+        .find { |entry| entry.identifier == "the_claimants_recording" }
+
+      expect(recording).to be_served
+      expect(recording).not_to be_at_the_open
+    end
+
+    it "leaves the defendant nothing of it to play back" do
+      recording = described_class.for(opponent).entries
+        .find { |entry| entry.identifier == "the_claimants_recording" }
+
+      expect(recording.playable).to be(false)
+      expect(described_class.for(opponent)).not_to be_exhibits_available
+    end
+  end
+
   describe "the empty state, which is the tutorial" do
     # Nothing in the reference Case leaves a Case File empty, because every Team
     # walks in holding something. A Case authoring no open hand is what an empty

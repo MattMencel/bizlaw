@@ -45,10 +45,17 @@ class MorningBriefing
     @since = since || day
   end
 
-  # What the Actions this Team bought have just produced. Excludes what the Team
-  # walked in with, which has its own section and is not news on Day 5.
+  # What the Actions this Team bought have just produced, read off the **Docket**
+  # rather than off the Case File row's Day.
+  #
+  # The row's Day is when the Team first came to know the document, and it never
+  # moves again — so a document served on Day 3 and then found on Day 5 keeps
+  # `day = 3` while `Days::Land` clears its `served_at`, and it would fall out
+  # of Day 3's served section and Day 5's landed section both, appearing in no
+  # narrow briefing at all. The Docket is append-only and every spend names the
+  # Day its result lands on, which is the question this section is asking.
   def landed
-    @landed ||= in_range.reject { |entry| entry.served? || started_with?(entry) }
+    @landed ||= landed_identifiers.filter_map { |identifier| held[identifier] }
   end
 
   # What the other Side put in front of this Team. Playing an Exhibit is serving
@@ -106,6 +113,18 @@ class MorningBriefing
   def in_range
     @in_range ||= case_file.entries.select { |entry| days.cover?(entry.day.ordinal) }
   end
+
+  # The documents the Actions landing in this range yield, in the order those
+  # Actions were bought. An Offer commit names no Action and yields nothing.
+  def landed_identifiers
+    side.docket_entries
+      .joins(:lands_on_day).where(days: {ordinal: days})
+      .includes(case_action: :documents)
+      .flat_map { |entry| entry.case_action&.documents&.map(&:identifier) || [] }
+      .uniq
+  end
+
+  def held = @held ||= case_file.entries.index_by(&:identifier)
 
   # What a Team walked in with is a Provenance, not a date. An Action with no
   # lead time bought on Day 1 lands on Day 1 as well, and that is news.

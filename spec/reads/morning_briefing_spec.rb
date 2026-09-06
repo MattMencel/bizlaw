@@ -85,20 +85,51 @@ RSpec.describe MorningBriefing do
     end
   end
 
+  # The Case File row's Day is when the Team first came to know the document and
+  # never moves again, so it cannot answer *what landed on this Day*. The Docket
+  # can: it is append-only and every spend names the Day its result lands on.
+  describe "a document that arrives more than once" do
+    it "lands again on the Day the second Action named" do
+      spend(CaseAction::REQUEST_DOCUMENTS, on: day(1))
+      open_day(2)
+      spend(CaseAction::REQUEST_DOCUMENTS, on: day(2))
+      open_day(3)
+
+      expect(briefing(on: day(2)).landed.map(&:title)).to eq(["The claimant's personnel file"])
+      expect(briefing(on: day(3)).landed.map(&:title)).to eq(["The claimant's personnel file"])
+    end
+
+    # Found outranks served, so `Days::Land` clears `served_at` on a document
+    # this Team has now found for itself. Keyed off the Case File row's Day that
+    # would drop it out of the served section it was in *and* out of the landed
+    # section it should reach, leaving it in no narrow briefing at all.
+    it "lands for a Team that later finds what it was served" do
+      spend(CaseAction::DEPOSE_WITNESS, on: day(1), by: opponent)
+      open_day(2)
+      open_day(3)
+      serve_the_deposition
+
+      expect(briefing(on: day(3)).served.map(&:title))
+        .to eq(["Deposition of the plant supervisor"])
+
+      spend(CaseAction::DEPOSE_WITNESS, on: day(3))
+      open_day(4)
+      open_day(5)
+
+      expect(briefing(on: day(5)).landed.map(&:title))
+        .to eq(["Deposition of the plant supervisor"])
+      expect(side.case_file_documents.find { |filed|
+        filed.title == "Deposition of the plant supervisor"
+      }).not_to be_served
+    end
+  end
+
   describe "after the other Side served an Exhibit" do
     before do
       spend(CaseAction::DEPOSE_WITNESS, on: day(1), by: opponent)
       open_day(2)
       open_day(3)
-      spend(CaseAction::CONSULT_CLIENT, on: day(3), by: opponent, member: priya)
-      offer = Offers::Stage.call(side: opponent, day: day(3), by: dana,
-        terms: {CaseTerm::MONEY => 45_000_00})
-      offer.offer_exhibits.create!(
-        case_file_document: opponent.case_file_documents
-          .find { |filed| filed.title == "Deposition of the plant supervisor" }
-      )
-      Days::Command.apply(act: :commit_offer, side: opponent, day: day(3), by: dana,
-        seconded_by: priya)
+      serve_the_deposition
     end
 
     it "carries the document the other Side served" do
@@ -150,6 +181,20 @@ RSpec.describe MorningBriefing do
       expect(read.days.to_a).to eq([4])
       expect(read.landed.map(&:title)).to eq(["Deposition of the plant supervisor"])
     end
+  end
+
+  # The defendant plays the deposition at the plaintiff's Client on Day 3, which
+  # serves the document across the table and spends the Exhibit.
+  def serve_the_deposition
+    spend(CaseAction::CONSULT_CLIENT, on: day(3), by: opponent, member: priya)
+    offer = Offers::Stage.call(side: opponent, day: day(3), by: dana,
+      terms: {CaseTerm::MONEY => 45_000_00})
+    offer.offer_exhibits.create!(
+      case_file_document: opponent.case_file_documents
+        .find { |filed| filed.title == "Deposition of the plant supervisor" }
+    )
+    Days::Command.apply(act: :commit_offer, side: opponent, day: day(3), by: dana,
+      seconded_by: priya)
   end
 
   it "writes nothing" do

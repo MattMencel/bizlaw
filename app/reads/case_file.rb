@@ -22,10 +22,18 @@ class CaseFile
   # no Exhibit, on one pointing at this Team's own Client, on one already spent,
   # and on anything served — four different reasons, all of them *not a control
   # to reach for*, which is the only distinction a folder has to draw.
-  # `at_the_open` is Provenance rather than a date: a Team walked in holding it,
-  # as against having bought it. The Day cannot say so — an Action with no lead
-  # time bought on Day 1 lands on Day 1 too.
-  Entry = Data.define(:title, :body, :day, :arrival, :playable, :spent, :at_the_open) do
+  # `at_the_open` is Provenance rather than a date: **this** Team walked in
+  # holding it, as against having bought it. The Day cannot say so — an Action
+  # with no lead time bought on Day 1 lands on Day 1 too — and neither can the
+  # document alone, because a hand belongs to a Side: a document the other Side
+  # walked in with can reach this one by service, and it is not something this
+  # Team started with.
+  #
+  # `identifier` is the authored name, which is what lets a briefing match a
+  # document against the Actions that produced it.
+  Entry = Data.define(
+    :identifier, :title, :body, :day, :arrival, :playable, :spent, :at_the_open
+  ) do
     def served? = arrival == SERVED
 
     def found? = arrival == FOUND
@@ -45,13 +53,15 @@ class CaseFile
   def entries
     @entries ||= rows.map do |filed|
       Entry.new(
+        identifier: filed.case_document.identifier,
         title: filed.title,
         body: filed.body,
         day: filed.day,
         arrival: filed.served? ? SERVED : FOUND,
         playable: filed.playable?,
         spent: filed.played?,
-        at_the_open: filed.case_document.in_hand_at_the_open?
+        # Asked of this Side's own hand, the way `Days::Land` deals it.
+        at_the_open: filed.case_document.held_at_the_open_by?(side.role)
       )
     end
   end
@@ -79,8 +89,11 @@ class CaseFile
 
   attr_reader :side
 
+  # `played_exhibit` is what `playable?` and `played?` read, once per row.
+  # `document_terms` is read only by `CaseFileDocument#bears_on?`, which
+  # `pluck`s and would bypass a preload anyway.
   def rows
-    side.case_file_documents.includes(:day, case_document: :document_terms)
+    side.case_file_documents.includes(:day, :case_document, :played_exhibit)
       .sort_by { |filed| [filed.day.ordinal, filed.id] }
   end
 end
