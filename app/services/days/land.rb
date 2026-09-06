@@ -1,9 +1,18 @@
 # frozen_string_literal: true
 
 module Days
+  # The one path that fills a Case File — with what a Team walks in with, and
+  # then with everything preparation buys it.
+  #
   # Preparation pays off on a schedule the Team chose. An Action spent on Day 1
   # with a lead time of 2 produces its documents when Day 3 opens; one with a
-  # lead time of zero produces them on the Day it was bought.
+  # lead time of zero produces them on the Day it was bought. What a Team starts
+  # with waits behind no Action at all and arrives on Day 1, which is the Day it
+  # came to know it.
+  #
+  # It is one seam rather than one per cause. A second writer to
+  # `case_file_documents` is the shape `Days::Close` exists to make impossible,
+  # and the open hand would be exactly that.
   #
   # Landing writes each yielded document into the finder's Case File. Where the
   # document carries an Exhibit the finder cannot play — one targeting their
@@ -19,6 +28,9 @@ module Days
   # Day opened twice, or the same Action bought twice, fills the Case File once
   # and moves the bound once.
   class Land
+    # The Day a Team's opening hand arrives on. There is no earlier one.
+    FIRST_DAY = 1
+
     def self.call(...) = new(...).call
 
     def initialize(day)
@@ -32,13 +44,35 @@ module Days
         # Reloaded because a spend calls this immediately after appending its own
         # row, and a Day handed in with the association already loaded would
         # otherwise land everything but the Action that just bought it.
-        day.landing_docket_entries.reload.flat_map { |entry| land(entry) }
+        deal_the_open_hand + day.landing_docket_entries.reload.flat_map { |entry| land(entry) }
       end
     end
 
     private
 
     attr_reader :day
+
+    # What each Team holds before it has done anything: the documents the Case
+    # authors into a hand rather than behind a door. They arrive on Day 1
+    # because there is no earlier Day for them to have arrived on, and on Day 1
+    # they are the whole of what a Case File holds.
+    #
+    # Idempotent by the same unique index as everything else here, so a Day 1
+    # re-opened — or a lead-time-zero spend calling this seam again — deals the
+    # hand once. An unfavorable Exhibit cannot be authored into a hand, so
+    # nothing here can move a Client before the first Day is played.
+    def deal_the_open_hand
+      return [] unless day.ordinal == FIRST_DAY
+
+      day.simulation.sides.flat_map do |side|
+        open_hand.select { |document| document.held_at_the_open_by?(side.role) }
+          .map { |document| file(side, document) }
+      end
+    end
+
+    def open_hand
+      @open_hand ||= day.simulation.case_version.documents.in_hand_at_the_open.to_a
+    end
 
     # An Offer commit is a spend with no authored Action behind it, so there is
     # nothing for it to yield. The Exhibits that ride one land through their own

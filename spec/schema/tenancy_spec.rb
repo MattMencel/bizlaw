@@ -84,7 +84,7 @@ RSpec.describe "the Organization boundary" do
       )
       theirs_document = CaseFileDocument.create!(
         side: theirs.plaintiff_side, day: theirs.days.first,
-        case_document: case_version.documents.first
+        case_document: case_version.documents.find_by!(identifier: "personnel_file")
       )
 
       expect {
@@ -100,7 +100,8 @@ RSpec.describe "the Organization boundary" do
         side: mine.plaintiff_side, day: day, staged_by: member
       )
       filed = CaseFileDocument.create!(
-        side: mine.plaintiff_side, day: day, case_document: case_version.documents.first
+        side: mine.plaintiff_side, day: day,
+        case_document: case_version.documents.find_by!(identifier: "personnel_file")
       )
 
       expect {

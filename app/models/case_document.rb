@@ -36,6 +36,10 @@ class CaseDocument < ApplicationRecord
   # The Terms the Exhibit bears on. Empty on a document carrying none.
   has_many :bears_on_terms, through: :document_terms, source: :case_term
 
+  # Provenance's two authored hands. What a Team walks in with, as opposed to
+  # what it can buy.
+  scope :in_hand_at_the_open, -> { where.not(provenance: DISCOVERABLE) }
+
   before_validation { self.case_version_id ||= case_action&.case_version_id }
 
   validates :identifier, presence: true, uniqueness: {scope: :case_version_id}

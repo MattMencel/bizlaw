@@ -11,6 +11,11 @@ RSpec.describe "playing an Exhibit" do
   let(:simulation) { a_simulation }
   let(:side) { simulation.plaintiff_side }
   let(:opponent) { simulation.defendant_side }
+
+  # Service is what a played Exhibit does to the other Team's Case File. Every
+  # Case File also holds the documents that Team walked in with, from Day 1, so
+  # an example about serving says which half of the file it means.
+  def served(side) = side.case_file_documents.reload.select(&:served?)
   let(:organization) { simulation.section.organization }
   let(:opening) { simulation.days.first }
   # Documents requested on Day 1 land here, so this is the first Day a Team can
@@ -120,7 +125,7 @@ RSpec.describe "playing an Exhibit" do
       expect { commit(seconded_by: ravi) }.to raise_error(Days::Command::Refused)
 
       expect(the_personnel_file.reload).to be_playable
-      expect(opponent.case_file_documents.reload).to be_empty
+      expect(served(opponent)).to be_empty
     end
   end
 
@@ -310,7 +315,7 @@ RSpec.describe "playing an Exhibit" do
       expect(committed.played_exhibits.count).to eq(2)
       expect(side.budget_on(closing).reload.remaining_in(DayBudget::EXCHANGE)).to be_zero
       expect(opponent.bound_consumed).to eq(0.50)
-      expect(opponent.case_file_documents.reload.map(&:title)).to contain_exactly(
+      expect(served(opponent).map(&:title)).to contain_exactly(
         "The claimant's personnel file", "Expert report on reinstatement"
       )
     end
@@ -444,7 +449,7 @@ RSpec.describe "playing an Exhibit" do
     expect(CommittedOffer.count).to eq(0)
     expect(PlayedExhibit.count).to eq(0)
     expect(ClientShift.count).to eq(0)
-    expect(opponent.case_file_documents.reload).to be_empty
+    expect(served(opponent)).to be_empty
     expect(filed.reload).to be_playable
   end
 

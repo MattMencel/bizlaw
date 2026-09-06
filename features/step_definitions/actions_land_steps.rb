@@ -28,8 +28,18 @@ When("Sam spends a {word} on Day {int}") do |kind, ordinal|
   )
 end
 
-Then("the {word} Case File is empty") do |role|
-  expect(case_file(role)).to be_empty
+# A Case File is never empty: every Team walks in holding what the Case authored
+# into its hand. So an example that used to say *empty* says which half of the
+# file it means — nothing preparation has yielded, or nothing the other Side has
+# served.
+Then("the {word} Case File holds nothing it did not start with") do |role|
+  found = case_file(role).reject { |filed| filed.case_document.in_hand_at_the_open? }
+
+  expect(found).to be_empty
+end
+
+Then("the {word} Case File holds nothing served") do |role|
+  expect(case_file(role).select(&:served?)).to be_empty
 end
 
 Then("the {word} Case File holds {string}") do |role, title|
