@@ -112,6 +112,56 @@ RSpec.describe TermsBoard do
     end
   end
 
+  # Every slot is as of the Day the board is read for. Live play cannot reach a
+  # committed Offer on a later Day — a commit needs an open Day with a Budget
+  # row, and `Days::Close` opens the next Day only as it closes this one — but
+  # the Instructor reads a running Simulation and the Debrief reads a finished
+  # one, and a board that mixed a Day-scoped draft with a global Offer would
+  # show them a position that had not been taken yet.
+  describe "a Day read after a later Offer was committed" do
+    before do
+      stage(side, {CaseTerm::MONEY => 250_000_00})
+      stage(opponent, {CaseTerm::MONEY => 40_000_00})
+      commit(side)
+      commit(opponent)
+
+      second_day = simulation.days.second
+      Days::Open.call(second_day)
+      stage(side, {CaseTerm::MONEY => 200_000_00}, on: second_day)
+      stage(opponent, {CaseTerm::MONEY => 60_000_00}, on: second_day)
+      commit(side, on: second_day)
+      commit(opponent, on: second_day)
+    end
+
+    it "shows the other Side's Offer as it stood that Day" do
+      expect(track("money").theirs.amount_cents).to eq(40_000_00)
+    end
+
+    it "shows the Team's own draft as it stood that Day" do
+      expect(track("money").ours.amount_cents).to eq(250_000_00)
+    end
+
+    it "still reads the latest on the Day being played" do
+      expect(track("money", on: simulation.days.second).theirs.amount_cents).to eq(60_000_00)
+    end
+  end
+
+  # The Team's own slot falls back to its last committed Offer on a Day it
+  # staged nothing, and that fallback is as of the Day too: a Day the Team was
+  # silent on is not a Day it had already taken next week's position.
+  describe "a silent Day read after the Team committed later" do
+    before do
+      second_day = simulation.days.second
+      Days::Open.call(second_day)
+      stage(side, {CaseTerm::MONEY => 200_000_00}, on: second_day)
+      commit(side, on: second_day)
+    end
+
+    it "leaves the earlier Day silent rather than showing the later Offer" do
+      expect(track("money").ours).to be_nil
+    end
+  end
+
   describe "the Client's stated aspiration" do
     it "carries what this Team's own Client says they want" do
       expect(track("money").aspiration.amount_cents).to eq(250_000_00)

@@ -74,7 +74,18 @@ class TermsBoard
     @theirs ||= positions(last_committed(side.opponent))
   end
 
-  def last_committed(of) = of.committed_offers.last
+  # Last **as of this Day**, which is the whole board's tense: the draft slot
+  # above is already scoped to the Day, and a board mixing the two would be a
+  # position nobody held at any one moment.
+  #
+  # Live play cannot reach a later Offer — a commit needs an open Day carrying a
+  # Budget row, and `Days::Close` opens the next Day only as it closes this one,
+  # so the newest committed Offer is always on the Day being played or before
+  # it. The scope is here for the readers that are not play: an Instructor
+  # reading a running Simulation, and the Debrief reading a finished one.
+  def last_committed(of)
+    of.committed_offers.joins(:day).where(days: {ordinal: ..day.ordinal}).last
+  end
 
   def positions(offer)
     return {} if offer.nil?
