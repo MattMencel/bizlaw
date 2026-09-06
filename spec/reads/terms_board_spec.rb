@@ -64,6 +64,18 @@ RSpec.describe TermsBoard do
     it "is silent before the Team has taken any position at all" do
       expect(track("money").ours).to be_nil
     end
+
+    # Committing does not delete the draft it was copied from, and the position
+    # is now on the other Side's table: a second commit that Day is refused.
+    it "stops reading as a draft once the Day's Offer is committed" do
+      stage(side, {CaseTerm::MONEY => 250_000_00})
+      expect(track("money").ours_staged).to be(true)
+
+      commit(side)
+
+      expect(track("money").ours_staged).to be(false)
+      expect(track("money").ours.amount_cents).to eq(250_000_00)
+    end
   end
 
   describe "the other Side's track" do

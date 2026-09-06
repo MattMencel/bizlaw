@@ -367,7 +367,7 @@ RSpec.describe Cases::Import do
       aspiration = version.clients.find_by!(role: Side::PLAINTIFF).aspirations.sole
 
       expect(aspiration.case_term.key).to eq("reinstatement")
-      expect(aspiration).not_to be_money
+      expect(aspiration.amount_cents).to be_nil
     end
 
     # Sparse on purpose: a Term absent here is one this Client is indifferent
@@ -394,6 +394,19 @@ RSpec.describe Cases::Import do
     it "refuses an amount that is not whole money" do
       expect { described_class.call(authored(clients: wanting({"money" => 0}))) }
         .to raise_error(described_class::InvalidCase, /neither a whole amount of money/)
+    end
+
+    # Money is the one Term that carries a figure, which is the rule an Offer's
+    # Terms are already held to. Without it a Terms Board track for an apology
+    # would show a money figure beside two slots that cannot hold one.
+    it "refuses a figure on a Term that is not money" do
+      expect { described_class.call(authored(clients: wanting({"reinstatement" => 5_000}))) }
+        .to raise_error(described_class::InvalidCase, /the one Term an amount belongs to/)
+    end
+
+    it "refuses money wanted without a figure, which says nothing" do
+      expect { described_class.call(authored(clients: wanting({"money" => nil}))) }
+        .to raise_error(described_class::InvalidCase, /the one Term an amount belongs to/)
     end
 
     it "replaces the aspirations of a draft, as it does the Terms" do
@@ -477,6 +490,13 @@ RSpec.describe Cases::Import do
     it "refuses a hand nobody holds" do
       expect { described_class.call(authored(documents: a_letter(hand: "the_press"))) }
         .to raise_error(described_class::InvalidCase, /not a hand at the open/)
+    end
+
+    # A blank string is truthy, so it used to slip past the xor and die as a
+    # model error naming neither the file nor the document.
+    it "refuses a blank hand as this Case's refusal, not as a fault" do
+      expect { described_class.call(authored(documents: a_letter(hand: ""))) }
+        .to raise_error(described_class::InvalidCase, /neither an action nor a hand/)
     end
 
     # Ammunition a Team walks in with is a position the Case authored and Par is

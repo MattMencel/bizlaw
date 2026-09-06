@@ -25,7 +25,10 @@ class TermsBoard
 
   # One track. `ours_staged` says the Team's own slot is a live draft rather
   # than a position already taken, which is the difference between a thing being
-  # deliberated and a thing that has been done.
+  # deliberated and a thing that has been done. Committing does not delete the
+  # draft it was copied from, so a draft with a committed Offer behind it on the
+  # same Day is a position taken: the Team cannot commit a second one that Day,
+  # and the first is already on the other Side's table.
   Track = Data.define(:term, :ours, :ours_staged, :theirs, :aspiration) do
     def on_the_table? = !ours.nil? || !theirs.nil?
   end
@@ -44,7 +47,7 @@ class TermsBoard
       Track.new(
         term: term.key,
         ours: ours[term.id],
-        ours_staged: !staged.nil?,
+        ours_staged: still_a_draft?,
         theirs: theirs[term.id],
         aspiration: aspirations[term.id]
       )
@@ -62,7 +65,15 @@ class TermsBoard
     @ours ||= positions(staged || last_committed(side))
   end
 
-  def staged = @staged ||= side.staged_offer_on(day)
+  # `defined?` rather than `||=`, which memoizes nothing when there is no draft
+  # and asks the database again for every track on the board.
+  def staged
+    return @staged if defined?(@staged)
+
+    @staged = side.staged_offer_on(day)
+  end
+
+  def still_a_draft? = !staged.nil? && side.committed_offer_on(day).nil?
 
   # The other Side's last committed Offer, read **whole**. Never a per-Term
   # latest assembled across several: a composite of the furthest each Term ever

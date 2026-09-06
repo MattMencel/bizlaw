@@ -30,6 +30,25 @@ class CaseClientAspiration < ApplicationRecord
     numericality: {only_integer: true, greater_than: 0},
     allow_nil: true
   validates :case_term_id, uniqueness: {scope: :case_client_id}
+  validate :only_money_carries_an_amount
 
-  def money? = amount_cents.present?
+  private
+
+  # The same rule `StagedOfferTerm` and `CommittedOfferTerm` state, and for the
+  # same reason: money is the one Term that carries a figure. Without it a
+  # Client could aspire to 5,000 of apology, and the Terms Board would render a
+  # money figure on a track whose other two slots structurally cannot hold one.
+  #
+  # Unlike the offer terms, money here may be wanted *without* a figure only in
+  # the sense of not being wanted at all — an authored aspiration on money names
+  # an amount, because an aspiration to money with no number says nothing.
+  def only_money_carries_an_amount
+    return if case_term.nil?
+
+    if case_term.money? && amount_cents.nil?
+      errors.add(:amount_cents, "is what a Client wanting money wants")
+    elsif !case_term.money? && !amount_cents.nil?
+      errors.add(:amount_cents, "belongs to money and #{case_term.key} is not money")
+    end
+  end
 end

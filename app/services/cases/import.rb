@@ -141,7 +141,10 @@ module Cases
 
       documents.each do |identifier, authored_document|
         exhibit = authored_document["exhibit"]
-        hand = authored_document["hand"]
+        # `.presence`, because the xor below was checked with `present?` and a
+        # blank string is truthy: without it `hand: ""` passes validation and
+        # then dies as a model error naming no file and no document.
+        hand = authored_document["hand"].presence
         document = version.documents.create!(
           # A door or a hand, never both. The Provenance is written into the
           # column rather than left to be inferred from which key was authored,
@@ -249,11 +252,22 @@ module Cases
       authored_aspirations.each do |key, amount|
         # Absent on a Term that carries no figure, which is most of them. A
         # Client wanting an apology wants an apology.
-        next if amount.nil? || (amount.is_a?(Integer) && amount.positive?)
+        if amount && !(amount.is_a?(Integer) && amount.positive?)
+          raise InvalidCase,
+            "#{path} has the #{role} Client wanting #{amount.inspect} of #{key}, which is " \
+            "neither a whole amount of money nor the Term wanted without a figure"
+        end
+
+        # Money is the one Term that carries a figure, which is the rule an
+        # Offer's Terms are already held to. A Client aspiring to 5,000 of
+        # apology would put a money figure on a Terms Board track whose other
+        # two slots cannot hold one.
+        next if (key == CaseTerm::MONEY) == !amount.nil?
 
         raise InvalidCase,
-          "#{path} has the #{role} Client wanting #{amount.inspect} of #{key}, which is " \
-          "neither a whole amount of money nor the Term wanted without a figure"
+          "#{path} has the #{role} Client wanting #{key} " \
+          "#{amount.nil? ? "without an amount" : "for #{amount}"}; " \
+          "#{CaseTerm::MONEY} is the one Term an amount belongs to"
       end
     end
 
