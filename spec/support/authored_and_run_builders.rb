@@ -21,10 +21,32 @@ module AuthoredAndRunBuilders
     money apology nda reinstatement training reference_letter policy_change
   ].freeze
 
-  # The reference Case's documents, each waiting behind the Action that
-  # discovers it. Whether an Exhibit is favorable is not authored: the
-  # deposition points at the plaintiff Client, so the defendant holds it to play
-  # and the plaintiff has it land on them the moment they find it.
+  # The reference Case's documents in hand at the open, waiting behind nothing.
+  # Neither carries an Exhibit, so the Exhibit affordances stay unavailable on
+  # Day 1 and appear the moment preparation first yields one.
+  REFERENCE_OPEN_HAND = {
+    "the_termination_letter" => {
+      hand: CaseDocument::BOTH_SIDES,
+      title: "The termination letter"
+    },
+    "the_claimants_own_notes" => {
+      hand: Side::PLAINTIFF,
+      title: "The claimant's own notes"
+    }
+  }.freeze
+
+  # What each Client says out loud about the Terms, sparse and immobile. A Term
+  # absent here is one that Client is indifferent about. Held in cents, as the
+  # column is; the authored file writes whole money.
+  REFERENCE_ASPIRATIONS = {
+    Side::PLAINTIFF => {"money" => 250_000_00, "apology" => nil, "reinstatement" => nil},
+    Side::DEFENDANT => {"money" => 25_000_00, "nda" => nil}
+  }.freeze
+
+  # The reference Case's documents waiting behind the Action that discovers
+  # them. Whether an Exhibit is favorable is not authored: the deposition points
+  # at the plaintiff Client, so the defendant holds it to play and the plaintiff
+  # has it land on them the moment they find it.
   #
   # These mirror `db/cases/reference.yml` down to the titles, so that a spec and
   # a Cucumber walk — which imports the file itself — are reading one Case and
@@ -100,13 +122,33 @@ module AuthoredAndRunBuilders
   # The Clients an Exhibit targets, the Terms it bears on, and the documents
   # waiting behind the Action menu above.
   def an_authored_dispute(pinned)
-    pinned.clients.create!(role: Side::PLAINTIFF, bound_cents: 40_000_00)
-    pinned.clients.create!(role: Side::DEFENDANT, bound_cents: 60_000_00)
     vocabulary = REFERENCE_TERMS.index_with { |key| pinned.terms.create!(key: key) }
+    {
+      Side::PLAINTIFF => [40_000_00, "Eleven years, and they walked me out like a thief."],
+      Side::DEFENDANT => [60_000_00, "We followed the policy. I want this closed quietly."]
+    }.each do |role, (bound_cents, opening_statement)|
+      client = pinned.clients.create!(
+        role: role, bound_cents: bound_cents, opening_statement: opening_statement
+      )
+      REFERENCE_ASPIRATIONS.fetch(role).each do |key, amount_cents|
+        client.aspirations.create!(case_term: vocabulary.fetch(key), amount_cents: amount_cents)
+      end
+    end
+
+    REFERENCE_OPEN_HAND.each do |identifier, authored|
+      pinned.documents.create!(
+        provenance: authored.fetch(:hand),
+        case_version: pinned,
+        identifier: identifier,
+        title: authored.fetch(:title),
+        body: "Authored prose for #{identifier}."
+      )
+    end
 
     REFERENCE_DOCUMENTS.each do |identifier, authored|
       document = pinned.documents.create!(
         case_action: pinned.actions.find_by!(kind: authored.fetch(:action)),
+        provenance: CaseDocument::DISCOVERABLE,
         identifier: identifier,
         title: authored.fetch(:title),
         body: "Authored prose for #{identifier}.",

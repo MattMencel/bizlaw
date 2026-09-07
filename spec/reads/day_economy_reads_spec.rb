@@ -70,7 +70,13 @@ RSpec.describe "the Day's economy read surfaces" do
     let(:per_member_total) { /\A(spend|spent|cost|points)_(by|per)_(member|user|student)/ }
 
     it "exposes no cumulative unspent total on any object in the Day's economy" do
-      surfaces = [DayBudget, DocketEntry, Side, Day, Simulation, CaseAction, Days::Command]
+      surfaces = [
+        DayBudget, DocketEntry, Side, Day, Simulation, CaseAction, Days::Command,
+        # The read surfaces a Day is played from. They are where a running waste
+        # figure would actually be rendered, so they are swept with the ledgers
+        # rather than trusted to be different.
+        Docket, CaseFile, ActionBoard, TermsBoard, MorningBriefing
+      ]
 
       offenders = surfaces.flat_map { |surface|
         (surface.instance_methods(false) + surface.singleton_methods(false))

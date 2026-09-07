@@ -61,5 +61,5 @@ Feature: Exhibits ride the Offer
     And Dana attaches "The claimant's personnel file" to the Offer on Day 2
     Then committing the plaintiff Offer on Day 2 is refused for want of Budget
     And the plaintiff may play "The claimant's personnel file"
-    And the defendant Case File is empty
+    And the defendant Case File holds nothing served
     And the defendant Client has moved none of its bound

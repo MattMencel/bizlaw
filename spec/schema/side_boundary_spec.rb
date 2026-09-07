@@ -28,7 +28,8 @@ RSpec.describe "the Side boundary" do
 
   def a_case_file_row(holder)
     CaseFileDocument.create!(
-      side: holder, day: day, case_document: simulation.case_version.documents.first
+      side: holder, day: day,
+      case_document: simulation.case_version.documents.find_by!(identifier: "personnel_file")
     )
   end
 

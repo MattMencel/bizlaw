@@ -16,8 +16,97 @@ RSpec.describe Days::Land do
     Days::Open.call(simulation.days.find_by!(ordinal: ordinal))
   end
 
+  def inserts_during
+    statements = []
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+      statements << payload[:sql]
+    end
+    yield
+    statements.grep(/INSERT INTO "case_file_documents"/).size
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+
   def case_file(side)
     side.case_file_documents.reload.map { |filed| filed.case_document.identifier }
+  end
+
+  # What preparation yielded, as opposed to what the Team walked in with. Every
+  # Case File holds the open hand from Day 1, so an example about landing says
+  # which half of the file it is about rather than asserting over both.
+  def discovered(side)
+    discoveries(side).map { |filed| filed.case_document.identifier }
+  end
+
+  def the_discovery(side) = discoveries(side).sole
+
+  def discoveries(side)
+    side.case_file_documents.reload.reject { |filed| filed.case_document.in_hand_at_the_open? }
+  end
+
+  # Provenance's two authored hands. They wait behind no Action, so they arrive
+  # on Day 1 — the Day the Team came to know them — and on Day 1 they are the
+  # whole of what a Case File holds.
+  describe "the documents a Team walks in with" do
+    it "fills both Case Files on Day 1, before anything has been spent" do
+      expect(case_file(plaintiff))
+        .to contain_exactly("the_termination_letter", "the_claimants_own_notes")
+      expect(case_file(defendant)).to eq(["the_termination_letter"])
+    end
+
+    it "files them on Day 1 whichever Day is being opened" do
+      open_day(2)
+
+      expect(plaintiff.case_file_documents.map { |filed| filed.day.ordinal }).to all(eq(1))
+    end
+
+    it "leaves them found rather than served, and carrying no Exhibit to play" do
+      filed = plaintiff.case_file_documents.reload
+
+      expect(filed.map(&:served?)).to all(be(false))
+      expect(filed.map(&:playable?)).to all(be(false))
+    end
+
+    # Nothing here can move a Client before the first Day is played: an
+    # unfavorable Exhibit in a hand at the open is refused at authoring.
+    it "moves neither Client" do
+      expect(plaintiff.bound_consumed).to be_zero
+      expect(defendant.bound_consumed).to be_zero
+    end
+
+    it "deals the hand once when Day 1 is opened again" do
+      expect { open_day(1) }.not_to change { plaintiff.case_file_documents.reload.count }
+    end
+
+    # A re-open asks which rows are already there rather than re-attempting
+    # every insert. This binds to the statements because that is the claim: a
+    # failed insert costs a savepoint rollback and a fallback select apiece, and
+    # a Case with a large opening hand pays for both on every re-open.
+    it "attempts no insert on a second open" do
+      simulation
+
+      expect(inserts_during { open_day(1) }).to be_zero
+    end
+
+    it "is not dealt again by the landing seam" do
+      expect { Days::Land.call(simulation.days.first) }
+        .not_to change { plaintiff.case_file_documents.reload.count }
+    end
+
+    # `Days::Command` calls the landing seam for a lead time of zero. Dealing is
+    # a separate verb precisely so that call does not re-attempt an insert per
+    # (Side, document) pair already filed, inside the transaction charging the
+    # student and holding the write lock.
+    it "deals the hand once when a spend lands on Day 1" do
+      simulation.case_version.actions
+        .find_by!(kind: CaseAction::RESEARCH_PRECEDENT).update!(lead_time_days: 0)
+
+      spend(CaseAction::RESEARCH_PRECEDENT, side: plaintiff, on: simulation.days.first)
+
+      expect(case_file(plaintiff)).to contain_exactly(
+        "the_termination_letter", "the_claimants_own_notes", "memorandum_on_comparable_awards"
+      )
+    end
   end
 
   describe "an Action bought on an earlier Day" do
@@ -25,10 +114,10 @@ RSpec.describe Days::Land do
       spend(CaseAction::DEPOSE_WITNESS, side: defendant, on: simulation.days.first)
 
       open_day(2)
-      expect(case_file(defendant)).to be_empty
+      expect(discovered(defendant)).to be_empty
 
       open_day(3)
-      expect(case_file(defendant)).to eq(["deposition_of_the_supervisor"])
+      expect(discovered(defendant)).to eq(["deposition_of_the_supervisor"])
     end
 
     it "fills only the Case File of the Side that bought it" do
@@ -36,7 +125,7 @@ RSpec.describe Days::Land do
       open_day(2)
       open_day(3)
 
-      expect(case_file(plaintiff)).to be_empty
+      expect(discovered(plaintiff)).to be_empty
     end
 
     it "yields every document the Action authors and nothing another Action hides" do
@@ -44,7 +133,7 @@ RSpec.describe Days::Land do
 
       open_day(2)
 
-      expect(case_file(plaintiff)).to eq(["personnel_file"])
+      expect(discovered(plaintiff)).to eq(["personnel_file"])
     end
   end
 
@@ -56,7 +145,7 @@ RSpec.describe Days::Land do
 
     spend(CaseAction::RESEARCH_PRECEDENT, side: plaintiff, on: simulation.days.first)
 
-    expect(case_file(plaintiff)).to eq(["memorandum_on_comparable_awards"])
+    expect(discovered(plaintiff)).to eq(["memorandum_on_comparable_awards"])
   end
 
   describe "a document that carries no Exhibit" do
@@ -64,7 +153,7 @@ RSpec.describe Days::Land do
       spend(CaseAction::RESEARCH_PRECEDENT, side: plaintiff, on: simulation.days.first)
       open_day(2)
 
-      filed = plaintiff.case_file_documents.sole
+      filed = the_discovery(plaintiff)
       expect(filed).not_to be_exhibit
       expect(filed).not_to be_playable
       expect(plaintiff.bound_consumed).to be_zero
@@ -77,7 +166,7 @@ RSpec.describe Days::Land do
       open_day(2)
       open_day(3)
 
-      filed = defendant.case_file_documents.sole
+      filed = the_discovery(defendant)
       expect(filed).to be_playable
       expect(defendant.bound_consumed).to be_zero
       expect(plaintiff.bound_consumed).to be_zero
@@ -92,7 +181,7 @@ RSpec.describe Days::Land do
     end
 
     it "is filed and is not playable at all" do
-      expect(plaintiff.case_file_documents.sole).not_to be_playable
+      expect(the_discovery(plaintiff)).not_to be_playable
     end
 
     it "lands on the finder's own Client at discovery" do
@@ -104,7 +193,7 @@ RSpec.describe Days::Land do
       shift = plaintiff.client_shifts.sole
 
       expect(shift.source_kind).to eq(ClientShift::UNFAVORABLE_DISCOVERY)
-      expect(shift.source_ref).to eq(plaintiff.case_file_documents.sole.id)
+      expect(shift.source_ref).to eq(the_discovery(plaintiff).id)
       expect(shift.day.ordinal).to eq(3)
       expect(shift.requested_fraction).to eq(0.25)
       expect(shift.applied_fraction).to eq(0.25)
@@ -119,7 +208,7 @@ RSpec.describe Days::Land do
       open_day(2)
       open_day(3)
 
-      expect { open_day(3) }.not_to change(plaintiff.case_file_documents, :count)
+      expect { open_day(3) }.not_to change { discoveries(plaintiff).count }
       expect(plaintiff.client_shifts.count).to eq(1)
       expect(plaintiff.bound_consumed).to eq(0.25)
     end
@@ -131,7 +220,7 @@ RSpec.describe Days::Land do
       open_day(4)
       open_day(3)
 
-      expect(plaintiff.case_file_documents.sole.day.ordinal).to eq(3)
+      expect(the_discovery(plaintiff).day.ordinal).to eq(3)
     end
   end
 
@@ -143,7 +232,8 @@ RSpec.describe Days::Land do
       action = version.actions.find_by!(kind: CaseAction::MANAGE_PRESS)
       [["a_hostile_column", 0.8], ["a_second_hostile_column", 0.5]].each do |identifier, shift|
         version.documents.create!(
-          case_action: action, identifier: identifier, title: identifier, body: "Prose.",
+          case_action: action, provenance: CaseDocument::DISCOVERABLE,
+          identifier: identifier, title: identifier, body: "Prose.",
           exhibit_target_role: Side::PLAINTIFF, exhibit_shift_fraction: shift
         )
       end
@@ -167,7 +257,7 @@ RSpec.describe Days::Land do
     spend(CaseAction::REQUEST_DOCUMENTS, side: plaintiff, on: simulation.days.second)
     open_day(3)
 
-    expect(plaintiff.case_file_documents.count).to eq(1)
+    expect(discoveries(plaintiff).count).to eq(1)
     expect(plaintiff.docket_entries.count).to eq(2)
   end
 end

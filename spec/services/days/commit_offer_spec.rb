@@ -97,7 +97,7 @@ RSpec.describe "committing an Offer" do
     commit(seconded_by: teammate)
 
     expect(side.staged_offer_on(day)).to be_present
-    expect(side.docket(day: day).map(&:act)).to include(Docket::OFFER_STAGED)
+    expect(side.docket(day: day).entries.map(&:act)).to include(Docket::OFFER_STAGED)
   end
 
   describe "the gate" do
@@ -298,7 +298,7 @@ RSpec.describe "committing an Offer" do
 
     commit(seconded_by: teammate)
 
-    spend = side.docket(day: day).reverse.find(&:spend?)
+    spend = side.docket(day: day).entries.reverse.find(&:spend?)
     expect(spend.cost).to eq(1)
     expect(spend.half).to eq(DayBudget::EXCHANGE)
     expect(spend.by).to eq(dana)

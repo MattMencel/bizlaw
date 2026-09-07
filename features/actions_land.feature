@@ -3,6 +3,11 @@ Feature: The Actions a Team bought land
   with a lead time of two produces its documents when Day 3 opens, and they fill
   the Case File — what we know, as against the Docket's what we have done.
 
+  A Case File is not empty on Day 1. What the Case authored into a Team's hand is
+  there before anything is spent, waiting behind no Action at all — so what
+  landing adds is what preparation yielded, on top of what the Team walked in
+  with.
+
   A document may carry an Exhibit, and whether that Exhibit is favorable is read
   off who found it. One pointing at the other Side's Client is held to be played
   later; one pointing at your own is not playable at all and lands the moment it
@@ -18,7 +23,7 @@ Feature: The Actions a Team bought land
   Scenario: Deposing a witness on Day 1 fills the Case File on Day 3
     When Sam spends a depose_witness on Day 1
     And Day 2 opens
-    Then the defendant Case File is empty
+    Then the defendant Case File holds nothing it did not start with
     When Day 3 opens
     Then the defendant Case File holds "Deposition of the plant supervisor"
     And the defendant may play "Deposition of the plant supervisor"

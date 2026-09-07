@@ -6,16 +6,14 @@ require "rails_helper"
 # column anywhere. `days.closed_at` and `case_versions.published_at` are the
 # only shape a run's state takes on the tables this ticket adds.
 RSpec.describe "the tables of the Simulation skeleton" do
+  # Enumerated from the schema rather than listed here. A maintained list drifts
+  # silently, which is the failure this rule exists to prevent — and it had:
+  # `committed_offer_terms`, `offer_acceptances` and `case_client_aspirations`
+  # were all added without reaching the list, so the rule stopped covering them
+  # the moment they arrived. `spec/models/retention_spec.rb` makes the same
+  # argument for the sibling rule and enumerates the same way.
   let(:tables) do
-    %w[
-      cases case_versions case_calendar_days case_actions
-      case_clients case_terms case_documents case_document_terms
-      organizations sections simulations sides days day_budgets
-      users docket_entries case_file_documents client_shifts
-      day_commitments staged_offers staged_offer_terms
-      committed_offers second_waivers
-      staged_offer_exhibits played_exhibits
-    ]
+    ActiveRecord::Base.connection.tables - %w[ar_internal_metadata schema_migrations]
   end
 
   it "carry no status column" do

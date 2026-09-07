@@ -31,7 +31,7 @@ class Docket
     def instructor_action? = act == SECOND_WAIVED
   end
 
-  def self.for(...) = new(...).entries
+  def self.for(...) = new(...)
 
   def initialize(side, day: nil)
     @side = side
@@ -48,11 +48,18 @@ class Docket
   # order they were written rather than whatever the database felt like
   # returning.
   def entries
-    (spends + stagings + acceptances + waivers)
+    @entries ||= (spends + stagings + acceptances + waivers)
       .each_with_index
       .sort_by { |entry, position| [entry.at, position] }
       .map(&:first)
   end
+
+  def empty? = entries.empty?
+
+  # The empty state is the tutorial: an empty Docket says what a Docket would
+  # hold. It is nil once there is something to read, so a surface cannot show
+  # the lesson over the thing it was teaching.
+  def empty_state = empty? ? I18n.t("reads.docket.empty") : nil
 
   private
 
