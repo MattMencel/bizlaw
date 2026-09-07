@@ -17,7 +17,7 @@ a `data:` URL with no query string.
 
 The ticket's own first open item — the expression inventory — closed while this was blocked.
 [ADR 0007](../../docs/adr/0007-the-settlement-beat-is-the-executed-instrument.md) and
-`CONTEXT.md:237` fix it at **three**: `firm` and `ready` derived from the Reaction Band by
+`CONTEXT.md` (under *Dialogue*) fix it at **three**: `firm` and `ready` derived from the Reaction Band by
 engine rule, plus one **settlement** expression authored to the occasion and invariant across
 terms, Side and who accepted. There is no fourth and there is no per-variant face.
 
