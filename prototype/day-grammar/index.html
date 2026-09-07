@@ -1,0 +1,833 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Prototype — the Day's grammar in the paper register</title>
+<!--
+  THROWAWAY PROTOTYPE. Not production code: no tests, no persistence, authored
+  stubs only. Answers #315 (recut) — what are the surfaces, and how does a
+  student move between them, now that #299 has settled the register as paper
+  and deleted the two rooms, the Close-up and the seated cast.
+
+  Three grammars of one Day, switchable via ?variant=A|B|C.
+  Probes: ?day=1 (the cold open) and ?chrome=off (hide the bar for screenshots).
+  Double-click this file. No server, no build, no network.
+-->
+<style>
+  :root {
+    --paper:   #f4f1e8;
+    --paper-2: #ece7da;
+    --ink:     #1c1a17;
+    --muted:   #6b6558;
+    --rule:    #cfc7b4;
+    --rule-2:  #b9af98;
+    --redline: #9a2b1e;
+    --stamp:   #2f4a6b;
+    --serif:   "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --mono:    "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: #3a352c; color: var(--ink);
+    font-family: var(--serif); font-size: 15px; line-height: 1.5;
+  }
+  h1, h2, h3 { font-weight: 600; margin: 0; }
+
+  /* ---- shared paper atoms (register is settled by #299; only grammar varies) ---- */
+  .sheet { background: var(--paper); box-shadow: 0 1px 0 var(--rule-2), 0 8px 24px rgba(0,0,0,.28); }
+  .letterhead {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 2px solid var(--ink); padding-bottom: 6px; margin-bottom: 18px;
+  }
+  .letterhead .firm { font-variant: small-caps; letter-spacing: .09em; font-size: 15px; }
+  .letterhead .meta { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .doc-title { font-size: 19px; margin-bottom: 2px; }
+  .doc-sub { font-family: var(--mono); font-size: 11px; color: var(--muted);
+             text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; }
+  .prose p { margin: 0 0 10px; }
+  .rule { border: 0; border-top: 1px solid var(--rule); margin: 18px 0; }
+  .muted { color: var(--muted); }
+  .tiny { font-family: var(--mono); font-size: 11px; letter-spacing: .04em; }
+
+  .stamp {
+    display: inline-block; font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase; padding: 3px 7px;
+    border: 2px solid var(--stamp); color: var(--stamp); transform: rotate(-2.5deg);
+  }
+  .stamp.warn { border-color: var(--redline); color: var(--redline); }
+  .tab-clip {
+    display: inline-block; font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; background: #d8b24a; color: #3a2c05;
+    padding: 2px 8px; border-radius: 0 3px 3px 0;
+  }
+  .tab-clip.spent { background: var(--rule); color: var(--muted); }
+
+  /* the Second, as #299 settled it: a countersignature block */
+  .countersign { border: 1px solid var(--rule-2); padding: 14px 16px; background: var(--paper-2); }
+  .countersign .price {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .04em; margin-bottom: 10px;
+  }
+  .sig-lines { display: flex; gap: 26px; margin: 12px 0 8px; }
+  .sig { flex: 1; }
+  .sig .line { border-bottom: 1px solid var(--ink); height: 26px; }
+  .sig .line.blank { border-bottom-style: dashed; border-color: var(--rule-2); }
+  .sig .hand { font-family: "Snell Roundhand", "Apple Chancery", cursive; font-size: 20px;
+               padding-left: 4px; line-height: 26px; }
+  .sig .cap { font-family: var(--mono); font-size: 10px; color: var(--muted);
+              text-transform: uppercase; letter-spacing: .07em; padding-top: 4px; }
+  .why { font-size: 13.5px; margin-top: 6px; }
+  .why em { font-style: normal; border-bottom: 1px solid var(--rule-2); }
+
+  /* redlined term sheet */
+  table.terms { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.terms th {
+    text-align: left; font-family: var(--mono); font-size: 10px; font-weight: 400;
+    text-transform: uppercase; letter-spacing: .09em; color: var(--muted);
+    border-bottom: 1px solid var(--ink); padding: 0 10px 5px 0;
+  }
+  table.terms td { padding: 7px 10px 7px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  table.terms .term { font-variant: small-caps; letter-spacing: .04em; }
+  table.terms .theirs { color: var(--redline); text-decoration: line-through;
+                        text-decoration-color: rgba(154,43,30,.5); }
+  table.terms .silent { color: var(--rule-2); font-style: italic; }
+  table.terms .asp { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+  .draft-mark {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .16em; color: var(--redline);
+    border: 1px solid var(--redline); padding: 2px 6px; text-transform: uppercase;
+  }
+
+  /* action slip */
+  .slip { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0;
+          border-bottom: 1px dotted var(--rule-2); }
+  .slip.refused { color: var(--muted); }
+  .slip .k { font-variant: small-caps; letter-spacing: .04em; }
+  .slip .p { font-family: var(--mono); font-size: 11.5px; white-space: nowrap; }
+  .slip .refusal { font-size: 12.5px; color: var(--redline); flex-basis: 100%; padding-top: 2px; }
+
+  /* docket */
+  .docket-line { display: grid; grid-template-columns: 52px 1fr auto; gap: 10px;
+                 padding: 6px 0; border-bottom: 1px solid var(--rule); font-size: 13.5px; }
+  .docket-line .d { font-family: var(--mono); font-size: 11px; color: var(--muted); padding-top: 2px; }
+  .docket-line .c { font-family: var(--mono); font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .by { font-style: italic; color: var(--muted); }
+
+  .empty-state { border: 1px dashed var(--rule-2); padding: 16px 18px; color: var(--muted);
+                 font-size: 14px; background: rgba(255,255,255,.35); }
+
+  /* the one surviving face, on the Consult memo (#299: "C plus one face") */
+  .consult { display: flex; gap: 16px; align-items: flex-start; }
+  .face { width: 78px; height: 78px; flex: none; border: 1px solid var(--rule-2);
+          background: var(--paper-2); position: relative; }
+  .face::after {
+    content: "portrait — #316"; position: absolute; inset: auto 0 3px; text-align: center;
+    font-family: var(--mono); font-size: 7.5px; color: var(--rule-2); letter-spacing: .02em;
+  }
+  .face svg { display: block; }
+  .band-note { font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+               text-transform: uppercase; color: var(--muted); }
+
+  /* ---- the switcher: deliberately not part of the design being judged ---- */
+  #bar {
+    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 99;
+    display: flex; align-items: center; gap: 4px; background: #16130e; color: #f4f1e8;
+    border-radius: 999px; padding: 5px 6px; box-shadow: 0 6px 22px rgba(0,0,0,.5);
+    font-family: var(--mono); font-size: 12px;
+  }
+  #bar button { background: none; border: 0; color: inherit; font: inherit; cursor: pointer;
+                padding: 5px 10px; border-radius: 999px; }
+  #bar button:hover { background: #2e2820; }
+  #bar .label { padding: 0 12px; white-space: nowrap; }
+  #bar .probe { border-left: 1px solid #3d362c; margin-left: 4px; padding-left: 8px; }
+  #bar .on { background: #d8b24a; color: #16130e; }
+</style>
+
+<div id="root"></div>
+<div id="bar"></div>
+
+<script>
+/* ==========================================================================
+   THE BEAT — authored stubs, shaped after app/reads/* and db/cases/reference.yml.
+   Day 3 of 10, Whitfield v. Arrowmark Logistics, plaintiff Side, Team Kestrel.
+   You are Dana Whitcombe: you staged the Offer, so the countersignature line in
+   your hand is the dead one.
+   ?day=1 swaps in the cold open — the only Day on which every section is empty.
+   ========================================================================== */
+
+const money = c => "$" + (c / 100).toLocaleString("en-US", { maximumFractionDigits: 0 });
+
+const DOCS = {
+  termination_letter: {
+    identifier: "the_termination_letter", title: "The termination letter",
+    body: "Two paragraphs over the plant manager's signature, citing performance concerns raised “on several occasions” and giving the reassignment as the final one. It names no date and attaches nothing."
+  },
+  own_notes: {
+    identifier: "the_claimants_own_notes", title: "The claimant's own notes",
+    body: "A pocket diary kept from the reassignment onward: who said what, on which shift, and the two mornings the claimant was sent home early. It is one person's account and reads like one."
+  },
+  personnel_file: {
+    identifier: "personnel_file", title: "The claimant's personnel file",
+    body: "Eleven years of reviews, none below “meets expectations”, and no record of the performance concerns raised in the termination letter."
+  },
+  memorandum: {
+    identifier: "memorandum_on_comparable_awards", title: "Memorandum on comparable awards",
+    body: "Fourteen settlements in this circuit over six years, with the terms each one turned on. Useful to argue from; not a document to put in front of anyone."
+  },
+  deposition: {
+    identifier: "deposition_of_the_supervisor", title: "Deposition of the plant supervisor",
+    body: "Asked whether the claimant had been warned before the reassignment, the supervisor produced two dated memoranda and a signed acknowledgement."
+  }
+};
+
+/* CaseFile::Entry — identifier, title, body, day, arrival, playable, spent, at_the_open */
+const entry = (doc, o) => Object.assign({ arrival: "found", playable: false, spent: false, at_the_open: false }, doc, o);
+
+const TERMS = ["money", "apology", "nda", "reinstatement", "training", "reference_letter", "policy_change"];
+const TERM_LABEL = { money: "Money", apology: "Apology", nda: "NDA", reinstatement: "Reinstatement",
+                     training: "Training", reference_letter: "Reference letter", policy_change: "Policy change" };
+
+/* Client aspirations are SPARSE: a Term absent here is one this Client is
+   indifferent about, and its track carries no marker at all. */
+const ASPIRATION = { money: { amount_cents: 25000000 }, apology: { amount_cents: null }, reinstatement: { amount_cents: null } };
+
+const CALENDAR = ["2026-03-02","2026-03-03","2026-03-04","2026-03-05","2026-03-06",
+                  "2026-03-09","2026-03-10","2026-03-11","2026-03-12","2026-03-13"]
+  .map((d, i) => ({ ordinal: i + 1, in_fiction_date: d, closed: false }));
+
+const ACTIONS = [
+  { kind: "consult_client",    cost: 1, half: "preparation", lead_time_days: 0 },
+  { kind: "request_documents", cost: 2, half: "preparation", lead_time_days: 1 },
+  { kind: "research_precedent",cost: 2, half: "preparation", lead_time_days: 1 },
+  { kind: "manage_press",      cost: 2, half: "preparation", lead_time_days: 1 },
+  { kind: "depose_witness",    cost: 3, half: "preparation", lead_time_days: 2 },
+  { kind: "retain_expert",     cost: 5, half: "preparation", lead_time_days: 2 }
+];
+const ACTION_LABEL = {
+  consult_client: "Consult the client", request_documents: "Request documents",
+  research_precedent: "Research precedent", manage_press: "Manage the press",
+  depose_witness: "Depose a witness", retain_expert: "Retain an expert"
+};
+
+/* ActionBoard reads through Days::Command.quote — price, half, landing Day, refusal. */
+function actionBoard(day, prepLeft) {
+  return ACTIONS.map(a => {
+    const landing = day + a.lead_time_days;
+    const refusal = a.cost > prepLeft
+      ? `${a.cost} points, and the preparation half has ${prepLeft} left today.`
+      : null;
+    return Object.assign({}, a, { landing_day: landing, refusal });
+  });
+}
+
+const OPENING_STATEMENT =
+  "Eleven years I gave them, and not one review below “meets expectations”. They walked me out through the plant floor like I had stolen something. I want my name back, and I want them to say out loud what they did.";
+
+const RUBRIC = {
+  dimensions: ["Settlement quality", "Legal strategy", "Process discipline", "Collaboration"],
+  bonus: "A bonus is available for a settlement reached before the calendar runs out."
+};
+const TWO_LINE =
+  "Everything in this Simulation is the case file. Work it as you like; the Day ends when both Sides commit, and an Offer commits only over a teammate's countersignature.";
+
+/* ---------------------------------------------------------------- Day 3 --- */
+const DAY3 = {
+  day: 3, of: 10, date: "2026-03-04", closed_through: 2,
+  you: "Dana Whitcombe", team: "Team Kestrel", side: "Plaintiff",
+  matter: "Whitfield v. Arrowmark Logistics",
+  client: "Eleanor Whitfield",
+  band: "firm",
+  budget: { prep: 8, prep_spent: 4, exch: 2, exch_spent: 0 },
+  briefing: {
+    landed: ["memorandum"],
+    served: ["deposition"],
+    at_open: ["termination_letter", "own_notes"]
+  },
+  case_file: [
+    entry(DOCS.termination_letter, { day: 1, at_the_open: true }),
+    entry(DOCS.own_notes,          { day: 1, at_the_open: true }),
+    entry(DOCS.personnel_file,     { day: 2, playable: true }),
+    entry(DOCS.deposition,         { day: 3, arrival: "served" }),
+    entry(DOCS.memorandum,         { day: 3 })
+  ],
+  docket: [
+    { day: 1, act: "spend", by: "Dana Whitcombe",  kind: "request_documents", cost: 2, half: "preparation", lands_on_day: 2 },
+    { day: 1, act: "spend", by: "Priya Nair",      kind: "consult_client",    cost: 1, half: "preparation", lands_on_day: 1 },
+    { day: 2, act: "spend", by: "Marcus Oyelaran", kind: "research_precedent",cost: 2, half: "preparation", lands_on_day: 3 },
+    { day: 3, act: "spend", by: "Priya Nair",      kind: "consult_client",    cost: 1, half: "preparation", lands_on_day: 3 },
+    { day: 3, act: "spend", by: "Dana Whitcombe",  kind: "depose_witness",    cost: 3, half: "preparation", lands_on_day: 5 },
+    { day: 3, act: "offer_staged", by: "Dana Whitcombe" }
+  ],
+  /* TermsBoard::Track — ours / ours_staged / theirs / aspiration.
+     nil is not zero: a Term nobody put on the table is silent. */
+  tracks: {
+    money:            { ours: { amount_cents: 18000000 }, theirs: { amount_cents: 4500000 } },
+    apology:          { ours: { amount_cents: null },     theirs: null },
+    nda:              { ours: null,                       theirs: { amount_cents: null } },
+    reinstatement:    { ours: { amount_cents: null },     theirs: null },
+    training:         { ours: null,                       theirs: null },
+    reference_letter: { ours: { amount_cents: null },     theirs: null },
+    policy_change:    { ours: null,                       theirs: null }
+  },
+  ours_staged: true,
+  staged_by: "Dana Whitcombe",
+  seconds: ["Priya Nair", "Marcus Oyelaran"],
+  riding: ["personnel_file"],
+  their_offer_day: 3
+};
+
+/* ------------------------------------------------- Day 1, the cold open --- */
+const DAY1 = {
+  day: 1, of: 10, date: "2026-03-02", closed_through: 0,
+  you: "Dana Whitcombe", team: "Team Kestrel", side: "Plaintiff",
+  matter: "Whitfield v. Arrowmark Logistics",
+  client: "Eleanor Whitfield",
+  band: null,
+  budget: { prep: 8, prep_spent: 0, exch: 2, exch_spent: 0 },
+  briefing: { landed: [], served: [], at_open: ["termination_letter", "own_notes"] },
+  case_file: [
+    entry(DOCS.termination_letter, { day: 1, at_the_open: true }),
+    entry(DOCS.own_notes,          { day: 1, at_the_open: true })
+  ],
+  docket: [],
+  tracks: Object.fromEntries(TERMS.map(t => [t, { ours: null, theirs: null }])),
+  ours_staged: false,
+  staged_by: null,
+  seconds: ["Priya Nair", "Marcus Oyelaran"],
+  riding: [],
+  their_offer_day: null
+};
+
+const EMPTY = {
+  docket: "Nothing yet. Every Action this Team spends lands here — what it cost, who spent it, and the Day its result arrives.",
+  case_file: "Nothing yet but what you walked in with. What an Action turns up is filed here, and so is anything the other Side serves on you.",
+  terms: "No Term is on the table. Nothing here is zero — an offer of nothing is a position somebody took, and nobody has taken one.",
+  offer: "No draft on the table. Drafting costs nothing and commits nothing; the Day's exchange half is spent only when a draft is executed."
+};
+</script>
+
+<script>
+/* ==========================================================================
+   SHARED ATOMS. Content only — the register is settled (#299), so a stamp is a
+   stamp in all three. Layout is NOT shared: that is the thing being compared.
+   ========================================================================== */
+
+const esc = s => String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+function docBody(d) {
+  return `<div class="prose"><p>${esc(d.body)}</p></div>`;
+}
+
+function docMarks(d) {
+  const m = [];
+  if (d.arrival === "served") m.push(`<span class="stamp warn">Served — Day ${d.day}</span>`);
+  if (d.at_the_open)          m.push(`<span class="tiny muted">In hand at the open</span>`);
+  if (d.playable)             m.push(`<span class="tab-clip">Exhibit</span>`);
+  if (d.spent)                m.push(`<span class="tab-clip spent">Exhibit — spent</span>`);
+  return m.join(" ");
+}
+
+/* Service withholds the Exhibit property, and the file says so in words rather
+   than by an absence the student has to notice. */
+function servedNote(d) {
+  return d.arrival !== "served" ? "" :
+    `<p class="tiny muted" style="margin-top:8px">Filed as served. It came from the other Side, so it is yours to know and not yours to play.</p>`;
+}
+
+const POSITION = p => p === null ? null : (p.amount_cents === null ? "present" : money(p.amount_cents));
+
+function termRows(S, opts = {}) {
+  return TERMS.map(t => {
+    const tr = S.tracks[t];
+    const ours = POSITION(tr.ours), theirs = POSITION(tr.theirs);
+    const asp = ASPIRATION[t] ? (ASPIRATION[t].amount_cents === null ? "wanted" : money(ASPIRATION[t].amount_cents)) : null;
+    const cell = (v, cls) => v === null
+      ? `<span class="silent">not addressed</span>`
+      : `<span class="${cls || ""}">${v === "present" ? "included" : esc(v)}</span>`;
+    return `<tr>
+      <td class="term">${TERM_LABEL[t]}</td>
+      <td>${cell(ours)}</td>
+      <td>${cell(theirs, "theirs")}</td>
+      <td class="asp">${asp ? esc(asp) : `<span class="silent">—</span>`}</td>
+    </tr>`;
+  }).join("");
+}
+
+function termsTable(S) {
+  const theirHead = S.their_offer_day
+    ? `Their Day ${S.their_offer_day} offer` : "Their last offer";
+  return `<table class="terms">
+    <thead><tr>
+      <th>Term</th><th>This draft</th><th>${theirHead}</th><th>She says</th>
+    </tr></thead>
+    <tbody>${termRows(S)}</tbody>
+  </table>
+  <p class="tiny muted" style="margin-top:10px">Their column is one offer read whole, not the best they have ever said on each line. A Term they did not address is silent, and silent is not nothing.</p>`;
+}
+
+/* The Second, as #299 settled it: a countersignature block, one line signed and
+   one blank naming who may sign. The price is quoted as ONE number — the Offer
+   plus every Exhibit riding it — because a half that cannot cover all of it
+   refuses entirely (#291). */
+function countersign(S) {
+  if (!S.ours_staged) {
+    return `<div class="empty-state">${esc(EMPTY.offer)}</div>`;
+  }
+  const riding = S.riding.map(k => DOCS[k].title);
+  const price = 1 + riding.length;
+  const left = S.budget.exch - S.budget.exch_spent;
+  return `<div class="countersign">
+    <div class="price">
+      To execute: <strong>${price} points</strong> of the exchange half — the draft, and ${riding.length === 1 ? "the one exhibit" : `the ${riding.length} exhibits`} clipped to it.
+      ${left} of ${S.budget.exch} remain today. Executing also commits your Day.
+    </div>
+    ${riding.length ? `<div class="tiny muted">Clipped: ${riding.map(esc).join("; ")}.</div>` : ""}
+    <div class="sig-lines">
+      <div class="sig">
+        <div class="line"><span class="hand">${esc(S.staged_by)}</span></div>
+        <div class="cap">Drawn by ${esc(S.staged_by)}</div>
+      </div>
+      <div class="sig">
+        <div class="line blank"></div>
+        <div class="cap">Countersignature</div>
+      </div>
+    </div>
+    <p class="why">This draft is not executed. It wants a second hand:
+      <em>${S.seconds.map(esc).join("</em> or <em>")}</em> may sign it. Yours is already on it.</p>
+  </div>`;
+}
+
+function actionSlips(S) {
+  const prepLeft = S.budget.prep - S.budget.prep_spent;
+  return actionBoard(S.day, prepLeft).map(a => `
+    <div class="slip ${a.refusal ? "refused" : ""}">
+      <span class="k">${ACTION_LABEL[a.kind]}</span>
+      <span class="p">${a.cost} pt${a.cost > 1 ? "s" : ""} · ${a.lead_time_days === 0
+        ? "back today" : `back Day ${a.landing_day}`}</span>
+      ${a.refusal ? `<span class="refusal">${esc(a.refusal)}</span>` : ""}
+    </div>`).join("");
+}
+
+function budgetLine(S) {
+  const p = S.budget.prep - S.budget.prep_spent, e = S.budget.exch - S.budget.exch_spent;
+  return `<span class="tiny">Today: <strong>${p}</strong> of ${S.budget.prep} preparation · <strong>${e}</strong> of ${S.budget.exch} exchange. Neither carries to tomorrow.</span>`;
+}
+
+const DOCKET_LABEL = {
+  spend: k => ACTION_LABEL[k], offer_staged: () => "Offer drawn",
+  offer_accepted: () => "Offer accepted", second_waived: () => "Second waived by the instructor"
+};
+
+function docketLines(S) {
+  if (!S.docket.length) return `<div class="empty-state">${esc(EMPTY.docket)}</div>`;
+  return S.docket.map(e => `
+    <div class="docket-line">
+      <span class="d">Day ${e.day}</span>
+      <span>${DOCKET_LABEL[e.act](e.kind)} <span class="by">— ${esc(e.by)}</span></span>
+      <span class="c">${e.cost ? `${e.cost} pt${e.cost > 1 ? "s" : ""} · back Day ${e.lands_on_day}` : "no cost"}</span>
+    </div>`).join("");
+}
+
+function calendarStrip(S) {
+  return CALENDAR.map(d => {
+    const state = d.ordinal < S.day ? "closed" : d.ordinal === S.day ? "today" : "ahead";
+    const col = state === "closed" ? "var(--rule-2)" : state === "today" ? "var(--ink)" : "var(--muted)";
+    const w = state === "today" ? "700" : "400";
+    return `<span class="tiny" style="color:${col};font-weight:${w}">${d.ordinal}</span>`;
+  }).join(`<span class="tiny" style="color:var(--rule)">·</span>`);
+}
+
+/* The one surviving face (#299: "C plus one face"), on the Consult memo and
+   nowhere else, because the Reaction Band lands nowhere else. Placeholder on
+   purpose — what she actually looks like is #316. */
+function consultMemo(S) {
+  if (!S.band) {
+    return `<div class="empty-state">You have not asked her. Consulting the client costs an Action; a Team that never asks negotiates blind.</div>`;
+  }
+  return `<div class="consult">
+    <div class="face"><svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true">
+      <circle cx="38" cy="27" r="13" fill="none" stroke="#b9af98" stroke-width="1.2"/>
+      <path d="M14 66c0-13 11-21 24-21s24 8 24 21" fill="none" stroke="#b9af98" stroke-width="1.2"/>
+    </svg></div>
+    <div style="flex:1">
+      <div class="band-note">Consulted Day ${S.day} · she reads <strong>${S.band}</strong></div>
+      <div class="prose" style="margin-top:6px"><p>“Forty-five thousand and a confidentiality clause. That is not a settlement, that is a receipt. I told you what I want and I have not changed my mind about any of it.”</p></div>
+      <p class="tiny muted">What a Consult hands back beyond this is <a href="https://github.com/MattMencel/bizlaw/issues/314">#314</a> — deliberately left as a hole here.</p>
+    </div>
+  </div>`;
+}
+
+function briefingSections(S) {
+  const sec = (title, keys, note) => {
+    const items = keys.map(k => DOCS[k]);
+    return `<h3 class="doc-sub" style="margin-top:16px">${title}</h3>` + (items.length
+      ? items.map(d => `<div style="margin-bottom:6px">${esc(d.title)} ${
+          S.case_file.find(e => e.identifier === d.identifier && e.arrival === "served")
+            ? `<span class="stamp warn">Served</span>` : ""}</div>`).join("")
+      : `<p class="muted" style="font-size:13.5px">${esc(note)}</p>`);
+  };
+  return sec("Landed today", S.briefing.landed, "Nothing you bought has come back yet.")
+    + sec("Served on you", S.briefing.served, "The other Side has put nothing in front of you.")
+    + sec("What you started with", S.briefing.at_open, "—")
+    + `<hr class="rule">
+       <h3 class="doc-sub">She said, on the day you sat down</h3>
+       <div class="prose"><p>${esc(OPENING_STATEMENT)}</p></div>
+       <hr class="rule">
+       <h3 class="doc-sub">The calendar</h3>
+       <div style="display:flex;gap:6px;align-items:center">${calendarStrip(S)}</div>
+       <p class="tiny muted" style="margin-top:6px">Ten Days, ${CALENDAR[0].in_fiction_date} to ${CALENDAR[9].in_fiction_date}. An Action's lead time is only plannable against how many are left.</p>
+       <h3 class="doc-sub" style="margin-top:16px">How you are graded</h3>
+       <p style="font-size:13.5px;margin:0">${RUBRIC.dimensions.join(" · ")}. ${esc(RUBRIC.bonus)}</p>
+       <hr class="rule">
+       <p style="font-size:13.5px">${esc(TWO_LINE)}</p>`;
+}
+</script>
+
+<script>
+/* ==========================================================================
+   VARIANT A — THE FOLDER
+   The surfaces are peers, and you visit exactly one at a time. Physical tabs
+   down the left edge of a single folder; one full sheet fills the view. There
+   is no second place to be: the draft is the sheet behind the Terms tab, and
+   executing it is a signature on that sheet rather than a journey to a room.
+   Movement is the tab. The Briefing is the first tab and stays a tab all Day,
+   so it is never dismissed and never lost.
+   ========================================================================== */
+const A_TABS = [
+  ["briefing", "The morning"], ["terms", "Terms"], ["draft", "The draft"],
+  ["actions", "What we can do"], ["file", "The file"], ["docket", "The docket"]
+];
+
+function renderA(S, state) {
+  const tab = state.tab || "briefing";
+  const sheets = {
+    briefing: () => `
+      <div class="doc-title">Morning of Day ${S.day}</div>
+      <div class="doc-sub">${S.date} · ${S.of - S.day} Days after this one</div>
+      ${briefingSections(S)}`,
+    terms: () => `
+      <div class="doc-title">Where the deal stands</div>
+      <div class="doc-sub">Redline against their last committed offer</div>
+      ${S.ours_staged || S.their_offer_day ? termsTable(S) : `<div class="empty-state">${esc(EMPTY.terms)}</div>`}`,
+    draft: () => `
+      <div class="doc-title">Draft terms of settlement ${S.ours_staged ? `<span class="draft-mark">Draft — not executed</span>` : ""}</div>
+      <div class="doc-sub">${S.matter}</div>
+      ${S.ours_staged ? termsTable(S) : ""}
+      <hr class="rule">
+      ${countersign(S)}`,
+    actions: () => `
+      <div class="doc-title">What this Day will buy</div>
+      <div class="doc-sub">${budgetLine(S)}</div>
+      ${actionSlips(S)}
+      <p class="tiny muted" style="margin-top:12px">Every price and every lead time is on this sheet from Day 1, including the ones today cannot cover.</p>`,
+    file: () => S.case_file.length ? S.case_file.map(d => `
+      <div style="margin-bottom:22px">
+        <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap">
+          <strong>${esc(d.title)}</strong> ${docMarks(d)}
+        </div>
+        <div class="tiny muted">Filed Day ${d.day}</div>
+        ${docBody(d)}${servedNote(d)}
+      </div>`).join("<hr class='rule'>") : `<div class="empty-state">${esc(EMPTY.case_file)}</div>`,
+    docket: () => `
+      <div class="doc-title">The docket</div>
+      <div class="doc-sub">What we have done, and when it comes back</div>
+      ${docketLines(S)}`
+  };
+
+  const consultRow = tab === "briefing" && S.band
+    ? `<hr class="rule">${consultMemo(S)}` : "";
+
+  return `
+  <div style="display:flex;min-height:100vh;justify-content:center;padding:28px 20px 84px">
+    <div style="display:flex;max-width:1000px;width:100%">
+      <nav style="flex:none;width:150px;padding-top:44px">
+        ${A_TABS.map(([k, label]) => `
+          <button data-tab="${k}" style="
+            display:block;width:100%;text-align:left;cursor:pointer;font:inherit;
+            font-size:13px;padding:9px 12px;margin-bottom:3px;border:1px solid var(--rule-2);
+            border-right:0;border-radius:4px 0 0 4px;
+            background:${k === tab ? "var(--paper)" : "#ded8c8"};
+            color:${k === tab ? "var(--ink)" : "var(--muted)"};
+            font-weight:${k === tab ? "600" : "400"};
+            margin-right:${k === tab ? "-1px" : "0"};position:relative;z-index:${k === tab ? 2 : 1};
+          ">${label}</button>`).join("")}
+        <p class="tiny muted" style="padding:14px 12px 0;line-height:1.4">One sheet at a time. Nothing is hidden behind another thing.</p>
+      </nav>
+      <main class="sheet" style="flex:1;padding:38px 46px;min-width:0;position:relative;z-index:1">
+        <div class="letterhead">
+          <span class="firm">Kestrel &amp; Co. · ${S.side} · ${esc(S.matter)}</span>
+          <span class="meta">Day ${S.day}/${S.of} · ${esc(S.you)}</span>
+        </div>
+        ${sheets[tab]()}
+        ${consultRow}
+      </main>
+    </div>
+  </div>`;
+}
+</script>
+
+<script>
+/* ==========================================================================
+   VARIANT B — THE DESK
+   Everything is one kind of thing: a paper on the desk. A permanent left index
+   lists them all in one chronological run — the Docket's acts and the Case
+   File's documents interleaved, because both answer "what has happened" — with
+   the four standing instruments pinned above the run. The right side is a
+   reading surface showing whichever you picked. Movement is picking up a paper;
+   nothing ever covers anything. The Briefing is a memo that arrives at the top
+   of the run each Day, marked unread, and stays in the run once read.
+   ========================================================================== */
+
+function bIndex(S) {
+  const pinned = [
+    ["briefing", "This morning's memo", S.day === 1 ? "new" : "new"],
+    ["terms",    "Where the deal stands", null],
+    ["draft",    S.ours_staged ? "Draft terms of settlement" : "No draft on the table", null],
+    ["actions",  "What this Day will buy", null]
+  ];
+  const run = [];
+  S.docket.forEach((e, i) => run.push({
+    id: "dk" + i, day: e.day, kind: "act",
+    label: DOCKET_LABEL[e.act](e.kind), sub: e.by
+  }));
+  S.case_file.forEach(d => run.push({
+    id: "doc:" + d.identifier, day: d.day, kind: "doc",
+    label: d.title, sub: d.arrival === "served" ? "served on you" : (d.at_the_open ? "in hand at the open" : "filed"),
+    mark: d.playable ? "exhibit" : null, served: d.arrival === "served"
+  }));
+  run.sort((a, b) => a.day - b.day);
+  return { pinned, run };
+}
+
+function renderB(S, state) {
+  const { pinned, run } = bIndex(S);
+  let sel = state.paper || "briefing";
+
+  const surfaces = {
+    briefing: () => `
+      <div class="doc-title">Memorandum — the morning of Day ${S.day}</div>
+      <div class="doc-sub">To Team Kestrel · ${S.date}</div>
+      ${briefingSections(S)}
+      ${S.band ? `<hr class="rule">${consultMemo(S)}` : ""}`,
+    terms: () => `
+      <div class="doc-title">Where the deal stands</div>
+      <div class="doc-sub">Your draft, their last committed offer, and what she says</div>
+      ${S.ours_staged || S.their_offer_day ? termsTable(S) : `<div class="empty-state">${esc(EMPTY.terms)}</div>`}`,
+    draft: () => `
+      <div class="doc-title">Draft terms of settlement ${S.ours_staged ? `<span class="draft-mark">Draft — not executed</span>` : ""}</div>
+      <div class="doc-sub">${S.matter}</div>
+      ${S.ours_staged ? termsTable(S) + "<hr class='rule'>" : ""}
+      ${countersign(S)}`,
+    actions: () => `
+      <div class="doc-title">What this Day will buy</div>
+      <div class="doc-sub">${budgetLine(S)}</div>
+      ${actionSlips(S)}`
+  };
+
+  /* the Day probe can strip the paper out from under the selection */
+  const missing = (sel.startsWith("doc:") && !S.case_file.some(x => x.identifier === sel.slice(4)))
+               || (sel.startsWith("dk")   && !S.docket[+sel.slice(2)]);
+  if (missing) sel = "briefing";
+
+  let body;
+  if (sel.startsWith("doc:")) {
+    const d = S.case_file.find(x => x.identifier === sel.slice(4));
+    body = `<div class="doc-title">${esc(d.title)}</div>
+      <div class="doc-sub">Filed Day ${d.day}</div>
+      <div style="margin-bottom:12px">${docMarks(d)}</div>
+      ${docBody(d)}${servedNote(d)}`;
+  } else if (sel.startsWith("dk")) {
+    const e = S.docket[+sel.slice(2)];
+    body = `<div class="doc-title">${DOCKET_LABEL[e.act](e.kind)}</div>
+      <div class="doc-sub">Day ${e.day} · ${esc(e.by)}</div>
+      <p>${e.cost ? `Cost ${e.cost} point${e.cost > 1 ? "s" : ""} of the ${e.half} half. The result comes back on Day ${e.lands_on_day}.` : "No cost, and no Day it comes back on. It is here because the Team should see that it happened."}</p>`;
+  } else {
+    body = surfaces[sel]();
+  }
+
+  const item = (id, label, sub, extra) => `
+    <button data-paper="${id}" style="
+      display:block;width:100%;text-align:left;cursor:pointer;font:inherit;font-size:13px;
+      padding:8px 10px;border:0;border-left:3px solid ${id === sel ? "var(--ink)" : "transparent"};
+      background:${id === sel ? "rgba(255,255,255,.55)" : "transparent"};color:var(--ink);">
+      <span>${esc(label)}</span>${extra || ""}
+      ${sub ? `<span class="tiny muted" style="display:block">${esc(sub)}</span>` : ""}
+    </button>`;
+
+  return `
+  <div style="display:flex;min-height:100vh;padding-bottom:70px">
+    <aside style="flex:none;width:290px;background:var(--paper-2);border-right:1px solid var(--rule-2);padding:22px 8px 40px;overflow:auto">
+      <div style="padding:0 10px 14px">
+        <div class="firm" style="font-variant:small-caps;letter-spacing:.09em">Kestrel &amp; Co.</div>
+        <div class="tiny muted">${esc(S.matter)} · ${S.side}</div>
+        <div class="tiny muted" style="margin-top:6px">Day ${S.day} of ${S.of} · ${esc(S.you)}</div>
+        <div style="margin-top:8px">${budgetLine(S)}</div>
+      </div>
+      ${pinned.map(([id, label, badge]) =>
+        item(id, label, null, badge && id === "briefing" ? ` <span class="tab-clip">${badge}</span>` : "")).join("")}
+      <div class="tiny muted" style="padding:16px 10px 6px;border-top:1px solid var(--rule);margin-top:12px">
+        Everything that has happened
+      </div>
+      ${run.length
+        ? run.map(r => item(r.id, r.label, `Day ${r.day} · ${r.sub}`,
+            r.mark ? ` <span class="tab-clip">${r.mark}</span>` : (r.served ? ` <span class="stamp warn" style="transform:none;font-size:8px;padding:1px 4px">served</span>` : ""))).join("")
+        : `<div style="padding:6px 10px"><div class="empty-state" style="font-size:13px">${esc(EMPTY.docket)}</div></div>`}
+    </aside>
+    <main style="flex:1;padding:34px 40px;min-width:0;display:flex;justify-content:center">
+      <div class="sheet" style="max-width:700px;width:100%;padding:36px 44px;align-self:flex-start">
+        <div class="letterhead">
+          <span class="firm">${sel === "briefing" ? "Memorandum" : "Case file"}</span>
+          <span class="meta">Day ${S.day}/${S.of}</span>
+        </div>
+        ${body}
+      </div>
+    </main>
+  </div>`;
+}
+</script>
+
+<script>
+/* ==========================================================================
+   VARIANT C — THE WORKING DRAFT
+   The draft is the page, always. The term sheet holds the centre column with
+   the client's aspiration in the margin and their last committed offer struck
+   through in redline; what is clipped to the draft and the countersignature
+   block run down the right. The Action Board is a slip along the foot. The
+   Case File and the Docket are the BACK of the same instrument — you flip the
+   page over rather than going anywhere. The Briefing is the draft's front
+   matter: it is what is on top when the Day opens, and you scroll past it.
+   Movement is scroll and flip. The deal is never off screen.
+   ========================================================================== */
+
+function renderC(S, state) {
+  const back = state.face === "back";
+
+  const front = () => `
+    <section style="padding:34px 0 6px">
+      <div class="doc-sub">Front matter · the morning of Day ${S.day}</div>
+      ${briefingSections(S)}
+      ${S.band ? `<hr class="rule">${consultMemo(S)}` : ""}
+    </section>
+    <hr class="rule" style="border-top-width:2px;border-color:var(--ink)">
+    <section style="padding:22px 0">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+        <div class="doc-title">Draft terms of settlement</div>
+        ${S.ours_staged ? `<span class="draft-mark">Draft — not executed</span>` : ""}
+      </div>
+      <div class="doc-sub">${S.matter} · drawn Day ${S.day}${S.staged_by ? ` by ${esc(S.staged_by)}` : ""}</div>
+      ${S.ours_staged || S.their_offer_day
+        ? termsTable(S)
+        : `<div class="empty-state">${esc(EMPTY.terms)}</div>`}
+    </section>
+    <hr class="rule">
+    <section style="padding-bottom:26px">${countersign(S)}</section>
+    <hr class="rule">
+    <section style="padding-bottom:30px">
+      <div class="doc-sub">Slip — what this Day will still buy · ${budgetLine(S)}</div>
+      ${actionSlips(S)}
+    </section>`;
+
+  const backFace = () => `
+    <section style="padding:34px 0 30px">
+      <div class="doc-title">Back of the file</div>
+      <div class="doc-sub">What we know, and what we have done</div>
+      <h3 class="doc-sub" style="margin-top:20px">The papers</h3>
+      ${S.case_file.length ? S.case_file.map(d => `
+        <div style="margin-bottom:18px">
+          <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap">
+            <strong>${esc(d.title)}</strong> ${docMarks(d)}
+            <span class="tiny muted">Day ${d.day}</span>
+          </div>
+          ${docBody(d)}${servedNote(d)}
+        </div>`).join("") : `<div class="empty-state">${esc(EMPTY.case_file)}</div>`}
+      <hr class="rule">
+      <h3 class="doc-sub">The docket</h3>
+      ${docketLines(S)}
+    </section>`;
+
+  return `
+  <div style="min-height:100vh;display:flex;justify-content:center;padding:26px 20px 84px">
+    <div class="sheet" style="max-width:860px;width:100%;padding:0 52px 10px;position:relative">
+      <div style="position:sticky;top:0;background:var(--paper);padding-top:22px;z-index:3">
+        <div class="letterhead" style="margin-bottom:10px">
+          <span class="firm">Kestrel &amp; Co. · ${S.side} · ${esc(S.matter)}</span>
+          <span class="meta">Day ${S.day}/${S.of} · ${esc(S.you)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px">
+          <span class="tiny muted">${back ? "You are looking at the back of the file." : "You are looking at the draft."}</span>
+          <button data-face="${back ? "front" : "back"}" style="
+            font:inherit;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+            cursor:pointer;background:none;border:1px solid var(--rule-2);border-radius:2px;padding:5px 11px;color:var(--muted)">
+            ${back ? "↩ Turn back to the draft" : "Turn the page over ↪"}
+          </button>
+        </div>
+      </div>
+      ${back ? backFace() : front()}
+    </div>
+  </div>`;
+}
+</script>
+
+<script>
+/* ==========================================================================
+   THE SWITCHER — deliberately not part of the design being judged.
+   ?variant=A|B|C · ?day=1|3 · ?chrome=off
+   ========================================================================== */
+const VARIANTS = {
+  A: { name: "The Folder",        render: renderA },
+  B: { name: "The Desk",          render: renderB },
+  C: { name: "The Working Draft", render: renderC }
+};
+const KEYS = Object.keys(VARIANTS);
+const local = {};   // per-variant view state; in memory only, on purpose
+
+function params() { return new URLSearchParams(location.search); }
+
+function go(patch) {
+  const p = params();
+  Object.entries(patch).forEach(([k, v]) => v === null ? p.delete(k) : p.set(k, v));
+  history.replaceState(null, "", location.pathname + "?" + p);
+  draw();
+}
+
+function draw() {
+  const p = params();
+  const key = KEYS.includes((p.get("variant") || "").toUpperCase()) ? p.get("variant").toUpperCase() : "A";
+  const S = p.get("day") === "1" ? DAY1 : DAY3;
+  local[key] = local[key] || {};
+
+  document.getElementById("root").innerHTML = VARIANTS[key].render(S, local[key]);
+
+  document.querySelectorAll("[data-tab]").forEach(b =>
+    b.onclick = () => { local[key].tab = b.dataset.tab; draw(); });
+  document.querySelectorAll("[data-paper]").forEach(b =>
+    b.onclick = () => { local[key].paper = b.dataset.paper; draw(); });
+  document.querySelectorAll("[data-face]").forEach(b =>
+    b.onclick = () => { local[key].face = b.dataset.face; scrollTo(0, 0); draw(); });
+
+  const bar = document.getElementById("bar");
+  if (p.get("chrome") === "off") { bar.hidden = true; return; }
+  bar.hidden = false;
+  const i = KEYS.indexOf(key), day1 = p.get("day") === "1";
+  bar.innerHTML = `
+    <button id="prev" title="Previous variant">←</button>
+    <span class="label">${key} — ${VARIANTS[key].name}</span>
+    <button id="next" title="Next variant">→</button>
+    <span class="probe">
+      <button id="d3" class="${day1 ? "" : "on"}">Day 3</button>
+      <button id="d1" class="${day1 ? "on" : ""}">Day 1</button>
+    </span>`;
+  bar.querySelector("#prev").onclick = () => go({ variant: KEYS[(i - 1 + KEYS.length) % KEYS.length] });
+  bar.querySelector("#next").onclick = () => go({ variant: KEYS[(i + 1) % KEYS.length] });
+  bar.querySelector("#d3").onclick = () => go({ day: null });
+  bar.querySelector("#d1").onclick = () => go({ day: "1" });
+}
+
+addEventListener("keydown", e => {
+  const t = e.target;
+  if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+  const i = KEYS.indexOf((params().get("variant") || "A").toUpperCase());
+  if (e.key === "ArrowLeft")  go({ variant: KEYS[(i - 1 + KEYS.length) % KEYS.length] });
+  if (e.key === "ArrowRight") go({ variant: KEYS[(i + 1) % KEYS.length] });
+});
+
+draw();
+</script>
