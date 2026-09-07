@@ -1,0 +1,63 @@
+/* ---------------------------------------------------------------- B · Console
+   A CRT terminal: phosphor on black, box-drawing borders, everything diegetic as a
+   screen. The busts are DiceBear pixel-art at 40px on the same @dicebear/core
+   pipeline #267 settled, so the art pipeline decision survives untouched. */
+.reg-b { min-height: 100vh; padding: 18px 20px 0; background: #05080a; color: #7dfcb2;
+  font: 14px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  text-shadow: 0 0 6px rgba(125,252,178,.35); position: relative; }
+.reg-b::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 20;
+  background: repeating-linear-gradient(180deg, rgba(0,0,0,.28) 0 1px, transparent 1px 3px);
+  mix-blend-mode: multiply; }
+.reg-b .dim { color: #2f7d57; text-shadow: none; }
+.reg-b .hi  { color: #d8ffe9; }
+.reg-b .warn { color: #ffd479; text-shadow: 0 0 6px rgba(255,212,121,.4); }
+
+.reg-b .head { display: flex; gap: 18px; flex-wrap: wrap; align-items: baseline;
+  border-bottom: 1px solid #17472f; padding-bottom: 8px; }
+.reg-b .head .t { letter-spacing: .12em; }
+
+.reg-b .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px;
+  align-items: start; }
+.reg-b .box { border: 1px solid #17472f; padding: 12px 13px 13px; position: relative; }
+.reg-b .box > .cap { position: absolute; top: -.75em; left: 10px; background: #05080a;
+  padding: 0 7px; font-size: 12px; letter-spacing: .16em; color: #35a06d; }
+.reg-b .box.wide { grid-column: 1 / -1; }
+
+.reg-b .cast { display: flex; gap: 20px; }
+.reg-b .fig { text-align: center; width: 96px; }
+.reg-b .fig svg { width: 44px; height: 44px; image-rendering: pixelated; display: block;
+  margin: 0 auto 5px; }
+.reg-b .fig .n { font-size: 12px; color: #d8ffe9; }
+.reg-b .fig .r { font-size: 11px; color: #2f7d57; }
+.reg-b .fig .band { display: inline-block; margin-top: 4px; padding: 0 6px;
+  border: 1px solid #ffd479; color: #ffd479; font-size: 11px; letter-spacing: .1em; }
+.reg-b .consult { margin-top: 10px; border-left: 2px solid #35a06d; padding-left: 10px; }
+
+.reg-b .rows { display: grid; gap: 3px; }
+.reg-b .ex { display: block; width: 100%; text-align: left; background: none;
+  border: 0; color: inherit; font: inherit; cursor: pointer; padding: 2px 0;
+  text-shadow: inherit; }
+.reg-b .ex:hover { color: #d8ffe9; }
+.reg-b .ex .box3 { color: #d8ffe9; }
+.reg-b .ex .note { color: #ffd479; }
+
+.reg-b .track { display: grid; grid-template-columns: 15ch 1fr; gap: 10px;
+  align-items: center; padding: 3px 0; }
+.reg-b .rule { position: relative; height: 36px; }
+.reg-b .rule .base { position: absolute; inset: auto 0 0; border-top: 1px dotted #17472f; }
+.reg-b .mk { position: absolute; bottom: 2px; transform: translateX(-50%);
+  font-size: 11.5px; white-space: nowrap; }
+.reg-b .mk.ours { color: #d8ffe9; }
+.reg-b .mk.thrs { color: #5fb4ff; text-shadow: 0 0 6px rgba(95,180,255,.35); }
+.reg-b .mk.asp  { color: #ffd479; text-shadow: 0 0 6px rgba(255,212,121,.35); }
+.reg-b .none { color: #2f7d57; font-size: 12px; }
+
+.reg-b .prompt { margin-top: 10px; display: flex; gap: 10px; align-items: baseline;
+  flex-wrap: wrap; }
+.reg-b .prompt .dead { border: 1px solid #2f7d57; color: #2f7d57; padding: 4px 10px;
+  background: none; font: inherit; cursor: not-allowed; text-shadow: none; }
+.reg-b .cursor { display: inline-block; width: .6em; height: 1.05em; background: #7dfcb2;
+  vertical-align: -2px; animation: blink 1.1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.reg-b .empty { border: 1px dashed #17472f; padding: 10px 12px; color: #2f7d57; }
+.reg-b .log { display: grid; gap: 2px; }

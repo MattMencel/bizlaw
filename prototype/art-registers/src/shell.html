@@ -1,0 +1,41 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Three registers — one negotiation beat (prototype, #299)</title>
+<style>
+/* ---------------------------------------------------------------- chrome
+   Deliberately ugly and obviously not part of any design being judged. */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: #0b0b0c; font: 15px/1.45 system-ui, sans-serif; }
+#stage { min-height: 100vh; padding-bottom: 76px; }
+
+#bar {
+  position: fixed; z-index: 99; left: 50%; bottom: 14px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 6px; padding: 6px 8px;
+  background: #fff; color: #111; border-radius: 999px;
+  box-shadow: 0 6px 30px rgba(0,0,0,.55); font: 600 13px/1 system-ui, sans-serif;
+}
+#bar button {
+  font: inherit; border: 0; background: #ececf1; color: #111;
+  padding: 8px 11px; border-radius: 999px; cursor: pointer;
+}
+#bar button:hover { background: #dcdce4; }
+#bar .now { padding: 0 10px; white-space: nowrap; }
+#bar .sep { width: 1px; height: 22px; background: #ddd; margin: 0 4px; }
+#bar .on { background: #111; color: #fff; }
+#bar .lab { font-weight: 500; color: #666; padding-left: 4px; }
+#dump {
+  position: fixed; z-index: 98; left: 12px; bottom: 76px; max-width: 46ch;
+  background: #111; color: #9fe; padding: 10px 12px; border-radius: 8px;
+  font: 12px/1.5 ui-monospace, monospace; white-space: pre-wrap;
+}
+.chrome-off #bar, .chrome-off #dump { display: none; }
+/*CSS*/
+</style>
+<body>
+<div id="stage"></div>
+<script>/*ART*/</script>
+<script>
+/*JS*/
+</script>

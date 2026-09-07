@@ -1,0 +1,135 @@
+/* ---------------------------------------------------------------- A · Boardroom
+   The incumbent, scoped exactly as #267 costed it: avataaars bust reskin, business
+   dress, the table faked with a foreground prop layer, two busts angled toward each
+   other, your own Client large in the left foreground. */
+.reg-a { position: relative; min-height: 100vh; overflow: hidden;
+  background:
+    radial-gradient(120% 80% at 50% 0%, #4a4034 0%, #2b2620 55%, #17140f 100%);
+  color: #f3ece1; font-family: "Iowan Old Style", Georgia, serif; }
+
+.reg-a .wall { position: absolute; inset: 0 0 34% 0; }
+.reg-a .wall::before { /* window slats behind the table */
+  content: ""; position: absolute; right: 4%; top: 8%; width: 34%; height: 62%;
+  background: repeating-linear-gradient(90deg, rgba(255,240,214,.13) 0 22px, transparent 22px 30px),
+              linear-gradient(180deg, rgba(255,238,208,.16), rgba(255,238,208,0));
+  border-radius: 3px; filter: blur(.4px); }
+.reg-a .wall::after { /* framed print on the left wall */
+  content: ""; position: absolute; left: 6%; top: 14%; width: 12%; height: 26%;
+  background: linear-gradient(160deg, #6b5c46, #3a3227);
+  border: 6px solid rgba(0,0,0,.35); border-radius: 2px; }
+
+.reg-a .seats { position: absolute; left: 0; right: 24%; top: 5%; height: 53%;
+  display: flex; justify-content: flex-end; align-items: flex-end; gap: 4vw;
+  padding-right: 2vw; }
+.reg-a .seat { width: 18vw; max-width: 224px; text-align: center; }
+.reg-a .seat .av svg { width: 100%; display: block;
+  filter: drop-shadow(0 22px 26px rgba(0,0,0,.55)); }
+.reg-a .seat.left  { transform: rotate(5deg)  translateY(10px); }
+.reg-a .seat.right { transform: rotate(-5deg) translateY(10px); }
+.reg-a .seat .who { display: inline-block; margin-top: -34px; position: relative;
+  padding: 4px 9px; border-radius: 6px; background: rgba(12,10,8,.72);
+  font-size: 12.5px; letter-spacing: .04em; color: #cbbda6;
+  font-family: system-ui, sans-serif; }
+.reg-a .seat .who b { display: block; color: #f3ece1; font-size: 15px; letter-spacing: 0; }
+
+/* Your own Client, large, in the near-left foreground and cut by the table edge. */
+.reg-a .mine { position: absolute; left: -1vw; bottom: 9%; width: 36vw; max-width: 470px;
+  z-index: 3; }
+.reg-a .mine svg { width: 100%; display: block;
+  filter: drop-shadow(0 26px 30px rgba(0,0,0,.6)); }
+.reg-a .mine .say { position: absolute; left: 84%; bottom: 46%; width: 31ch;
+  background: rgba(20,17,13,.92); border: 1px solid rgba(243,236,225,.2);
+  border-radius: 12px; padding: 12px 14px; font-size: 16px; }
+.reg-a .mine .say .band { display: inline-block; margin-bottom: 6px; padding: 2px 9px;
+  border-radius: 999px; font: 600 11px/1.6 system-ui, sans-serif; letter-spacing: .09em;
+  text-transform: uppercase; background: #e6d3a8; color: #2b2620; }
+.reg-a .mine .say .src { display: block; margin-top: 7px; color: #a2957f;
+  font: 12px/1.5 system-ui, sans-serif; }
+
+/* Foreground prop layer — the faked table. */
+.reg-a .table { position: absolute; left: -6%; right: -6%; bottom: 0; height: 36%;
+  z-index: 2; border-radius: 40% 40% 0 0 / 14% 14% 0 0;
+  background: linear-gradient(180deg, #6d5637 0%, #4a3823 30%, #2c2115 100%);
+  box-shadow: 0 -10px 40px rgba(0,0,0,.5) inset, 0 -2px 0 rgba(255,226,180,.18); }
+.reg-a .props { position: absolute; z-index: 3; bottom: 21%; left: 36%; width: 30%;
+  height: 9%; transform: rotate(-1.5deg);
+  background: linear-gradient(180deg, #efe7d6, #cbc0aa); border-radius: 2px;
+  box-shadow: 0 6px 14px rgba(0,0,0,.45); }
+.reg-a .props::after { content: ""; position: absolute; left: 12%; top: -34%;
+  width: 62%; height: 100%; background: #f6f1e6; transform: rotate(3deg);
+  box-shadow: 0 5px 12px rgba(0,0,0,.35); }
+
+/* Overlaid interface. Thin, because A's claim is that the room carries the beat. */
+.reg-a .hud { position: absolute; inset: 0; z-index: 5; pointer-events: none;
+  font-family: system-ui, sans-serif; }
+.reg-a .hud > * { pointer-events: auto; }
+.reg-a .top { position: absolute; top: 0; left: 0; right: 0; display: flex;
+  align-items: center; gap: 14px; padding: 12px 18px; font-size: 13px;
+  background: linear-gradient(180deg, rgba(10,8,6,.72), transparent); }
+.reg-a .top .sim { font-weight: 600; letter-spacing: .01em; }
+.reg-a .top .day { color: #cbbda6; }
+.reg-a .pips { display: flex; gap: 5px; margin-left: auto; align-items: center; }
+.reg-a .pip { width: 13px; height: 13px; border-radius: 3px;
+  border: 1px solid rgba(243,236,225,.5); }
+.reg-a .pip.quoted { background: #e6a35a; border-color: #e6a35a; }
+.reg-a .pip.free { background: transparent; }
+.reg-a .top .half { color: #cbbda6; font-size: 12px; }
+
+.reg-a .dock { position: absolute; left: 2%; right: 26%; bottom: 68px;
+  background: rgba(14,12,9,.9); border: 1px solid rgba(243,236,225,.16);
+  border-radius: 12px; padding: 12px 14px; display: grid; gap: 10px; }
+.reg-a .dock h4 { margin: 0; font-size: 12px; letter-spacing: .11em;
+  text-transform: uppercase; color: #a2957f; font-weight: 600; }
+.reg-a .dock .offer { font-family: "Iowan Old Style", Georgia, serif; font-size: 17px; }
+.reg-a .dock .offer em { color: #cbbda6; font-style: normal; font-size: 14px; }
+.reg-a .rides { display: flex; flex-wrap: wrap; gap: 7px; }
+.reg-a .ride { display: flex; align-items: center; gap: 7px; padding: 6px 10px;
+  border-radius: 999px; font-size: 12.5px; cursor: pointer;
+  border: 1px solid rgba(243,236,225,.24); background: transparent; color: #cbbda6; }
+.reg-a .ride.on { background: #e6d3a8; border-color: #e6d3a8; color: #221d16; font-weight: 600; }
+.reg-a .ride .tag { font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 999px; background: rgba(0,0,0,.18); }
+.reg-a .ride.on.dud .tag { background: #8d2f2f; color: #fff; }
+.reg-a .commit { display: flex; align-items: center; gap: 12px; }
+.reg-a .commit button { font: 600 14px system-ui, sans-serif; padding: 10px 18px;
+  border-radius: 8px; border: 1px solid rgba(243,236,225,.22);
+  background: rgba(243,236,225,.07); color: #6f6559; cursor: not-allowed; }
+.reg-a .commit .why { font-size: 12.5px; color: #a2957f; }
+.reg-a .commit .price { margin-left: auto; font-size: 13px; color: #e6a35a; }
+
+.reg-a .rail { position: absolute; right: 12px; top: 52px; bottom: 68px; width: 22%;
+  min-width: 230px; background: rgba(14,12,9,.86);
+  border: 1px solid rgba(243,236,225,.14); border-radius: 12px; padding: 12px;
+  overflow: auto; }
+.reg-a .rail h4 { margin: 0 0 8px; font-size: 12px; letter-spacing: .11em;
+  text-transform: uppercase; color: #a2957f; }
+.reg-a .rail .row { padding: 8px 0; border-top: 1px solid rgba(243,236,225,.1);
+  font-size: 13px; }
+.reg-a .rail .row .m { color: #a2957f; font-size: 12px; }
+.reg-a .rail .empty { font-size: 13px; color: #a2957f; font-style: italic;
+  border: 1px dashed rgba(243,236,225,.22); border-radius: 8px; padding: 12px; }
+
+.reg-a .board { position: absolute; right: 12px; top: 52px; width: 40%; min-width: 380px;
+  z-index: 6; background: rgba(20,17,13,.97);
+  border: 1px solid rgba(243,236,225,.2); border-radius: 12px; padding: 14px; }
+.reg-a .board h4 { margin: 0 0 2px; font-size: 12px; letter-spacing: .11em;
+  text-transform: uppercase; color: #a2957f; }
+.reg-a .board .track { padding: 9px 0; border-top: 1px solid rgba(243,236,225,.1); }
+.reg-a .board .hd { display: flex; justify-content: space-between; font-size: 13px; }
+.reg-a .board .hd .k { font-weight: 600; }
+.reg-a .board .hd .v { color: #cbbda6; font-size: 12px; }
+.reg-a .board .line { position: relative; height: 58px; margin-top: 6px;
+  border-bottom: 1px solid rgba(243,236,225,.18); }
+.reg-a .board .mk { position: absolute; top: 2px; transform: translateX(-50%);
+  font: 11px/1 system-ui, sans-serif; white-space: nowrap; }
+.reg-a .board .mk b { display: block; text-align: center; }
+.reg-a .board .mk.ours  { color: #e6d3a8; }
+.reg-a .board .mk.thrs  { color: #8fb4c9; }
+.reg-a .board .mk.asp   { color: #9ec79a; }
+.reg-a .board .silent { font-size: 12px; color: #7d7263; font-style: italic; padding-top: 4px; }
+.reg-a .board .toggle { position: absolute; left: -34px; top: 10px; }
+.reg-a .boardtab { font: 600 11.5px system-ui, sans-serif; letter-spacing: .06em;
+  text-transform: uppercase; padding: 6px 11px; border-radius: 999px; cursor: pointer;
+  background: rgba(243,236,225,.1); color: #e6d3a8;
+  border: 1px solid rgba(243,236,225,.28); }
+.reg-a .top .boardtab { margin-left: 18px; }

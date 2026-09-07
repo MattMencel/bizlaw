@@ -1,0 +1,94 @@
+/* ---------------------------------------------------------------- C · Paper
+   No characters. The game is the file: letterhead, exhibit tabs, a redlined term
+   sheet, service stamps, a countersignature block, and a docket that is a docket. */
+.reg-c { min-height: 100vh; padding: 26px 24px 0;
+  background: #2a2723 url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='6' height='6'><rect width='6' height='6' fill='%232a2723'/><circle cx='1' cy='1' r='.5' fill='%23332f2a'/></svg>");
+  color: #1b1815; font: 15px/1.55 "Iowan Old Style", Georgia, "Times New Roman", serif;
+  display: grid; grid-template-columns: 250px minmax(0,1fr) 268px; gap: 18px;
+  align-items: start; }
+
+.reg-c .sheet { background: #f7f3ea; padding: 26px 30px 30px; position: relative;
+  box-shadow: 0 14px 34px rgba(0,0,0,.45); }
+.reg-c .sheet::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: #8a1f1f; opacity: .5; }
+.reg-c .lh { display: flex; justify-content: space-between; align-items: flex-end;
+  border-bottom: 2px solid #1b1815; padding-bottom: 8px; }
+.reg-c .lh .firm { font-size: 19px; letter-spacing: .13em; text-transform: uppercase; }
+.reg-c .lh .meta { font: 11.5px/1.5 "Courier New", monospace; text-align: right;
+  text-transform: uppercase; letter-spacing: .06em; }
+.reg-c .caption { text-align: center; margin: 16px 0 4px; }
+.reg-c .caption .v { font-style: italic; font-size: 17px; }
+.reg-c .caption .sub { font: 11.5px "Courier New", monospace; letter-spacing: .14em;
+  text-transform: uppercase; color: #5a5248; }
+
+.reg-c .stamp { display: inline-block; border: 2px solid #8a1f1f; color: #8a1f1f;
+  padding: 3px 9px; font: 700 11px/1.2 "Courier New", monospace; letter-spacing: .16em;
+  text-transform: uppercase; transform: rotate(-3deg); opacity: .85; }
+.reg-c .stamp.blue { border-color: #1f4f8a; color: #1f4f8a; }
+.reg-c .stamp.big { font-size: 15px; padding: 6px 14px; border-width: 3px; }
+.reg-c .draftmark { position: absolute; right: 26px; top: 84px; transform: rotate(7deg); }
+
+.reg-c table.terms { width: 100%; border-collapse: collapse; margin-top: 14px; }
+.reg-c table.terms th { font: 11px "Courier New", monospace; letter-spacing: .12em;
+  text-transform: uppercase; text-align: left; color: #5a5248;
+  border-bottom: 1px solid #1b1815; padding: 5px 8px 5px 0; }
+.reg-c table.terms td { padding: 9px 8px 9px 0; border-bottom: 1px solid #d8d0c0;
+  vertical-align: top; }
+.reg-c table.terms td.k { width: 27%; }
+.reg-c .ours { text-decoration: underline; text-decoration-color: #1f4f8a;
+  text-underline-offset: 3px; }
+.reg-c .struck { color: #8a1f1f; text-decoration: line-through;
+  text-decoration-color: #8a1f1f; }
+.reg-c .margin { font: 11.5px/1.4 "Courier New", monospace; color: #8a1f1f; }
+.reg-c .silent { color: #7a7266; font-style: italic; }
+.reg-c .hand { font-family: "Snell Roundhand", "Segoe Script", cursive; font-size: 21px; }
+
+.reg-c .sig { margin-top: 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+.reg-c .sig .line { border-bottom: 1px solid #1b1815; height: 40px; position: relative; }
+.reg-c .sig .line .hand { position: absolute; bottom: 3px; left: 4px; }
+.reg-c .sig .cap { font: 11px "Courier New", monospace; letter-spacing: .1em;
+  text-transform: uppercase; color: #5a5248; margin-top: 5px; }
+.reg-c .sig .open .line { border-bottom-color: #a9a094; background: repeating-linear-gradient(
+    90deg, rgba(0,0,0,.03) 0 6px, transparent 6px 12px); }
+.reg-c .sig .open .cap { color: #8a8073; }
+.reg-c .sig .open .cap b { color: #5a5248; }
+
+.reg-c .price { margin-top: 16px; border-top: 1px solid #d8d0c0; padding-top: 10px;
+  font: 12px "Courier New", monospace; letter-spacing: .05em; color: #5a5248;
+  display: flex; align-items: center; gap: 10px; }
+.reg-c .mark { width: 15px; height: 15px; border: 1.5px solid #5a5248; display: inline-block; }
+.reg-c .mark.used { background: #8a1f1f; border-color: #8a1f1f; }
+
+.reg-c .file { display: grid; gap: 12px; }
+.reg-c .doc { background: #f2ece0; padding: 12px 14px 14px; position: relative;
+  box-shadow: 0 8px 20px rgba(0,0,0,.35); cursor: pointer; text-align: left;
+  border: 0; font: inherit; color: inherit; width: 100%; }
+.reg-c .doc .t { font-size: 14.5px; line-height: 1.3; padding-right: 74px; }
+.reg-c .doc .s { font: 11px "Courier New", monospace; color: #5a5248; margin-top: 5px;
+  text-transform: uppercase; letter-spacing: .06em; }
+.reg-c .doc .tab { position: absolute; right: -9px; top: 12px; padding: 3px 8px;
+  font: 700 10.5px "Courier New", monospace; letter-spacing: .1em; color: #f7f3ea;
+  background: #8a6b1f; box-shadow: 2px 2px 5px rgba(0,0,0,.35); }
+.reg-c .doc.clipped { background: #f7f3ea; outline: 2px solid #8a6b1f; }
+.reg-c .doc.clipped .tab { background: #8a1f1f; }
+.reg-c .doc .note { margin-top: 8px; font: 11.5px/1.4 "Courier New", monospace;
+  color: #8a1f1f; }
+.reg-c .pane { background: #f7f3ea; padding: 14px 16px 16px;
+  box-shadow: 0 12px 28px rgba(0,0,0,.4); }
+.reg-c .pane h4, .reg-c .file h4 { margin: 0 0 8px; font: 11px "Courier New", monospace;
+  letter-spacing: .16em; text-transform: uppercase; color: #5a5248; }
+.reg-c .file h4 { color: #cdc4b4; }
+.reg-c .pane .row { border-top: 1px solid #d8d0c0; padding: 8px 0; font-size: 14px; }
+.reg-c .pane .row .m { font: 11px "Courier New", monospace; color: #5a5248;
+  text-transform: uppercase; letter-spacing: .05em; }
+.reg-c .pane .empty { border: 1px dashed #a9a094; padding: 12px; color: #5a5248;
+  font-style: italic; font-size: 13.5px; }
+.reg-c .memo { background: #fbf8f1; padding: 16px 18px; margin-top: 14px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.4); position: relative; }
+.reg-c .memo .hd { font: 11px "Courier New", monospace; letter-spacing: .1em;
+  text-transform: uppercase; color: #5a5248; border-bottom: 1px solid #d8d0c0;
+  padding-bottom: 6px; margin-bottom: 9px; }
+.reg-c .memo .body { font-size: 15.5px; }
+.reg-c .memo .st { position: absolute; right: 14px; bottom: 14px; }
+.reg-c .memo .by { padding-right: 84px; }
+.reg-c .sig .open .line { background-size: 12px 12px; }

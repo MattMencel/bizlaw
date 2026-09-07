@@ -1,0 +1,786 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Three registers — one negotiation beat (prototype, #299)</title>
+<style>
+/* ---------------------------------------------------------------- chrome
+   Deliberately ugly and obviously not part of any design being judged. */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: #0b0b0c; font: 15px/1.45 system-ui, sans-serif; }
+#stage { min-height: 100vh; padding-bottom: 76px; }
+
+#bar {
+  position: fixed; z-index: 99; left: 50%; bottom: 14px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 6px; padding: 6px 8px;
+  background: #fff; color: #111; border-radius: 999px;
+  box-shadow: 0 6px 30px rgba(0,0,0,.55); font: 600 13px/1 system-ui, sans-serif;
+}
+#bar button {
+  font: inherit; border: 0; background: #ececf1; color: #111;
+  padding: 8px 11px; border-radius: 999px; cursor: pointer;
+}
+#bar button:hover { background: #dcdce4; }
+#bar .now { padding: 0 10px; white-space: nowrap; }
+#bar .sep { width: 1px; height: 22px; background: #ddd; margin: 0 4px; }
+#bar .on { background: #111; color: #fff; }
+#bar .lab { font-weight: 500; color: #666; padding-left: 4px; }
+#dump {
+  position: fixed; z-index: 98; left: 12px; bottom: 76px; max-width: 46ch;
+  background: #111; color: #9fe; padding: 10px 12px; border-radius: 8px;
+  font: 12px/1.5 ui-monospace, monospace; white-space: pre-wrap;
+}
+.chrome-off #bar, .chrome-off #dump { display: none; }
+/* ---------------------------------------------------------------- A · Boardroom
+   The incumbent, scoped exactly as #267 costed it: avataaars bust reskin, business
+   dress, the table faked with a foreground prop layer, two busts angled toward each
+   other, your own Client large in the left foreground. */
+.reg-a { position: relative; min-height: 100vh; overflow: hidden;
+  background:
+    radial-gradient(120% 80% at 50% 0%, #4a4034 0%, #2b2620 55%, #17140f 100%);
+  color: #f3ece1; font-family: "Iowan Old Style", Georgia, serif; }
+
+.reg-a .wall { position: absolute; inset: 0 0 34% 0; }
+.reg-a .wall::before { /* window slats behind the table */
+  content: ""; position: absolute; right: 4%; top: 8%; width: 34%; height: 62%;
+  background: repeating-linear-gradient(90deg, rgba(255,240,214,.13) 0 22px, transparent 22px 30px),
+              linear-gradient(180deg, rgba(255,238,208,.16), rgba(255,238,208,0));
+  border-radius: 3px; filter: blur(.4px); }
+.reg-a .wall::after { /* framed print on the left wall */
+  content: ""; position: absolute; left: 6%; top: 14%; width: 12%; height: 26%;
+  background: linear-gradient(160deg, #6b5c46, #3a3227);
+  border: 6px solid rgba(0,0,0,.35); border-radius: 2px; }
+
+.reg-a .seats { position: absolute; left: 0; right: 24%; top: 5%; height: 53%;
+  display: flex; justify-content: flex-end; align-items: flex-end; gap: 4vw;
+  padding-right: 2vw; }
+.reg-a .seat { width: 18vw; max-width: 224px; text-align: center; }
+.reg-a .seat .av svg { width: 100%; display: block;
+  filter: drop-shadow(0 22px 26px rgba(0,0,0,.55)); }
+.reg-a .seat.left  { transform: rotate(5deg)  translateY(10px); }
+.reg-a .seat.right { transform: rotate(-5deg) translateY(10px); }
+.reg-a .seat .who { display: inline-block; margin-top: -34px; position: relative;
+  padding: 4px 9px; border-radius: 6px; background: rgba(12,10,8,.72);
+  font-size: 12.5px; letter-spacing: .04em; color: #cbbda6;
+  font-family: system-ui, sans-serif; }
+.reg-a .seat .who b { display: block; color: #f3ece1; font-size: 15px; letter-spacing: 0; }
+
+/* Your own Client, large, in the near-left foreground and cut by the table edge. */
+.reg-a .mine { position: absolute; left: -1vw; bottom: 9%; width: 36vw; max-width: 470px;
+  z-index: 3; }
+.reg-a .mine svg { width: 100%; display: block;
+  filter: drop-shadow(0 26px 30px rgba(0,0,0,.6)); }
+.reg-a .mine .say { position: absolute; left: 84%; bottom: 46%; width: 31ch;
+  background: rgba(20,17,13,.92); border: 1px solid rgba(243,236,225,.2);
+  border-radius: 12px; padding: 12px 14px; font-size: 16px; }
+.reg-a .mine .say .band { display: inline-block; margin-bottom: 6px; padding: 2px 9px;
+  border-radius: 999px; font: 600 11px/1.6 system-ui, sans-serif; letter-spacing: .09em;
+  text-transform: uppercase; background: #e6d3a8; color: #2b2620; }
+.reg-a .mine .say .src { display: block; margin-top: 7px; color: #a2957f;
+  font: 12px/1.5 system-ui, sans-serif; }
+
+/* Foreground prop layer — the faked table. */
+.reg-a .table { position: absolute; left: -6%; right: -6%; bottom: 0; height: 36%;
+  z-index: 2; border-radius: 40% 40% 0 0 / 14% 14% 0 0;
+  background: linear-gradient(180deg, #6d5637 0%, #4a3823 30%, #2c2115 100%);
+  box-shadow: 0 -10px 40px rgba(0,0,0,.5) inset, 0 -2px 0 rgba(255,226,180,.18); }
+.reg-a .props { position: absolute; z-index: 3; bottom: 21%; left: 36%; width: 30%;
+  height: 9%; transform: rotate(-1.5deg);
+  background: linear-gradient(180deg, #efe7d6, #cbc0aa); border-radius: 2px;
+  box-shadow: 0 6px 14px rgba(0,0,0,.45); }
+.reg-a .props::after { content: ""; position: absolute; left: 12%; top: -34%;
+  width: 62%; height: 100%; background: #f6f1e6; transform: rotate(3deg);
+  box-shadow: 0 5px 12px rgba(0,0,0,.35); }
+
+/* Overlaid interface. Thin, because A's claim is that the room carries the beat. */
+.reg-a .hud { position: absolute; inset: 0; z-index: 5; pointer-events: none;
+  font-family: system-ui, sans-serif; }
+.reg-a .hud > * { pointer-events: auto; }
+.reg-a .top { position: absolute; top: 0; left: 0; right: 0; display: flex;
+  align-items: center; gap: 14px; padding: 12px 18px; font-size: 13px;
+  background: linear-gradient(180deg, rgba(10,8,6,.72), transparent); }
+.reg-a .top .sim { font-weight: 600; letter-spacing: .01em; }
+.reg-a .top .day { color: #cbbda6; }
+.reg-a .pips { display: flex; gap: 5px; margin-left: auto; align-items: center; }
+.reg-a .pip { width: 13px; height: 13px; border-radius: 3px;
+  border: 1px solid rgba(243,236,225,.5); }
+.reg-a .pip.quoted { background: #e6a35a; border-color: #e6a35a; }
+.reg-a .pip.free { background: transparent; }
+.reg-a .top .half { color: #cbbda6; font-size: 12px; }
+
+.reg-a .dock { position: absolute; left: 2%; right: 26%; bottom: 68px;
+  background: rgba(14,12,9,.9); border: 1px solid rgba(243,236,225,.16);
+  border-radius: 12px; padding: 12px 14px; display: grid; gap: 10px; }
+.reg-a .dock h4 { margin: 0; font-size: 12px; letter-spacing: .11em;
+  text-transform: uppercase; color: #a2957f; font-weight: 600; }
+.reg-a .dock .offer { font-family: "Iowan Old Style", Georgia, serif; font-size: 17px; }
+.reg-a .dock .offer em { color: #cbbda6; font-style: normal; font-size: 14px; }
+.reg-a .rides { display: flex; flex-wrap: wrap; gap: 7px; }
+.reg-a .ride { display: flex; align-items: center; gap: 7px; padding: 6px 10px;
+  border-radius: 999px; font-size: 12.5px; cursor: pointer;
+  border: 1px solid rgba(243,236,225,.24); background: transparent; color: #cbbda6; }
+.reg-a .ride.on { background: #e6d3a8; border-color: #e6d3a8; color: #221d16; font-weight: 600; }
+.reg-a .ride .tag { font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 999px; background: rgba(0,0,0,.18); }
+.reg-a .ride.on.dud .tag { background: #8d2f2f; color: #fff; }
+.reg-a .commit { display: flex; align-items: center; gap: 12px; }
+.reg-a .commit button { font: 600 14px system-ui, sans-serif; padding: 10px 18px;
+  border-radius: 8px; border: 1px solid rgba(243,236,225,.22);
+  background: rgba(243,236,225,.07); color: #6f6559; cursor: not-allowed; }
+.reg-a .commit .why { font-size: 12.5px; color: #a2957f; }
+.reg-a .commit .price { margin-left: auto; font-size: 13px; color: #e6a35a; }
+
+.reg-a .rail { position: absolute; right: 12px; top: 52px; bottom: 68px; width: 22%;
+  min-width: 230px; background: rgba(14,12,9,.86);
+  border: 1px solid rgba(243,236,225,.14); border-radius: 12px; padding: 12px;
+  overflow: auto; }
+.reg-a .rail h4 { margin: 0 0 8px; font-size: 12px; letter-spacing: .11em;
+  text-transform: uppercase; color: #a2957f; }
+.reg-a .rail .row { padding: 8px 0; border-top: 1px solid rgba(243,236,225,.1);
+  font-size: 13px; }
+.reg-a .rail .row .m { color: #a2957f; font-size: 12px; }
+.reg-a .rail .empty { font-size: 13px; color: #a2957f; font-style: italic;
+  border: 1px dashed rgba(243,236,225,.22); border-radius: 8px; padding: 12px; }
+
+.reg-a .board { position: absolute; right: 12px; top: 52px; width: 40%; min-width: 380px;
+  z-index: 6; background: rgba(20,17,13,.97);
+  border: 1px solid rgba(243,236,225,.2); border-radius: 12px; padding: 14px; }
+.reg-a .board h4 { margin: 0 0 2px; font-size: 12px; letter-spacing: .11em;
+  text-transform: uppercase; color: #a2957f; }
+.reg-a .board .track { padding: 9px 0; border-top: 1px solid rgba(243,236,225,.1); }
+.reg-a .board .hd { display: flex; justify-content: space-between; font-size: 13px; }
+.reg-a .board .hd .k { font-weight: 600; }
+.reg-a .board .hd .v { color: #cbbda6; font-size: 12px; }
+.reg-a .board .line { position: relative; height: 58px; margin-top: 6px;
+  border-bottom: 1px solid rgba(243,236,225,.18); }
+.reg-a .board .mk { position: absolute; top: 2px; transform: translateX(-50%);
+  font: 11px/1 system-ui, sans-serif; white-space: nowrap; }
+.reg-a .board .mk b { display: block; text-align: center; }
+.reg-a .board .mk.ours  { color: #e6d3a8; }
+.reg-a .board .mk.thrs  { color: #8fb4c9; }
+.reg-a .board .mk.asp   { color: #9ec79a; }
+.reg-a .board .silent { font-size: 12px; color: #7d7263; font-style: italic; padding-top: 4px; }
+.reg-a .board .toggle { position: absolute; left: -34px; top: 10px; }
+.reg-a .boardtab { font: 600 11.5px system-ui, sans-serif; letter-spacing: .06em;
+  text-transform: uppercase; padding: 6px 11px; border-radius: 999px; cursor: pointer;
+  background: rgba(243,236,225,.1); color: #e6d3a8;
+  border: 1px solid rgba(243,236,225,.28); }
+.reg-a .top .boardtab { margin-left: 18px; }
+
+/* ---------------------------------------------------------------- B · Console
+   A CRT terminal: phosphor on black, box-drawing borders, everything diegetic as a
+   screen. The busts are DiceBear pixel-art at 40px on the same @dicebear/core
+   pipeline #267 settled, so the art pipeline decision survives untouched. */
+.reg-b { min-height: 100vh; padding: 18px 20px 0; background: #05080a; color: #7dfcb2;
+  font: 14px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  text-shadow: 0 0 6px rgba(125,252,178,.35); position: relative; }
+.reg-b::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 20;
+  background: repeating-linear-gradient(180deg, rgba(0,0,0,.28) 0 1px, transparent 1px 3px);
+  mix-blend-mode: multiply; }
+.reg-b .dim { color: #2f7d57; text-shadow: none; }
+.reg-b .hi  { color: #d8ffe9; }
+.reg-b .warn { color: #ffd479; text-shadow: 0 0 6px rgba(255,212,121,.4); }
+
+.reg-b .head { display: flex; gap: 18px; flex-wrap: wrap; align-items: baseline;
+  border-bottom: 1px solid #17472f; padding-bottom: 8px; }
+.reg-b .head .t { letter-spacing: .12em; }
+
+.reg-b .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px;
+  align-items: start; }
+.reg-b .box { border: 1px solid #17472f; padding: 12px 13px 13px; position: relative; }
+.reg-b .box > .cap { position: absolute; top: -.75em; left: 10px; background: #05080a;
+  padding: 0 7px; font-size: 12px; letter-spacing: .16em; color: #35a06d; }
+.reg-b .box.wide { grid-column: 1 / -1; }
+
+.reg-b .cast { display: flex; gap: 20px; }
+.reg-b .fig { text-align: center; width: 96px; }
+.reg-b .fig svg { width: 44px; height: 44px; image-rendering: pixelated; display: block;
+  margin: 0 auto 5px; }
+.reg-b .fig .n { font-size: 12px; color: #d8ffe9; }
+.reg-b .fig .r { font-size: 11px; color: #2f7d57; }
+.reg-b .fig .band { display: inline-block; margin-top: 4px; padding: 0 6px;
+  border: 1px solid #ffd479; color: #ffd479; font-size: 11px; letter-spacing: .1em; }
+.reg-b .consult { margin-top: 10px; border-left: 2px solid #35a06d; padding-left: 10px; }
+
+.reg-b .rows { display: grid; gap: 3px; }
+.reg-b .ex { display: block; width: 100%; text-align: left; background: none;
+  border: 0; color: inherit; font: inherit; cursor: pointer; padding: 2px 0;
+  text-shadow: inherit; }
+.reg-b .ex:hover { color: #d8ffe9; }
+.reg-b .ex .box3 { color: #d8ffe9; }
+.reg-b .ex .note { color: #ffd479; }
+
+.reg-b .track { display: grid; grid-template-columns: 15ch 1fr; gap: 10px;
+  align-items: center; padding: 3px 0; }
+.reg-b .rule { position: relative; height: 36px; }
+.reg-b .rule .base { position: absolute; inset: auto 0 0; border-top: 1px dotted #17472f; }
+.reg-b .mk { position: absolute; bottom: 2px; transform: translateX(-50%);
+  font-size: 11.5px; white-space: nowrap; }
+.reg-b .mk.ours { color: #d8ffe9; }
+.reg-b .mk.thrs { color: #5fb4ff; text-shadow: 0 0 6px rgba(95,180,255,.35); }
+.reg-b .mk.asp  { color: #ffd479; text-shadow: 0 0 6px rgba(255,212,121,.35); }
+.reg-b .none { color: #2f7d57; font-size: 12px; }
+
+.reg-b .prompt { margin-top: 10px; display: flex; gap: 10px; align-items: baseline;
+  flex-wrap: wrap; }
+.reg-b .prompt .dead { border: 1px solid #2f7d57; color: #2f7d57; padding: 4px 10px;
+  background: none; font: inherit; cursor: not-allowed; text-shadow: none; }
+.reg-b .cursor { display: inline-block; width: .6em; height: 1.05em; background: #7dfcb2;
+  vertical-align: -2px; animation: blink 1.1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.reg-b .empty { border: 1px dashed #17472f; padding: 10px 12px; color: #2f7d57; }
+.reg-b .log { display: grid; gap: 2px; }
+
+/* ---------------------------------------------------------------- C · Paper
+   No characters. The game is the file: letterhead, exhibit tabs, a redlined term
+   sheet, service stamps, a countersignature block, and a docket that is a docket. */
+.reg-c { min-height: 100vh; padding: 26px 24px 0;
+  background: #2a2723 url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='6' height='6'><rect width='6' height='6' fill='%232a2723'/><circle cx='1' cy='1' r='.5' fill='%23332f2a'/></svg>");
+  color: #1b1815; font: 15px/1.55 "Iowan Old Style", Georgia, "Times New Roman", serif;
+  display: grid; grid-template-columns: 250px minmax(0,1fr) 268px; gap: 18px;
+  align-items: start; }
+
+.reg-c .sheet { background: #f7f3ea; padding: 26px 30px 30px; position: relative;
+  box-shadow: 0 14px 34px rgba(0,0,0,.45); }
+.reg-c .sheet::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: #8a1f1f; opacity: .5; }
+.reg-c .lh { display: flex; justify-content: space-between; align-items: flex-end;
+  border-bottom: 2px solid #1b1815; padding-bottom: 8px; }
+.reg-c .lh .firm { font-size: 19px; letter-spacing: .13em; text-transform: uppercase; }
+.reg-c .lh .meta { font: 11.5px/1.5 "Courier New", monospace; text-align: right;
+  text-transform: uppercase; letter-spacing: .06em; }
+.reg-c .caption { text-align: center; margin: 16px 0 4px; }
+.reg-c .caption .v { font-style: italic; font-size: 17px; }
+.reg-c .caption .sub { font: 11.5px "Courier New", monospace; letter-spacing: .14em;
+  text-transform: uppercase; color: #5a5248; }
+
+.reg-c .stamp { display: inline-block; border: 2px solid #8a1f1f; color: #8a1f1f;
+  padding: 3px 9px; font: 700 11px/1.2 "Courier New", monospace; letter-spacing: .16em;
+  text-transform: uppercase; transform: rotate(-3deg); opacity: .85; }
+.reg-c .stamp.blue { border-color: #1f4f8a; color: #1f4f8a; }
+.reg-c .stamp.big { font-size: 15px; padding: 6px 14px; border-width: 3px; }
+.reg-c .draftmark { position: absolute; right: 26px; top: 84px; transform: rotate(7deg); }
+
+.reg-c table.terms { width: 100%; border-collapse: collapse; margin-top: 14px; }
+.reg-c table.terms th { font: 11px "Courier New", monospace; letter-spacing: .12em;
+  text-transform: uppercase; text-align: left; color: #5a5248;
+  border-bottom: 1px solid #1b1815; padding: 5px 8px 5px 0; }
+.reg-c table.terms td { padding: 9px 8px 9px 0; border-bottom: 1px solid #d8d0c0;
+  vertical-align: top; }
+.reg-c table.terms td.k { width: 27%; }
+.reg-c .ours { text-decoration: underline; text-decoration-color: #1f4f8a;
+  text-underline-offset: 3px; }
+.reg-c .struck { color: #8a1f1f; text-decoration: line-through;
+  text-decoration-color: #8a1f1f; }
+.reg-c .margin { font: 11.5px/1.4 "Courier New", monospace; color: #8a1f1f; }
+.reg-c .silent { color: #7a7266; font-style: italic; }
+.reg-c .hand { font-family: "Snell Roundhand", "Segoe Script", cursive; font-size: 21px; }
+
+.reg-c .sig { margin-top: 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+.reg-c .sig .line { border-bottom: 1px solid #1b1815; height: 40px; position: relative; }
+.reg-c .sig .line .hand { position: absolute; bottom: 3px; left: 4px; }
+.reg-c .sig .cap { font: 11px "Courier New", monospace; letter-spacing: .1em;
+  text-transform: uppercase; color: #5a5248; margin-top: 5px; }
+.reg-c .sig .open .line { border-bottom-color: #a9a094; background: repeating-linear-gradient(
+    90deg, rgba(0,0,0,.03) 0 6px, transparent 6px 12px); }
+.reg-c .sig .open .cap { color: #8a8073; }
+.reg-c .sig .open .cap b { color: #5a5248; }
+
+.reg-c .price { margin-top: 16px; border-top: 1px solid #d8d0c0; padding-top: 10px;
+  font: 12px "Courier New", monospace; letter-spacing: .05em; color: #5a5248;
+  display: flex; align-items: center; gap: 10px; }
+.reg-c .mark { width: 15px; height: 15px; border: 1.5px solid #5a5248; display: inline-block; }
+.reg-c .mark.used { background: #8a1f1f; border-color: #8a1f1f; }
+
+.reg-c .file { display: grid; gap: 12px; }
+.reg-c .doc { background: #f2ece0; padding: 12px 14px 14px; position: relative;
+  box-shadow: 0 8px 20px rgba(0,0,0,.35); cursor: pointer; text-align: left;
+  border: 0; font: inherit; color: inherit; width: 100%; }
+.reg-c .doc .t { font-size: 14.5px; line-height: 1.3; padding-right: 74px; }
+.reg-c .doc .s { font: 11px "Courier New", monospace; color: #5a5248; margin-top: 5px;
+  text-transform: uppercase; letter-spacing: .06em; }
+.reg-c .doc .tab { position: absolute; right: -9px; top: 12px; padding: 3px 8px;
+  font: 700 10.5px "Courier New", monospace; letter-spacing: .1em; color: #f7f3ea;
+  background: #8a6b1f; box-shadow: 2px 2px 5px rgba(0,0,0,.35); }
+.reg-c .doc.clipped { background: #f7f3ea; outline: 2px solid #8a6b1f; }
+.reg-c .doc.clipped .tab { background: #8a1f1f; }
+.reg-c .doc .note { margin-top: 8px; font: 11.5px/1.4 "Courier New", monospace;
+  color: #8a1f1f; }
+.reg-c .pane { background: #f7f3ea; padding: 14px 16px 16px;
+  box-shadow: 0 12px 28px rgba(0,0,0,.4); }
+.reg-c .pane h4, .reg-c .file h4 { margin: 0 0 8px; font: 11px "Courier New", monospace;
+  letter-spacing: .16em; text-transform: uppercase; color: #5a5248; }
+.reg-c .file h4 { color: #cdc4b4; }
+.reg-c .pane .row { border-top: 1px solid #d8d0c0; padding: 8px 0; font-size: 14px; }
+.reg-c .pane .row .m { font: 11px "Courier New", monospace; color: #5a5248;
+  text-transform: uppercase; letter-spacing: .05em; }
+.reg-c .pane .empty { border: 1px dashed #a9a094; padding: 12px; color: #5a5248;
+  font-style: italic; font-size: 13.5px; }
+.reg-c .memo { background: #fbf8f1; padding: 16px 18px; margin-top: 14px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.4); position: relative; }
+.reg-c .memo .hd { font: 11px "Courier New", monospace; letter-spacing: .1em;
+  text-transform: uppercase; color: #5a5248; border-bottom: 1px solid #d8d0c0;
+  padding-bottom: 6px; margin-bottom: 9px; }
+.reg-c .memo .body { font-size: 15.5px; }
+.reg-c .memo .st { position: absolute; right: 14px; bottom: 14px; }
+.reg-c .memo .by { padding-right: 84px; }
+.reg-c .sig .open .line { background-size: 12px 12px; }
+
+</style>
+<body>
+<div id="stage"></div>
+<script>window.ART = {"avataaars":{"dana":{"firm":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 280 280\" fill=\"none\" shape-rendering=\"auto\"><metadata xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\"><rdf:RDF><rdf:Description><dc:title>Avataaars</dc:title><dc:creator>Pablo Stanley</dc:creator><dc:source xsi:type=\"dcterms:URI\">https://avataaars.com/</dc:source><dcterms:license xsi:type=\"dcterms:URI\">https://avataaars.com/</dcterms:license><dc:rights>Remix of „Avataaars” (https://avataaars.com/) by „Pablo Stanley”, licensed under „Free for personal and commercial use” (https://avataaars.com/)</dc:rights></rdf:Description></rdf:RDF></metadata><mask id=\"viewboxMask\"><rect width=\"280\" height=\"280\" rx=\"0\" ry=\"0\" x=\"0\" y=\"0\" fill=\"#fff\" /></mask><g mask=\"url(#viewboxMask)\"><g transform=\"translate(8)\"><path d=\"M132 36a56 56 0 0 0-56 56v6.17A12 12 0 0 0 66 110v14a12 12 0 0 0 10.3 11.88 56.04 56.04 0 0 0 31.7 44.73v18.4h-4a72 72 0 0 0-72 72v9h200v-9a72 72 0 0 0-72-72h-4v-18.39a56.04 56.04 0 0 0 31.7-44.73A12 12 0 0 0 198 124v-14a12 12 0 0 0-10-11.83V92a56 56 0 0 0-56-56Z\" fill=\"#d08b5b\"/><path d=\"M108 180.61v8a55.79 55.79 0 0 0 24 5.39c8.59 0 16.73-1.93 24-5.39v-8a55.79 55.79 0 0 1-24 5.39 55.79 55.79 0 0 1-24-5.39Z\" fill=\"#000\" fill-opacity=\".1\"/><g transform=\"translate(0 170)\"><path d=\"M132.5 51.83c18.5 0 33.5-9.62 33.5-21.48 0-.36-.01-.7-.04-1.06A72 72 0 0 1 232 101.04V110H32v-8.95a72 72 0 0 1 67.05-71.83c-.03.37-.05.75-.05 1.13 0 11.86 15 21.48 33.5 21.48Z\" fill=\"#E6E6E6\"/><path d=\"M132.5 58.76c21.89 0 39.63-12.05 39.63-26.91 0-.6-.02-1.2-.08-1.8-2-.33-4.03-.59-6.1-.76.04.35.05.7.05 1.06 0 11.86-15 21.48-33.5 21.48S99 42.2 99 30.35c0-.38.02-.76.05-1.13-2.06.14-4.08.36-6.08.67-.07.65-.1 1.3-.1 1.96 0 14.86 17.74 26.91 39.63 26.91Z\" fill=\"#000\" fill-opacity=\".16\"/><path d=\"M100.78 29.12 101 28c-2.96.05-6 1-6 1l-.42.66A72.01 72.01 0 0 0 32 101.06V110h74s-10.7-51.56-5.24-80.8l.02-.08ZM158 110s11-53 5-82c2.96.05 6 1 6 1l.42.66a72.01 72.01 0 0 1 62.58 71.4V110h-74Z\" fill=\"#3c4f5c\"/><path d=\"M101 28c-6 29 5 82 5 82H90L76 74l6-9-6-6 19-30s3.04-.95 6-1ZM163 28c6 29-5 82-5 82h16l14-36-6-9 6-6-19-30s-3.04-.95-6-1Z\" fill-rule=\"evenodd\" clip-rule=\"evenodd\" fill=\"#000\" fill-opacity=\".15\"/><path d=\"m183.42 85.77.87-2.24 6.27-4.7a4 4 0 0 1 4.85.05l6.6 5.12-18.59 1.77Z\" fill=\"#E6E6E6\"/></g><g transform=\"translate(78 134)\"><rect x=\"42\" y=\"18\" width=\"24\" height=\"6\" rx=\"3\" fill=\"#000\" fill-opacity=\".7\"/></g><g transform=\"translate(104 122)\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M16 8c0 4.42 5.37 8 12 8s12-3.58 12-8\" fill=\"#000\" fill-opacity=\".16\"/></g><g transform=\"translate(76 90)\"><path d=\"M36 22a6 6 0 1 1-12 0 6 6 0 0 1 12 0ZM88 22a6 6 0 1 1-12 0 6 6 0 0 1 12 0Z\" fill=\"#000\" fill-opacity=\".6\"/></g><g transform=\"translate(76 82)\"><path d=\"M26.55 6.15c-5.8.27-15.2 4.49-14.96 10.34.01.18.3.27.43.12 2.76-2.96 22.32-5.95 29.2-4.36.64.14 1.12-.48.72-.93-3.43-3.85-10.2-5.43-15.4-5.18ZM86.45 6.15c5.8.27 15.2 4.49 14.96 10.34-.01.18-.3.27-.43.12-2.76-2.96-22.32-5.95-29.2-4.36-.64.14-1.12-.48-.72-.93 3.43-3.85 10.2-5.43 15.4-5.18Z\" fill-rule=\"evenodd\" clip-rule=\"evenodd\" fill=\"#000\" fill-opacity=\".6\"/></g><g transform=\"translate(-1)\"><path d=\"M50 90.5c0 4.55 1.7 8.64 4.85 10.77.9.61 2.47.93 4.15 1.07V182a8 8 0 0 0 8 8h42v-9.39a56.03 56.03 0 0 1-31.8-45.74A12 12 0 0 1 67 123v-13c0-3.5 1.5-6.63 3.87-8.83 11.54-2.61 24.1-7.53 36.47-14.67 12.13-7 22.5-15.24 30.48-23.75a87.36 87.36 0 0 1-12.45 20.78c12.68-5.52 21.3-14.4 25.9-26.63.37.92.76 1.84 1.17 2.76 10.26 23.03 27.88 39.36 45.77 44.74.5 2.11.79 4.08.79 5.6v13a12 12 0 0 1-10.2 11.87A56.03 56.03 0 0 1 157 180.6V190h18a32 32 0 0 0 32-32v-54.12c0-.07 0-.17-.03-.28-.07-5.64-.28-18.87-.6-21.37A74.01 74.01 0 0 0 132.99 18c-36.08 0-66.14 25.83-73 60-5.52 0-10 5.6-10 12.5Z\" fill=\"#2c1b18\"/><path d=\"M152.44 59.66c11.94 26.81 33.86 44.53 54.56 46.5V92A74 74 0 0 0 60.32 78H60c-5.52 0-10 5.6-10 12.5 0 6.48 3.95 11.81 9 12.44v.15l.95-.1H60a8.1 8.1 0 0 0 1.9-.22C75.7 101 91.68 95.54 107.34 86.5c12.13-7 22.5-15.24 30.48-23.75a87.36 87.36 0 0 1-12.45 20.78c12.68-5.52 21.3-14.4 25.9-26.63.37.92.76 1.84 1.17 2.76Z\" fill=\"#fff\" fill-opacity=\".08\"/></g><g transform=\"translate(49 72)\"></g><g transform=\"translate(62 42)\"></g></g></g></svg>","ready":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 280 280\" fill=\"none\" shape-rendering=\"auto\"><metadata xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\"><rdf:RDF><rdf:Description><dc:title>Avataaars</dc:title><dc:creator>Pablo Stanley</dc:creator><dc:source xsi:type=\"dcterms:URI\">https://avataaars.com/</dc:source><dcterms:license xsi:type=\"dcterms:URI\">https://avataaars.com/</dcterms:license><dc:rights>Remix of „Avataaars” (https://avataaars.com/) by „Pablo Stanley”, licensed under „Free for personal and commercial use” (https://avataaars.com/)</dc:rights></rdf:Description></rdf:RDF></metadata><mask id=\"viewboxMask\"><rect width=\"280\" height=\"280\" rx=\"0\" ry=\"0\" x=\"0\" y=\"0\" fill=\"#fff\" /></mask><g mask=\"url(#viewboxMask)\"><g transform=\"translate(8)\"><path d=\"M132 36a56 56 0 0 0-56 56v6.17A12 12 0 0 0 66 110v14a12 12 0 0 0 10.3 11.88 56.04 56.04 0 0 0 31.7 44.73v18.4h-4a72 72 0 0 0-72 72v9h200v-9a72 72 0 0 0-72-72h-4v-18.39a56.04 56.04 0 0 0 31.7-44.73A12 12 0 0 0 198 124v-14a12 12 0 0 0-10-11.83V92a56 56 0 0 0-56-56Z\" fill=\"#d08b5b\"/><path d=\"M108 180.61v8a55.79 55.79 0 0 0 24 5.39c8.59 0 16.73-1.93 24-5.39v-8a55.79 55.79 0 0 1-24 5.39 55.79 55.79 0 0 1-24-5.39Z\" fill=\"#000\" fill-opacity=\".1\"/><g transform=\"translate(0 170)\"><path d=\"M132.5 51.83c18.5 0 33.5-9.62 33.5-21.48 0-.36-.01-.7-.04-1.06A72 72 0 0 1 232 101.04V110H32v-8.95a72 72 0 0 1 67.05-71.83c-.03.37-.05.75-.05 1.13 0 11.86 15 21.48 33.5 21.48Z\" fill=\"#E6E6E6\"/><path d=\"M132.5 58.76c21.89 0 39.63-12.05 39.63-26.91 0-.6-.02-1.2-.08-1.8-2-.33-4.03-.59-6.1-.76.04.35.05.7.05 1.06 0 11.86-15 21.48-33.5 21.48S99 42.2 99 30.35c0-.38.02-.76.05-1.13-2.06.14-4.08.36-6.08.67-.07.65-.1 1.3-.1 1.96 0 14.86 17.74 26.91 39.63 26.91Z\" fill=\"#000\" fill-opacity=\".16\"/><path d=\"M100.78 29.12 101 28c-2.96.05-6 1-6 1l-.42.66A72.01 72.01 0 0 0 32 101.06V110h74s-10.7-51.56-5.24-80.8l.02-.08ZM158 110s11-53 5-82c2.96.05 6 1 6 1l.42.66a72.01 72.01 0 0 1 62.58 71.4V110h-74Z\" fill=\"#3c4f5c\"/><path d=\"M101 28c-6 29 5 82 5 82H90L76 74l6-9-6-6 19-30s3.04-.95 6-1ZM163 28c6 29-5 82-5 82h16l14-36-6-9 6-6-19-30s-3.04-.95-6-1Z\" fill-rule=\"evenodd\" clip-rule=\"evenodd\" fill=\"#000\" fill-opacity=\".15\"/><path d=\"m183.42 85.77.87-2.24 6.27-4.7a4 4 0 0 1 4.85.05l6.6 5.12-18.59 1.77Z\" fill=\"#E6E6E6\"/></g><g transform=\"translate(78 134)\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M40.06 27.72C40.7 20.7 46.7 16 54 16c7.34 0 13.36 4.75 13.95 11.85.03.38-.87.67-1.32.45-5.54-2.77-9.75-4.16-12.63-4.16-2.84 0-7 1.36-12.45 4.07-.5.25-1.53-.07-1.5-.49Z\" fill=\"#000\" fill-opacity=\".7\"/></g><g transform=\"translate(104 122)\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M16 8c0 4.42 5.37 8 12 8s12-3.58 12-8\" fill=\"#000\" fill-opacity=\".16\"/></g><g transform=\"translate(76 90)\"><path d=\"M27 16c-4.84 0-9 2.65-10.84 6.45-.54 1.1.39 1.85 1.28 1.12a15.13 15.13 0 0 1 9.8-3.22 6 6 0 1 0 10.7 2.8 2 2 0 0 0-.12-.74l-.15-.38a6 6 0 0 0-1.64-2.48C33.9 17.32 30.5 16 27 16ZM85 16c-4.84 0-9 2.65-10.84 6.45-.54 1.1.39 1.85 1.28 1.12a15.13 15.13 0 0 1 9.8-3.22 6 6 0 1 0 10.7 2.8 2 2 0 0 0-.12-.74l-.15-.38a6 6 0 0 0-1.64-2.48C91.9 17.32 88.5 16 85 16Z\" fill=\"#000\" fill-opacity=\".6\"/></g><g transform=\"translate(76 82)\"><path d=\"M38.66 11.1c-5 .35-9.92.08-14.92-.13-3.83-.16-7.72-.68-11.37 1.01-.7.32-4.53 2.28-4.44 3.35.07.85 3.93 2.2 4.63 2.44 3.67 1.29 7.18.9 10.95.66 4.64-.27 9.25-.07 13.87-.2 3.12-.1 7.92-.63 9.46-4.4.46-1.14.1-3.42-.36-4.66-.19-.5-.72-.69-1.13-.4a15.04 15.04 0 0 1-6.68 2.32ZM73.34 11.1c5 .35 9.92.08 14.92-.13 3.83-.16 7.72-.68 11.37 1.01.7.32 4.53 2.28 4.44 3.35-.07.85-3.93 2.2-4.63 2.44-3.67 1.29-7.18.9-10.95.66-4.63-.27-9.24-.07-13.86-.2-3.12-.1-7.92-.63-9.46-4.4-.46-1.14-.1-3.42.36-4.66.18-.5.72-.69 1.13-.4a15.04 15.04 0 0 0 6.68 2.32Z\" fill-rule=\"evenodd\" clip-rule=\"evenodd\" fill=\"#000\" fill-opacity=\".6\"/></g><g transform=\"translate(-1)\"><path d=\"M50 90.5c0 4.55 1.7 8.64 4.85 10.77.9.61 2.47.93 4.15 1.07V182a8 8 0 0 0 8 8h42v-9.39a56.03 56.03 0 0 1-31.8-45.74A12 12 0 0 1 67 123v-13c0-3.5 1.5-6.63 3.87-8.83 11.54-2.61 24.1-7.53 36.47-14.67 12.13-7 22.5-15.24 30.48-23.75a87.36 87.36 0 0 1-12.45 20.78c12.68-5.52 21.3-14.4 25.9-26.63.37.92.76 1.84 1.17 2.76 10.26 23.03 27.88 39.36 45.77 44.74.5 2.11.79 4.08.79 5.6v13a12 12 0 0 1-10.2 11.87A56.03 56.03 0 0 1 157 180.6V190h18a32 32 0 0 0 32-32v-54.12c0-.07 0-.17-.03-.28-.07-5.64-.28-18.87-.6-21.37A74.01 74.01 0 0 0 132.99 18c-36.08 0-66.14 25.83-73 60-5.52 0-10 5.6-10 12.5Z\" fill=\"#2c1b18\"/><path d=\"M152.44 59.66c11.94 26.81 33.86 44.53 54.56 46.5V92A74 74 0 0 0 60.32 78H60c-5.52 0-10 5.6-10 12.5 0 6.48 3.95 11.81 9 12.44v.15l.95-.1H60a8.1 8.1 0 0 0 1.9-.22C75.7 101 91.68 95.54 107.34 86.5c12.13-7 22.5-15.24 30.48-23.75a87.36 87.36 0 0 1-12.45 20.78c12.68-5.52 21.3-14.4 25.9-26.63.37.92.76 1.84 1.17 2.76Z\" fill=\"#fff\" fill-opacity=\".08\"/></g><g transform=\"translate(49 72)\"></g><g transform=\"translate(62 42)\"></g></g></g></svg>"},"marcus":{"fixed":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 280 280\" fill=\"none\" shape-rendering=\"auto\"><metadata xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\"><rdf:RDF><rdf:Description><dc:title>Avataaars</dc:title><dc:creator>Pablo Stanley</dc:creator><dc:source xsi:type=\"dcterms:URI\">https://avataaars.com/</dc:source><dcterms:license xsi:type=\"dcterms:URI\">https://avataaars.com/</dcterms:license><dc:rights>Remix of „Avataaars” (https://avataaars.com/) by „Pablo Stanley”, licensed under „Free for personal and commercial use” (https://avataaars.com/)</dc:rights></rdf:Description></rdf:RDF></metadata><mask id=\"viewboxMask\"><rect width=\"280\" height=\"280\" rx=\"0\" ry=\"0\" x=\"0\" y=\"0\" fill=\"#fff\" /></mask><g mask=\"url(#viewboxMask)\"><g transform=\"translate(8)\"><path d=\"M132 36a56 56 0 0 0-56 56v6.17A12 12 0 0 0 66 110v14a12 12 0 0 0 10.3 11.88 56.04 56.04 0 0 0 31.7 44.73v18.4h-4a72 72 0 0 0-72 72v9h200v-9a72 72 0 0 0-72-72h-4v-18.39a56.04 56.04 0 0 0 31.7-44.73A12 12 0 0 0 198 124v-14a12 12 0 0 0-10-11.83V92a56 56 0 0 0-56-56Z\" fill=\"#ae5d29\"/><path d=\"M108 180.61v8a55.79 55.79 0 0 0 24 5.39c8.59 0 16.73-1.93 24-5.39v-8a55.79 55.79 0 0 1-24 5.39 55.79 55.79 0 0 1-24-5.39Z\" fill=\"#000\" fill-opacity=\".1\"/><g transform=\"translate(0 170)\"><path d=\"M132.5 51.83c18.5 0 33.5-9.62 33.5-21.48 0-.36-.01-.7-.04-1.06A72 72 0 0 1 232 101.04V110H32v-8.95a72 72 0 0 1 67.05-71.83c-.03.37-.05.75-.05 1.13 0 11.86 15 21.48 33.5 21.48Z\" fill=\"#E6E6E6\"/><path d=\"M132.5 58.76c21.89 0 39.63-12.05 39.63-26.91 0-.6-.02-1.2-.08-1.8-2-.33-4.03-.59-6.1-.76.04.35.05.7.05 1.06 0 11.86-15 21.48-33.5 21.48S99 42.2 99 30.35c0-.38.02-.76.05-1.13-2.06.14-4.08.36-6.08.67-.07.65-.1 1.3-.1 1.96 0 14.86 17.74 26.91 39.63 26.91Z\" fill=\"#000\" fill-opacity=\".16\"/><path d=\"M100.78 29.12 101 28c-2.96.05-6 1-6 1l-.42.66A72.01 72.01 0 0 0 32 101.06V110h74s-10.7-51.56-5.24-80.8l.02-.08ZM158 110s11-53 5-82c2.96.05 6 1 6 1l.42.66a72.01 72.01 0 0 1 62.58 71.4V110h-74Z\" fill=\"#262e33\"/><path d=\"M101 28c-6 29 5 82 5 82H90L76 74l6-9-6-6 19-30s3.04-.95 6-1ZM163 28c6 29-5 82-5 82h16l14-36-6-9 6-6-19-30s-3.04-.95-6-1Z\" fill-rule=\"evenodd\" clip-rule=\"evenodd\" fill=\"#000\" fill-opacity=\".15\"/><path d=\"m183.42 85.77.87-2.24 6.27-4.7a4 4 0 0 1 4.85.05l6.6 5.12-18.59 1.77Z\" fill=\"#E6E6E6\"/></g><g transform=\"translate(78 134)\"><rect x=\"42\" y=\"18\" width=\"24\" height=\"6\" rx=\"3\" fill=\"#000\" fill-opacity=\".7\"/></g><g transform=\"translate(104 122)\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M16 8c0 4.42 5.37 8 12 8s12-3.58 12-8\" fill=\"#000\" fill-opacity=\".16\"/></g><g transform=\"translate(76 90)\"><path d=\"M36 22a6 6 0 1 1-12 0 6 6 0 0 1 12 0ZM88 22a6 6 0 1 1-12 0 6 6 0 0 1 12 0Z\" fill=\"#000\" fill-opacity=\".6\"/></g><g transform=\"translate(76 82)\"><path d=\"M38.66 11.1c-5 .35-9.92.08-14.92-.13-3.83-.16-7.72-.68-11.37 1.01-.7.32-4.53 2.28-4.44 3.35.07.85 3.93 2.2 4.63 2.44 3.67 1.29 7.18.9 10.95.66 4.64-.27 9.25-.07 13.87-.2 3.12-.1 7.92-.63 9.46-4.4.46-1.14.1-3.42-.36-4.66-.19-.5-.72-.69-1.13-.4a15.04 15.04 0 0 1-6.68 2.32ZM73.34 11.1c5 .35 9.92.08 14.92-.13 3.83-.16 7.72-.68 11.37 1.01.7.32 4.53 2.28 4.44 3.35-.07.85-3.93 2.2-4.63 2.44-3.67 1.29-7.18.9-10.95.66-4.63-.27-9.24-.07-13.86-.2-3.12-.1-7.92-.63-9.46-4.4-.46-1.14-.1-3.42.36-4.66.18-.5.72-.69 1.13-.4a15.04 15.04 0 0 0 6.68 2.32Z\" fill-rule=\"evenodd\" clip-rule=\"evenodd\" fill=\"#000\" fill-opacity=\".6\"/></g><g transform=\"translate(-1)\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M180.15 39.92c-2.76-2.82-5.96-5.21-9.08-7.61-.69-.53-1.39-1.05-2.06-1.6-.15-.12-1.72-1.24-1.9-1.66-.45-.99-.19-.22-.12-1.4.08-1.5 3.13-5.73.85-6.7-1-.43-2.8.7-3.75 1.08a59.56 59.56 0 0 1-5.73 1.9c.93-1.85 2.7-5.57-.63-4.58-2.6.78-5.03 2.77-7.64 3.7.86-1.4 4.32-5.8 1.2-6.05-.98-.07-3.8 1.75-4.86 2.14a55.81 55.81 0 0 1-9.63 2.51c-11.2 2.02-24.3 1.45-34.65 6.54-8 3.93-15.88 10.03-20.5 17.8-4.44 7.48-6.1 15.67-7.03 24.25-.69 6.3-.74 12.8-.42 19.12.1 2.07.34 11.61 3.34 8.72 1.5-1.44 1.49-7.25 1.87-9.22.75-3.91 1.47-7.85 2.72-11.64 2.2-6.68 4.81-13.8 10.3-18.4 3.53-2.94 6.01-6.93 9.39-9.9 1.51-1.35.36-1.2 2.8-1.03 1.63.12 3.28.16 4.92.2 3.8.1 7.6.08 11.4.1 7.64 0 15.25.12 22.89-.28 3.4-.18 6.8-.28 10.18-.6 1.9-.17 5.25-1.38 6.8-.45 1.43.84 2.91 3.61 3.94 4.75 2.41 2.67 5.3 4.72 8.12 6.92 5.9 4.57 8.87 10.33 10.66 17.48 1.79 7.13 1.29 13.75 3.5 20.76.38 1.24 1.4 3.36 2.67 1.46.24-.36.18-2.3.18-3.42 0-4.52 1.14-7.91 1.13-12.46-.06-13.83-.5-31.87-10.85-42.44Z\" fill=\"#1a1a1a\"/></g><g transform=\"translate(49 72)\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M101.43 98.17c-2.52 2.3-5.2 3.32-8.58 2.6-.58-.12-2.95-4.54-8.85-4.54-5.9 0-8.27 4.42-8.85 4.54-3.39.72-6.07-.3-8.58-2.6-4.72-4.31-8.65-10.26-6.3-16.75 1.24-3.38 3.24-7.1 6.88-8.17 3.89-1.15 9.35 0 13.26-.8A8.6 8.6 0 0 0 84 71a8.6 8.6 0 0 0 3.58 1.46c3.92.78 9.38-.36 13.27.79 3.64 1.07 5.64 4.79 6.87 8.17 2.36 6.49-1.57 12.44-6.3 16.75ZM140.08 26c-3.4 8.4-2.1 18.86-2.72 27.68-.52 7.16-2.02 17.9-8.39 22.53-3.25 2.37-9.18 6.35-13.43 5.24-2.93-.76-3.24-9.16-7.09-12.3a22.42 22.42 0 0 0-15.3-4.9c-2.37.11-7.17.09-9.15 1.91-1.98-1.82-6.78-1.8-9.15-1.9a22.42 22.42 0 0 0-15.3 4.89c-3.85 3.14-4.16 11.54-7.1 12.3-4.24 1.1-10.17-2.87-13.42-5.24-6.37-4.62-7.87-15.37-8.39-22.53-.63-8.82.69-19.28-2.72-27.68-1.66 0-.57 16.13-.57 16.13v20.36c.04 15.28 9.59 38.16 30.76 46.9C63.29 111.53 75 115 84 115c8.98.01 20.71-3.13 25.9-5.27 21.16-8.73 30.71-31.95 30.75-47.23V42.13s1.1-16.13-.57-16.13Z\" fill=\"#1a1a1a\"/></g><g transform=\"translate(62 42)\"></g></g></g></svg>"},"eleanor":{"fixed":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 280 280\" fill=\"none\" shape-rendering=\"auto\"><metadata xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\"><rdf:RDF><rdf:Description><dc:title>Avataaars</dc:title><dc:creator>Pablo Stanley</dc:creator><dc:source xsi:type=\"dcterms:URI\">https://avataaars.com/</dc:source><dcterms:license xsi:type=\"dcterms:URI\">https://avataaars.com/</dcterms:license><dc:rights>Remix of „Avataaars” (https://avataaars.com/) by „Pablo Stanley”, licensed under „Free for personal and commercial use” (https://avataaars.com/)</dc:rights></rdf:Description></rdf:RDF></metadata><mask id=\"viewboxMask\"><rect width=\"280\" height=\"280\" rx=\"0\" ry=\"0\" x=\"0\" y=\"0\" fill=\"#fff\" /></mask><g mask=\"url(#viewboxMask)\"><g transform=\"translate(8)\"><path d=\"M132 36a56 56 0 0 0-56 56v6.17A12 12 0 0 0 66 110v14a12 12 0 0 0 10.3 11.88 56.04 56.04 0 0 0 31.7 44.73v18.4h-4a72 72 0 0 0-72 72v9h200v-9a72 72 0 0 0-72-72h-4v-18.39a56.04 56.04 0 0 0 31.7-44.73A12 12 0 0 0 198 124v-14a12 12 0 0 0-10-11.83V92a56 56 0 0 0-56-56Z\" fill=\"#edb98a\"/><path d=\"M108 180.61v8a55.79 55.79 0 0 0 24 5.39c8.59 0 16.73-1.93 24-5.39v-8a55.79 55.79 0 0 1-24 5.39 55.79 55.79 0 0 1-24-5.39Z\" fill=\"#000\" fill-opacity=\".1\"/><g transform=\"translate(0 170)\"><path d=\"M132 57.05c14.91 0 27-11.2 27-25 0-1.01-.06-2.01-.2-3h1.2a72 72 0 0 1 72 72V110H32v-8.95a72 72 0 0 1 72-72h1.2c-.14.99-.2 1.99-.2 3 0 13.8 12.09 25 27 25Z\" fill=\"#E6E6E6\"/><path d=\"M100.78 29.12 101 28c-2.96.05-6 1-6 1l-.42.66A72.01 72.01 0 0 0 32 101.06V110h74s-10.7-51.56-5.24-80.8l.02-.08ZM158 110s11-53 5-82c2.96.05 6 1 6 1l.42.66a72.01 72.01 0 0 1 62.58 71.4V110h-74Z\" fill=\"#5c4033\"/><path d=\"M101 28c-6 29 5 82 5 82H90L76 74l6-9-6-6 19-30s3.04-.95 6-1ZM163 28c6 29-5 82-5 82h16l14-36-6-9 6-6-19-30s-3.04-.95-6-1Z\" fill-rule=\"evenodd\" clip-rule=\"evenodd\" fill=\"#000\" fill-opacity=\".15\"/><path d=\"M108 21.54c-6.77 4.6-11 11.12-11 18.35 0 7.4 4.43 14.05 11.48 18.67l5.94-4.68 4.58.33-1-3.15.08-.06c-6.1-3.15-10.08-8.3-10.08-14.12V21.54ZM156 36.88c0 5.82-3.98 10.97-10.08 14.12l.08.06-1 3.15 4.58-.33 5.94 4.68C162.57 53.94 167 47.29 167 39.89c0-7.23-4.23-13.75-11-18.35v15.34Z\" fill=\"#F2F2F2\"/><path d=\"m183.42 85.77.87-2.24 6.27-4.7a4 4 0 0 1 4.85.05l6.6 5.12-18.59 1.77Z\" fill=\"#E6E6E6\"/></g><g transform=\"translate(78 134)\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M40 15a14 14 0 1 0 28 0\" fill=\"#000\" fill-opacity=\".7\"/></g><g transform=\"translate(104 122)\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M16 8c0 4.42 5.37 8 12 8s12-3.58 12-8\" fill=\"#000\" fill-opacity=\".16\"/></g><g transform=\"translate(76 90)\"><path d=\"M36 22a6 6 0 1 1-12 0 6 6 0 0 1 12 0ZM88 22a6 6 0 1 1-12 0 6 6 0 0 1 12 0Z\" fill=\"#000\" fill-opacity=\".6\"/></g><g transform=\"translate(76 82)\"><path d=\"M26.55 6.15c-5.8.27-15.2 4.49-14.96 10.34.01.18.3.27.43.12 2.76-2.96 22.32-5.95 29.2-4.36.64.14 1.12-.48.72-.93-3.43-3.85-10.2-5.43-15.4-5.18ZM86.45 6.15c5.8.27 15.2 4.49 14.96 10.34-.01.18-.3.27-.43.12-2.76-2.96-22.32-5.95-29.2-4.36-.64.14-1.12-.48-.72-.93 3.43-3.85 10.2-5.43 15.4-5.18Z\" fill-rule=\"evenodd\" clip-rule=\"evenodd\" fill=\"#000\" fill-opacity=\".6\"/></g><g transform=\"translate(-1)\"><path d=\"M151.12 28.28c3.06-2.97 4.88-6.71 4.88-10.78C156 7.84 145.7 0 133 0s-23 7.84-23 17.5c0 4.1 1.85 7.86 4.94 10.84-.99.22-1.95.45-2.9.69-15.1 3.8-24.02 14.62-31.68 30.62a67.68 67.68 0 0 0-6.34 25.83c-.13 3.41.33 6.94 1.25 10.22.33 1.2 2.15 5.39 2.65 2 .1-.66-.07-1.47-.24-2.27-.12-.55-.23-1.1-.26-1.6-.08-1.56 0-3.15.11-4.72.2-2.92.73-5.8 1.65-8.59 1.33-3.98 3.02-8.3 5.6-11.67.97-1.25 1.88-2.7 2.88-4.27 5.63-8.9 13.68-21.6 45.34-22.9 34.3-1.42 46.78 21.66 51.21 29.87.38.7.7 1.3.97 1.75 2.67 4.53 2.78 9.75 2.9 14.91.05 2.71.11 5.41.54 8 .47 2.84 1.54 2.78 2.13.23 1-4.33 1.47-8.83 1.15-13.28-.72-10.05-4.4-36.45-24.6-48.15a65.52 65.52 0 0 0-16.18-6.73Z\" fill=\"#b58143\"/></g><g transform=\"translate(49 72)\"></g><g transform=\"translate(62 42)\"><g fill-rule=\"evenodd\" clip-rule=\"evenodd\"><path d=\"M38.5 52c-21.3 0-28.85 5.1-29.55 5.77A2.92 2.92 0 0 0 6 60.66v2.88c0 1.6 1.32 2.89 2.95 2.89 0 0 5.91 0 5.91 2.88 0 .44.07.65.19.68-.04.82-.05 1.66-.05 2.5C15 85.34 23.31 93 37.24 93H40c14.72 0 25-8.43 25-20.5 0-1.5-.04-3-.17-4.46l1.58-.77c.58-.29 1.21-.5 1.9-.64 1.85-.38 3.95-.22 5.99.28.73.18 1.26.35 1.5.45l1.38.55c-.14 1.5-.18 3.04-.18 4.6C77 85.34 85.31 93 99.24 93H102c14.72 0 25-8.43 25-20.5 0-1.54-.04-3.07-.18-4.56 1.74-1.51 6.22-1.51 6.22-1.51a2.92 2.92 0 0 0 2.96-2.89v-2.88c0-1.6-1.32-2.89-2.96-2.89-.69-.67-8.25-5.77-29.54-5.77H100.53c-1.8 0-3.44.07-4.97.2-9.54.54-14.68 2.15-19.92 4.7a17 17 0 0 1-4.56.87 17.01 17.01 0 0 1-4.81-.91l-.42-.2v-.01c-4.94-2.42-8.43-4.13-20.78-4.55a61.2 61.2 0 0 0-3.6-.1H38.5ZM19 73.5C19 64.84 19 58 38.39 58h3.22C61 58 61 64.84 61 73.5 61 82.63 52.36 89 40 89h-3.03C22.12 89 19 80.57 19 73.5Zm62 0c0-8.66 0-15.5 19.39-15.5h3.22C123 58 123 64.84 123 73.5c0 9.13-8.64 15.5-21 15.5h-3.03C84.12 89 81 80.57 81 73.5Z\" fill=\"#000\" fill-opacity=\".1\"/><path d=\"M38.5 50c-21.3 0-28.85 5.1-29.55 5.77A2.92 2.92 0 0 0 6 58.66v2.88c0 1.6 1.32 2.89 2.95 2.89 0 0 5.91 0 5.91 2.88 0 .44.07.65.19.68-.04.82-.05 1.66-.05 2.5C15 83.34 23.31 91 37.24 91H40c14.72 0 25-8.43 25-20.5 0-1.5-.04-3-.17-4.46l1.58-.77c.58-.29 1.21-.5 1.9-.64 1.85-.38 3.95-.22 5.99.28.73.18 1.26.35 1.5.45l1.38.55c-.14 1.5-.18 3.04-.18 4.6C77 83.34 85.31 91 99.24 91H102c14.72 0 25-8.43 25-20.5 0-1.54-.04-3.07-.18-4.56 1.74-1.51 6.22-1.51 6.22-1.51a2.92 2.92 0 0 0 2.96-2.89v-2.88c0-1.6-1.32-2.89-2.96-2.89-.69-.67-8.25-5.77-29.54-5.77H100.53c-1.8 0-3.44.07-4.97.2-9.54.54-14.68 2.15-19.92 4.7a17 17 0 0 1-4.56.87 17.01 17.01 0 0 1-4.81-.91l-.42-.2v-.01c-4.94-2.42-8.43-4.13-20.78-4.55a61.2 61.2 0 0 0-3.6-.1H38.5ZM19 71.5C19 62.84 19 56 38.39 56h3.22C61 56 61 62.84 61 71.5 61 80.63 52.36 87 40 87h-3.03C22.12 87 19 78.57 19 71.5Zm62 0c0-8.66 0-15.5 19.39-15.5h3.22C123 56 123 62.84 123 71.5c0 9.13-8.64 15.5-21 15.5h-3.03C84.12 87 81 78.57 81 71.5Z\" fill=\"#262e33\"/></g></g></g></g></svg>"}},"pixel":{"dana":{"firm":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" fill=\"none\" shape-rendering=\"crispEdges\"><metadata xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\"><rdf:RDF><rdf:Description><dc:title>Pixel Art</dc:title><dc:creator>DiceBear</dc:creator><dc:source xsi:type=\"dcterms:URI\">https://www.figma.com/community/file/1198754108850888330</dc:source><dcterms:license xsi:type=\"dcterms:URI\">https://creativecommons.org/publicdomain/zero/1.0/</dcterms:license><dc:rights>„Pixel Art” (https://www.figma.com/community/file/1198754108850888330) by „DiceBear”, licensed under „CC0 1.0” (https://creativecommons.org/publicdomain/zero/1.0/)</dc:rights></rdf:Description></rdf:RDF></metadata><mask id=\"viewboxMask\"><rect width=\"16\" height=\"16\" rx=\"0\" ry=\"0\" x=\"0\" y=\"0\" fill=\"#fff\" /></mask><g mask=\"url(#viewboxMask)\"><path d=\"M4 2h8v1h1v3h1v2h-1v3h-1v1H9v1h4v1h1v2H2v-2h1v-1h4v-1H4v-1H3V8H2V6h1V3h1V2Z\" fill=\"#d08b5b\"/><path d=\"M4 2h8v1h1v3h1v2h-1v3h-1v1H4v-1H3V8H2V6h1V3h1V2Z\" fill=\"#fff\" fill-opacity=\".1\"/><path d=\"M10 13h3v1h1v2H2v-2h1v-1h3v2h4v-2Z\" fill=\"#3c4f5c\"/><path fill=\"#fff\" fill-opacity=\".2\" d=\"M5 14h1v1H5zM4 15h1v1H4zM7 15h1v1H7zM3 13h1v1H3zM2 14h1v1H2zM12 13h1v1h-1zM11 14h1v1h-1zM10 15h1v1h-1zM13 15h1v1h-1z\"/><path fill=\"#fff\" d=\"M4 5h3v2H4zM9 5h3v2H9z\"/><path d=\"M11 5h-1v1H9v1h3V6h-1V5Z\" fill=\"#588387\"/><path fill=\"#fff\" fill-opacity=\".5\" d=\"M9 6h1v1H9zM10 5h1v1h-1zM11 6h1v1h-1z\"/><path d=\"M6 5H5v1H4v1h3V6H6V5Z\" fill=\"#588387\"/><path fill=\"#fff\" fill-opacity=\".5\" d=\"M4 6h1v1H4zM5 5h1v1H5zM6 6h1v1H6z\"/><path d=\"M6 9h3v1H6V9Z\" fill=\"#c98276\"/><path d=\"M13 1H3v1H2v1H1v11h2V4h10v10h2V3h-1V2h-1V1Z\" fill=\"#2c1b18\"/></g></svg>","ready":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" fill=\"none\" shape-rendering=\"crispEdges\"><metadata xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\"><rdf:RDF><rdf:Description><dc:title>Pixel Art</dc:title><dc:creator>DiceBear</dc:creator><dc:source xsi:type=\"dcterms:URI\">https://www.figma.com/community/file/1198754108850888330</dc:source><dcterms:license xsi:type=\"dcterms:URI\">https://creativecommons.org/publicdomain/zero/1.0/</dcterms:license><dc:rights>„Pixel Art” (https://www.figma.com/community/file/1198754108850888330) by „DiceBear”, licensed under „CC0 1.0” (https://creativecommons.org/publicdomain/zero/1.0/)</dc:rights></rdf:Description></rdf:RDF></metadata><mask id=\"viewboxMask\"><rect width=\"16\" height=\"16\" rx=\"0\" ry=\"0\" x=\"0\" y=\"0\" fill=\"#fff\" /></mask><g mask=\"url(#viewboxMask)\"><path d=\"M4 2h8v1h1v3h1v2h-1v3h-1v1H9v1h4v1h1v2H2v-2h1v-1h4v-1H4v-1H3V8H2V6h1V3h1V2Z\" fill=\"#d08b5b\"/><path d=\"M4 2h8v1h1v3h1v2h-1v3h-1v1H4v-1H3V8H2V6h1V3h1V2Z\" fill=\"#fff\" fill-opacity=\".1\"/><path d=\"M10 13h3v1h1v2H2v-2h1v-1h3v2h4v-2Z\" fill=\"#3c4f5c\"/><path fill=\"#fff\" fill-opacity=\".2\" d=\"M5 14h1v1H5zM4 15h1v1H4zM7 15h1v1H7zM3 13h1v1H3zM2 14h1v1H2zM12 13h1v1h-1zM11 14h1v1h-1zM10 15h1v1h-1zM13 15h1v1h-1z\"/><path fill=\"#fff\" d=\"M12 5H9v3h3zM7 5H4v3h3z\"/><path fill=\"#588387\" d=\"M12 6h-2v1h2zM7 6H5v1h2z\"/><path fill=\"#fff\" fill-opacity=\".7\" d=\"M12 6h-1v1h1zM7 6H6v1h1z\"/><path d=\"M6 10v1h1v-1h3V9H7v1H6Z\" fill=\"#c98276\"/><path d=\"M13 1H3v1H2v1H1v11h2V4h10v10h2V3h-1V2h-1V1Z\" fill=\"#2c1b18\"/></g></svg>"},"marcus":{"fixed":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" fill=\"none\" shape-rendering=\"crispEdges\"><metadata xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\"><rdf:RDF><rdf:Description><dc:title>Pixel Art</dc:title><dc:creator>DiceBear</dc:creator><dc:source xsi:type=\"dcterms:URI\">https://www.figma.com/community/file/1198754108850888330</dc:source><dcterms:license xsi:type=\"dcterms:URI\">https://creativecommons.org/publicdomain/zero/1.0/</dcterms:license><dc:rights>„Pixel Art” (https://www.figma.com/community/file/1198754108850888330) by „DiceBear”, licensed under „CC0 1.0” (https://creativecommons.org/publicdomain/zero/1.0/)</dc:rights></rdf:Description></rdf:RDF></metadata><mask id=\"viewboxMask\"><rect width=\"16\" height=\"16\" rx=\"0\" ry=\"0\" x=\"0\" y=\"0\" fill=\"#fff\" /></mask><g mask=\"url(#viewboxMask)\"><path d=\"M4 2h8v1h1v3h1v2h-1v3h-1v1H9v1h4v1h1v2H2v-2h1v-1h4v-1H4v-1H3V8H2V6h1V3h1V2Z\" fill=\"#ae5d29\"/><path d=\"M4 2h8v1h1v3h1v2h-1v3h-1v1H4v-1H3V8H2V6h1V3h1V2Z\" fill=\"#fff\" fill-opacity=\".1\"/><path d=\"M5 13H3v1H2v2h12v-2h-1v-1h-2v1h-1v1H6v-1H5v-1Z\" fill=\"#262e33\"/><g fill-rule=\"evenodd\" clip-rule=\"evenodd\"><path d=\"M11 5h-1v2h2V6h-1V5ZM6 5H5v2h2V6H6V5Z\" fill=\"#fff\"/><path d=\"M10 5v1h1v1H9V5h1ZM5 5v1h1v1H4V5h1Z\" fill=\"#5b7c8b\"/><path d=\"M10 5v1H9V5h1Zm1 1v1h-1V6h1ZM5 5v1H4V5h1Zm1 1v1H5V6h1Z\" fill=\"#fff\" fill-opacity=\".5\"/></g><mask id=\"beardVariant03-a\" style=\"mask-type:luminance\" maskUnits=\"userSpaceOnUse\" x=\"3\" y=\"9\" width=\"10\" height=\"5\"><path opacity=\".9\" d=\"M3 9h2v1h6V9h2v2h-1v2h-1v1H5v-1H4v-2H3V9Z\" fill=\"#1a1a1a\"/></mask><g mask=\"url(#beardVariant03-a)\"><path fill=\"#1a1a1a\" d=\"M0 0h16v16H0z\"/><path fill=\"#fff\" fill-opacity=\".3\" d=\"M0 0h16v16H0z\"/></g><path d=\"M7 9h2v1H7V9ZM7 10v1H6v-1h1ZM9 10v1h1v-1H9Z\" fill=\"#c98276\"/><g fill=\"#1a1a1a\"><path d=\"M4 2H3v3h1zM13 2h-1v3h1z\"/><path d=\"M12 1H3v2h9z\"/><path d=\"M4 2H2v2h2zM14 2h-2v2h2z\"/></g></g></svg>"},"eleanor":{"fixed":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" fill=\"none\" shape-rendering=\"crispEdges\"><metadata xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\"><rdf:RDF><rdf:Description><dc:title>Pixel Art</dc:title><dc:creator>DiceBear</dc:creator><dc:source xsi:type=\"dcterms:URI\">https://www.figma.com/community/file/1198754108850888330</dc:source><dcterms:license xsi:type=\"dcterms:URI\">https://creativecommons.org/publicdomain/zero/1.0/</dcterms:license><dc:rights>„Pixel Art” (https://www.figma.com/community/file/1198754108850888330) by „DiceBear”, licensed under „CC0 1.0” (https://creativecommons.org/publicdomain/zero/1.0/)</dc:rights></rdf:Description></rdf:RDF></metadata><mask id=\"viewboxMask\"><rect width=\"16\" height=\"16\" rx=\"0\" ry=\"0\" x=\"0\" y=\"0\" fill=\"#fff\" /></mask><g mask=\"url(#viewboxMask)\"><path d=\"M4 2h8v1h1v3h1v2h-1v3h-1v1H9v1h4v1h1v2H2v-2h1v-1h4v-1H4v-1H3V8H2V6h1V3h1V2Z\" fill=\"#edb98a\"/><path d=\"M4 2h8v1h1v3h1v2h-1v3h-1v1H4v-1H3V8H2V6h1V3h1V2Z\" fill=\"#fff\" fill-opacity=\".1\"/><path d=\"M4 13h1v2h6v-2h1v2h1v1H3v-1h1v-2Z\" fill=\"#5c4033\"/><path fill=\"#fff\" fill-opacity=\".2\" d=\"M4 13h1v2H4zM11 13h1v2h-1z\"/><path d=\"M6 5H5v2h2V6H6V5ZM11 5h-1v2h2V6h-1V5Z\" fill=\"#fff\"/><path fill=\"#647b90\" d=\"M5 6h1v1H5zM10 6h1v1h-1z\"/><path d=\"M2 5h5v1H4v1H3V6H2V5ZM7 7v1H4V7h3ZM9 7H7V6h2v1ZM12 7H9v1h3V7ZM12 6H9V5h5v1h-1v1h-1V6Z\" fill=\"#323232\"/><path fill=\"#000\" fill-opacity=\".3\" d=\"M4 6h3v1H4zM9 6h3v1H9z\"/><path fill=\"#fff\" fill-opacity=\".2\" d=\"M12 5h2v1h-2zM2 5h2v1H2zM7 6h2v1H7z\"/><path d=\"M7 9h2v1H7V9ZM7 10v1H6v-1h1ZM9 10v1h1v-1H9Z\" fill=\"#c98276\"/><path d=\"M3 2h10v1h1v3h-1V4H3v2H2V3h1V2ZM13 8h1v1h1v2h-1v-1h-1V8ZM15 11h1v1h-1v-1Z\" fill=\"#b58143\"/></g></svg>"}}};</script>
+<script>
+// ---- beat.js
+// The beat, shared by all three registers so the comparison is about register only.
+// Day 4 of Whitfield v. Arrowmark Logistics. You are PRIYA NAIR, plaintiff Side,
+// Team Kestrel. You have staged an Offer; the Exhibits ride the staged Offer (#291),
+// and the commit control in your hand is dead because the Second is not yours to give.
+
+const BEAT = {
+  sim: "Whitfield v. Arrowmark Logistics",
+  side: "Plaintiff", team: "Kestrel", you: "Priya Nair",
+  day: 4, days: 10,
+  exchange: { budget: 4, spentBefore: 0 },
+  seconders: ["Tom Ellis", "Jordan Beck"],
+  cast: {
+    dana:    { name: "Dana Whitfield", role: "Your client", expressive: true },
+    marcus:  { name: "Marcus Reyes",   role: "Opposing counsel" },
+    eleanor: { name: "Eleanor Voss",   role: "Arrowmark Logistics · VP People" },
+  },
+  offer: {
+    by: "Priya Nair", staged: "Day 4, 09:12",
+    money: 185000,
+    terms: ["Money", "Written apology", "Neutral reference"],
+  },
+  exhibits: [
+    { id: "log",   name: "HR Complaint Log, 2023–24",     from: "Records request, Day 2",
+      bears: ["Money", "Policy change"] },
+    { id: "depo",  name: "Ex-Supervisor Deposition, p.41", from: "Deposition, landed Day 4",
+      bears: ["Money", "Written apology"] },
+    { id: "audit", name: "Warehouse Safety Audit, 2022",   from: "In the file at the open",
+      bears: ["Training"] },
+  ],
+  // Their track is their LAST COMMITTED Offer read whole (Day 2). A Term it did not
+  // mention is silent, not zero. The third marker is the Client's ASPIRATION, authored
+  // sparsely — never Par, which no student sees before Release.
+  terms: [
+    { k: "Money",             ours: 62,   ourLabel: "$185,000",
+      theirs: 21, theirLabel: "$60,000",  asp: 88,   aspLabel: "$250,000" },
+    { k: "Written apology",   ours: 100,  ourLabel: "Signed, by the VP",
+      theirs: 0,  theirLabel: "Refused",  asp: 100,  aspLabel: "Required" },
+    { k: "Neutral reference", ours: 100,  ourLabel: "Unqualified",
+      theirs: 85, theirLabel: "12 months", asp: null, aspLabel: null },
+    { k: "NDA",               ours: 20,   ourLabel: "Narrow",
+      theirs: 96, theirLabel: "Mutual, full", asp: null, aspLabel: null },
+    { k: "Training",          ours: null, ourLabel: null,
+      theirs: null, theirLabel: null,    asp: 70,   aspLabel: "Manager training" },
+    { k: "Policy change",     ours: null, ourLabel: null,
+      theirs: null, theirLabel: null,    asp: 80,   aspLabel: "Written policy" },
+  ],
+  docket: [
+    { day: 3, who: "Jordan Beck", what: "Deposed ex-supervisor",   cost: 2, lands: "landed Day 4" },
+    { day: 4, who: "Priya Nair",  what: "Consulted Dana Whitfield", cost: 1, lands: "landed Day 4" },
+    { day: 4, who: "Priya Nair",  what: "Staged Offer — $185,000 + 2 terms", cost: 0, lands: "needs a Second" },
+  ],
+  docketEmptyCopy: "Nothing here yet. Every Action your Team spends lands on this page — who spent it, what it cost, and the Day the result arrives.",
+  // Shown at a Consult and nowhere else. A Band that moves is never shown the moment
+  // it moves, so this line is Day 4's Consult, not a live readout.
+  band: {
+    firm:  { word: "Firm",  line: "Sixty thousand and a gag order. I gave them a year of my life — I'm not signing that." },
+    ready: { word: "Ready", line: "I'm tired, Priya. If the apology is real and it's in writing, I could live with the rest." },
+  },
+};
+
+let S = {
+  band: "firm",
+  docketEmpty: false,
+  riding: { log: true, depo: true, audit: true },
+};
+
+const money = n => "$" + n.toLocaleString("en-US");
+const riding = () => BEAT.exhibits.filter(e => S.riding[e.id]);
+// One price for the whole play: the Offer plus exhibit_price for each Exhibit riding.
+const quote = () => 1 + riding().length;
+const left = () => BEAT.exchange.budget - BEAT.exchange.spentBefore - quote();
+// An Exhibit is relevant where the Offer touches a Term it bears on. An irrelevant one
+// is still spent and still served — it just moves nothing.
+const relevant = e => e.bears.some(t => BEAT.offer.terms.includes(t));
+const docketRows = () => (S.docketEmpty ? [] : BEAT.docket);
+const bandOf = () => BEAT.band[S.band];
+const seconderList = () => BEAT.seconders.join(" or ");
+
+// Two markers within 22% of each other collide, so alternate their rows.
+function laidOut(marks) {
+  const live = marks.filter(m => m.v !== null).sort((a, b) => a.v - b.v);
+  let last = -99, row = 0;
+  return live.map(m => {
+    row = m.v - last < 22 ? row + 1 : 0;
+    last = m.v;
+    return { ...m, row };
+  });
+}
+
+// ---- a-boardroom.js
+// ---------------------------------------------------------------- A · Boardroom
+// The register to beat. Faces and staging carry the beat; the Offer sits in a thin
+// dock and the Terms Board is a panel that covers the room when you open it.
+let boardOpen = false;
+
+const avA = (who, state) => window.ART.avataaars[who][state];
+
+function trackA(t) {
+  const silent0 = t.ours === null && t.theirs === null;
+  const marks = silent0 ? "" : laidOut([
+    { cls: "thrs", v: t.theirs, who: "Arrowmark, Day 2", label: t.theirLabel },
+    { cls: "ours", v: t.ours, who: "you", label: t.ourLabel },
+    { cls: "asp", v: t.asp, who: "Dana asked for", label: t.aspLabel },
+  ].filter(m => !silent0)).map(m => `<span class="mk ${m.cls}" style="left:${Math.min(88, Math.max(12, m.v))}%;top:${2 + m.row * 30}px">
+      <b>${m.who}</b>${m.label}</span>`).join("");
+  const silent = t.ours === null && t.theirs === null;
+  return `<div class="track">
+    <div class="hd"><span class="k">${t.k}</span>
+      <span class="v">${silent ? "not on the table" : ""}</span></div>
+    <div class="line">${marks}</div>
+    ${silent ? `<div class="silent">${t.asp === null ? "Neither Side has raised it." : `Dana asked for ${t.aspLabel.toLowerCase()}. Nobody has put it on the table.`}</div>` : ""}
+  </div>`;
+}
+
+function renderA() {
+  const b = bandOf(), q = quote(), spent = BEAT.exchange.spentBefore;
+  const pips = Array.from({ length: BEAT.exchange.budget }, (_, i) =>
+    `<span class="pip ${i < spent + q ? "quoted" : "free"}"></span>`).join("");
+
+  const rides = BEAT.exhibits.map(e => {
+    const on = !!S.riding[e.id], dud = on && !relevant(e);
+    return `<button class="ride ${on ? "on" : ""} ${dud ? "dud" : ""}" data-ex="${e.id}">
+      ${e.name}${on ? `<span class="tag">${dud ? "no bearing · still spent · still served" : "rides"}</span>` : ""}
+    </button>`;
+  }).join("");
+
+  const rows = docketRows();
+  const rail = `<div class="rail"><h4>Docket · Day ${BEAT.day}</h4>
+    ${rows.length ? rows.map(r => `<div class="row">${r.what}
+      <div class="m">Day ${r.day} · ${r.who}${r.cost ? ` · ${r.cost} pt` : ""} · ${r.lands}</div>
+    </div>`).join("") : `<div class="empty">${BEAT.docketEmptyCopy}</div>`}</div>`;
+
+  const board = boardOpen
+    ? `<div class="board"><h4>Terms Board</h4>
+        ${BEAT.terms.map(trackA).join("")}
+        <button class="ride" data-act="board" style="margin-top:10px">Close</button></div>`
+    : "";
+
+  return `<div class="reg-a">
+    <div class="wall"></div>
+    <div class="seats">
+      <div class="seat left"><div class="av">${avA("eleanor", "fixed")}</div>
+        <div class="who"><b>${BEAT.cast.eleanor.name}</b>${BEAT.cast.eleanor.role}</div></div>
+      <div class="seat right"><div class="av">${avA("marcus", "fixed")}</div>
+        <div class="who"><b>${BEAT.cast.marcus.name}</b>${BEAT.cast.marcus.role}</div></div>
+    </div>
+    <div class="table"></div>
+    <div class="props"></div>
+    <div class="mine">${avA("dana", S.band)}
+      <div class="say"><span class="band">${b.word}</span>
+        “${b.line}”
+        <span class="src">Dana Whitfield · from your Consult this morning</span></div>
+    </div>
+    <div class="hud">
+      <div class="top">
+        <span class="sim">${BEAT.sim}</span>
+        <span class="day">Day ${BEAT.day} of ${BEAT.days} · ${BEAT.team} · ${BEAT.side}</span>
+        <button class="boardtab" data-act="board">${boardOpen ? "Hide" : "Terms Board"}</button>
+        <span class="pips"><span class="half">Exchange</span>${pips}</span>
+      </div>
+      ${board}
+      ${boardOpen ? "" : rail}
+      <div class="dock">
+        <h4>Your staged Offer</h4>
+        <div class="offer">${money(BEAT.offer.money)}, a written apology, an unqualified neutral reference
+          <em>— staged by ${BEAT.offer.by}, ${BEAT.offer.staged}</em></div>
+        <div class="rides">${rides}</div>
+        <div class="commit">
+          <button disabled>Commit Offer</button>
+          <span class="why">${seconderList()} can second this. You staged it.</span>
+          <span class="price">${q} of ${BEAT.exchange.budget} exchange points — Offer ${1}${riding().length ? ` + ${riding().length} Exhibit${riding().length > 1 ? "s" : ""}` : ""}</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ---- b-console.js
+// ---------------------------------------------------------------- B · Console
+// No scene, so no commission and no faked table. Everything is a screen the firm's
+// case system draws; the cast is pixel busts at 44px in a strip.
+const avB = (who, state) => window.ART.pixel[who][state];
+
+function trackB(t) {
+  const silent0 = t.ours === null && t.theirs === null;
+  const marks = silent0 ? "" : laidOut([
+    { cls: "thrs", v: t.theirs, who: "them", label: t.theirLabel },
+    { cls: "ours", v: t.ours, who: "you", label: t.ourLabel },
+    { cls: "asp", v: t.asp, who: "Dana asked", label: t.aspLabel },
+  ].filter(m => !silent0)).map(m => `<span class="mk ${m.cls}" style="left:${Math.min(88, Math.max(12, m.v))}%;bottom:${2 + m.row * 15}px">${m.who} ${m.label}</span>`).join("");
+  const silent = t.ours === null && t.theirs === null;
+  return `<div class="track">
+    <span class="dim">${t.k.toUpperCase()}</span>
+    <span class="rule"><span class="base"></span>${marks}
+      ${silent ? `<span class="none" style="position:absolute;bottom:2px;left:0">${t.asp === null ? "not on the table" : `not on the table — Dana asked for ${t.aspLabel.toLowerCase()}`}</span>` : ""}
+    </span>
+  </div>`;
+}
+
+function renderB() {
+  const b = bandOf(), q = quote();
+  const pips = "▮".repeat(BEAT.exchange.spentBefore + q)
+             + "▯".repeat(BEAT.exchange.budget - BEAT.exchange.spentBefore - q);
+
+  const fig = (who, state, extra = "") => `<div class="fig">${avB(who, state)}
+    <div class="n">${BEAT.cast[who].name}</div><div class="r">${BEAT.cast[who].role}</div>${extra}</div>`;
+
+  const ex = BEAT.exhibits.map(e => {
+    const on = !!S.riding[e.id], dud = on && !relevant(e);
+    return `<button class="ex" data-ex="${e.id}"><span class="box3">[${on ? "x" : " "}]</span>
+      ${e.name} <span class="dim">· bears on ${e.bears.join(", ")}</span>
+      ${dud ? `<span class="note">· NO BEARING ON THIS OFFER — spent anyway, served anyway</span>` : ""}
+    </button>`;
+  }).join("");
+
+  const rows = docketRows();
+  return `<div class="reg-b">
+    <div class="head">
+      <span class="t hi">WHITFIELD v ARROWMARK LOGISTICS</span>
+      <span class="dim">DAY ${String(BEAT.day).padStart(2, "0")}/${BEAT.days}</span>
+      <span class="dim">${BEAT.team.toUpperCase()} · ${BEAT.side.toUpperCase()}</span>
+      <span class="dim">TERMINAL ${BEAT.you.toUpperCase()}</span>
+      <span style="margin-left:auto">EXCHANGE ${pips} <span class="dim">${q} quoted</span></span>
+    </div>
+
+    <div class="grid">
+      <div class="box"><span class="cap">CLIENT</span>
+        <div class="cast">
+          ${fig("dana", S.band, `<div class="band">${b.word.toUpperCase()}</div>`)}
+          <div class="consult">“${b.line}”
+            <div class="dim" style="margin-top:6px">Dana Whitfield · Consult, this morning · 1 pt</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="box"><span class="cap">ACROSS THE TABLE</span>
+        <div class="cast">
+          ${fig("marcus", "fixed")}
+          ${fig("eleanor", "fixed")}
+        </div>
+        <div class="dim" style="margin-top:8px">Presence, not a read. Their faces are authored and never move.</div>
+      </div>
+
+      <div class="box wide"><span class="cap">STAGED OFFER</span>
+        <div class="hi">${money(BEAT.offer.money)} · written apology · unqualified neutral reference</div>
+        <div class="dim">staged by ${BEAT.offer.by} · ${BEAT.offer.staged} · not on the table until it commits</div>
+        <div class="rows" style="margin-top:10px">${ex}</div>
+        <div class="prompt">
+          <span class="dim">${BEAT.you.toLowerCase().replace(" ", ".")}@kestrel:day4$</span>
+          <button class="dead" disabled>commit offer</button>
+          <span class="cursor"></span>
+          <span class="warn">✗ second required — ${seconderList().toLowerCase()}. you staged it.</span>
+          <span class="dim" style="margin-left:auto">price ${q}/${BEAT.exchange.budget}: offer 1${riding().length ? ` + ${riding().length} exhibit` : ""}</span>
+        </div>
+      </div>
+
+      <div class="box"><span class="cap">TERMS</span>
+        ${BEAT.terms.map(trackB).join("")}
+      </div>
+
+      <div class="box"><span class="cap">DOCKET</span>
+        ${rows.length ? `<div class="log">${rows.map(r => `<div>
+            <span class="dim">D${r.day}</span> ${r.what}
+            <span class="dim">· ${r.who}${r.cost ? ` · ${r.cost}pt` : ""} · ${r.lands}</span></div>`).join("")}</div>`
+          : `<div class="empty">${BEAT.docketEmptyCopy}</div>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ---- c-paper.js
+// ---------------------------------------------------------------- C · Paper
+// No cast. The Case File is already a folder of documents, service is already a
+// stamp, the Second is already a countersignature and the Terms Board is already a
+// redlined term sheet — so the register is the mechanics drawn, not dressed.
+function rowC(t) {
+  const silent = t.ours === null && t.theirs === null;
+  const asp = t.asp === null ? "" : `<div class="margin">Dana asked: ${t.aspLabel}</div>`;
+  if (silent) return `<tr><td class="k">${t.k}</td>
+    <td colspan="2" class="silent">Not addressed in this draft, and not in their Day 2 offer.${
+      t.asp !== null ? ` <span class="margin">Dana asked: ${t.aspLabel}</span>` : ""}</td></tr>`;
+  return `<tr>
+    <td class="k">${t.k}${asp}</td>
+    <td><span class="ours">${t.ourLabel}</span></td>
+    <td>${t.theirLabel === null ? `<span class="silent">silent</span>`
+        : `<span class="struck">${t.theirLabel}</span>`}</td>
+  </tr>`;
+}
+
+function renderC() {
+  const q = quote(), b = bandOf();
+  const marks = Array.from({ length: BEAT.exchange.budget }, (_, i) =>
+    `<span class="mark ${i < BEAT.exchange.spentBefore + q ? "used" : ""}"></span>`).join("");
+
+  const docs = BEAT.exhibits.map(e => {
+    const on = !!S.riding[e.id], dud = on && !relevant(e);
+    return `<button class="doc ${on ? "clipped" : ""}" data-ex="${e.id}">
+      ${on ? `<span class="tab">EXHIBIT</span>` : `<span class="tab" style="background:#8a8073">TAB</span>`}
+      <div class="t">${e.name}</div>
+      <div class="s">${e.from} · bears on ${e.bears.join(", ")}</div>
+      ${on ? `<div class="note">${dud
+          ? "Clipped to a draft that says nothing about " + e.bears.join(" or ") +
+            ". It still costs a mark and Arrowmark still gets a copy."
+          : "Clipped. Served on Arrowmark when this executes."}</div>` : ""}
+    </button>`;
+  }).join("");
+
+  const rows = docketRows();
+  return `<div class="reg-c">
+    <div class="file">
+      <h4>Case File · Kestrel</h4>
+      ${docs}
+      <div class="doc" style="cursor:default">
+        <span class="tab" style="background:#1f4f8a">SERVED</span>
+        <div class="t">Arrowmark internal memo, 14 Feb</div>
+        <div class="s">Served by Arrowmark, Day 3</div>
+        <div class="note" style="color:#1f4f8a">Served on you. Read it; you cannot clip it —
+          a served page carries knowledge, never a tab.</div>
+      </div>
+    </div>
+
+    <div class="sheet">
+      <div class="draftmark"><span class="stamp big">Draft — not executed</span></div>
+      <div class="lh">
+        <div class="firm">Kestrel &amp; Co.</div>
+        <div class="meta">Day ${BEAT.day} of ${BEAT.days}<br>Plaintiff<br>Drawn by ${BEAT.offer.by}</div>
+      </div>
+      <div class="caption">
+        <div class="v">${BEAT.sim}</div>
+        <div class="sub">Term sheet · redlined against Arrowmark's offer of Day 2</div>
+      </div>
+
+      <table class="terms">
+        <tr><th>Term</th><th>Kestrel proposes</th><th>Arrowmark, Day 2</th></tr>
+        <tr><td class="k">Payment<div class="margin">Dana asked: $250,000</div></td>
+          <td><span class="ours">${money(BEAT.offer.money)}</span></td>
+          <td><span class="struck">$60,000</span></td></tr>
+        ${BEAT.terms.slice(1).map(rowC).join("")}
+      </table>
+
+      <div class="sig">
+        <div>
+          <div class="line"><span class="hand">Priya Nair</span></div>
+          <div class="cap">${BEAT.offer.by} · drawn ${BEAT.offer.staged}</div>
+        </div>
+        <div class="open">
+          <div class="line"></div>
+          <div class="cap">Countersignature — <b>${seconderList()}</b>.<br>
+            Not yours to sign. You drew it.</div>
+        </div>
+      </div>
+
+      <div class="price">Exchange marks, Day ${BEAT.day} ${marks}
+        <span>This execution: ${q} — the sheet, plus ${riding().length} exhibit${riding().length === 1 ? "" : "s"} clipped to it, quoted as one price.</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="pane">
+        <h4>Docket · Day ${BEAT.day}</h4>
+        ${rows.length ? rows.map(r => `<div class="row">${r.what}
+            <div class="m">Day ${r.day} · ${r.who}${r.cost ? ` · ${r.cost} mark${r.cost > 1 ? "s" : ""}` : ""} · ${r.lands}</div>
+          </div>`).join("") : `<div class="empty">${BEAT.docketEmptyCopy}</div>`}
+      </div>
+      <div class="memo">
+        <div class="hd">Memorandum · from the client · Day ${BEAT.day}</div>
+        <div class="body">“${b.line}”</div>
+        <div class="hd by" style="border:0;margin:10px 0 0;padding:0">
+          Dana Whitfield · taken at Consult, 1 mark</div>
+        <div class="st"><span class="stamp ${S.band === "ready" ? "blue" : ""}">${b.word}</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ---- switch.js
+// ---------------------------------------------------------------- switcher (chrome)
+// Not part of any design under judgement. ?register=A|B|C, ?chrome=off for screenshots.
+const REGISTERS = [["A", "The Boardroom"], ["B", "The Console"], ["C", "The Paper"]];
+const RENDER = { A: renderA, B: renderB, C: renderC };
+
+const params = new URLSearchParams(location.search);
+let reg = (params.get("register") || "A").toUpperCase();
+if (!RENDER[reg]) reg = "A";
+if (params.get("chrome") === "off") document.documentElement.classList.add("chrome-off");
+if (params.get("band") === "ready") S.band = "ready";
+if (params.get("docket") === "empty") S.docketEmpty = true;
+
+function go(r) {
+  reg = r;
+  // A data: or file: snapshot refuses replaceState; the switcher still has to work.
+  try {
+    const u = new URL(location.href); u.searchParams.set("register", r);
+    history.replaceState(null, "", u);
+  } catch (_) {}
+  render();
+}
+const cycle = d => go(REGISTERS[(REGISTERS.findIndex(([k]) => k === reg) + d + 3) % 3][0]);
+
+function render() {
+  const [k, name] = REGISTERS.find(([x]) => x === reg);
+  document.getElementById("stage").innerHTML = RENDER[k]();
+  document.getElementById("now").textContent = `${k} — ${name}`;
+  for (const el of document.querySelectorAll("#bar [data-probe]"))
+    el.classList.toggle("on", el.dataset.probe === (el.dataset.group === "band" ? S.band
+      : el.dataset.group === "docket" ? (S.docketEmpty ? "empty" : "day4") : ""));
+  const d = document.getElementById("dump");
+  d.textContent = JSON.stringify({
+    register: k, band: S.band, docket: S.docketEmpty ? "empty" : "day 4",
+    riding: riding().map(e => e.name),
+    irrelevantRiding: riding().filter(e => !relevant(e)).map(e => e.name),
+    quote: quote(), exchangeLeft: left(),
+  }, null, 2);
+}
+
+document.addEventListener("click", e => {
+  const ex = e.target.closest("[data-ex]");
+  if (ex) { S.riding[ex.dataset.ex] = !S.riding[ex.dataset.ex]; return render(); }
+  const act = e.target.closest("[data-act]");
+  if (act && act.dataset.act === "board") { boardOpen = !boardOpen; return render(); }
+  const p = e.target.closest("[data-probe]");
+  if (!p) return;
+  if (p.dataset.group === "band") S.band = p.dataset.probe;
+  if (p.dataset.group === "docket") S.docketEmpty = p.dataset.probe === "empty";
+  if (p.dataset.group === "reg") go(p.dataset.probe);
+  render();
+});
+addEventListener("keydown", e => {
+  if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName) || e.target.isContentEditable) return;
+  if (e.key === "ArrowLeft") cycle(-1);
+  if (e.key === "ArrowRight") cycle(1);
+});
+
+document.body.insertAdjacentHTML("beforeend", `
+  <pre id="dump" hidden></pre>
+  <div id="bar">
+    <button onclick="cycle(-1)">←</button>
+    <span class="now" id="now"></span>
+    <button onclick="cycle(1)">→</button>
+    <span class="sep"></span>
+    <span class="lab">Band</span>
+    <button data-probe="firm" data-group="band">firm</button>
+    <button data-probe="ready" data-group="band">ready</button>
+    <span class="lab">Docket</span>
+    <button data-probe="day4" data-group="docket">Day 4</button>
+    <button data-probe="empty" data-group="docket">empty</button>
+    <span class="sep"></span>
+    <button onclick="const d=document.getElementById('dump');d.hidden=!d.hidden">state</button>
+  </div>`);
+render();
+
+</script>
