@@ -8,8 +8,8 @@ status: accepted
 [#267](https://github.com/MattMencel/bizlaw/issues/267) cast and kept exactly one
 portrait: a Team's own Client, where the Client speaks and nowhere else.
 [#316](https://github.com/MattMencel/bizlaw/issues/316) asks what that portrait
-actually is and who draws it. The answer is a **part set** — a fixed head with
-independent brow and mouth layers over it — **printed as a duotone halftone**,
+actually is and who draws it. The answer is a **part set** — independent brow
+and mouth layers over a held face — **printed as a duotone halftone**,
 composed in Ruby from committed SVG, with a Case supplying nothing but an opaque
 seed.
 
@@ -24,9 +24,10 @@ arithmetic the ticket had.
 derived from the Reaction Band by engine rule; a third is authored to the
 settlement occasion and is invariant across terms, Side and who accepted
 ([ADR 0007](0007-the-settlement-beat-is-the-executed-instrument.md),
-`CONTEXT.md:237`). #316 listed the inventory as its first open question and was
-blocked on [#319](https://github.com/MattMencel/bizlaw/issues/319) to get it;
-#319 answered it on the way past.
+and `CONTEXT.md` under *Dialogue*). #316 listed the inventory as its first open
+question and was blocked on
+[#319](https://github.com/MattMencel/bizlaw/issues/319) to get it; #319 answered
+it on the way past.
 
 **"One face" is one face *per Team*, and the cost is per Case.** `Cases::Import`
 refuses any Case that does not author exactly two Clients, one for each of
@@ -44,13 +45,18 @@ would put an illustrator in the Case-authoring loop forever.
 
 ## Decision
 
-**The engine ships a part set and a compositor; a Case ships a seed.** One fixed
-head geometry, one pair of eyes, one nose. Brows and mouth are the only groups
-the engine ever selects, and it selects them from the band. Hair, garment, skull,
-glasses and facial hair are drawn once by the Case's seed and never move again.
+**The engine ships a part set and a compositor; a Case ships a seed.** One pair
+of eyes and one nose, fixed for everyone. Brows and mouth are the only groups the
+**engine** ever selects — from the band at a Consult, and from the authored
+settlement expression at a settlement, where there is no band to read. Everything
+else is **identity**, drawn once by the Case's seed and never moving again: hair,
+garment, glasses, facial hair, and the skull itself. The skull is an identity
+group rather than a fixed geometry, and it has to be — see the duotone
+consequence below.
 
-**A part is authored against a tone level, never a colour.** Four levels between
-two inks, each resolving through a CSS custom property on an ancestor element, so
+**A part is authored against a tone level, never a colour.** Five levels — the
+two inks themselves plus three screens between them — each resolving through a
+CSS custom property on an ancestor element, so
 the same part prints as a halftone screen or a flat wash without being redrawn
 and the ink follows the page rather than being baked into the art.
 
@@ -80,27 +86,40 @@ the evidence: identical parts, identical layering, and flat reads as a sticker
 pasted onto the page where the screen reads as printed on it.
 
 **The expression shift is small and deliberate.** Brows and mouth; eyes held. The
-Client's beat is "emphasis, never the sole carrier" (`CONTEXT.md:171`) — the band
-is always on the page in words too — so the face confirms copy the reader already
-has rather than carrying a signal they must read blind. That is a much cheaper
-drawing, and the rule that would have made it expensive died with the room.
+Client's beat is "emphasis, never the sole carrier" (`CONTEXT.md`, *The Client's
+beat*) — the band is always on the page in words too — so the face confirms copy
+the reader already has rather than carrying a signal they must read blind. That
+is a much cheaper drawing, and the rule that would have made it expensive died
+with the room.
 
 **Stock first, commission second, and the swap is a file swap.** An
-avataaars-derived set under the treatment is available today, MIT, and unblocks
-every screen. It will not clear #312's "not a cartoon blob" bar on its own —
+avataaars-derived set under the treatment is available today, MIT, and is what
+unblocks the screens. Note what has *not* been shown: the prototype's parts are
+drawn to avataaars' arrangement rather than lifted from it, so whether Pablo
+Stanley's actual geometry survives being screened is untested, and it is the
+shipping default. Check it before the first screen, not after. It will not clear
+#312's "not a cartoon blob" bar on its own —
 avataaars has one nose, enormous eyes and a hairline that reads as a sticker, and
 screening a cartoon yields a screened cartoon. The commission is a reskin against
 the same part schema, and buying a *set* rather than three pictures is what makes
 that a drop-in with no code change.
 
 **The default set ships in this repo; a commissioned set does not.** The
-avataaars-derived default is Apache-2.0 here so the open engine runs for anyone.
+avataaars-derived default ships in-tree so the open engine runs for anyone. It
+does **not** become Apache-2.0 by being committed here: the parts are a
+derivative of MIT-licensed art and stay MIT, and MIT's grant is conditional on
+carrying its copyright and permission notice with them. The repo is Apache-2.0
+and the parts sit inside it under their own terms — which is an ordinary
+arrangement and a live obligation, not a formality, so the MIT text and the
+"Copyright (c) 2017 Pablo Stanley, Fang-Pen Lin" line ship in a third-party
+notices file alongside the art. Take the art from `fangpenlin/avataaars`, where
+that grant actually exists, and not from avataaars.com, whose licence is a line
+of marketing copy behind a certificate that expired in 2021
+(`docs/design/avatar-systems.md`).
+
 A commissioned set is proprietary and lives with the Cases, loaded from a
 configurable part-set root — the same split the repo already draws between the
-engine and its authored content. Take avataaars' art from `fangpenlin/avataaars`,
-which is MIT and names Pablo Stanley and Fang-Pen Lin, not from avataaars.com,
-whose licence is a line of marketing copy behind a certificate that expired in
-2021 (`docs/design/avatar-systems.md`).
+engine and its authored content.
 
 ## Considered options
 
@@ -138,15 +157,27 @@ let CSS resize it, and every render size the game uses is a size the part set ha
 been looked at in.
 
 **Duotone deletes the cheap identity axis, and the part set pays for it in
-shape.** avataaars parameterises 7 skin tones and 14 clothing colours over its
-103 parts; two inks remove all of that, and what is left is drawn work. The
-prototype's stand-in set has 320 combinations and its six roster seeds collide
-inside them — two of the six compose to the same person, left visible in the page
-on purpose. **Hair is therefore the group to buy deep**, and the re-scoped
-commission is roughly **33 parts** rather than
-`docs/design/avatar-systems.md`'s 52: that estimate was sized for six characters
-in eight states, and here the expression groups collapse from about 26 parts to
-about 7 while the identity groups are the ones that must grow.
+shape.** avataaars parameterises 7 skin tones and 10 hair colours over its 103
+parts; two inks remove both, and what is left is drawn work. The prototype's
+stand-in set has 320 combinations and its six roster seeds collide inside them —
+two of the six compose to the same person, left visible in the page on purpose.
+**Hair is therefore the group to buy deep.**
+
+`docs/design/avatar-systems.md`'s Option A is 52 parts, sized for six characters
+in eight states and splitting about evenly between expression and identity. Three
+states collapse the expression half from about 26 parts to about 7. Holding the
+identity half at 26 gives **33**, and that is a **floor rather than an estimate**:
+the same duotone decision that collapses the expression half is what forbids
+holding the identity half still. Where above 33 it lands is a drawing question and
+is not settled here.
+
+**The commission is still unpriced, and deliberately.**
+`docs/design/avatar-systems.md` declines to give a day rate or a dollar figure
+from a primary source, and nothing since has produced one. This ADR moves the
+question from *how many characters* to *how deep one part set goes*; it does not
+answer what that costs, who commissions it, or when. That stays the one line item
+on [#312](https://github.com/MattMencel/bizlaw/issues/312) outside the Rails
+build, and it is now the only part of #316 still open.
 
 **Two Clients of one Case must not collide, and that is an import check.** It is
 the only collision anyone can see — Teams in different Simulations never meet,
@@ -163,11 +194,12 @@ carries `role`, `bound_cents`, `opening_statement` and two settlement lines, and
 no name, persona or portrait. A required, undefaulted `portrait_seed` is the
 whole schema surface this ADR implies.
 
-**The portrait is `aria-hidden`.** It is emphasis and never the sole carrier, the
-band is always present as text, and there is nothing truthful for alt text to say
-that the page does not already say in words. Accessibility comes in with the
-first screen per #312, and this is one of the things the first axe-core pass
-should confirm rather than assume.
+**The portrait looks like it wants to be `aria-hidden`,** and this ADR does not
+decide that. It is emphasis and never the sole carrier, the band is always present
+as text, and there is nothing truthful for alt text to add that the page does not
+already say in words — so the expected answer is decorative. But #312 puts
+accessibility with the first screen, behind Capybara and axe-core, and that is
+where the call belongs; recorded here only so the question is not lost.
 
 **ADR 0001's build-time-Node clause is spent, not merely narrowed.** It survives
 for the offline dialogue rake task, which is a real build-time Node dependency.

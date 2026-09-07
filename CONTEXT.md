@@ -152,9 +152,9 @@ The idiom the game is drawn in: **the paper**. The game is the file — letterhe
 
 A Team's own Client is the one thing in the game that is drawn rather than typeset, and the one place a Reaction Band lands.
 
-The portrait is **composed, not drawn per Case**. The engine ships a part set — one fixed head with independent brow and mouth layers over it — and an authored Case supplies an opaque **portrait seed** and nothing else. Brows and mouth are the only groups the engine ever picks, and it picks them from the band; hair, garment, skull and the rest are drawn once by the seed and never move again. Named part choices are not authorable, because a name does not survive the set being reskinned and surviving the reskin is the point of having a set.
+The portrait is **composed, not drawn per Case**: independent brow and mouth layers over a held face, printed in **two inks**. An authored Case supplies an opaque **portrait seed** and nothing else — named part choices are not authorable, because a name does not survive the set being reskinned and surviving the reskin is the point of having a set.
 
-It is printed in **two inks**: a part is authored against a tone level rather than a colour, and the level resolves to a halftone screen so the face reads as printed on the page rather than pasted onto it. That register has a price — no skin tone and no hair colour, so identity is carried by shape alone, and the two Clients of one Case are the only pair anyone can see side by side and so the only pair that must differ. See ADR 0008.
+**Brows and mouth are the only groups the engine picks**, and it reads them from the band at a Consult and from the authored settlement expression at a settlement, where there is no band. Everything else is identity, drawn once by the seed: hair, garment, glasses, facial hair and the skull. Identity is carried by **shape alone**, because two inks leave no skin tone and no hair colour to carry it — which is why the two Clients of one Case, the only pair anyone ever sees together, are the only pair that must differ. See ADR 0008.
 
 ## Terms Board
 
