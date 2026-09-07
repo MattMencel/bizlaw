@@ -65,14 +65,41 @@ now is the instrument — you spend from the Action Board, and you execute a dra
 over a countersignature. Nothing in the schema moves, because none of it ever
 encoded a room.
 
-**The Morning Briefing still names the grammar in one line of fixed copy**, and
-the line changes. `app/reads/morning_briefing.rb` calls it `two_room_line` and
-`config/locales/reads.en.yml` still tells a student to "Prepare in the Firm and
-deal in the Boardroom" — copy for two rooms that do not exist, asserted by
-`spec/reads/morning_briefing_spec.rb` and by
-`features/step_definitions/morning_briefing_steps.rb`. That rename and rewrite
-is not done here; this ADR is what makes it a correction rather than a
-regression.
+**The room vocabulary outlives this ADR in the code, and that is deliberate.**
+`CONTEXT.md` is corrected here because it is the glossary every session is told
+to read first; everything below is left for the change that actually touches
+the behaviour, and this ADR is what makes each of those a correction rather
+than a regression.
+
+What still says *room* and should stop:
+
+- **The Morning Briefing's own copy.** `app/reads/morning_briefing.rb`'s
+  `two_room_line` and `config/locales/reads.en.yml` still tell a student to
+  "Prepare in the Firm and deal in the Boardroom" — copy for two rooms that do
+  not exist — asserted by `spec/reads/morning_briefing_spec.rb` and
+  `features/step_definitions/morning_briefing_steps.rb`, and described in
+  `features/morning_briefing.feature`'s own prose. The line the Briefing names
+  is now the Day's grammar, not the rooms.
+- **Six implementation comments** that use *Boardroom* as a live word for the
+  commit act or for the surface that calls a seam: `app/models/side.rb`,
+  `app/models/docket_entry.rb`, `app/services/days/command.rb` (twice),
+  `app/services/offers/stage.rb`, `app/services/offers/accept.rb`. The
+  constraint each one explains is unchanged; only the word for it is wrong.
+  `features/commit_the_offer.feature` and two specs carry the same word.
+- **`README.md` and `CLAUDE.md`.** Both describe the game view as a *room* to
+  be rendered. `CLAUDE.md` is the worse of the two, because it also says "there
+  are no rooms either" in the sense of *not built yet*, and after this ADR that
+  sentence reads as agreement when it is a different claim entirely.
+
+What keeps the word, correctly:
+
+- **ADR 0001** and the migrations under `db/migrate/`. Both are records of what
+  was decided or done at a point in time, and editing them to match a later
+  decision would destroy the thing they exist to preserve. ADR 0001's
+  Inertia paragraph is narrowed by the consequence below, not rewritten.
+- **`docs/design/avatar-systems.md`**, a survey written to inform
+  [#267](https://github.com/MattMencel/bizlaw/issues/267). It is evidence, not
+  guidance.
 
 **ADR 0001's justification for Inertia is narrowed and should be revisited on
 its own.** It rejected Hotwire because "a stateful boardroom with reacting
