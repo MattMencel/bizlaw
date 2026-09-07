@@ -37,10 +37,20 @@ invisible.
 ## Consequences
 
 Two rows written inside one transaction share a timestamp, so a shift and a
-Consult committed together are order-ambiguous. No seam writes both: a Consult
-is charged through `Days::Command` and shifts land in `Days::Land` and
-`Exhibits::Play`. Whoever first writes a shift and a spend in one transaction
-inherits this and declares its own tiebreak.
+Consult written together are order-ambiguous — and `Days::Command` is exactly
+that seam. It writes the `docket_entries` row and then calls `Days::Land` for a
+lead-zero spend, inside one transaction. A Consult's lead time is zero, so the
+only thing standing between this fold and an ambiguous answer is that a Consult
+yields no documents to land — and that is a comment on `CaseAction`, not a
+rule. `Cases::Import` maps documents onto the menu by key and would accept a
+Case authoring one behind `consult_client`.
+
+So the build makes it a rule. `Cases::Import` refuses a Case that authors a
+document behind `consult_client`, as loudly as it refuses a Client with no
+opening statement. There is then no tiebreak to state, because the Case that
+would need one does not import — which is the right shape for an invariant a
+historical read rests on: enforced where Cases enter, not asserted in a comment
+beside the code that would silently break it.
 
 `Docket::Entry` widens to carry the Action's `kind` and the band, nil on the
 three acts that have no cost — the Client's beat is emphasis and never the sole
