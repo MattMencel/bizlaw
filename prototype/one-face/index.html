@@ -1,0 +1,502 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Prototype — the one face</title>
+<!--
+  THROWAWAY PROTOTYPE. Not production code: no tests, no persistence, no build.
+  Answers #316 — what the one surviving face looks like, and what draws it.
+
+  It exists to falsify four claims, in this order:
+    1. three states of one identity, at the 78px the memo actually renders,
+       differ enough to read and little enough to stay one person;
+    2. a duotone halftone reads as stationery where flat colour reads as a
+       cartoon on a legal memo  (toggle: Halftone / Flat);
+    3. one part set plus an opaque seed yields Clients a reader would call
+       different people  (the roster, and Reroll);
+    4. the composition is three layers of committed SVG and a class, so a Ruby
+       compositor is enough and no Node is needed at any point.
+
+  Parts here are drawn in the avataaars idiom by hand, deliberately crude. They
+  are NOT the commission and not stock avataaars — they exist to test the
+  treatment and the layering, which is what was actually in question.
+
+  Double-click this file. No server, no build, no network, no npm.
+  URL probes: ?ink=halftone|flat  ?seed=<string>  ?chrome=off
+-->
+<style>
+  :root {
+    --paper:   #f4f1e8;
+    --paper-2: #ece7da;
+    --ink:     #1c1a17;
+    --muted:   #6b6558;
+    --rule:    #cfc7b4;
+    --rule-2:  #b9af98;
+    --redline: #9a2b1e;
+    --stamp:   #2f4a6b;
+    --serif:   "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --mono:    "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+
+  /* ---- the two inks, and the four tones between them --------------------
+     This is the production mechanism, not a prototype shortcut (#316 Q6):
+     a part is authored against a TONE LEVEL, never a colour, and the level
+     resolves to a halftone pattern or to a flat wash by swapping four custom
+     properties on one ancestor. The dots themselves are filled `var(--ink)`,
+     so the ink follows the page rather than being baked into the art. */
+  .art { --t0: var(--paper); --t4: var(--ink); }
+  .art.px78  { --t1: url(#h1-78);  --t2: url(#h2-78);  --t3: url(#h3-78); }
+  .art.px118 { --t1: url(#h1-118); --t2: url(#h2-118); --t3: url(#h3-118); }
+  .art.px168 { --t1: url(#h1-168); --t2: url(#h2-168); --t3: url(#h3-168); }
+  /* Same specificity as the size classes, so source order is what makes flat win. */
+  .art.flat  { --t1: #bebbb4; --t2: #88857f; --t3: #52504b; }
+  .t0 { fill: var(--t0); } .t1 { fill: var(--t1); } .t2 { fill: var(--t2); }
+  .t3 { fill: var(--t3); } .t4 { fill: var(--t4); }
+  .s4 { fill: none; stroke: var(--ink); }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #3a352c; color: var(--ink);
+    font-family: var(--serif); font-size: 15px; line-height: 1.5;
+    padding: 28px 24px 92px;
+  }
+  h1, h2, h3 { font-weight: 600; margin: 0; }
+  .wrap { max-width: 980px; margin: 0 auto; }
+
+  /* ---- shared paper atoms, lifted from prototype/day-grammar ------------- */
+  .sheet {
+    background: var(--paper); box-shadow: 0 1px 0 var(--rule-2), 0 8px 24px rgba(0,0,0,.28);
+    padding: 26px 30px; margin-bottom: 22px;
+  }
+  .letterhead {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 2px solid var(--ink); padding-bottom: 6px; margin-bottom: 18px;
+  }
+  .letterhead .firm { font-variant: small-caps; letter-spacing: .09em; font-size: 15px; }
+  .letterhead .meta { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .doc-title { font-size: 19px; margin-bottom: 2px; }
+  .doc-sub {
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px;
+  }
+  .prose p { margin: 0 0 10px; }
+  .rule { border: 0; border-top: 1px solid var(--rule); margin: 18px 0; }
+  .muted { color: var(--muted); }
+  .tiny { font-family: var(--mono); font-size: 11px; letter-spacing: .04em; }
+  .stamp {
+    display: inline-block; font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase; padding: 3px 7px;
+    border: 2px solid var(--stamp); color: var(--stamp); transform: rotate(-2.5deg);
+  }
+
+  /* ---- the portrait, at the size it is actually served ------------------- */
+  .portrait { display: block; }
+  .plate { display: flex; gap: 26px; flex-wrap: wrap; }
+  .state { text-align: center; }
+  .state .cap {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--muted); margin-top: 6px;
+  }
+  .state .why { font-size: 12.5px; color: var(--muted); max-width: 168px; margin: 2px auto 0; }
+  .at-size { display: flex; gap: 18px; align-items: flex-end; margin-top: 14px; }
+  .roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
+  .roster .who { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .06em; }
+
+  /* the Consult memo, as grammar C's front matter renders it */
+  .consult { display: flex; gap: 16px; align-items: flex-start; }
+  .band-note {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .sig { display: flex; gap: 34px; margin-top: 22px; }
+  .sig .line { flex: 1; border-top: 1px solid var(--ink); padding-top: 5px; }
+
+  /* ---- the bar --------------------------------------------------------- */
+  .bar {
+    position: fixed; left: 0; right: 0; bottom: 0; background: #23201a; color: #d8d2c4;
+    display: flex; gap: 8px; align-items: center; padding: 9px 14px;
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .04em;
+    border-top: 1px solid #4a443a;
+  }
+  .bar button {
+    font: inherit; color: inherit; background: #35302a; border: 1px solid #554e42;
+    padding: 4px 10px; cursor: pointer;
+  }
+  .bar button[aria-pressed="true"] { background: #d8d2c4; color: #23201a; border-color: #d8d2c4; }
+  .bar .sp { flex: 1; }
+  .bar .note { color: #9c9484; }
+  body.chrome-off .bar { display: none; }
+
+  .lede { color: #cdc6b6; max-width: 66ch; margin: 0 auto 26px; }
+  .lede a { color: #e0d8c4; }
+  .lede h1 { color: var(--paper); font-size: 22px; margin-bottom: 8px; }
+  .heading {
+    color: #cdc6b6; font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+    text-transform: uppercase; margin: 30px 0 10px;
+  }
+</style>
+
+<!-- The halftone screens.
+
+     A screen is a property of the PAGE, not of the artwork: on real stationery
+     the dot pitch is fixed in ink on paper, and a portrait printed small has
+     fewer dots across it, not smaller ones. SVG patterns are the other way
+     round — `userSpaceOnUse` resolves against the viewBox, so a single shared
+     screen shrinks with the portrait and, at the 78px the memo actually serves,
+     collapses below two pixels a cell into a flat grey wash. That kills the
+     register the screen was chosen for.
+
+     So the pitch is divided back out by the render scale, one set of screens
+     per size the page serves. The consequence for the build: a compositor
+     takes the render size as an argument. It cannot emit one size-agnostic
+     file per state and let CSS resize it. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="screens"></defs></svg>
+
+<div class="wrap">
+  <div class="lede">
+    <h1>The one face</h1>
+    <p>Prototype for <a href="https://github.com/MattMencel/bizlaw/issues/316">#316</a>. Three states,
+    one identity, drawn in two inks — and the same part set reseeded into a roster of Clients.
+    The parts are hand-drawn stand-ins for the commission, so judge the <em>treatment</em> and the
+    <em>layering</em>, not the draughtsmanship.</p>
+  </div>
+  <main id="app"></main>
+</div>
+
+<div class="bar">
+  <span class="note">ink</span>
+  <button data-ink="halftone">Halftone</button>
+  <button data-ink="flat">Flat</button>
+  <span class="sp"></span>
+  <button id="reroll">Reroll identity</button>
+  <span class="note" id="seedout"></span>
+</div>
+
+<script>
+/* ==========================================================================
+   THE PART SET
+   Front-facing bust on a fixed 200x200 head geometry, avataaars' arrangement:
+   one head, one pair of eyes, one nose, and independent brow / mouth layers
+   over the top. Expression parts are the only ones the engine picks; every
+   other group is picked once, by the Case's seed, and never moves again.
+   ========================================================================== */
+
+/* --- fixed: the parts that never vary, per #316 Q7 (eyes held) ----------- */
+const NECK  = `<path class="t2" d="M87,116 h26 v30 h-26 z"/>`;
+/* Skull is an identity group, not a fixed part. It has to be: a duotone
+   register deletes skin tone and hair colour, which is where an ordinary
+   avatar system gets most of its cheap variety, so what is left has to be
+   shape. See the README — this is the axis the commission has to be broad on. */
+const SKULL = [[41, 47], [38, 48], [44, 45], [40, 50]];
+const head  = ([rx, ry]) => `<ellipse class="t1" cx="100" cy="84" rx="${rx}" ry="${ry}"/>`;
+const EARS  = `<ellipse class="t1" cx="59.5" cy="90" rx="6.5" ry="9.5"/>
+               <ellipse class="t1" cx="140.5" cy="90" rx="6.5" ry="9.5"/>`;
+const JAW   = `<path class="t2" d="M74,124 Q100,136 126,124 Q100,131 74,124 Z"/>`;
+const NOSE  = `<path class="t2" d="M101,88 L95.5,105 Q100.5,108 105.5,104 Z"/>`;
+const eye = (cx) => `
+  <ellipse class="t0" cx="${cx}" cy="86" rx="8.4" ry="5.4"/>
+  <circle   class="t3" cx="${cx}" cy="86" r="3.7"/>
+  <circle   class="t4" cx="${cx}" cy="86" r="1.8"/>
+  <path class="t4" d="M${cx - 8.6},85.4 Q${cx},78.8 ${cx + 8.6},85.4 Q${cx},81.8 ${cx - 8.6},85.4 Z"/>`;
+const EYES = eye(81.5) + eye(118.5);
+
+/* --- expression: brows and mouth, and nothing else ----------------------
+   #316 settled the shift as small and deliberate — a brow and a set of the
+   jaw confirming copy already on the page, not a signal a viewer must read
+   blind. The three states are the whole inventory: `firm` and `ready` are
+   derived from the Reaction Band by engine rule, and `settlement` is
+   authored to the occasion and invariant (ADR 0007). */
+const brow = (outer, mid, inner) => {
+  const t = 4.3;
+  const L = `M67.5,${outer} Q81.5,${mid} 95,${inner} L95,${inner + t} Q81.5,${mid + t} 67.5,${outer + t} Z`;
+  const R = `M132.5,${outer} Q118.5,${mid} 105,${inner} L105,${inner + t} Q118.5,${mid + t} 132.5,${outer + t} Z`;
+  return `<path class="t4" d="${L}"/><path class="t4" d="${R}"/>`;
+};
+
+const BROWS = {
+  /* level and carried low: holding a position */
+  firm:       brow(69.5, 66.8, 70.8),
+  /* the inner end lifts; the only part of the face that opens */
+  ready:      brow(70.5, 66.2, 67.6),
+  /* neither braced nor asking. Authored, and the same at every settlement */
+  settlement: brow(69.6, 65.6, 68.9),
+};
+
+const MOUTHS = {
+  /* pressed flat, corners a shade below centre */
+  firm: `<path class="t4" d="M82,116.6 Q100,112.8 118,116.6 Q100,119.4 82,116.6 Z"/>`,
+  /* the press comes off; still closed, still not pleased */
+  ready: `<path class="t4" d="M82,115.4 Q100,112.2 118,115.4 Q100,120.6 82,115.4 Z"/>`,
+  /* closed, corners just up. Spent rather than delighted */
+  settlement: `<path class="t4" d="M82,114.2 Q100,121.4 118,114.2 Q100,118.2 82,114.2 Z"/>`,
+};
+
+/* --- identity: picked once by the Case's seed, never by the engine ------- */
+/* Hair is the one identity group with layers on both sides of the head, so it
+   is authored as a pair rather than as one blob: `back` goes down before the
+   head, `front` after. A part set that did not say which side a part sits on
+   would make the compositor guess. */
+const HAIR = [
+  { /* swept */ back: "", front:
+    `<path class="t3" d="M57,84 Q55,35 100,33 Q145,35 143,84 Q140,50 116,44 Q98,58 74,49 Q60,55 57,84 Z"/>` },
+  { /* cropped */ back: "", front:
+    `<path class="t4" d="M58,84 Q57,37 100,35 Q143,37 142,84 Q138,56 124,52 Q100,60 76,52 Q62,56 58,84 Z"/>` },
+  { /* bob */ back:
+    `<path class="t3" d="M55,86 Q53,33 100,32 Q147,33 145,86 L145,120 L55,120 Z"/>`, front:
+    `<path class="t3" d="M55,86 Q53,33 100,32 Q147,33 145,86 Q141,60 138,58 Q121,55 100,55 Q79,55 62,58 Q59,60 55,86 Z"/>` },
+  { /* tied back */ back:
+    `<ellipse class="t3" cx="100" cy="33" rx="17" ry="12"/>`, front:
+    `<path class="t3" d="M58,82 Q57,38 100,36 Q143,38 142,82 Q136,54 100,52 Q64,54 58,82 Z"/>` },
+  { /* receding */ back: "", front:
+    `<path class="t4" d="M60,82 Q60,44 100,42 Q140,44 140,82 Q136,58 118,53 Q100,63 82,53 Q64,58 60,82 Z"/>` },
+];
+
+const GARMENT = [
+  /* blazer and shirt */
+  `<path class="t3" d="M22,200 Q26,158 62,146 L100,168 L138,146 Q174,158 178,200 Z"/>
+   <path class="t0" d="M86,143 L100,170 L114,143 L107,140 L100,151 L93,140 Z"/>
+   <path class="t4" d="M86,143 L100,170 L96,170 L80,146 Z"/>
+   <path class="t4" d="M114,143 L100,170 L104,170 L120,146 Z"/>`,
+  /* blazer and sweater */
+  `<path class="t3" d="M22,200 Q26,158 62,146 L100,164 L138,146 Q174,158 178,200 Z"/>
+   <path class="t2" d="M78,146 Q100,176 122,146 Q100,158 78,146 Z"/>`,
+  /* collar and tie */
+  `<path class="t0" d="M22,200 Q26,158 62,146 L100,166 L138,146 Q174,158 178,200 Z"/>
+   <path class="t2" d="M84,143 L100,166 L116,143 L108,140 L100,150 L92,140 Z"/>
+   <path class="t4" d="M100,166 L94,174 L100,200 L106,174 Z"/>`,
+  /* blouse, open collar */
+  `<path class="t2" d="M22,200 Q26,158 62,146 L100,172 L138,146 Q174,158 178,200 Z"/>
+   <path class="t0" d="M82,145 L100,174 L118,145 L110,141 L100,154 L90,141 Z"/>`,
+];
+
+const GLASSES = `
+  <rect class="s4" x="66" y="77" rx="4" width="31" height="18" stroke-width="2.1"/>
+  <rect class="s4" x="103" y="77" rx="4" width="31" height="18" stroke-width="2.1"/>
+  <path class="s4" d="M97,85 h6" stroke-width="2.1"/>
+  <path class="s4" d="M66,83 L57,87" stroke-width="2.1"/>
+  <path class="s4" d="M134,83 L143,87" stroke-width="2.1"/>`;
+
+const FACIAL_HAIR = `
+  <path class="t3" d="M64,96 Q68,132 100,134 Q132,132 136,96 Q130,120 100,122 Q70,120 64,96 Z" opacity="0.88"/>`;
+
+/* ==========================================================================
+   SEED -> IDENTITY
+   An opaque string, exactly what a Case author writes and rerolls until they
+   like the face (#316 Q12). Named part choices were rejected: they do not
+   survive the reskin, and surviving the reskin is the whole architecture.
+   ========================================================================== */
+function hash(str) {
+  let h = 2166136261;
+  for (const ch of str) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+
+/* Each group is hashed with its own salt rather than sliced out of one hash.
+   Slicing looked fine and was not: across the six roster seeds it drew the same
+   hair three times and never once drew glasses or facial hair, because the
+   shifted bits of one FNV word stay correlated. A group is an independent
+   draw, so it gets an independent hash. */
+const pick = (seed, group, arr) => arr[hash(group + "\u0000" + seed) % arr.length];
+
+function identity(seed) {
+  return {
+    hair:    pick(seed, "hair", HAIR),
+    garment: pick(seed, "garment", GARMENT),
+    skull:   pick(seed, "skull", SKULL),
+    glasses: pick(seed, "glasses", [true, false, false]),
+    beard:   pick(seed, "beard", [true, false, false, false]),
+  };
+}
+
+/* ==========================================================================
+   THE COMPOSITOR
+   Every line below is a string concatenation over static parts. That is the
+   whole of it, and it is why #316 lands on a Ruby compositor over committed
+   SVG rather than on Node at build time (ADR 0001) or at import: there is
+   nothing here a partial cannot do, and no step that wants a package manager.
+   ========================================================================== */
+/* PITCH is in CSS pixels of finished page. Everything else follows from it. */
+const PITCH = 5;
+const SIZES = [78, 118, 168];
+const TONES = [["h1", 0.85], ["h2", 1.55], ["h3", 2.15]];
+
+document.getElementById("screens").innerHTML = SIZES.map(px => {
+  const k = 200 / px;                       /* user units per CSS pixel */
+  return TONES.map(([id, r]) => `
+    <pattern id="${id}-${px}" width="${PITCH * k}" height="${PITCH * k}"
+             patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
+      <circle cx="${PITCH * k / 2}" cy="${PITCH * k / 2}" r="${r * k}" fill="var(--ink)"/>
+    </pattern>`).join("");
+}).join("");
+
+/* The wrapper carries the ink mode and the size, because the tone levels are
+   resolved by CSS custom properties on an ancestor — which is the whole reason
+   a part can be authored once and printed in either ink. */
+function art(seed, state, px, ink) {
+  return `<div class="art px${px}${ink === "flat" ? " flat" : ""}">${portrait(seed, state, px)}</div>`;
+}
+
+function portrait(seed, state, px) {
+  const id = identity(seed);
+  return `<svg class="portrait" width="${px}" height="${px}" viewBox="0 0 200 200"
+               role="presentation" aria-hidden="true">
+    ${id.hair.back}${NECK}${id.garment}${head(id.skull)}${EARS}${JAW}${id.hair.front}
+    ${id.beard ? FACIAL_HAIR : ""}
+    ${EYES}${NOSE}${BROWS[state]}${MOUTHS[state]}
+    ${id.glasses ? GLASSES : ""}
+  </svg>`;
+}
+
+/* ==========================================================================
+   THE PAGE
+   ========================================================================== */
+const STATES = [
+  ["firm", "Firm", "She is willing to keep holding out. Derived from the Reaction Band."],
+  ["ready", "Ready", "She would take a deal. Derived from the Reaction Band."],
+  ["settlement", "Settlement", "Authored to the occasion, invariant. No band exists to derive from."],
+];
+
+const ROSTER = [
+  ["whitfield-plaintiff", "Whitfield · plaintiff"],
+  ["arrowmark-defendant", "Arrowmark · defendant"],
+  ["delacroix-plaintiff", "Delacroix · plaintiff"],
+  ["harrow-defendant", "Harrow · defendant"],
+  ["okafor-plaintiff", "Okafor · plaintiff"],
+  ["lindqvist-defendant", "Lindqvist · defendant"],
+];
+
+const OPENING = `“Forty-five thousand and a confidentiality clause. That is not a settlement,
+that is a receipt. I told you what I want and I have not changed my mind about any of it.”`;
+
+const SETTLED = `“I read it three times before I put my name on it. It is not everything I asked
+for, and I have stopped pretending there was ever a version where it would be. But it is theirs,
+in writing, and I am the one who decided it was enough. I would like to go home now.”`;
+
+const params = new URLSearchParams(location.search);
+const state = {
+  ink: params.get("ink") === "flat" ? "flat" : "halftone",
+  seed: params.get("seed") || "whitfield-plaintiff",
+};
+if (params.get("chrome") === "off") document.body.classList.add("chrome-off");
+
+function draw() {
+
+  /* 1 — the three states, large enough to judge and at the size served */
+  const plate = STATES.map(([key, label, why]) => `
+    <div class="state">
+      ${art(state.seed, key, 168, state.ink)}
+      <div class="cap">${label}</div>
+      <div class="why">${why}</div>
+    </div>`).join("");
+
+  const atSize = STATES.map(([key, label]) => `
+    <div class="state">
+      ${art(state.seed, key, 78, state.ink)}
+      <div class="cap">${label}</div>
+    </div>`).join("");
+
+  /* 2 — one part set, reseeded */
+  const roster = ROSTER.map(([seed, who]) => `
+    <div class="state">
+      ${art(seed, "firm", 118, state.ink)}
+      <div class="who">${who}</div>
+    </div>`).join("");
+
+  /* 3 — in situ: the two occasions, and nowhere else */
+  const memo = `
+    <div class="sheet">
+      <div class="letterhead">
+        <span class="firm">Kestrel &amp; Vane LLP</span>
+        <span class="meta">WHITFIELD v. ARROWMARK LOGISTICS · DAY 3 OF 10</span>
+      </div>
+      <div class="doc-title">Working draft — term sheet</div>
+      <div class="doc-sub">Front matter · not executed</div>
+      <div class="consult">
+        ${art(state.seed, "ready", 78, state.ink)}
+        <div style="flex:1">
+          <div class="band-note">Consulted Day 3 · she reads <strong>ready</strong></div>
+          <div class="prose" style="margin-top:6px"><p>${OPENING}</p></div>
+        </div>
+      </div>
+      <p class="tiny muted" style="margin-top:12px">The band is on the page in words as well as in
+      the face. That is what lets the expression be a confirmation rather than a signal — and it is
+      the reason a small shift is enough.</p>
+    </div>`;
+
+  const instrument = `
+    <div class="sheet">
+      <div class="letterhead">
+        <span class="firm">Kestrel &amp; Vane LLP</span>
+        <span class="meta">WHITFIELD v. ARROWMARK LOGISTICS · EXECUTED</span>
+      </div>
+      <div class="doc-title">Terms of settlement</div>
+      <div class="doc-sub">Executed instrument · Day 6</div>
+      <span class="stamp">Executed</span>
+      <hr class="rule">
+      <div class="consult">
+        ${art(state.seed, "settlement", 78, state.ink)}
+        <div style="flex:1">
+          <div class="prose"><p>${SETTLED}</p></div>
+        </div>
+      </div>
+      <div class="sig">
+        <div class="line"><span class="tiny muted">For the claimant</span><br>Dana Whitcombe</div>
+        <div class="line"><span class="tiny muted">For the respondent</span><br>R. Iyer</div>
+      </div>
+      <p class="tiny muted" style="margin-top:14px">No band here, and the slot is left empty rather
+      than filled: <em>firm</em> and <em>ready</em> are moot once the instrument is executed, and a
+      face that fell at a bad deal would hand the Team its Settlement Quality before Release.</p>
+    </div>`;
+
+  document.getElementById("app").innerHTML = `
+    <div class="heading">1 · Three states, one identity</div>
+    <div class="sheet">
+      <div class="plate">${plate}</div>
+      <hr class="rule">
+      <div class="doc-sub" style="margin:0">At the size the memo serves it — 78px</div>
+      <div class="at-size">${atSize}</div>
+      <p class="tiny muted" style="margin-top:14px">Only the brows and the mouth move. The eyes,
+      nose, jaw, hair and garment are byte-identical across all three, which is what keeps it one
+      person in three moods rather than three drawings of a similar woman.</p>
+    </div>
+
+    <div class="heading">2 · One part set, every Case</div>
+    <div class="sheet">
+      <div class="roster">${roster}</div>
+      <p class="tiny muted" style="margin-top:16px">Six Clients — three Cases' worth — from one set
+      of parts and six opaque seeds. This is the claim that decides the commission: what recurs per
+      Case is <em>identity</em>, not expression, so what gets bought is a part set and not a picture.</p>
+      <p class="tiny" style="margin-top:10px;color:var(--redline)">Read the first two again: at these
+      seeds <em>Whitfield · plaintiff</em> and <em>Arrowmark · defendant</em> compose to the same
+      person. Left in on purpose. A duotone register has no skin tone and no hair colour, so the
+      cheap identity axis every avatar system leans on is gone and only shape is left — 320
+      combinations here, which collides at six draws about one time in twenty. Two Clients of the
+      <em>same</em> Case are the only pair anyone can ever see side by side, so that is an import
+      check, not a seed property; but it is also the number the commission has to be scoped
+      against, and it is why hair is the group to buy deep.</p>
+    </div>
+
+    <div class="heading">3 · The two occasions, and nowhere else</div>
+    ${memo}
+    ${instrument}`;
+
+  document.querySelectorAll("[data-ink]").forEach(b =>
+    b.setAttribute("aria-pressed", String(b.dataset.ink === state.ink)));
+  document.getElementById("seedout").textContent = `seed: ${state.seed}`;
+}
+
+document.querySelectorAll("[data-ink]").forEach(b =>
+  b.onclick = () => { state.ink = b.dataset.ink; draw(); });
+
+document.getElementById("reroll").onclick = () => {
+  state.seed = Math.random().toString(36).slice(2, 10);
+  draw();
+};
+
+document.addEventListener("keydown", e => {
+  if (e.key === "f" || e.key === "F") {
+    state.ink = state.ink === "flat" ? "halftone" : "flat";
+    draw();
+  }
+});
+
+draw();
+</script>
