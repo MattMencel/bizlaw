@@ -204,6 +204,13 @@ module Days
       landing_day = landing_day_for
       return refusal(:the_result_would_land_past_the_last_day) if landing_day.nil?
 
+      # Asked before the Day, because a settled run's Day is closed too and
+      # `the_day_has_closed` would be the true answer to a smaller question. An
+      # Acceptance ends the run, and nothing is bought into a finished one.
+      if day.simulation.settled?
+        return refusal(:the_simulation_has_settled, landing_day: landing_day)
+      end
+
       budget = side.budget_on(day)
       return refusal(:the_day_has_not_opened, landing_day: landing_day) if budget.nil?
       # Remaining Budget expires at close. The trigger underneath refuses the

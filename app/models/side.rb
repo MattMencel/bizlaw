@@ -110,6 +110,11 @@ class Side < ApplicationRecord
   # What this Team knows. See `CaseFile`.
   def case_file = CaseFile.for(self)
 
+  # What the two Teams agreed, once one of them has taken the other's Offer.
+  # Nothing is written for it and it answers `executed?` false until then. See
+  # `ExecutedInstrument`.
+  def executed_instrument = ExecutedInstrument.for(self)
+
   # The Client this Side represents, authored on the Case Version its Simulation
   # pinned.
   def client = case_version.clients.find_by(role: role)

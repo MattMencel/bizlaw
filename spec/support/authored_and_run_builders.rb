@@ -43,6 +43,21 @@ module AuthoredAndRunBuilders
     Side::DEFENDANT => {"money" => 25_000_00, "nda" => nil}
   }.freeze
 
+  # What each Client says over the executed instrument, keyed on which Side
+  # accepted. Two lines per Client and no variants, as `db/cases/reference.yml`
+  # authors them — abbreviated here for the same reason the opening statements
+  # are: a builder needs the shape, not the prose.
+  REFERENCE_SETTLEMENT = {
+    Side::PLAINTIFF => {
+      CaseClient::TOOK_IT => "It is not everything I asked for. I decided it was enough.",
+      CaseClient::HAD_IT_TAKEN => "They signed it. My number, my words, their name underneath."
+    },
+    Side::DEFENDANT => {
+      CaseClient::TOOK_IT => "We take their paper, and we take it today.",
+      CaseClient::HAD_IT_TAKEN => "They signed ours. Get it filed, and keep it quiet."
+    }
+  }.freeze
+
   # The reference Case's documents waiting behind the Action that discovers
   # them. Whether an Exhibit is favorable is not authored: the deposition points
   # at the plaintiff Client, so the defendant holds it to play and the plaintiff
@@ -128,7 +143,8 @@ module AuthoredAndRunBuilders
       Side::DEFENDANT => [60_000_00, "We followed the policy. I want this closed quietly."]
     }.each do |role, (bound_cents, opening_statement)|
       client = pinned.clients.create!(
-        role: role, bound_cents: bound_cents, opening_statement: opening_statement
+        role: role, bound_cents: bound_cents, opening_statement: opening_statement,
+        **settlement_lines_for(role)
       )
       REFERENCE_ASPIRATIONS.fetch(role).each do |key, amount_cents|
         client.aspirations.create!(case_term: vocabulary.fetch(key), amount_cents: amount_cents)
@@ -158,6 +174,14 @@ module AuthoredAndRunBuilders
       authored.fetch(:bears_on).each do |key|
         document.document_terms.create!(case_term: vocabulary.fetch(key))
       end
+    end
+  end
+
+  # The settlement pair as the columns that hold it, so a builder and the
+  # importer name the authored keys once between them.
+  def settlement_lines_for(role)
+    CaseClient::SETTLEMENT_LINES.to_h do |acceptance_role, column|
+      [column, REFERENCE_SETTLEMENT.fetch(role).fetch(acceptance_role)]
     end
   end
 
