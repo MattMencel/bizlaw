@@ -13,14 +13,14 @@ Greenfield. The previous Rails application was ruled throwaway in
 [Map #257](https://github.com/MattMencel/bizlaw/issues/257) and stripped in
 [#283](https://github.com/MattMencel/bizlaw/issues/283); what is here now is a
 Rails 8 skeleton on SQLite with `structure.sql` tracked. The engine's tables,
-models and rooms arrive with
+models and read surfaces arrive with
 [#282](https://github.com/MattMencel/bizlaw/issues/282)'s chain.
 
 ## Stack
 
 Ruby on Rails 8 on SQLite, with Solid Queue, Solid Cache and Solid Cable on the
 same volume. Inertia and Svelte drive the game view and are installed when there
-is a room to render. No LLM client runs in the web tier — NPC dialogue is
+is a surface to render. No LLM client runs in the web tier — NPC dialogue is
 generated offline and stored.
 
 Decisions of record are in [`docs/adr/`](docs/adr/); the domain vocabulary is in
