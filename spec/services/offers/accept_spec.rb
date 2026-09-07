@@ -168,6 +168,22 @@ RSpec.describe Offers::Accept do
     expect { accept(offer, by: kofi, seconded_by: noor) }.to raise_error(Offers::DayClosed)
   end
 
+  # Reads are not serialized, so the Day this seam was handed can end between
+  # its own check and its insert. The trigger underneath catches it; what this
+  # covers is that the fault comes back as the refusal a caller renders.
+  it "turns a Day closing under it into a refusal rather than a fault" do
+    offer = an_offer_on_the_table
+    a_member_of(accepting, noor)
+    late = described_class.new(offer: offer, side: accepting, day: day, by: kofi,
+      seconded_by: noor)
+    # Closed through another instance of the same Day, so the object `late`
+    # holds still reads as open — which is exactly what a racing caller has.
+    Days::Close.call(simulation.days.find(day.id))
+
+    expect { late.call }.to raise_error(Offers::DayClosed)
+    expect(OfferAcceptance.count).to eq(0)
+  end
+
   # An Acceptance is one of the two ways a run ends, and until this landed it
   # ended nothing: `Days::Close` opened the following Day unconditionally, so a
   # settled run kept handing out Action Budget.

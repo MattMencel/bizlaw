@@ -202,14 +202,22 @@ module Days
 
     def build_quote
       landing_day = landing_day_for
-      return refusal(:the_result_would_land_past_the_last_day) if landing_day.nil?
-
-      # Asked before the Day, because a settled run's Day is closed too and
-      # `the_day_has_closed` would be the true answer to a smaller question. An
-      # Acceptance ends the run, and nothing is bought into a finished one.
+      # Asked ahead of every other refusal here, the landing Day computed just
+      # above included. A settled run's Day is closed, and a run settling near
+      # the end of the calendar leaves the longer lead times nowhere to land, so
+      # `the_day_has_closed` and `the_result_would_land_past_the_last_day` are
+      # both true answers to smaller questions — and an Action Board that let
+      # them through would tell a Team two different stories about one dead run,
+      # one per lead time. An Acceptance ended it; that is the whole of why
+      # nothing on the menu can be bought.
+      #
+      # The landing Day rides along where the calendar still has one, because a
+      # refused entry renders it.
       if day.simulation.settled?
         return refusal(:the_simulation_has_settled, landing_day: landing_day)
       end
+
+      return refusal(:the_result_would_land_past_the_last_day) if landing_day.nil?
 
       budget = side.budget_on(day)
       return refusal(:the_day_has_not_opened, landing_day: landing_day) if budget.nil?

@@ -25,6 +25,15 @@ module Offers
   # already true when the close decides whether to open the following Day —
   # which is how a settled run stops opening Days and handing out Budget.
   class Accept
+    # The trigger underneath, and the reason two Acceptances can never both
+    # persist in one run. Exactly one Day of a Simulation is open at a time —
+    # `Days::Close` opens the next only as it closes this one — so a second
+    # Acceptance racing the first always lands on the Day the first has just
+    # closed, and this refuses it. That is where the invariant lives; the
+    # `settled?` gate in `call` is only what turns it into an answer a caller
+    # can render rather than a fault.
+    DAY_ALREADY_CLOSED = /offer_acceptances_need_an_unclosed_day/
+
     def self.call(...) = new(...).call
 
     def initialize(offer:, side:, day:, by:, seconded_by: nil)
@@ -70,6 +79,20 @@ module Offers
         Days::Close.call(day)
         acceptance
       end
+    rescue ActiveRecord::StatementInvalid => e
+      raise unless DAY_ALREADY_CLOSED.match?(e.message)
+
+      # The Day ended between this seam's read of it and the insert. Reads are
+      # not serialized, so the Day this call was handed still reads as open;
+      # reloading it and asking again turns the database's fault back into the
+      # refusal a caller already knows how to render, which is the shape
+      # `Days::Command` uses for the same class of race.
+      day.reload
+      if simulation.settled?
+        raise Simulation::AlreadySettled, "this Simulation has already settled"
+      end
+
+      raise DayClosed, "Day #{day.ordinal} has already closed"
     end
 
     private
