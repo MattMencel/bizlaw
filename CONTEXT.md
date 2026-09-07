@@ -6,6 +6,8 @@ Glossary for the BizLaw negotiation simulation. Terms only — no implementation
 
 One complete run of one Case, from opening to settlement or its failure. Two Teams take opposing Sides. An Instructor starts it, sets its pace, and ends it. Runs over two to three weeks of wall-clock time and contains roughly 8–12 Days.
 
+It ends in exactly one of two ways, and they are mutually exclusive: an **Acceptance**, which ends it the moment it lands, or **Arbitration**, when it runs out of Days without one. A settled Simulation opens no further Day — the Day the Acceptance landed on closes with it, and the rest of the calendar is never played.
+
 ## Case
 
 The authored dispute a Simulation runs on: the facts, the parties, the documents, and the private positions each Client holds. Data, not code. One Case can back many concurrent Simulations.
@@ -80,11 +82,19 @@ A spend is irreversible and, unlike an Offer, ungated by a Second, so **every sp
 
 ## Offer
 
-A proposed settlement, with terms. The move that can end the Simulation if the other Side accepts it and the Client will take it.
+A proposed settlement, with terms. The move that ends the Simulation, the moment the other Side accepts it. The Client is not asked: a Team may take any Offer, and a deal beneath their own Client's reservation point simply scores badly against Par.
 
 An Offer is **staged** before it is committed: visible to the whole Team, revisable, costing nothing until it lands. A staged Offer is a **draft** on the surface, marked unexecuted, so a Team can tell a position it is deliberating from one it has taken; committing one is **executing** it.
 
 An Offer is worth **two numbers, one per Client**, because each Client values the Terms privately. The Sides negotiate a single instrument and are graded on different figures: Settlement Quality reads each Side's own Client's valuation of the Offer against that Side's Par. The two figures coincide only where an Offer is **pure cash** — money is the one Term worth its face to both Clients. So an agreement struck outside the game can fix the instrument but not the score, unless it is written in cash alone.
+
+## Acceptance
+
+The other Side taking a committed Offer, and the end of the Simulation. It costs nothing — the exchange half buys an Offer and the Exhibits riding it and nothing else — and it is gated by a **Second**, which with the Offer commit makes two acts inside a Team that need one. The Offer need not have been committed on the Day it is taken: an Offer stands on the table until it is taken or the run ends.
+
+What it produces is the **executed instrument**: the accepted Offer's own term sheet with both countersignature lines filled and an execution stamp on it. It is the one document a Team would actually keep, and it is not authored, discovered or served — it is the committed Offer and the Acceptance read together, so it is no part of the Case File, which answers *what do we know* rather than *what did we agree*. Once a run is settled the executed instrument is the page the file rests on: the back still turns to the Case File and the Docket, and the Action Board has nothing left to offer.
+
+Both Sides read a beat on it, each from their own Client. The Team whose Offer was taken performed no act and has no Morning Briefing to learn it from, because no Day opens after a settlement — the executed page is how they find out.
 
 ## Second
 
@@ -158,9 +168,11 @@ The menu of what a Team could do this Day, each Action with its cost and its lea
 
 ## The Client's beat
 
-Where a Client speaks, and the only place their portrait appears. It carries a Reaction Band and the Client's own words, and it is **emphasis, never the sole carrier**: whatever it says also lands in the Docket or the Case File, so a Team that skims it loses nothing.
+Where a Client speaks, and the only place their portrait appears — **one surface with two occasions**, not two surfaces. It carries the Client's own words and their face, and it is **emphasis, never the sole carrier**: whatever it says also lands in the Docket or on the instrument, so a Team that skims it loses nothing.
 
-A Client speaks only where they have something to say — a Consult, and settlement — and only ever their own Team's. It is never a free read: a Reaction Band that moves is shown at the next Consult, not the moment it moves. An Event, an arbitration award and a served document have no beat; they are documents, and reading them is the beat.
+At a **Consult** it also carries a Reaction Band, and rides the draft's front matter. At **settlement** it rides the executed instrument and carries no band at all. That slot is left empty rather than filled with a substitute: *firm* and *ready* mean willing to keep holding out, which is moot the instant the instrument is executed, and nothing else the engine could compute about a struck deal is sayable — how the deal landed against Par or against the Client's reservation point is a number no student sees before Release, and a Section runs many concurrent Simulations on one Case.
+
+A Client speaks only where they have something to say — a Consult, and settlement — and only ever their own Team's. The band is never a free read: one that moves is shown at the next Consult, not the moment it moves. An Event, an arbitration award and a served document have no beat; they are documents, and reading them is the beat.
 
 ## Morning Briefing
 
@@ -214,13 +226,15 @@ That is also why it is cheap. A Consult costs **1**: a Team's own reservation po
 
 A situation in which a Client speaks, and the unit generated dialogue is stored against. **The Client is the only Party that ever speaks.** Opposing counsel, the opposing Client, witnesses and the judge are presence or documents — an opposing figure with honest words would give away the reservation point a Consult is charged for, and the counsel across the table stands in for the opposing Team, whose words are the students' own.
 
-The engine defines the node **kinds**; the Case's own data multiplies out the instances, so the inventory is a closed cross-product known before it is generated. A node is **atomic** — one whole utterance, never slots assembled at runtime — so the bytes a professor reviews are the bytes a student reads. Each carries several variants, chosen by the Simulation seed *and* how many times the node has already been spoken, so a Client consulted on five Days does not repeat itself.
+The engine defines the node **kinds**; the Case's own data multiplies out the instances, so the inventory is a closed cross-product known before it is generated. A node is **atomic** — one whole utterance, never slots assembled at runtime — so the bytes a professor reviews are the bytes a student reads.
+
+There are two kinds. A **Consult** node is keyed to the Reaction Band and carries several variants, chosen by the Simulation seed *and* how many times the node has already been spoken, so a Client consulted on five Days does not repeat itself. A **settlement** node is keyed to which Side accepted — took it, or had it taken, which are different feelings about identical terms — and carries no variants at all: it is spoken exactly once, so a speak-count never advances and there is nothing for a variant to be selected on.
 
 A line is generated only where a Party speaks about something the engine computed. Anything that exists as an object in the dispute — an Event's news story, a deposition transcript, an arbitration award, a served document, the Client's opening statement of what they want — is authored prose and never reaches the model. Anything describing the machine rather than the dispute — the Morning Briefing, the Action Board, the Docket — is fixed interface copy.
 
-Generation is given the Client's persona, the Reaction Band and an authored per-Client brief, and **never a number**: no reservation point, no bound, no Par, no size of any shift. A figure a line cannot see is a figure a line cannot leak, and editing Par therefore invalidates no dialogue.
+Generation is given the Client's persona, an authored per-Client brief, the Reaction Band at a Consult or which Side accepted at a settlement, and **never a number**: no reservation point, no bound, no Par, no size of any shift. A figure a line cannot see is a figure a line cannot leak, and editing Par therefore invalidates no dialogue.
 
-The portrait's expression is derived from the Reaction Band by engine rule rather than authored on the node, so a Client's face cannot change between two variants that mean the same thing. It reaches **the Team's own Client only**, because no other Party is drawn at all.
+At a Consult the portrait's expression is derived from the Reaction Band by engine rule rather than authored on the node, so a Client's face cannot change between two variants that mean the same thing. At a settlement there is no band to derive from, so the expression is authored to the occasion and is **invariant** — the same face on every settlement, whatever the terms, whichever Side accepted. A face that fell at a bad deal would hand a Team its Settlement Quality before Release, through the art rather than the copy. It reaches **the Team's own Client only**, because no other Party is drawn at all.
 
 A Case that does not supply every node and every variant does not import.
 
