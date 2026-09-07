@@ -330,17 +330,17 @@ document.getElementById("screens").innerHTML = SIZES.map(px => {
 /* The wrapper carries the ink mode and the size, because the tone levels are
    resolved by CSS custom properties on an ancestor — which is the whole reason
    a part can be authored once and printed in either ink. */
-function art(seed, state, px, ink) {
-  return `<div class="art px${px}${ink === "flat" ? " flat" : ""}">${portrait(seed, state, px)}</div>`;
+function art(seed, expression, px, ink) {
+  return `<div class="art px${px}${ink === "flat" ? " flat" : ""}">${portrait(seed, expression, px)}</div>`;
 }
 
-function portrait(seed, state, px) {
+function portrait(seed, expression, px) {
   const id = identity(seed);
   return `<svg class="portrait" width="${px}" height="${px}" viewBox="0 0 200 200"
-               role="presentation" aria-hidden="true">
+               aria-hidden="true">
     ${id.hair.back}${NECK}${id.garment}${head(id.skull)}${EARS}${JAW}${id.hair.front}
     ${id.beard ? FACIAL_HAIR : ""}
-    ${EYES}${NOSE}${BROWS[state]}${MOUTHS[state]}
+    ${EYES}${NOSE}${BROWS[expression]}${MOUTHS[expression]}
     ${id.glasses ? GLASSES : ""}
   </svg>`;
 }
@@ -363,7 +363,7 @@ const ROSTER = [
   ["lindqvist-defendant", "Lindqvist · defendant"],
 ];
 
-const OPENING = `“Forty-five thousand and a confidentiality clause. That is not a settlement,
+const CONSULT_LINE = `“Forty-five thousand and a confidentiality clause. That is not a settlement,
 that is a receipt. I told you what I want and I have not changed my mind about any of it.”`;
 
 const SETTLED = `“I read it three times before I put my name on it. It is not everything I asked
@@ -413,7 +413,7 @@ function draw() {
         ${art(state.seed, "ready", 78, state.ink)}
         <div style="flex:1">
           <div class="band-note">Consulted Day 3 · she reads <strong>ready</strong></div>
-          <div class="prose" style="margin-top:6px"><p>${OPENING}</p></div>
+          <div class="prose" style="margin-top:6px"><p>${CONSULT_LINE}</p></div>
         </div>
       </div>
       <p class="tiny muted" style="margin-top:12px">The band is on the page in words as well as in
