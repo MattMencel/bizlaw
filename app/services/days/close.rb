@@ -4,11 +4,14 @@ module Days
   # The one close path. A Day ends, and the next one begins — by exactly one
   # route, however it was triggered.
   #
-  # Three callers reach here and there is no fourth: the second Side's commit
-  # (`Days::Commit`), the deadline sweep (`Days::FireDeadlines`), and an
-  # Instructor force-closing a stalled Day, which is this call itself rather
-  # than a wrapper over it. A second path that "also closes the Day" is the bug
-  # this shape exists to make impossible.
+  # Four callers reach here and there is no fifth: the second Side's commit
+  # (`Days::Commit`), the deadline sweep (`Days::FireDeadlines`), an Instructor
+  # force-closing a stalled Day — which is this call itself rather than a
+  # wrapper over it — and the Acceptance that ends the Simulation
+  # (`Offers::Accept`). The invariant this seam protects is *one close path*,
+  # not a count of callers: a second path that "also closes the Day" is the bug
+  # this shape exists to make impossible, and a fourth caller routed through
+  # here is what the shape was built for.
   #
   # ADR 0002 specifies the mechanism: `UPDATE days SET closed_at = ? WHERE id =
   # ? AND closed_at IS NULL`. Reads are not serialized, so two callers can both
@@ -42,7 +45,14 @@ module Days
         # The last Day closes and opens nothing. There is no Day past it to hand
         # a quota to, and the Simulation goes to arbitration rather than to a
         # Day 11.
-        following = day.following
+        #
+        # A settled run closes the same way and for the same reason: an
+        # Acceptance is the other of the two ways a run ends, so there is nobody
+        # left to hand a quota to. `Offers::Accept` writes its row before
+        # reaching here, inside one transaction, so the fold below is already
+        # true when this asks — without that ordering the last act of a settled
+        # run opens a Day nobody can play.
+        following = day.following unless day.simulation.settled?
         Open.call(following) if following
         true
       end

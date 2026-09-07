@@ -78,6 +78,12 @@ actions:
 # sits down, and one of the Morning Briefing's what-you-start-with sections. It
 # is authored prose that never reaches the model, because it is an object in the
 # dispute rather than a line about something the engine computed.
+#
+# The settlement pair is the other kind: a Dialogue Node, which a real Case has
+# generated offline against the Client's persona. These four are hand-authored,
+# because the reference Case is what an engine test and a local run read and no
+# model runs for either. Keyed on which Side accepted and carrying no variants —
+# a settlement node is spoken exactly once, so there is nothing to select on.
 clients:
   plaintiff:
     bound: 40000
@@ -85,6 +91,16 @@ clients:
       Eleven years I gave them, and not one review below "meets expectations".
       They walked me out through the plant floor like I had stolen something. I
       want my name back, and I want them to say out loud what they did.
+    settlement:
+      took_it: |
+        I read it three times before I put my name on it. It is not everything I
+        asked for, and I have stopped pretending there was ever a version where
+        it would be. But it is theirs, in writing, and I am the one who decided
+        it was enough. I would like to go home now.
+      had_it_taken: |
+        They signed it. My number, my words, and their name underneath. Eleven
+        years and it comes down to two pages — but they are my two pages, and
+        nobody handed them to me. Tell me that is really the end of it.
     # What this Client says out loud about the Terms, and the Terms Board's
     # third track. Sparse: a Term absent here is one they are indifferent
     # about, and its track carries the two live positions and no marker. An
@@ -101,6 +117,15 @@ clients:
       a reason. What I cannot have is this in the trade press for six months. I
       want it closed, closed quietly, and closed without anyone admitting to
       something that did not happen.
+    settlement:
+      took_it: |
+        Fine. We take their paper, and we take it today, before somebody decides
+        there is a story here. I am not saying we were wrong. I am saying I have
+        a plant to run and I would very much like to get back to running it.
+      had_it_taken: |
+        They signed ours. Good — that is the version I can live with, and it is
+        the one I would have had to stand up and explain. Get it filed, keep it
+        quiet, and let us not be in this room again.
     aspirations:
       money: 25000
       nda:

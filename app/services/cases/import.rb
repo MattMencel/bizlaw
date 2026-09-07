@@ -78,7 +78,8 @@ module Cases
           client = version.clients.create!(
             role: role,
             bound_cents: authored_client["bound"] * CENTS_PER_UNIT,
-            opening_statement: authored_client["opening_statement"]
+            opening_statement: authored_client["opening_statement"],
+            **settlement_lines_for(authored_client)
           )
           import_aspirations(client, authored_client["aspirations"])
         end
@@ -130,6 +131,16 @@ module Cases
           case_term: vocabulary.fetch(key),
           amount_cents: amount && amount * CENTS_PER_UNIT
         )
+      end
+    end
+
+    # The two settlement lines, as the columns that hold them. Read through
+    # `CaseClient::SETTLEMENT_LINES` rather than named twice here, so the
+    # authored key and the column it lands in stay one decision.
+    def settlement_lines_for(authored_client)
+      settlement = authored_client["settlement"]
+      CaseClient::SETTLEMENT_LINES.to_h do |acceptance_role, column|
+        [column, settlement[acceptance_role]]
       end
     end
 
@@ -226,8 +237,30 @@ module Cases
             "which is what their Team reads on Day 1"
         end
 
+        validate_settlement!(role, authored["settlement"])
         validate_aspirations!(role, authored["aspirations"])
       end
+    end
+
+    # The settlement beat, keyed on which Side accepted. A Case that does not
+    # supply both lines for both Clients does not import, as loudly as one
+    # missing an opening statement: an executed instrument is the last thing a
+    # Team reads and there is no fallback line to render under it.
+    #
+    # There are no variants. A settlement node is spoken exactly once, so a
+    # speak-count never advances and a variant would always resolve to the
+    # first — see ADR 0007.
+    def validate_settlement!(role, authored_settlement)
+      settlement = authored_settlement.is_a?(Hash) ? authored_settlement : {}
+      missing = CaseClient::ACCEPTANCE_ROLES.reject do |acceptance_role|
+        settlement[acceptance_role].is_a?(String) && settlement[acceptance_role].present?
+      end
+      return if missing.empty?
+
+      raise InvalidCase,
+        "#{path} authors no settlement line for the #{role} Client where they " \
+        "#{missing.map { |acceptance_role| acceptance_role.tr("_", " ") }.join(" or ")}, " \
+        "which is what they say over the executed instrument"
     end
 
     # What a Client says out loud about the Terms. Sparse on purpose — a Term

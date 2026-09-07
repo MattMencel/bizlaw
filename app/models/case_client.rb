@@ -14,6 +14,18 @@
 class CaseClient < ApplicationRecord
   retention :authored
 
+  # Which Side accepted, which is the one dimension a settlement line is keyed
+  # on. A Client whose Team took the other Side's number and one whose number was
+  # taken have different feelings about identical terms.
+  TOOK_IT = "took_it"
+  HAD_IT_TAKEN = "had_it_taken"
+  ACCEPTANCE_ROLES = [TOOK_IT, HAD_IT_TAKEN].freeze
+
+  SETTLEMENT_LINES = {
+    TOOK_IT => :settlement_took_it,
+    HAD_IT_TAKEN => :settlement_had_it_taken
+  }.freeze
+
   belongs_to :case_version, inverse_of: :clients
   # What this Client says out loud about the Terms, sparse and immobile. Not the
   # private valuation the same Client puts on them.
@@ -28,4 +40,19 @@ class CaseClient < ApplicationRecord
   # sections. It is an object in the dispute rather than a line about something
   # the engine computed, so it never reaches the model.
   validates :opening_statement, presence: true
+  # The settlement beat's words, one line per acceptance role. Generated
+  # dialogue rather than authored prose — the Client speaks about something the
+  # engine computed — but it is stored and read exactly as the statement above
+  # is, because the request path never reaches a model.
+  validates(*SETTLEMENT_LINES.values, presence: true)
+
+  # What this Client says over the executed instrument. There is no band here
+  # and nothing computed from the terms: an invariant expression and one of two
+  # authored lines, per ADR 0007.
+  def settlement_line(acceptance_role)
+    column = SETTLEMENT_LINES[acceptance_role] ||
+      raise(ArgumentError, "#{acceptance_role.inspect} is not how a Side reaches a settlement")
+
+    public_send(column)
+  end
 end

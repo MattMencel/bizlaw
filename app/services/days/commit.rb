@@ -31,6 +31,12 @@ module Days
     end
 
     def call
+      # A settled run has no Day left to declare yourself finished with. The
+      # Acceptance closed the one it landed on and opened nothing after it.
+      if day.simulation.settled?
+        raise Simulation::AlreadySettled, "this Simulation has already settled"
+      end
+
       raise DayClosed, "Day #{day.ordinal} has already closed" if day.closed?
 
       ActiveRecord::Base.transaction do

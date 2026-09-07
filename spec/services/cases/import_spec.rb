@@ -11,6 +11,11 @@ RSpec.describe Cases::Import do
     end
   end
 
+  # The settlement beat, keyed on which Side accepted and carrying no variants.
+  def a_settlement(took_it, had_it_taken)
+    {"took_it" => took_it, "had_it_taken" => had_it_taken}
+  end
+
   def authored(**overrides)
     data = {
       "identifier" => "bizlaw/reference",
@@ -32,8 +37,16 @@ RSpec.describe Cases::Import do
         "depose_witness" => {"cost" => 3, "lead_time_days" => 2, "half" => "preparation"}
       },
       "clients" => {
-        "plaintiff" => {"bound" => 40_000, "opening_statement" => "I want my name back."},
-        "defendant" => {"bound" => 60_000, "opening_statement" => "I want this closed quietly."}
+        "plaintiff" => {
+          "bound" => 40_000,
+          "opening_statement" => "I want my name back.",
+          "settlement" => a_settlement("I decided it was enough.", "They signed my number.")
+        },
+        "defendant" => {
+          "bound" => 60_000,
+          "opening_statement" => "I want this closed quietly.",
+          "settlement" => a_settlement("We take their paper today.", "They signed ours. File it.")
+        }
       },
       "terms" => %w[money reinstatement],
       "documents" => {
@@ -335,6 +348,63 @@ RSpec.describe Cases::Import do
       expect { described_class.call(authored(clients: silent)) }
         .to raise_error(described_class::InvalidCase, /no opening statement/)
     end
+
+    # The second Dialogue Node kind, keyed on which Side accepted and carrying
+    # no variants. It is refused as loudly as a missing opening statement: the
+    # executed instrument is the last thing a Team reads, and there is no
+    # fallback line to render under it.
+    describe "the settlement beat" do
+      def settling(plaintiff, defendant = a_settlement("Done.", "Filed."))
+        {
+          "plaintiff" => {
+            "bound" => 40_000, "opening_statement" => "Loudly.", "settlement" => plaintiff
+          },
+          "defendant" => {
+            "bound" => 60_000, "opening_statement" => "Quietly.", "settlement" => defendant
+          }
+        }
+      end
+
+      it "loads two lines for each Client, keyed on which Side accepted" do
+        version = described_class.call(Rails.root.join("db/cases/reference.yml"))
+        plaintiff = version.clients.find_by!(role: Side::PLAINTIFF)
+
+        expect(plaintiff.settlement_line(CaseClient::TOOK_IT)).to include("I read it three times")
+        expect(plaintiff.settlement_line(CaseClient::HAD_IT_TAKEN)).to include("They signed it")
+      end
+
+      it "loads the other Client's pair too, in their own voice" do
+        version = described_class.call(Rails.root.join("db/cases/reference.yml"))
+        defendant = version.clients.find_by!(role: Side::DEFENDANT)
+
+        expect(defendant.settlement_line(CaseClient::TOOK_IT)).to include("We take their paper")
+        expect(defendant.settlement_line(CaseClient::HAD_IT_TAKEN)).to include("They signed ours")
+      end
+
+      it "refuses a Client with no settlement lines at all" do
+        expect { described_class.call(authored(clients: settling(nil))) }
+          .to raise_error(described_class::InvalidCase, /no settlement line for the plaintiff/)
+      end
+
+      it "refuses a Client given one line and not the other" do
+        half = {"took_it" => "Enough."}
+
+        expect { described_class.call(authored(clients: settling(half))) }
+          .to raise_error(described_class::InvalidCase, /where they had it taken/)
+      end
+
+      it "refuses the second Client's pair as loudly as the first's" do
+        expect { described_class.call(authored(clients: settling(a_settlement("A.", "B."), {}))) }
+          .to raise_error(described_class::InvalidCase, /no settlement line for the defendant/)
+      end
+
+      it "refuses a line authored blank, which is a Client saying nothing" do
+        blank = a_settlement("", "Filed.")
+
+        expect { described_class.call(authored(clients: settling(blank))) }
+          .to raise_error(described_class::InvalidCase, /where they took it/)
+      end
+    end
   end
 
   # The Terms Board's third track, and what lets the board exist without ever
@@ -344,10 +414,12 @@ RSpec.describe Cases::Import do
     def wanting(plaintiff, defendant = {"money" => 50_000})
       {
         "plaintiff" => {
-          "bound" => 40_000, "opening_statement" => "Loudly.", "aspirations" => plaintiff
+          "bound" => 40_000, "opening_statement" => "Loudly.", "aspirations" => plaintiff,
+          "settlement" => a_settlement("Enough.", "They signed.")
         },
         "defendant" => {
-          "bound" => 60_000, "opening_statement" => "Quietly.", "aspirations" => defendant
+          "bound" => 60_000, "opening_statement" => "Quietly.", "aspirations" => defendant,
+          "settlement" => a_settlement("Done.", "Filed.")
         }
       }
     end

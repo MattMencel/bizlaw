@@ -384,13 +384,6 @@ FOREIGN KEY ("case_version_id")
 CREATE UNIQUE INDEX "index_case_documents_on_case_version_id_and_identifier" ON "case_documents" ("case_version_id", "identifier") /*application='Bizlaw'*/;
 CREATE INDEX "index_case_documents_on_case_action_id" ON "case_documents" ("case_action_id") /*application='Bizlaw'*/;
 CREATE UNIQUE INDEX "index_case_documents_on_id_and_case_version_id" ON "case_documents" ("id", "case_version_id") /*application='Bizlaw'*/;
-CREATE TABLE IF NOT EXISTS "case_clients" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "case_version_id" integer NOT NULL, "role" varchar NOT NULL, "bound_cents" integer NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, "opening_statement" text NOT NULL, CONSTRAINT "fk_rails_15151301f5"
-FOREIGN KEY ("case_version_id")
-  REFERENCES "case_versions" ("id")
-, CONSTRAINT case_clients_role_known CHECK (role IN ('plaintiff', 'defendant')), CONSTRAINT case_clients_bound_is_travel CHECK (bound_cents > 0));
-CREATE INDEX "index_case_clients_on_case_version_id" ON "case_clients" ("case_version_id") /*application='Bizlaw'*/;
-CREATE UNIQUE INDEX "index_case_clients_on_case_version_id_and_role" ON "case_clients" ("case_version_id", "role") /*application='Bizlaw'*/;
-CREATE UNIQUE INDEX "index_case_clients_on_id_and_case_version_id" ON "case_clients" ("id", "case_version_id") /*application='Bizlaw'*/;
 CREATE TABLE IF NOT EXISTS "case_client_aspirations" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "case_version_id" bigint NOT NULL, "case_client_id" bigint NOT NULL, "case_term_id" bigint NOT NULL, "amount_cents" integer, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_414308aa52"
 FOREIGN KEY ("case_client_id", "case_version_id")
   REFERENCES "case_clients" ("id", "case_version_id")
@@ -400,7 +393,15 @@ FOREIGN KEY ("case_term_id", "case_version_id")
 , CONSTRAINT case_client_aspirations_amount_is_money CHECK (amount_cents IS NULL OR amount_cents > 0));
 CREATE UNIQUE INDEX "idx_on_case_client_id_case_term_id_e309ee41cc" ON "case_client_aspirations" ("case_client_id", "case_term_id") /*application='Bizlaw'*/;
 CREATE INDEX "index_case_client_aspirations_on_case_term_id" ON "case_client_aspirations" ("case_term_id") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "case_clients" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "case_version_id" integer NOT NULL, "role" varchar NOT NULL, "bound_cents" integer NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, "opening_statement" text NOT NULL, "settlement_took_it" text NOT NULL, "settlement_had_it_taken" text NOT NULL, CONSTRAINT "fk_rails_15151301f5"
+FOREIGN KEY ("case_version_id")
+  REFERENCES "case_versions" ("id")
+, CONSTRAINT case_clients_role_known CHECK (role IN ('plaintiff', 'defendant')), CONSTRAINT case_clients_bound_is_travel CHECK (bound_cents > 0));
+CREATE INDEX "index_case_clients_on_case_version_id" ON "case_clients" ("case_version_id") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_case_clients_on_case_version_id_and_role" ON "case_clients" ("case_version_id", "role") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_case_clients_on_id_and_case_version_id" ON "case_clients" ("id", "case_version_id") /*application='Bizlaw'*/;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260907140000'),
 ('20260907020000'),
 ('20260906140000'),
 ('20260906130000'),

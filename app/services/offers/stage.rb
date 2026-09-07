@@ -35,6 +35,12 @@ module Offers
     end
 
     def call
+      # A settled run has nothing left to put a position in front of. Staging
+      # into one would be a draft against a table that has been cleared.
+      if day.simulation.settled?
+        raise Simulation::AlreadySettled, "this Simulation has already settled"
+      end
+
       raise DayClosed, "Day #{day.ordinal} has already closed" if day.closed?
 
       vocabulary = terms_authored_for(terms.keys)

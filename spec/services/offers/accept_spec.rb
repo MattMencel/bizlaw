@@ -147,11 +147,117 @@ RSpec.describe Offers::Accept do
       .to raise_error(ArgumentError, /cannot accept the Offer it put on the table/)
   end
 
+  # The idempotent answer above is the accepting Team's own. A Side reaching for
+  # its own Offer after the other Team took it is still a control the Boardroom
+  # never offered, and handing back the row the other Team wrote would answer it
+  # with their Attribution.
+  it "refuses it just as firmly once the other Side has taken it" do
+    offer = an_offer_on_the_table
+    a_member_of(accepting, noor)
+    accept(offer, by: kofi, seconded_by: noor)
+
+    expect { accept(offer, side: offering, by: ravi, seconded_by: dana) }
+      .to raise_error(ArgumentError, /cannot accept the Offer it put on the table/)
+  end
+
   it "refuses a Day the Instructor has already ended" do
     offer = an_offer_on_the_table
     a_member_of(accepting, noor)
     Days::Close.call(day)
 
     expect { accept(offer, by: kofi, seconded_by: noor) }.to raise_error(Offers::DayClosed)
+  end
+
+  # Reads are not serialized, so the Day this seam was handed can end between
+  # its own check and its insert. The trigger underneath catches it; what this
+  # covers is that the fault comes back as the refusal a caller renders.
+  it "turns a Day closing under it into a refusal rather than a fault" do
+    offer = an_offer_on_the_table
+    a_member_of(accepting, noor)
+    late = described_class.new(offer: offer, side: accepting, day: day, by: kofi,
+      seconded_by: noor)
+    # Closed through another instance of the same Day, so the object `late`
+    # holds still reads as open — which is exactly what a racing caller has.
+    Days::Close.call(simulation.days.find(day.id))
+
+    expect { late.call }.to raise_error(Offers::DayClosed)
+    expect(OfferAcceptance.count).to eq(0)
+  end
+
+  # An Acceptance is one of the two ways a run ends, and until this landed it
+  # ended nothing: `Days::Close` opened the following Day unconditionally, so a
+  # settled run kept handing out Action Budget.
+  describe "ending the Simulation" do
+    def a_settlement
+      offer = an_offer_on_the_table
+      a_member_of(accepting, noor)
+      accept(offer, by: kofi, seconded_by: noor)
+    end
+
+    it "settles the run" do
+      expect { a_settlement }.to change { simulation.reload.settled? }.from(false).to(true)
+      expect(simulation.settlement.accepted_by).to eq(kofi)
+    end
+
+    it "closes the Day it landed on, through the one close path" do
+      a_settlement
+
+      expect(day.reload).to be_closed
+    end
+
+    # The ordering is what makes this true: the row is written before the close
+    # runs, so `settled?` is already true when the close decides.
+    it "opens no following Day, so a settled run hands out no further Budget" do
+      a_settlement
+
+      expect(following.reload.budgets).to be_empty
+      expect(DayBudget.where.not(day: day)).to be_empty
+    end
+  end
+
+  describe "a run that has already settled" do
+    let(:their_offer) do
+      # Committed before the settlement, because an Offer commit is a spend and
+      # a settled run refuses one. It closes Day 1 as the second Day commit.
+      a_member_of(accepting, noor)
+      Offers::Stage.call(side: accepting, day: day, by: kofi, terms: {"money" => 30_000_00})
+      Days::Command.apply(
+        act: :commit_offer, side: accepting, day: day, by: kofi, seconded_by: noor
+      )
+    end
+
+    before do
+      offer = an_offer_on_the_table
+      their_offer
+      accept(offer, on: following, by: kofi, seconded_by: noor)
+    end
+
+    it "refuses the other Side taking the Offer still on the table" do
+      expect { accept(their_offer, side: offering, on: following, by: dana, seconded_by: ravi) }
+        .to raise_error(Simulation::AlreadySettled)
+    end
+
+    it "refuses a spend as a refusal a control renders, not a fault" do
+      quote = Days::Command.quote(
+        act: :spend, side: offering, day: following.reload, by: dana,
+        kind: CaseAction::CONSULT_CLIENT
+      )
+
+      expect(quote).to be_refused
+      expect(quote.refusal).to eq(:the_simulation_has_settled)
+    end
+
+    it "refuses a position being staged into it" do
+      expect {
+        Offers::Stage.call(
+          side: offering, day: following.reload, by: dana, terms: {"money" => 1_000_00}
+        )
+      }.to raise_error(Simulation::AlreadySettled)
+    end
+
+    it "refuses a Side declaring itself finished with a Day" do
+      expect { Days::Commit.call(side: offering, day: following.reload, by: dana) }
+        .to raise_error(Simulation::AlreadySettled)
+    end
   end
 end

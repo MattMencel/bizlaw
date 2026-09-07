@@ -35,7 +35,9 @@ RSpec.describe "the figures no student-facing read exposes" do
 
   let(:forbidden) { /(\A|_)(#{Regexp.union(forbidden_words).source})s?(\z|_)/ }
 
-  let(:reads) { [Docket, CaseFile, ActionBoard, TermsBoard, MorningBriefing] }
+  let(:reads) do
+    [Docket, CaseFile, ActionBoard, TermsBoard, MorningBriefing, ExecutedInstrument]
+  end
 
   it "defines no such reader on any read object" do
     offenders = reads.flat_map { |read|
@@ -68,7 +70,8 @@ RSpec.describe "the figures no student-facing read exposes" do
     carried = [
       Docket::Entry, CaseFile::Entry, ActionBoard::Entry,
       TermsBoard::Track, TermsBoard::Position,
-      MorningBriefing::CalendarDay, MorningBriefing::Rubric
+      MorningBriefing::CalendarDay, MorningBriefing::Rubric,
+      ExecutedInstrument::Term, ExecutedInstrument::Countersignature, ExecutedInstrument::Beat
     ]
 
     expect(carried.flat_map(&:members).grep(forbidden)).to be_empty
@@ -92,13 +95,24 @@ RSpec.describe "the figures no student-facing read exposes" do
     expect(MorningBriefing::Rubric.members).to eq(%i[dimensions bonus])
   end
 
+  # The settlement beat is where a figure about how the deal landed would most
+  # plausibly be added — against the Client's aspiration, or against their
+  # reservation point. Both are refused: Settlement Quality is rubric-derived
+  # and pre-Release, and a Section's concurrent Simulations would carry a
+  # Client's number from a settled Team to one still playing the same Case.
+  it "gives the Client's settlement beat words and a face and nothing computed" do
+    expect(ExecutedInstrument::Beat.members)
+      .to eq(%i[client_role acceptance_role line expression])
+  end
+
   # A Team's own Client's bound is authored money and the one number every shift
   # is a fraction of. It is the Instructor's, and the only read a Team ever gets
   # on where their Client stands is a Reaction Band bought with an Action.
   it "reaches no Client's bound or private position through any read" do
     surfaces = [
       Docket.for(side), CaseFile.for(side), ActionBoard.for(side, day: day),
-      TermsBoard.for(side, day: day), MorningBriefing.for(side, day: day)
+      TermsBoard.for(side, day: day), MorningBriefing.for(side, day: day),
+      ExecutedInstrument.for(side)
     ]
 
     expect(surfaces.flat_map { |read| read.public_methods(false) }.grep(forbidden)).to be_empty
