@@ -22,9 +22,11 @@ A **draft** version is the professor's working copy: mutable, invisible to stude
 
 ## Party
 
-Someone the game **seats**. Exactly four per Case: one Client and one counsel for each Side. Authored per Case, appearance included: with so few garments available, a cast is told apart by hair, colour and glasses, and that is a decision the Case's author makes rather than one drawn at random.
+Someone the game **names**. Exactly four per Case: one Client and one counsel for each Side. Authored per Case.
 
-Not everyone in the dispute is a Party. Witnesses, experts, reporters and the judge are never seated and never portrayed; they exist as prose inside the documents that mention them. Nothing in the engine would read a record for them — an Exhibit targets a Client, an Action yields documents, and only a Client carries a persona, a brief, Reaction Bands and a reservation point.
+Exactly one of the four is ever **portrayed**, and only to their own Team: a Team's own Client. The opposing Client and both counsel are named in prose and never drawn — a face across the table that reacted honestly to a committed Offer would hand over the opposing Client's reservation point for free, which is the read a Consult is charged for, and a face that reacted dishonestly is worth nothing to look at.
+
+Not everyone in the dispute is a Party. Witnesses, experts, reporters and the judge are never named as Parties and never portrayed; they exist as prose inside the documents that mention them. Nothing in the engine would read a record for them — an Exhibit targets a Client, an Action yields documents, and only a Client carries a persona, a brief, Reaction Bands and a reservation point.
 
 Each counsel is only ever seen by the *opposing* Side. A Team never looks at its own counsel, because the students are the counsel.
 
@@ -44,7 +46,7 @@ A Team acts as a single negotiating party: one shared state, one Action Budget, 
 
 **The unit of play.** A Day opens, the Team spends its Action Budget, and the Day closes. A Day is a unit of the *Simulation*, not of wall-clock time: a Team sitting together in class may burn a Day in twenty minutes, a Team working apart may take three evenings over it. Both are the same Day.
 
-**Committing the Day and committing an Offer are different acts.** A Side commits its Day by declaring itself finished with it; committing an Offer is a Boardroom act, at most one per Side per Day, and it implies the Day commit. The reverse does not follow — a Side that spent its whole Budget on preparation and made no Offer has still finished its Day. A Day closes when both Sides have committed it, or when the Instructor's deadline fires.
+**Committing the Day and committing an Offer are different acts.** A Side commits its Day by declaring itself finished with it; committing an Offer is at most one per Side per Day, and it implies the Day commit. The reverse does not follow — a Side that spent its whole Budget on preparation and made no Offer has still finished its Day. A Day closes when both Sides have committed it, or when the Instructor's deadline fires.
 
 The Simulation's Days all exist before the first one is played, because the Case authors an ordered calendar with in-fiction dates. That is what lets an Action taken today name the Day its result lands on, and what lets the Instructor preview and edit the whole Event schedule before Day 1.
 
@@ -80,7 +82,7 @@ A spend is irreversible and, unlike an Offer, ungated by a Second, so **every sp
 
 A proposed settlement, with terms. The move that can end the Simulation if the other Side accepts it and the Client will take it.
 
-An Offer is **staged** before it is committed: visible to the whole Team, revisable, costing nothing until it lands.
+An Offer is **staged** before it is committed: visible to the whole Team, revisable, costing nothing until it lands. A staged Offer is a **draft** on the surface, marked unexecuted, so a Team can tell a position it is deliberating from one it has taken; committing one is **executing** it.
 
 An Offer is worth **two numbers, one per Client**, because each Client values the Terms privately. The Sides negotiate a single instrument and are graded on different figures: Settlement Quality reads each Side's own Client's valuation of the Offer against that Side's Par. The two figures coincide only where an Offer is **pure cash** — money is the one Term worth its face to both Clients. So an agreement struck outside the game can fix the instrument but not the score, unless it is written in cash alone.
 
@@ -88,7 +90,7 @@ An Offer is worth **two numbers, one per Client**, because each Client values th
 
 A teammate's confirmation, and the only gate inside a Team. An Offer or an Acceptance lands only when a member other than the one who staged it confirms it. Nothing else in the game requires one — the preparation half stays ungated.
 
-The Second is never explained in advance. A student who stages an Offer holds a commit control that is **present and disabled, naming the teammates who can second it**, and the staging lands in the Docket with Attribution so it surfaces in a teammate's next Morning Briefing. A dead control in the hand teaches the rule that the door is never the gate; fixed copy elsewhere would not.
+The Second is never explained in advance. A draft carries a **countersignature block** with one line signed and one blank naming the teammates who may sign it, and the staging lands in the Docket with Attribution so it surfaces in a teammate's next Morning Briefing. An unsigned line on the draft in your own hand teaches the rule; fixed copy elsewhere would not.
 
 A Team whose other members are absent can stage an Offer it cannot commit. That is not a mechanic; it is an Instructor **waiver** of the Second, granted to one Team for one Day and recorded in the Docket as an Instructor action. The Instructor never Seconds on a Team's behalf — Attribution would then name someone who did not take the position.
 
@@ -132,25 +134,17 @@ Provenance is what makes *doors visible, contents hidden* checkable — every di
 
 A document in hand at the open may carry a **favorable** Exhibit: ammunition a Team walks in with is a position the Case authored, and Par is authored against it. An **unfavorable** one is refused. Its shift would land before the first Day is played, spending the Client's bound with no Docket line behind it and no beat to read it in — a number a Team could never account for, on the one quantity it is never shown.
 
-## Firm
+## Register
 
-The room a Team prepares in: its own conference table, its own Client, no opponent. The Case File lies on it as papers and the Action Board sits beside them.
+The idiom the game is drawn in: **the paper**. The game is the file — letterhead, an Exhibit as a tab clipped to a draft, a redlined term sheet with the aspiration in the margin, service as a stamp, the Second as a countersignature block, a docket that is a docket. See ADR 0005.
 
-It seats one figure. Teammates are not avatars, and nothing a Team does seats anyone else — retaining outside counsel or an expert yields a report, not a body. The framing is first-person from the Team's own side of the table.
+**There are no rooms.** A Team does not go anywhere to prepare or anywhere to deal; it works one file. What used to be two places is carried by the instrument instead: a spend is drawn from the Action Board, and an Offer commits by executing a draft. No surface is anywhere else, so no movement between them can be mistaken for a commitment — the Second is the only gate a Team has.
 
-One of the two rooms a Day moves between, freely and in either direction. The door is never the gate — the Second is.
-
-## Boardroom
-
-The room the exchange happens in, and the only place an Offer can commit. Seats three: the Team's own Client in the foreground, the opposing Client and opposing counsel across a conference table.
-
-Three is the engine's number, and the cast never changes. The seats are **roles**, not a count — mine, theirs, their counsel — and there is no fourth role for anyone to fill. Nobody arrives mid-Simulation and nobody leaves: since only a Client ever speaks, an arriving Party would change the picture and nothing else.
-
-**Only the Team's own Client is expressive.** The figures across the table are presence, not a read — a face that reacted honestly to a committed Offer would hand over the opposing Client's reservation point for free, which is the read a Consult is charged for. Their expression is authored on the Party and fixed for the whole Simulation, never derived from their Reaction Band. Their being seated is fiction, never a claim the other Team is online.
+A Team's own Client is the one thing in the game that is drawn rather than typeset, and the one place a Reaction Band lands.
 
 ## Terms Board
 
-Where the shape of the deal is visible: each Term as a track carrying the Team's own position, the other Side's **last committed** Offer, and the Team's own Client's stated aspiration. Reachable from either room, because deliberation is preparation work even though the commit is not.
+Where the shape of the deal is visible: each Term as a track carrying the Team's own position, the other Side's **last committed** Offer, and the Team's own Client's stated aspiration. Reachable whenever a Team is working, because deliberating over the shape of a deal is preparation work even though executing one is not.
 
 It never shows Par. Par is what the grade is measured against, and no rubric-derived number reaches a student before Release. The Client's aspiration is the in-fiction stand-in, and it gives nothing away, because an aspiration does not move.
 
@@ -162,19 +156,19 @@ The other Side's track is their last committed Offer read **whole**, never a per
 
 The menu of what a Team could do this Day, each Action with its cost and its lead time. *What we could do* — opposite the Case File's *what we know* and the Docket's *what we have done*.
 
-## Close-up
+## The Client's beat
 
-One figure's face, scaled up over the dimmed room. **Emphasis, never the sole carrier**: whatever a Close-up says also lands in the Docket or the Case File, so skipping one costs a Team nothing.
+Where a Client speaks, and the only place their portrait appears. It carries a Reaction Band and the Client's own words, and it is **emphasis, never the sole carrier**: whatever it says also lands in the Docket or the Case File, so a Team that skims it loses nothing.
 
-The game cuts only where a Client has something to say — a Consult, and settlement — at most one per commit, and always the Team's own Client. A cut is never a free read: a Reaction Band that moves is shown at the next Consult, not the moment it moves. A student may push in on any figure at any time, free. An Event, an arbitration award and a served document get no cut; they are documents, and reading them is the beat.
+A Client speaks only where they have something to say — a Consult, and settlement — and only ever their own Team's. It is never a free read: a Reaction Band that moves is shown at the next Consult, not the moment it moves. An Event, an arbitration award and a served document have no beat; they are documents, and reading them is the beat.
 
 ## Morning Briefing
 
-What a Day opens with, over the Firm's table: the Actions that have just landed and any documents the other Side served. The same object a returning absent teammate is given, widened.
+What a Day opens with: the Actions that have just landed and any documents the other Side served. The same object a returning absent teammate is given, widened.
 
 It carries a further section, **what you start with** — the documents in hand at the open, drawn from Provenance, beside the Client's opening statement, the calendar and the Rubric. On Day 1 that is the only non-empty section, because nothing has landed and nothing has been served yet; on later Days it is what a returning teammate is caught up on. Every section is composed by the engine from objects the Case already authors, so a briefing is never authored per Case.
 
-It is also where the two-room grammar is **named**, in one line of fixed copy: prepare in the Firm, deal in the Boardroom, move between them freely, the Day ends when both Sides commit. A room is never empty, so no room's own state can carry it.
+It is also where the Day's grammar is **named**, in one line of fixed copy: everything here is the case file, work it in any order, the Day ends when both Sides commit, and an Offer commits only over a teammate's countersignature. Nothing else in the game states the rules of the machine, so no other surface can carry it.
 
 ## Onboarding
 
@@ -182,7 +176,7 @@ How a first-timer learns to operate the machine. It owns *operating the machine*
 
 **It has no object of its own.** No first-run pass, no practice Case before the graded run, no Section knob, and no per-student progress state — a "this student has seen it" flag is a status column with no ledger event behind it, and the runtime schema has none. **The empty state is the tutorial**: an empty Docket says what a Docket would hold, a full Action Board says what an Action costs and when it lands, the Case File holds only what you started with. The Morning Briefing carries the Day, and a disabled control carries the Second.
 
-Because there is no per-student state, the surface cannot open up over Days. Disclosure derives from *Team* state only, and almost nothing qualifies: both rooms, the toggle, the three record surfaces, the Terms Board and the whole Action Board with every cost and lead time are present from Day 1 — hiding what an Action costs makes the Budget unplannable, and planning the Budget is the lesson. Only the Exhibit affordances gate, appearing when the Case File first holds a document carrying one. The rule: gate a control only where it would otherwise be **inert**, so it teaches itself the moment it becomes real.
+Because there is no per-student state, the surface cannot open up over Days. Disclosure derives from *Team* state only, and almost nothing qualifies: the three record surfaces, the Terms Board and the whole Action Board with every cost and lead time are present from Day 1 — hiding what an Action costs makes the Budget unplannable, and planning the Budget is the lesson. Only the Exhibit affordances gate, appearing when the Case File first holds a document carrying one. The rule: gate a control only where it would otherwise be **inert**, so it teaches itself the moment it becomes real.
 
 **Learning is not subsidised.** Day 1 scores like any other Day, with no efficiency carve-out — a Day where mistakes are free teaches that Budget is not scarce, which is the one thing the Action Budget exists to prevent. A fraction of the Budget already expires unspent, so the fumble is cheap without an exemption.
 
@@ -190,7 +184,7 @@ An Instructor demoing from a demo Section is a supported **accelerator, never a 
 
 ## Client
 
-The party a Team represents, present in the game as an avatar with a private range of what they will accept. Reachable only by spending an Action. Authored decision logic, LLM wording.
+The party a Team represents, and the one Party their own Team ever sees drawn, with a private range of what they will accept. Reachable only by spending an Action. Authored decision logic, LLM wording.
 
 What moves during a Simulation is the Client's **reservation point** — what the Case considers the worst settlement worth taking. It is **a target for shifts and nothing else: never a veto, and not the scoring floor either**. A Team may accept any Offer, and a deal beneath the reservation point simply scores badly against Par. A Client who could refuse would hand over that number to any Team willing to probe for it; and a Client whose live number set the grading scale would hand one Side's scale to the other Side's diligence, because the opposing Team's Exhibits are what move it. The floor Settlement Quality ramps from is authored and immobile — see *Par*.
 
@@ -226,7 +220,7 @@ A line is generated only where a Party speaks about something the engine compute
 
 Generation is given the Client's persona, the Reaction Band and an authored per-Client brief, and **never a number**: no reservation point, no bound, no Par, no size of any shift. A figure a line cannot see is a figure a line cannot leak, and editing Par therefore invalidates no dialogue.
 
-The avatar's expression is derived from the Reaction Band by engine rule rather than authored on the node, so a Client's face cannot change between two variants that mean the same thing. The rule reaches **the Team's own Client only**: the opposing Client's expression is authored and fixed, or the face would give away what a Consult is charged for.
+The portrait's expression is derived from the Reaction Band by engine rule rather than authored on the node, so a Client's face cannot change between two variants that mean the same thing. It reaches **the Team's own Client only**, because no other Party is drawn at all.
 
 A Case that does not supply every node and every variant does not import.
 
@@ -338,7 +332,7 @@ What a Simulation ends in when it runs out of Days without a settlement. **The I
 
 The draft is kept beside what the Instructor wrote rather than being overwritten by it, so a record reopened later shows which of the two the students were given.
 
-Students watch a judgment beat with both Sides present: the award arrives as a document in the Boardroom, over the standing three. There is no judge at the table — the judge is the Instructor, who was never a Party — and the Client says nothing, because the only honest thing it could speak to is an award invisible until Release. Nothing about the outcome reaches them until Release.
+Students read a judgment beat: the award arrives as a document. There is no judge in the game — the judge is the Instructor, who was never a Party — and the Client says nothing, because the only honest thing it could speak to is an award invisible until Release. Nothing about the outcome reaches them until Release.
 
 ## Arbitration Packet
 
