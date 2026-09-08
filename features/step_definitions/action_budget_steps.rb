@@ -8,8 +8,7 @@ When("the Section doubles its Action Budget") do
   @section.update!(budget_per_day: @case_version.budget_per_day * 2)
 end
 
-Then("each Side has {int} preparation points and {int} exchange points on Day {int}") do
-  |preparation, exchange, ordinal|
+Then("each Side has {int} preparation points and {int} exchange points on Day {int}") do |preparation, exchange, ordinal|
   quotas = DayBudget.where(day: @simulation.days.find_by!(ordinal: ordinal))
 
   expect(quotas.count).to eq(2)

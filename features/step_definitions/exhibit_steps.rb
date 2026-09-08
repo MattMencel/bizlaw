@@ -90,8 +90,7 @@ Then("the {word} has spent {string}") do |role, title|
   expect(filed).not_to be_playable
 end
 
-Then("the defendant Side has {int} preparation points and {int} exchange points left on Day {int}") do
-  |preparation, exchange, ordinal|
+Then("the defendant Side has {int} preparation points and {int} exchange points left on Day {int}") do |preparation, exchange, ordinal|
   budget = @opponent.budget_on(a_plaintiff_day(ordinal))
 
   expect(budget.remaining_in(DayBudget::PREPARATION)).to eq(preparation)

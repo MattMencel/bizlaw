@@ -1,9 +1,9 @@
 source "https://rubygems.org" do
-  gem "standard", "~> 1.50"
+  gem "standard", "~> 1.56"
 
   gem "standard-rails"
 
-  gem "rubocop", "~> 1.75.5"
+  gem "rubocop", "~> 1.88.0"
   gem "rubocop-performance", require: false
 
   gem "rubocop-rspec"
