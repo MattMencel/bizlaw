@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 8.0.5", ">= 8.0.5.1"
+gem "rails", "~> 8.1.3", ">= 8.1.3.1"
 # Use sqlite3 as the database for Active Record
 gem "sqlite3", ">= 2.1"
 # Use the Puma web server [https://github.com/puma/puma]
@@ -36,13 +36,13 @@ group :development, :test do
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
 
-  gem "dotenv-rails", "~> 3.1"
+  gem "dotenv-rails", "~> 3.2"
 
   eval_gemfile "gemfiles/rubocop.gemfile"
 
   gem "rspec-rails", "~> 8.0"
 
-  gem "cucumber-rails", "~> 3.1", require: false
+  gem "cucumber-rails", "~> 4.1", require: false
 end
 
 group :development do

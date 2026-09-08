@@ -77,8 +77,7 @@ Then("the plaintiff Offer on Day {int} reads") do |ordinal, table|
   expect(read).to eq(table.hashes.map { |row| row.transform_values(&:to_s) })
 end
 
-Then("the plaintiff Side has {int} preparation points and {int} exchange points left on Day {int}") do
-  |preparation, exchange, ordinal|
+Then("the plaintiff Side has {int} preparation points and {int} exchange points left on Day {int}") do |preparation, exchange, ordinal|
   budget = @side.budget_on(a_plaintiff_day(ordinal))
 
   expect(budget.remaining_in(DayBudget::PREPARATION)).to eq(preparation)

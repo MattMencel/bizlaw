@@ -59,8 +59,7 @@ Then("Day {int} is open") do |ordinal|
   expect(a_day(ordinal)).to be_open
 end
 
-Then("Day {int} is open with {int} preparation points and {int} exchange points for each Side") do
-  |ordinal, preparation, exchange|
+Then("Day {int} is open with {int} preparation points and {int} exchange points for each Side") do |ordinal, preparation, exchange|
   day = a_day(ordinal)
   quotas = DayBudget.where(day: day)
 
