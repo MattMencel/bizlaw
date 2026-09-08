@@ -69,6 +69,11 @@ module Portraits
     # mouth would otherwise import fine, run fine, and fail on the last screen a
     # Team ever reads.
     def validate!
+      # Before anything is read out of it. A sequence indexed by a String is a
+      # `TypeError` rather than this seam's own refusal, which is the same
+      # failure the checks below exist to prevent, one level up.
+      raise Unrenderable, "#{root}'s #{MANIFEST} does not hold a part set" unless @manifest.is_a?(Hash)
+
       %w[view_box identity expression held order].each do |key|
         raise Unrenderable, "#{root}'s #{MANIFEST} declares no #{key}" if @manifest[key].blank?
       end

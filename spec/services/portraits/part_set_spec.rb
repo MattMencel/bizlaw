@@ -119,6 +119,16 @@ RSpec.describe Portraits::PartSet do
       refusal(view_box: "the whole page") { /is not a viewBox with a width/ }
     end
 
+    # Before any key is read out of it: a sequence indexed by a String is a
+    # `TypeError` and not this seam's own refusal.
+    it "refuses a manifest that is not a mapping at all" do
+      root = Pathname(Dir.mktmpdir)
+      root.join("set.yml").write("- a\n- b\n")
+
+      expect { described_class.new(root) }
+        .to raise_error(Portraits::Unrenderable, /does not hold a part set/)
+    end
+
     it "refuses a group listed as something other than parts" do
       refusal(identity: {"glasses" => "none"}) { /lists glasses as "none"/ }
       refusal(held: {"eyes" => %w[held]}) { /holds eyes at \["held"\]/ }
