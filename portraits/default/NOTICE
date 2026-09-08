@@ -1,0 +1,36 @@
+The SVG parts in this directory are a derivative of the avatar artwork in
+https://github.com/fangpenlin/avataaars, which is MIT licensed. They are
+NOT covered by this repository's Apache-2.0 licence: the MIT licence and
+the notice below travel with them.
+
+Derived by `rake portraits:derive`. What the derivation changes: avataaars
+paints each silhouette by masking a palette colour into it, and this
+register has two inks and no palette, so the silhouettes are kept and every
+colour is replaced by a tone level resolved through a CSS custom property.
+No geometry is redrawn.
+
+Not taken from avataaars.com, whose licence is a line of marketing copy
+behind a certificate that expired in 2021. The grant below is the one that
+actually exists.
+
+MIT License
+
+Copyright (c) 2017 Pablo Stanley, Fang-Pen Lin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

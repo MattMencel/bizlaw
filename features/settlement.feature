@@ -62,3 +62,4 @@ Feature: A settlement ends the run, and the instrument is executed
     And the plaintiff Client says their line for having it taken
     And the defendant Client says their line for taking it
     And neither Client shows a Reaction Band
+    And each Team sees its own Client's face, and they are two different people

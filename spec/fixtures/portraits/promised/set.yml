@@ -1,0 +1,13 @@
+# A set that names a part it never shipped. It would load, import, and then fail
+# on the one render that drew that part — a fraction of the Clients in a Section
+# and nobody else, which is the worst way to find out.
+---
+view_box: "24 24 216 216"
+identity:
+  glasses: [none, chignon]
+expression:
+  brows: [firm, ready, settlement]
+  mouth: [firm, ready, settlement]
+held:
+  eyes: held
+order: [glasses, brows, mouth, eyes]

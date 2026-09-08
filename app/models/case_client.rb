@@ -45,6 +45,13 @@ class CaseClient < ApplicationRecord
   # engine computed — but it is stored and read exactly as the statement above
   # is, because the request path never reaches a model.
   validates(*SETTLEMENT_LINES.values, presence: true)
+  # The whole of what a Case says about this Client's face. Opaque on purpose:
+  # a named part choice does not survive the set being reskinned, and surviving
+  # the reskin is the point of having a set. Uniqueness is not here — two seeds
+  # colliding is two seeds composing to the same *identity*, which is a property
+  # of the part set rather than of the string, so `Cases::Import` compares the
+  # faces the Case's two Clients actually draw.
+  validates :portrait_seed, presence: true
 
   # What this Client says over the executed instrument. There is no band here
   # and nothing computed from the terms: an invariant expression and one of two

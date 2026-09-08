@@ -99,6 +99,24 @@ Then("neither Client shows a Reaction Band") do
   beats = [an_instrument(@side).beat, an_instrument(@opponent).beat]
 
   expect(beats.map(&:members).uniq)
-    .to eq([%i[client_role acceptance_role line expression]])
+    .to eq([%i[client_role acceptance_role line expression portrait_seed]])
   expect(beats.map(&:expression).uniq).to eq([ExecutedInstrument::EXPRESSION])
+end
+
+# The beat carries a seed and an expression rather than a rendered portrait,
+# because the compositor takes the render size as an argument and a read has no
+# business choosing one. The face is composed here, at the size a page serves.
+#
+# The two Clients of one Case are the only pair anybody ever sees together, and
+# `Cases::Import` is what guarantees they are two people.
+Then("each Team sees its own Client's face, and they are two different people") do
+  faces = [@side, @opponent].map do |side|
+    beat = an_instrument(side).beat
+    Portraits::Compose.call(
+      seed: beat.portrait_seed, expression: beat.expression, size: Portraits::Compose::SIZES.first
+    )
+  end
+
+  expect(faces.first).not_to eq(faces.last)
+  expect(faces.reject { |face| face.include?(%(aria-hidden="true")) }).to be_empty
 end

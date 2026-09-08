@@ -16,8 +16,13 @@ them is granted here. See CONTEXT.md for the domain meaning of "Case".
 Third-party components
 ----------------------
 
-Avatar art derives from fangpenlin/avataaars
-(https://github.com/fangpenlin/avataaars), MIT licensed,
-Copyright (c) 2017 Pablo Stanley, Fang-Pen Lin -- rendered through
-@dicebear/core (https://github.com/dicebear/dicebear), MIT licensed,
-Copyright (c) Florian Koerner.
+The default portrait part set in portraits/default derives from
+fangpenlin/avataaars (https://github.com/fangpenlin/avataaars), MIT licensed,
+Copyright (c) 2017 Pablo Stanley, Fang-Pen Lin. It does not become Apache-2.0
+by being committed here: the parts stay MIT, and MIT's grant is conditional on
+carrying its notice, so the licence text ships beside the art in
+portraits/default/NOTICE. See ADR 0008.
+
+@dicebear/core is no longer a dependency of any kind. ADR 0008 composes in Ruby
+over committed SVG, so there is no renderer in the pipeline to credit; dicebear
+remains only a design-time tool for previewing a set.

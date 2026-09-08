@@ -79,6 +79,7 @@ module Cases
             role: role,
             bound_cents: authored_client["bound"] * CENTS_PER_UNIT,
             opening_statement: authored_client["opening_statement"],
+            portrait_seed: authored_client["portrait_seed"],
             **settlement_lines_for(authored_client)
           )
           import_aspirations(client, authored_client["aspirations"])
@@ -237,9 +238,44 @@ module Cases
             "which is what their Team reads on Day 1"
         end
 
+        validate_portrait_seed!(role, authored["portrait_seed"])
         validate_settlement!(role, authored["settlement"])
         validate_aspirations!(role, authored["aspirations"])
       end
+
+      validate_distinct_faces!
+    end
+
+    # The whole of what a Case says about a Client's face. A Case that authors
+    # none does not import, as loudly as one missing an opening statement: the
+    # portrait is the Client's beat on both its occasions, and there is no
+    # fallback face to draw under the words.
+    def validate_portrait_seed!(role, seed)
+      return if seed.is_a?(String) && seed.present?
+
+      raise InvalidCase,
+        "#{path} authors no portrait seed for the #{role} Client, " \
+        "which is the whole of what a Case says about their face"
+    end
+
+    # The two Clients of one Case are the only pair anybody can ever see
+    # together: Teams in different Simulations never meet, and a Team sees only
+    # its own Client. So this is the one collision that matters, and it is
+    # checked here rather than carried by the seed — two seeds collide when they
+    # *compose* to the same person, which is a property of the part set and not
+    # of the string.
+    #
+    # It follows that a Case can import today and stop importing after a reskin,
+    # and that is correct: a set with a shallower hair group is a set in which
+    # two faces the author had told apart are one face.
+    def validate_distinct_faces!
+      drawn = clients.transform_values { |authored| Portraits::Identity.for(authored["portrait_seed"]) }
+      return if drawn.values.uniq.size == drawn.size
+
+      raise InvalidCase,
+        "#{path} seeds its #{drawn.keys.sort.join(" and ")} Clients to the same face " \
+        "(#{drawn.values.first}); they are the one pair a Team ever sees together, " \
+        "so reroll one of them"
     end
 
     # The settlement beat, keyed on which Side accepted. A Case that does not

@@ -40,11 +40,13 @@ RSpec.describe Cases::Import do
         "plaintiff" => {
           "bound" => 40_000,
           "opening_statement" => "I want my name back.",
+          "portrait_seed" => "plaintiff-face",
           "settlement" => a_settlement("I decided it was enough.", "They signed my number.")
         },
         "defendant" => {
           "bound" => 60_000,
           "opening_statement" => "I want this closed quietly.",
+          "portrait_seed" => "defendant-face",
           "settlement" => a_settlement("We take their paper today.", "They signed ours. File it.")
         }
       },
@@ -357,10 +359,12 @@ RSpec.describe Cases::Import do
       def settling(plaintiff, defendant = a_settlement("Done.", "Filed."))
         {
           "plaintiff" => {
-            "bound" => 40_000, "opening_statement" => "Loudly.", "settlement" => plaintiff
+            "bound" => 40_000, "opening_statement" => "Loudly.",
+            "portrait_seed" => "plaintiff-face", "settlement" => plaintiff
           },
           "defendant" => {
-            "bound" => 60_000, "opening_statement" => "Quietly.", "settlement" => defendant
+            "bound" => 60_000, "opening_statement" => "Quietly.",
+            "portrait_seed" => "defendant-face", "settlement" => defendant
           }
         }
       end
@@ -405,6 +409,79 @@ RSpec.describe Cases::Import do
           .to raise_error(described_class::InvalidCase, /where they took it/)
       end
     end
+
+    # The whole of what a Case says about a Client's face: an opaque seed the
+    # author rerolls until they like what it draws. Named part choices are not
+    # authorable, because a name does not survive the set being reskinned and
+    # surviving the reskin is the point of having a set. See ADR 0008.
+    describe "the portrait seed" do
+      def facing(plaintiff, defendant = "defendant-face")
+        {
+          "plaintiff" => {
+            "bound" => 40_000, "opening_statement" => "Loudly.", "portrait_seed" => plaintiff,
+            "settlement" => a_settlement("Enough.", "They signed.")
+          },
+          "defendant" => {
+            "bound" => 60_000, "opening_statement" => "Quietly.", "portrait_seed" => defendant,
+            "settlement" => a_settlement("Done.", "Filed.")
+          }
+        }
+      end
+
+      # Two seeds that draw one face under whichever set is loaded. Found rather
+      # than pinned: which pair collides is a property of the part set, so a
+      # deeper hair group would move it and a literal pair would rot.
+      def a_collision
+        drawn = {}
+        (1..5_000).each do |n|
+          seed = "collision-#{n}"
+          face = Portraits::Identity.for(seed).parts
+          return [drawn[face], seed] if drawn.key?(face)
+
+          drawn[face] = seed
+        end
+        raise "the part set composes more faces than this scan reaches"
+      end
+
+      it "loads the seed each Client's face is drawn from" do
+        version = described_class.call(Rails.root.join("db/cases/reference.yml"))
+
+        expect(version.clients.find_by!(role: Side::PLAINTIFF).portrait_seed)
+          .to eq("greaves-plaintiff")
+        expect(version.clients.find_by!(role: Side::DEFENDANT).portrait_seed)
+          .to eq("hollis-defendant")
+      end
+
+      it "refuses a Client with no seed, as loudly as one with no opening statement" do
+        expect { described_class.call(authored(clients: facing(nil))) }
+          .to raise_error(described_class::InvalidCase, /no portrait seed for the plaintiff/)
+      end
+
+      it "refuses a seed authored blank, which draws a face nobody chose" do
+        expect { described_class.call(authored(clients: facing(""))) }
+          .to raise_error(described_class::InvalidCase, /no portrait seed for the plaintiff/)
+      end
+
+      # The two Clients of one Case are the only pair anybody ever sees together
+      # — Teams in different Simulations never meet, and a Team sees only its
+      # own Client — so this is the one collision that matters.
+      it "refuses a Case that gives both its Clients one seed" do
+        expect { described_class.call(authored(clients: facing("one-face", "one-face"))) }
+          .to raise_error(described_class::InvalidCase, /the same face/)
+      end
+
+      # And the case uniqueness on the *string* would miss, which is why the
+      # gate compares the faces the seeds compose rather than the seeds.
+      it "refuses two different seeds that compose to the same person" do
+        expect { described_class.call(authored(clients: facing(*a_collision))) }
+          .to raise_error(described_class::InvalidCase, /so reroll one of them/)
+      end
+
+      it "names the face they share, so an author knows what to reroll past" do
+        expect { described_class.call(authored(clients: facing(*a_collision))) }
+          .to raise_error(described_class::InvalidCase, /hair \w+, garment \w+/)
+      end
+    end
   end
 
   # The Terms Board's third track, and what lets the board exist without ever
@@ -415,10 +492,12 @@ RSpec.describe Cases::Import do
       {
         "plaintiff" => {
           "bound" => 40_000, "opening_statement" => "Loudly.", "aspirations" => plaintiff,
+          "portrait_seed" => "plaintiff-face",
           "settlement" => a_settlement("Enough.", "They signed.")
         },
         "defendant" => {
           "bound" => 60_000, "opening_statement" => "Quietly.", "aspirations" => defendant,
+          "portrait_seed" => "defendant-face",
           "settlement" => a_settlement("Done.", "Filed.")
         }
       }
