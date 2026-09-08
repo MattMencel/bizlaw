@@ -58,6 +58,24 @@ module AuthoredAndRunBuilders
     }
   }.freeze
 
+  # What each Client says when their Team consults them, and the edge they cross
+  # into the upper band at. Two variants per band, as `db/cases/reference.yml`
+  # authors them and as `Cases::Import` requires — abbreviated here for the same
+  # reason the settlement lines are.
+  #
+  # The edge is the authored number, measured late: an early one is a Client
+  # crying wolf, and the Team reacts while nothing has really happened.
+  REFERENCE_BANDS = {
+    CaseClientBand::FIRM => {
+      threshold: 0.0,
+      lines: ["I am not moving.", "My answer has not changed."]
+    },
+    CaseClientBand::READY => {
+      threshold: 0.8,
+      lines: ["I am tired. Bring me something.", "I would like this closed."]
+    }
+  }.freeze
+
   # The seeds `db/cases/reference.yml` authors, verbatim, because they are the
   # one pair `Cases::Import` compares: a builder that invented its own could
   # hand two Clients one face and no spec here would notice.
@@ -157,6 +175,10 @@ module AuthoredAndRunBuilders
       )
       REFERENCE_ASPIRATIONS.fetch(role).each do |key, amount_cents|
         client.aspirations.create!(case_term: vocabulary.fetch(key), amount_cents: amount_cents)
+      end
+      REFERENCE_BANDS.each do |key, authored|
+        band = client.bands.create!(key: key, threshold: authored.fetch(:threshold))
+        authored.fetch(:lines).each { |body| band.lines.create!(body: body) }
       end
     end
 

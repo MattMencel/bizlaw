@@ -15,14 +15,17 @@ module Portraits
   # caller asks for a size the set has never been looked at in.
   Unrenderable = Class.new(StandardError)
 
-  # The three occasions a face is picked for, and the whole inventory. *firm*
-  # and *ready* are the Reaction Bands, derived from the band by engine rule at
-  # a Consult; *settlement* is authored to the occasion and invariant, because
-  # there is no band to derive from once the instrument is executed (ADR 0007).
-  FIRM = "firm"
-  READY = "ready"
+  # The one expression that is not a band: authored to the occasion and
+  # invariant, because there is no band to derive from once the instrument is
+  # executed (ADR 0007).
   SETTLEMENT = "settlement"
-  EXPRESSIONS = [FIRM, READY, SETTLEMENT].freeze
+
+  # The three occasions a face is picked for, and the whole inventory a part set
+  # must be able to draw. The first two are the Reaction Bands, named where a
+  # band is named — the expression at a Consult *is* the band, by engine rule,
+  # so a Client's face cannot change between two variants that mean the same
+  # thing. The compositor borrows the vocabulary rather than owning it.
+  EXPRESSIONS = [CaseClientBand::FIRM, CaseClientBand::READY, SETTLEMENT].freeze
 
   # Where the default set lives. A commissioned set is proprietary, ships with
   # the Cases rather than with the engine, and is pointed at from here — the

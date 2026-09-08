@@ -23,7 +23,11 @@ class CaseAction < ApplicationRecord
 
   belongs_to :case_version, inverse_of: :actions
   # What this Action yields when it lands, in authored order. An Action may
-  # yield none — a Consult is answered by the Client rather than by paper.
+  # yield none — a Consult is answered by the Client rather than by paper, and
+  # that is a rule rather than a remark: `Cases::Import` refuses a Case that
+  # authors a document behind `consult_client`, because the band folded as of
+  # the spend rests on there being no shift written in the spend's own
+  # transaction to tie with. See ADR 0006.
   #
   # Ordered because two unfavorable documents behind one Action clip against the
   # same bound: the total consumed is the same either way, but the ledger should

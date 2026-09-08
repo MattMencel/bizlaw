@@ -19,7 +19,7 @@ RSpec.describe Docket do
     a_user(organization: organization, name: "Professor Adeyemi", email: "adeyemi@wiu.edu")
   end
 
-  it "shows a spend with its cost, its half and the Day its result lands" do
+  it "shows a spend with what it bought, its cost, its half and the Day it lands" do
     Days::Command.apply(
       act: :spend, side: side, day: day, by: dana, kind: CaseAction::DEPOSE_WITNESS
     )
@@ -27,9 +27,43 @@ RSpec.describe Docket do
     entry = side.docket.entries.sole
 
     expect(entry).to have_attributes(
-      act: Docket::SPEND, by: dana, cost: 3, half: DayBudget::PREPARATION
+      act: Docket::SPEND, by: dana, kind: CaseAction::DEPOSE_WITNESS,
+      cost: 3, half: DayBudget::PREPARATION
     )
     expect(entry.lands_on_day.ordinal).to eq(3)
+  end
+
+  # The Client's beat is emphasis and never the sole carrier, and a Consult
+  # yields no document — so this line is the only other place the band can land.
+  it "carries the band on the one Action that buys a read rather than paper" do
+    Days::Command.apply(
+      act: :spend, side: side, day: day, by: dana, kind: CaseAction::CONSULT_CLIENT
+    )
+
+    expect(side.docket.entries.sole)
+      .to have_attributes(kind: CaseAction::CONSULT_CLIENT, band: CaseClientBand::FIRM)
+  end
+
+  # A band is what a Consult was charged for. Nothing else may carry one, and a
+  # Docket that re-read live would be a free band ticker.
+  it "carries no band on a spend that bought paper" do
+    Days::Command.apply(
+      act: :spend, side: side, day: day, by: dana, kind: CaseAction::REQUEST_DOCUMENTS
+    )
+
+    expect(side.docket.entries.sole.band).to be_nil
+  end
+
+  it "keeps the band a Consult read once the Client has moved since" do
+    Days::Command.apply(
+      act: :spend, side: side, day: day, by: dana, kind: CaseAction::CONSULT_CLIENT
+    )
+    side.client_shifts.create!(
+      day: day, source_kind: ClientShift::UNFAVORABLE_DISCOVERY,
+      source_ref: 1, requested_fraction: 0.9
+    )
+
+    expect(side.docket.entries.sole.band).to eq(CaseClientBand::FIRM)
   end
 
   it "shows the staging with Attribution, and no cost against it" do
@@ -37,7 +71,9 @@ RSpec.describe Docket do
 
     entry = side.docket.entries.sole
 
-    expect(entry).to have_attributes(act: Docket::OFFER_STAGED, by: dana, cost: nil, half: nil)
+    expect(entry).to have_attributes(
+      act: Docket::OFFER_STAGED, by: dana, kind: nil, cost: nil, half: nil, band: nil
+    )
     expect(entry).not_to be_spend
   end
 

@@ -24,6 +24,12 @@ module Cases
     # makes *doors visible, contents hidden* checkable.
     HANDS = (CaseDocument::PROVENANCES - [CaseDocument::DISCOVERABLE]).freeze
     REQUIRED_EXHIBIT_KEYS = %w[target shift bears_on].freeze
+    # A band with one line repeats itself verbatim on a professor's second
+    # Consult, which is the failure the several-variants rule exists to prevent.
+    MINIMUM_VARIANTS = 2
+    # Every fold has to land in a band, so the lowest one begins where the
+    # Client does.
+    THE_UNMOVED_CLIENT = 0
     # A Client's bound is authored in whole money, because that is how an author
     # thinks about how far a party can be moved. It is held in cents, because
     # that is how money is held.
@@ -83,6 +89,7 @@ module Cases
             **settlement_lines_for(authored_client)
           )
           import_aspirations(client, authored_client["aspirations"])
+          import_bands(client, authored_client["bands"])
         end
         import_documents(version)
         version.reload
@@ -132,6 +139,19 @@ module Cases
           case_term: vocabulary.fetch(key),
           amount_cents: amount && amount * CENTS_PER_UNIT
         )
+      end
+    end
+
+    # What the Client says about where they stand, and the edge each band
+    # begins at. Written in the engine's own band order rather than the order
+    # the file happens to list them in, so the thresholds go in ascending
+    # whatever the author wrote — and the variants keep the authored order,
+    # because that is the order they are spoken in.
+    def import_bands(client, authored_bands)
+      CaseClientBand::BANDS.each do |key|
+        authored = authored_bands.fetch(key)
+        band = client.bands.create!(key: key, threshold: authored["at"])
+        authored["lines"].each { |body| band.lines.create!(body: body) }
       end
     end
 
@@ -240,6 +260,7 @@ module Cases
 
         validate_portrait_seed!(role, authored["portrait_seed"])
         validate_settlement!(role, authored["settlement"])
+        validate_bands!(role, authored["bands"])
         validate_aspirations!(role, authored["aspirations"])
       end
 
@@ -297,6 +318,84 @@ module Cases
         "#{path} authors no settlement line for the #{role} Client where they " \
         "#{missing.map { |acceptance_role| acceptance_role.tr("_", " ") }.join(" or ")}, " \
         "which is what they say over the executed instrument"
+    end
+
+    # The Reaction Band: what this Client says about where they stand, and the
+    # only read a Team ever gets on how far their Client has moved. A Case that
+    # authors none does not import, as loudly as one missing an opening
+    # statement — a Consult would otherwise buy a Client with nothing to say.
+    #
+    # Two bands is engine and the edges are the Case's, so the keys are checked
+    # against the engine's pair and the thresholds only for shape and order.
+    def validate_bands!(role, authored_bands)
+      bands = authored_bands.is_a?(Hash) ? authored_bands : {}
+      if bands.empty?
+        raise InvalidCase,
+          "#{path} authors no bands for the #{role} Client, which is the whole of " \
+          "what they can say when their Team consults them"
+      end
+
+      unless bands.keys.sort == CaseClientBand::BANDS.sort
+        raise InvalidCase,
+          "#{path} authors #{bands.keys.sort.join(", ")} for the #{role} Client rather than " \
+          "one band for each of #{CaseClientBand::BANDS.join(", ")}"
+      end
+
+      CaseClientBand::BANDS.each { |key| validate_band!(role, key, bands.fetch(key)) }
+      validate_band_edges!(role, bands)
+    end
+
+    def validate_band!(role, key, authored_band)
+      band = authored_band.is_a?(Hash) ? authored_band : {}
+      edge = band["at"]
+      unless edge.is_a?(Numeric) && edge >= THE_UNMOVED_CLIENT && edge <= ClientShift::WHOLE_BOUND
+        raise InvalidCase,
+          "#{path} authors the #{role} Client's #{key} band at #{edge.inspect}, which is not " \
+          "a fraction of the bound they cross into it at"
+      end
+
+      lines = band["lines"]
+      unless lines.is_a?(Array) && lines.all? { |body| body.is_a?(String) && body.present? }
+        raise InvalidCase,
+          "#{path} authors the #{role} Client's #{key} band saying #{lines.inspect}, " \
+          "which is not a set of lines they could say"
+      end
+
+      return if lines.size >= MINIMUM_VARIANTS
+
+      # A node the engine can only ever speak one way. The Consult is priced to
+      # be bought more than once, so the second one would come back word for
+      # word — which is the tell the variants exist to prevent.
+      raise InvalidCase,
+        "#{path} gives the #{role} Client #{lines.size} line for their #{key} band; " \
+        "a Consult can be bought twice, so a node carries at least #{MINIMUM_VARIANTS} variants"
+    end
+
+    # The bands are a partition of the bound, so the lowest begins where the
+    # Client does and each one after it begins above the one before. A set that
+    # starts above zero leaves an unmoved Client in no band at all, and the fold
+    # would have nothing to answer with.
+    #
+    # Checked at the scale the column holds rather than as authored: two edges a
+    # hair apart are one edge once stored, and the fold would then read a tie —
+    # which is a partition with two answers for the same fraction of the bound,
+    # and the wrong one for a Client who has not moved.
+    def validate_band_edges!(role, bands)
+      edges = CaseClientBand::BANDS.map do |key|
+        bands.fetch(key)["at"].round(CaseClientBand.threshold_scale)
+      end
+
+      unless edges.first == THE_UNMOVED_CLIENT
+        raise InvalidCase,
+          "#{path} starts the #{role} Client's #{CaseClientBand::BANDS.first} band at " \
+          "#{edges.first}, leaving a Client who has not moved yet in no band at all"
+      end
+
+      return if edges.each_cons(2).all? { |lower, higher| lower < higher }
+
+      raise InvalidCase,
+        "#{path} authors the #{role} Client's bands at #{edges.join(", ")}, which do not climb " \
+        "through the bound in the order #{CaseClientBand::BANDS.join(", ")}"
     end
 
     # What a Client says out loud about the Terms. Sparse on purpose — a Term
@@ -388,10 +487,28 @@ module Cases
           "#{path} puts #{identifier} in #{hand}, which is not a hand at the open"
       end
 
-      return if hand.present? || actions.key?(door)
+      return if hand.present?
 
+      unless actions.key?(door)
+        raise InvalidCase,
+          "#{path} hides #{identifier} behind #{door}, which is not on this Case's Action menu"
+      end
+
+      return unless door == CaseAction::CONSULT_CLIENT
+
+      # A Consult is answered by the Client rather than by paper, and until now
+      # that was a comment on `CaseAction` rather than a rule — this importer
+      # maps documents onto the menu by key and would have taken one.
+      #
+      # It is a rule because a historical read rests on it. `Days::Command`
+      # writes the Docket row and lands a lead-zero spend's documents inside one
+      # transaction, and a Consult is lead-zero: a shift landing there would
+      # share the spend's timestamp, and the band folded as of that instant
+      # would be order-ambiguous. Refusing the Case removes the tiebreak rather
+      # than stating one — see ADR 0006.
       raise InvalidCase,
-        "#{path} hides #{identifier} behind #{door}, which is not on this Case's Action menu"
+        "#{path} hides #{identifier} behind #{CaseAction::CONSULT_CLIENT}, which is answered " \
+        "by the Client rather than by paper; a Consult yields no documents"
     end
 
     # Ammunition a Team walks in with is a position the Case authored and Par is

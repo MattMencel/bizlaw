@@ -33,6 +33,14 @@ class CaseClient < ApplicationRecord
     class_name: "CaseClientAspiration",
     inverse_of: :case_client,
     dependent: :destroy
+  # What this Client says about where they stand, keyed to the cumulative
+  # fraction of the bound consumed. Ordered by the edge they begin at, so the
+  # last one a fraction has passed is the one it is in.
+  has_many :bands,
+    -> { order(:threshold) },
+    class_name: "CaseClientBand",
+    inverse_of: :case_client,
+    dependent: :destroy
 
   validates :role, inclusion: {in: Side::ROLES}, uniqueness: {scope: :case_version_id}
   validates :bound_cents, numericality: {only_integer: true, greater_than: 0}
@@ -52,6 +60,21 @@ class CaseClient < ApplicationRecord
   # of the part set rather than of the string, so `Cases::Import` compares the
   # faces the Case's two Clients actually draw.
   validates :portrait_seed, presence: true
+
+  # The band a Client this far through their bound is in: the last one whose
+  # authored edge the fraction has passed. Every Case authors a band at zero —
+  # `Cases::Import` refuses one that does not — so there is always an answer and
+  # this never falls off the end.
+  #
+  # A band is a bucket, so it is imprecise near the ends by construction: a
+  # Client four fifths of the way through and one that has exhausted the bound
+  # read the same. Nothing is owed to that.
+  def band_at(consumed)
+    bands.reverse_each.find { |band| consumed >= band.threshold }
+  end
+
+  # One band by name, which is what the fold hands back.
+  def band_named(key) = bands.find { |band| band.key == key }
 
   # What this Client says over the executed instrument. There is no band here
   # and nothing computed from the terms: an invariant expression and one of two

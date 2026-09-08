@@ -400,7 +400,19 @@ FOREIGN KEY ("case_version_id")
 CREATE INDEX "index_case_clients_on_case_version_id" ON "case_clients" ("case_version_id") /*application='Bizlaw'*/;
 CREATE UNIQUE INDEX "index_case_clients_on_case_version_id_and_role" ON "case_clients" ("case_version_id", "role") /*application='Bizlaw'*/;
 CREATE UNIQUE INDEX "index_case_clients_on_id_and_case_version_id" ON "case_clients" ("id", "case_version_id") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "case_client_bands" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "case_version_id" bigint NOT NULL, "case_client_id" bigint NOT NULL, "key" varchar NOT NULL, "threshold" decimal(5,4) NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_a2ea28b499"
+FOREIGN KEY ("case_client_id", "case_version_id")
+  REFERENCES "case_clients" ("id", "case_version_id")
+, CONSTRAINT case_client_bands_key_known CHECK (key IN ('firm', 'ready')), CONSTRAINT case_client_bands_threshold_is_a_fraction_of_the_bound CHECK (threshold >= 0 AND threshold <= 1));
+CREATE UNIQUE INDEX "index_case_client_bands_on_case_client_id_and_key" ON "case_client_bands" ("case_client_id", "key") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_case_client_bands_on_id_and_case_version_id" ON "case_client_bands" ("id", "case_version_id") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "case_client_band_lines" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "case_version_id" bigint NOT NULL, "case_client_band_id" bigint NOT NULL, "body" text NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_c710d59aa5"
+FOREIGN KEY ("case_client_band_id", "case_version_id")
+  REFERENCES "case_client_bands" ("id", "case_version_id")
+);
+CREATE INDEX "index_case_client_band_lines_on_case_client_band_id" ON "case_client_band_lines" ("case_client_band_id") /*application='Bizlaw'*/;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260908120000'),
 ('20260907220000'),
 ('20260907140000'),
 ('20260907020000'),

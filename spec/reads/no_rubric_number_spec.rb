@@ -35,8 +35,19 @@ RSpec.describe "the figures no student-facing read exposes" do
 
   let(:forbidden) { /(\A|_)(#{Regexp.union(forbidden_words).source})s?(\z|_)/ }
 
+  # A Consult memo hangs off the spend that bought it rather than off the Side,
+  # so it is built rather than constructed from the Side like the rest.
+  def a_consult_memo
+    student = a_user(organization: simulation.section.organization)
+    ConsultMemo.for(
+      Days::Command.apply(
+        act: :spend, side: side, day: day, by: student, kind: CaseAction::CONSULT_CLIENT
+      )
+    )
+  end
+
   let(:reads) do
-    [Docket, CaseFile, ActionBoard, TermsBoard, MorningBriefing, ExecutedInstrument]
+    [Docket, CaseFile, ActionBoard, TermsBoard, MorningBriefing, ExecutedInstrument, ConsultMemo]
   end
 
   it "defines no such reader on any read object" do
@@ -71,7 +82,8 @@ RSpec.describe "the figures no student-facing read exposes" do
       Docket::Entry, CaseFile::Entry, ActionBoard::Entry,
       TermsBoard::Track, TermsBoard::Position,
       MorningBriefing::CalendarDay, MorningBriefing::Rubric,
-      ExecutedInstrument::Term, ExecutedInstrument::Countersignature, ExecutedInstrument::Beat
+      ExecutedInstrument::Term, ExecutedInstrument::Countersignature, ExecutedInstrument::Beat,
+      ConsultMemo::Beat
     ]
 
     expect(carried.flat_map(&:members).grep(forbidden)).to be_empty
@@ -117,7 +129,7 @@ RSpec.describe "the figures no student-facing read exposes" do
     surfaces = [
       Docket.for(side), CaseFile.for(side), ActionBoard.for(side, day: day),
       TermsBoard.for(side, day: day), MorningBriefing.for(side, day: day),
-      ExecutedInstrument.for(side)
+      ExecutedInstrument.for(side), a_consult_memo
     ]
 
     expect(surfaces.flat_map { |read| read.public_methods(false) }.grep(forbidden)).to be_empty
