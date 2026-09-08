@@ -73,6 +73,8 @@ module Portraits
         raise Unrenderable, "#{root}'s #{MANIFEST} declares no #{key}" if @manifest[key].blank?
       end
 
+      validate_shape!
+
       declared = @manifest.fetch("identity").keys +
         @manifest.fetch("expression").keys + @manifest.fetch("held").keys
       missing = declared - order
@@ -97,6 +99,49 @@ module Portraits
           .map { |name| "#{group}/#{name}" }
       end
       raise Unrenderable, "#{root} lists #{missing.join(", ")} and ships no file for them" if missing.any?
+    end
+
+    # Present is not the same as usable, and every check below closes a gap
+    # between the two that would otherwise reach a render. A commissioned set
+    # drops in with no code change, so a malformed one has to be refused here:
+    # an empty identity group is a `ZeroDivisionError` on the Clients who drew
+    # it, and a frame with no width is worse than an exception — the pitch is
+    # divided by it, so every screen comes out at nothing and the portrait is a
+    # blank silhouette that raises no error at all.
+    def validate_shape!
+      raise Unrenderable, "#{root} stacks #{order.inspect}, which is not an order" unless order.is_a?(Array)
+
+      %w[identity expression held].each do |key|
+        next if @manifest.fetch(key).is_a?(Hash)
+
+        raise Unrenderable, "#{root} declares #{key} as #{@manifest.fetch(key).inspect}, which names no groups"
+      end
+
+      (@manifest.fetch("identity").to_a + @manifest.fetch("expression").to_a).each do |group, names|
+        next if names.is_a?(Array) && names.any? && names.all? { |name| name.is_a?(String) && name.present? }
+
+        raise Unrenderable,
+          "#{root} lists #{group} as #{names.inspect}, which is not parts to draw one of"
+      end
+
+      @manifest.fetch("held").each do |group, name|
+        next if name.is_a?(String) && name.present?
+
+        raise Unrenderable, "#{root} holds #{group} at #{name.inspect}, which is not a part"
+      end
+
+      validate_frame!
+    end
+
+    def validate_frame!
+      frame = view_box.to_s.split
+      return if frame.size == 4 &&
+        frame.all? { |number| number.match?(/\A-?\d+(\.\d+)?\z/) } &&
+        frame.fetch(2).to_f.positive?
+
+      raise Unrenderable,
+        "#{root} draws in #{view_box.inspect}, which is not a viewBox with a width " \
+        "for the screen's pitch to be divided back out by"
     end
 
     def names_for(group)

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails_helper"
+require "tmpdir"
 
 # The part set on disk. The engine ships a default one; a commissioned set is
 # proprietary, lives with the Cases and drops in at `PORTRAIT_PART_SET` with no
@@ -44,22 +45,84 @@ RSpec.describe Portraits::PartSet do
     expect(set.parts("glasses").count("none")).to be > 1
   end
 
-  it "refuses a set that draws no part for a group it declares" do
-    expect { described_class.new(Rails.root.join("spec/fixtures/portraits/undeclared")) }
-      .to raise_error(Portraits::Unrenderable, /declares glasses but never draws them/)
-  end
+  # A commissioned set is proprietary and drops in at `PORTRAIT_PART_SET`, which
+  # only holds if a malformed one is refused on load rather than surfacing much
+  # later as whatever raw exception the render happens to hit — or, worse, as no
+  # exception at all. Each of these is built rather than committed, because what
+  # is under test is one wrong line in an otherwise sound manifest.
+  describe "what it refuses on load" do
+    def a_part_set(ships: nil, **manifest)
+      root = Pathname(Dir.mktmpdir)
+      declared = {
+        "view_box" => "24 24 216 216",
+        "identity" => {"glasses" => %w[none]},
+        "expression" => {"brows" => Portraits::EXPRESSIONS.dup, "mouth" => Portraits::EXPRESSIONS.dup},
+        "held" => {"eyes" => "held"},
+        "order" => %w[glasses brows mouth eyes]
+      }.merge(manifest.transform_keys(&:to_s))
 
-  it "refuses a set missing an expression, rather than failing on the render that needs it" do
-    expect { described_class.new(Rails.root.join("spec/fixtures/portraits/wordless")) }
-      .to raise_error(Portraits::Unrenderable, /draws no settlement mouth/)
-  end
+      (ships || parts_named(declared)).each do |part|
+        root.join("#{part}.svg").dirname.mkpath
+        root.join("#{part}.svg").write("<g/>\n")
+      end
+      root.join("set.yml").write(declared.to_yaml)
+      root
+    end
 
-  # An identity part is drawn for a fraction of the Clients in a Section, so a
-  # part named and never shipped fails on some memos and not others — which is
-  # the worst way to learn a set is incomplete, and why it is a load-time check.
-  it "refuses a set that names a part it never shipped" do
-    expect { described_class.new(Rails.root.join("spec/fixtures/portraits/promised")) }
-      .to raise_error(Portraits::Unrenderable, %r{glasses/chignon})
+    def parts_named(declared)
+      %w[identity expression].flat_map { |kind|
+        next [] unless declared[kind].is_a?(Hash)
+
+        declared[kind].flat_map { |group, names| Array(names).map { |name| "#{group}/#{name}" } }
+      } + declared.fetch("held").map { |group, name| "#{group}/#{name}" }
+    end
+
+    def refusal(**manifest)
+      expect { described_class.new(a_part_set(**manifest)) }
+        .to raise_error(Portraits::Unrenderable, yield)
+    end
+
+    it "refuses a set that draws no part for a group it declares" do
+      refusal(order: %w[brows mouth eyes]) { /declares glasses but never draws them/ }
+    end
+
+    it "refuses a set missing an expression, rather than failing on the render that needs it" do
+      refusal(expression: {"brows" => Portraits::EXPRESSIONS.dup, "mouth" => %w[firm ready]}) do
+        /draws no settlement mouth/
+      end
+    end
+
+    # An identity part is drawn for a fraction of the Clients in a Section, so a
+    # part named and never shipped fails on some memos and not others — which is
+    # the worst way to learn a set is incomplete.
+    it "refuses a set that names a part it never shipped" do
+      expect {
+        described_class.new(a_part_set(
+          identity: {"glasses" => %w[none chignon]},
+          ships: %w[glasses/none brows/firm brows/ready brows/settlement
+            mouth/firm mouth/ready mouth/settlement eyes/held]
+        ))
+      }.to raise_error(Portraits::Unrenderable, %r{glasses/chignon})
+    end
+
+    # `Identity` draws by modulus, so an empty group is a division by zero on
+    # exactly the Clients who drew it and on nobody else.
+    it "refuses a group with nothing in it to draw" do
+      refusal(identity: {"glasses" => []}) { /lists glasses as \[\], which is not parts/ }
+    end
+
+    # The one that raises nothing on its own: the halftone pitch is divided back
+    # out by this width, so a frame without one renders every screen at no pitch
+    # and hands back a blank silhouette rather than an error.
+    it "refuses a frame with no width for the pitch to be divided out by" do
+      refusal(view_box: "24 24 0 216") { /is not a viewBox with a width/ }
+      refusal(view_box: "the whole page") { /is not a viewBox with a width/ }
+    end
+
+    it "refuses a group listed as something other than parts" do
+      refusal(identity: {"glasses" => "none"}) { /lists glasses as "none"/ }
+      refusal(held: {"eyes" => %w[held]}) { /holds eyes at \["held"\]/ }
+    end
   end
 
   # Two inks. A part authored against a colour cannot be printed as a screen, so
