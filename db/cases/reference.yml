@@ -84,9 +84,16 @@ actions:
 # because the reference Case is what an engine test and a local run read and no
 # model runs for either. Keyed on which Side accepted and carrying no variants —
 # a settlement node is spoken exactly once, so there is nothing to select on.
+#
+# The portrait seed is the whole of what a Case says about a Client's face. It
+# is opaque, and deliberately: a named part choice does not survive the set
+# being reskinned, so an author rerolls the string until they like the face. The
+# two below must not compose to the same person — they are the one pair a reader
+# ever sees together — and `Cases::Import` refuses the Case if they do.
 clients:
   plaintiff:
     bound: 40000
+    portrait_seed: greaves-plaintiff
     opening_statement: |
       Eleven years I gave them, and not one review below "meets expectations".
       They walked me out through the plant floor like I had stolen something. I
@@ -112,6 +119,7 @@ clients:
       reinstatement:
   defendant:
     bound: 60000
+    portrait_seed: hollis-defendant
     opening_statement: |
       We followed the policy that was written down, and the policy was there for
       a reason. What I cannot have is this in the trade press for six months. I

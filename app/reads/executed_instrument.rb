@@ -25,7 +25,7 @@ class ExecutedInstrument
   # from a band. It is **invariant** — the same face whatever the terms, the
   # Side, or who accepted — because a Client whose face fell at a bad deal would
   # be a free Settlement Quality read arriving through the art.
-  EXPRESSION = "settlement"
+  EXPRESSION = Portraits::SETTLEMENT
 
   # One Term as the deal fixed it. The amount is absent on the Terms that carry
   # no figure, which is most of them: a settlement including an apology includes
@@ -44,7 +44,12 @@ class ExecutedInstrument
 
   # What this Team's own Client says over it. Words and a face, and nothing the
   # engine computed about the deal.
-  Beat = Data.define(:client_role, :acceptance_role, :line, :expression)
+  #
+  # The face is a seed and an expression rather than a rendered portrait,
+  # because a halftone screen is fixed in ink on the page: the compositor takes
+  # the render size as an argument and this read has no business choosing one.
+  # The surface that serves the beat composes it — see `Portraits::Compose`.
+  Beat = Data.define(:client_role, :acceptance_role, :line, :expression, :portrait_seed)
 
   def self.for(...) = new(...)
 
@@ -110,7 +115,8 @@ class ExecutedInstrument
       client_role: side.role,
       acceptance_role: acceptance_role,
       line: side.client.settlement_line(acceptance_role),
-      expression: EXPRESSION
+      expression: EXPRESSION,
+      portrait_seed: side.client.portrait_seed
     )
   end
 

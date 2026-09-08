@@ -58,6 +58,14 @@ module AuthoredAndRunBuilders
     }
   }.freeze
 
+  # The seeds `db/cases/reference.yml` authors, verbatim, because they are the
+  # one pair `Cases::Import` compares: a builder that invented its own could
+  # hand two Clients one face and no spec here would notice.
+  REFERENCE_PORTRAIT_SEEDS = {
+    Side::PLAINTIFF => "greaves-plaintiff",
+    Side::DEFENDANT => "hollis-defendant"
+  }.freeze
+
   # The reference Case's documents waiting behind the Action that discovers
   # them. Whether an Exhibit is favorable is not authored: the deposition points
   # at the plaintiff Client, so the defendant holds it to play and the plaintiff
@@ -144,6 +152,7 @@ module AuthoredAndRunBuilders
     }.each do |role, (bound_cents, opening_statement)|
       client = pinned.clients.create!(
         role: role, bound_cents: bound_cents, opening_statement: opening_statement,
+        portrait_seed: REFERENCE_PORTRAIT_SEEDS.fetch(role),
         **settlement_lines_for(role)
       )
       REFERENCE_ASPIRATIONS.fetch(role).each do |key, amount_cents|

@@ -60,7 +60,9 @@ node_modules/
 .DS_Store
 # Task files
 tasks.json
-tasks/
+# Anchored: a bare `tasks/` also swallows `lib/tasks`, so a new rake task is
+# silently untracked and only the two that predate this rule are in the repo.
+/tasks/
 mcp-server/
 
 .claude/*

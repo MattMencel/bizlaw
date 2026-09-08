@@ -104,6 +104,15 @@ screening a cartoon yields a screened cartoon. The commission is a reskin agains
 the same part schema, and buying a *set* rather than three pictures is what makes
 that a drop-in with no code change.
 
+*Checked in [#325](https://github.com/MattMencel/bizlaw/issues/325).* Stanley's
+geometry does survive the screen, at 78px as well as large: the silhouettes carry
+the treatment, the three states read apart and stay one person, and the set does
+not collapse into a wash at the size the memo serves. One value did not survive —
+avataaars' own neck shadow is a tenth of black, the lightest screen here is
+heavier than that, and the nearest level puts a grey crescent on the throat that
+reads as a scarf. It is dropped rather than rounded, which is what "five levels"
+means. Everything above about the cartoon bar stands unchanged.
+
 **The default set ships in this repo; a commissioned set does not.** The
 avataaars-derived default ships in-tree so the open engine runs for anyone. It
 does **not** become Apache-2.0 by being committed here: the parts are a
@@ -188,6 +197,19 @@ settlement-lines gate, not in a uniqueness property the seed cannot carry.
 hash word with shifts is the obvious implementation and is wrong: across six
 seeds the prototype drew the same hair three times and never drew glasses or
 facial hair at all, because the shifted bits stay correlated.
+
+*Amended by [#325](https://github.com/MattMencel/bizlaw/issues/325), which built
+this and found the remedy incomplete.* Salting is necessary and is not
+sufficient, because **a draw is a modulus** and so what matters is the low bits.
+FNV-1a barely avalanches there — bit 0 of its result is the parity of bit 0 of
+every byte it ate, so two groups reading one seed differ in it only by the parity
+of their own names. Measured over a 600-seed roster, per-group *salted* FNV-1a
+reached 8 of the 32 hair-and-garment pairs the shipped set can make. The property
+that has to hold is **joint** coverage and not per-group coverage, which a
+correlated draw passes: every pair of groups must reach every pair of their
+parts. `Portraits::Identity` draws from SHA-256 for that reason rather than for
+strength, and `spec/services/portraits/identity_spec.rb` is where the property is
+asserted.
 
 **`case_clients` gains a column and `Cases::Import` a gate.** The table today
 carries `role`, `bound_cents`, `opening_statement` and two settlement lines, and

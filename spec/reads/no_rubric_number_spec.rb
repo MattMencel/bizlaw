@@ -100,9 +100,14 @@ RSpec.describe "the figures no student-facing read exposes" do
   # reservation point. Both are refused: Settlement Quality is rubric-derived
   # and pre-Release, and a Section's concurrent Simulations would carry a
   # Client's number from a settled Team to one still playing the same Case.
+  #
+  # The face is a seed and an expression. Both are authored — the seed by the
+  # Case, the expression to the settlement occasion and invariant across the
+  # terms, the Side and who accepted — so neither can carry a number about how
+  # this deal landed.
   it "gives the Client's settlement beat words and a face and nothing computed" do
     expect(ExecutedInstrument::Beat.members)
-      .to eq(%i[client_role acceptance_role line expression])
+      .to eq(%i[client_role acceptance_role line expression portrait_seed])
   end
 
   # A Team's own Client's bound is authored money and the one number every shift

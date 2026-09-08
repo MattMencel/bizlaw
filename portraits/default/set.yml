@@ -1,0 +1,31 @@
+# The default part set: what `rake portraits:derive` produced, and how it
+# stacks. Regenerated with the parts, so an edit here is an edit there.
+#
+# A group is a directory of SVG fragments. Every fragment is authored against
+# tone levels — t0 paper, t4 ink, t1..t3 the screens between — and never
+# against a colour, so the same part prints as a halftone or as a flat wash
+# without being redrawn.
+---
+# avataaars' own space. Cropped to a bust, and square, because every size the
+# game serves is served square.
+view_box: "24 24 216 216"
+# Drawn once by the Case's seed and never moving again. A name repeated is a
+# name drawn more often.
+identity:
+  skull: [oval, narrow, round, fine]
+  hair: [short_flat, short_waved, frizzle, caesar, sides, bob, straight, bun]
+  garment: [blazer_shirt, blazer_sweater, collar_sweater, open_collar]
+  glasses: [none, none, none, round, rectangular, heavy]
+  facial_hair: [none, none, none, beard, moustache]
+# The only groups the engine ever picks: from the Reaction Band at a Consult,
+# and from the authored settlement expression at a settlement.
+expression:
+  brows: [firm, ready, settlement]
+  mouth: [firm, ready, settlement]
+# One pair of eyes and one nose, for everyone.
+held:
+  eyes: held
+  nose: held
+# Back to front, and it is avataaars' own order: the face goes under the
+# facial hair, the facial hair under the hair, and the glasses over all of it.
+order: [skull, garment, mouth, nose, eyes, brows, facial_hair, hair, glasses]
