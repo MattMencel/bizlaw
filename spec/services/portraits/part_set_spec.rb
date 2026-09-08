@@ -111,12 +111,14 @@ RSpec.describe Portraits::PartSet do
       refusal(identity: {"glasses" => []}) { /lists glasses as \[\], which is not parts/ }
     end
 
-    # The one that raises nothing on its own: the halftone pitch is divided back
-    # out by this width, so a frame without one renders every screen at no pitch
-    # and hands back a blank silhouette rather than an error.
-    it "refuses a frame with no width for the pitch to be divided out by" do
-      refusal(view_box: "24 24 0 216") { /is not a viewBox with a width/ }
-      refusal(view_box: "the whole page") { /is not a viewBox with a width/ }
+    # The ones that raise nothing on their own. The pitch is divided back out by
+    # the width, so a frame without one renders every screen at no pitch; the
+    # height is never read by the engine at all and goes straight into the
+    # emitted viewBox, where zero disables rendering. Both hand back a blank
+    # portrait rather than an error.
+    it "refuses a frame without the width and height a portrait is drawn inside" do
+      ["24 24 0 216", "24 24 216 0", "24 24 216 -216", "the whole page", "24 24 216"]
+        .each { |frame| refusal(view_box: frame) { /is not a viewBox with the width/ } }
     end
 
     # Before any key is read out of it: a sequence indexed by a String is a

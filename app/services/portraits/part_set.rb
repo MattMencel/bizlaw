@@ -138,15 +138,20 @@ module Portraits
       validate_frame!
     end
 
+    # Both extents, and not only the one the engine reads. The width is the
+    # pitch's divisor, so a bad one reaches `Compose`; the height is never read
+    # at all and goes straight into the emitted `viewBox`, where zero disables
+    # rendering and a negative is an error. Neither can raise, which is what
+    # makes them worth refusing here.
     def validate_frame!
       frame = view_box.to_s.split
       return if frame.size == 4 &&
         frame.all? { |number| number.match?(/\A-?\d+(\.\d+)?\z/) } &&
-        frame.fetch(2).to_f.positive?
+        frame.last(2).all? { |extent| extent.to_f.positive? }
 
       raise Unrenderable,
-        "#{root} draws in #{view_box.inspect}, which is not a viewBox with a width " \
-        "for the screen's pitch to be divided back out by"
+        "#{root} draws in #{view_box.inspect}, which is not a viewBox with the width " \
+        "and height a portrait is drawn inside"
     end
 
     def names_for(group)
