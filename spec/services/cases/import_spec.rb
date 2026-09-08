@@ -513,6 +513,18 @@ RSpec.describe Cases::Import do
           .to raise_error(described_class::InvalidCase, /in no band at all/)
       end
 
+      # The column holds four decimal places, so two edges a hair apart are one
+      # edge once stored — and the fold would then read a tie, which is a
+      # partition with two answers for a Client who has not moved.
+      it "refuses edges that only climb finer than the column can hold" do
+        indistinguishable = a_band_set.merge(
+          CaseClientBand::READY => {"at" => 0.00001, "lines" => ["A.", "B."]}
+        )
+
+        expect { described_class.call(authored(clients: banded(indistinguishable))) }
+          .to raise_error(described_class::InvalidCase, /do not climb through the bound/)
+      end
+
       it "refuses edges that do not climb through the bound" do
         upside_down = a_band_set.merge(
           CaseClientBand::READY => {"at" => 0.0, "lines" => ["A.", "B."]}

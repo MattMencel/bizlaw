@@ -36,6 +36,12 @@ class CaseClientBand < ApplicationRecord
   validates :threshold,
     numericality: {greater_than_or_equal_to: 0, less_than_or_equal_to: ClientShift::WHOLE_BOUND}
 
+  # How fine an edge the column can hold, read off the column rather than
+  # restated here so the two cannot drift. `Cases::Import` checks the authored
+  # edges at this scale, because two edges a hair apart are one edge once
+  # stored — and two bands sharing an edge is a partition with a tie in it.
+  def self.threshold_scale = columns_hash.fetch("threshold").scale
+
   # The variant this Consult hears. `speak_count` is how many times the node has
   # already been spoken, so a Client consulted twice in one band says the second
   # line and then comes back round to the first.

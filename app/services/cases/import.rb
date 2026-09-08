@@ -375,8 +375,15 @@ module Cases
     # Client does and each one after it begins above the one before. A set that
     # starts above zero leaves an unmoved Client in no band at all, and the fold
     # would have nothing to answer with.
+    #
+    # Checked at the scale the column holds rather than as authored: two edges a
+    # hair apart are one edge once stored, and the fold would then read a tie —
+    # which is a partition with two answers for the same fraction of the bound,
+    # and the wrong one for a Client who has not moved.
     def validate_band_edges!(role, bands)
-      edges = CaseClientBand::BANDS.map { |key| bands.fetch(key)["at"] }
+      edges = CaseClientBand::BANDS.map do |key|
+        bands.fetch(key)["at"].round(CaseClientBand.threshold_scale)
+      end
 
       unless edges.first == THE_UNMOVED_CLIENT
         raise InvalidCase,
