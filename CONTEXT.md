@@ -28,7 +28,7 @@ Someone the game **names**. Exactly four per Case: one Client and one counsel fo
 
 Exactly one of the four is ever **portrayed**, and only to their own Team: a Team's own Client. The opposing Client and both counsel are named in prose and never drawn — a face across the table that reacted honestly to a committed Offer would hand over the opposing Client's reservation point for free, which is the read a Consult is charged for, and a face that reacted dishonestly is worth nothing to look at.
 
-Not everyone in the dispute is a Party. Witnesses, experts, reporters and the judge are never named as Parties and never portrayed; they exist as prose inside the documents that mention them. Nothing in the engine would read a record for them — an Exhibit targets a Client, an Action yields documents, and only a Client carries a persona, a brief, Reaction Bands and a reservation point.
+Not everyone in the dispute is a Party. Witnesses, experts, reporters and the judge are never named as Parties and never portrayed; they exist as prose inside the documents that mention them. Nothing in the engine would read a record for them — an Exhibit targets a Client, an Action yields documents, and only a Client carries a persona, a brief, a portrait seed, Reaction Bands and a reservation point.
 
 Each counsel is only ever seen by the *opposing* Side. A Team never looks at its own counsel, because the students are the counsel.
 
@@ -151,6 +151,10 @@ The idiom the game is drawn in: **the paper**. The game is the file — letterhe
 **There are no rooms.** A Team does not go anywhere to prepare or anywhere to deal; it works one file. What used to be two places is carried by the instrument instead: a spend is drawn from the Action Board, and an Offer commits by executing a draft. No surface is anywhere else, so no movement between them can be mistaken for a commitment — the Second is the only gate a Team has.
 
 A Team's own Client is the one thing in the game that is drawn rather than typeset, and the one place a Reaction Band lands.
+
+The portrait is **composed, not drawn per Case**: independent brow and mouth layers over a held face, printed in **two inks**. An authored Case supplies an opaque **portrait seed** and nothing else — named part choices are not authorable, because a name does not survive the set being reskinned and surviving the reskin is the point of having a set.
+
+**Brows and mouth are the only groups the engine picks**, and it reads them from the band at a Consult and from the authored settlement expression at a settlement, where there is no band. Everything else is identity, drawn once by the seed: hair, garment, glasses, facial hair and the skull. Identity is carried by **shape alone**, because two inks leave no skin tone and no hair colour to carry it — which is why the two Clients of one Case, the only pair anyone ever sees together, are the only pair that must differ. See ADR 0008.
 
 ## Terms Board
 
