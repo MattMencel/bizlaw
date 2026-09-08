@@ -117,6 +117,47 @@ clients:
       money: 250000
       apology:
       reinstatement:
+    # What this Client says when their Team consults them, and the only read a
+    # Team ever gets on how far the Client has moved. Two bands is engine; `at`
+    # is the Case's — the cumulative fraction of the bound at which the Client
+    # crosses into that band. The lower one begins at nothing, because a Client
+    # who has not moved is still in a band.
+    #
+    # A band carries several variants, because the Consult is priced to be
+    # bought more than once and one line would come back word for word. These
+    # are Dialogue Nodes: a real Case generates them offline against the
+    # Client's persona, and the eight here are hand-authored for the same reason
+    # the settlement pair is — no model runs for an engine test or a local run.
+    #
+    # None of them names a number. A figure a line cannot see is a figure a line
+    # cannot leak, and the band is qualitative on purpose: no reservation point,
+    # no bound, no size of any shift.
+    bands:
+      firm:
+        at: 0.0
+        lines:
+          - |
+            No. I have thought about it and the answer is still no. They can
+            keep sending paper over; it does not change what happened on that
+            floor in front of everybody, and it does not change what I am
+            asking for.
+          - |
+            You want me to be reasonable. I have been reasonable for eleven
+            years. I am not moving, and if that makes this take longer then it
+            takes longer — I am not the one who has somewhere to be.
+      ready:
+        at: 0.8
+        lines:
+          - |
+            I am tired. I still think I am right, and I am starting to think
+            that being right is not going to be worth what it is costing me. If
+            you can get me something I can live with, bring it and I will look
+            at it properly.
+          - |
+            Ask me what I want and a month ago I would have said all of it. Now
+            I would settle for going one whole day without thinking about them.
+            Get close enough and I will sign, and I would rather that were
+            sooner.
   defendant:
     bound: 60000
     portrait_seed: hollis-defendant
@@ -137,6 +178,32 @@ clients:
     aspirations:
       money: 25000
       nda:
+    bands:
+      firm:
+        at: 0.0
+        lines:
+          - |
+            We are not paying to make this go away on their terms. The policy
+            was written down, it was followed, and the moment we start
+            negotiating against ourselves every other file in that cabinet
+            becomes a claim. Hold the line.
+          - |
+            My answer has not changed since the first meeting. Tell them we are
+            content to let this run its course. I have a plant to run and I
+            would rather run it than sit here talking about this.
+      ready:
+        at: 0.8
+        lines:
+          - |
+            All right. I have been through this with the board and I am hearing
+            that the longer it sits, the worse it looks. If there is a version
+            of this that ends quietly and soon, I want to hear it — quietly is
+            the part I care about.
+          - |
+            I would like this closed. Not because they are right, they are not,
+            but because I am spending my week on it and my week is worth
+            something. Find me terms I can put in front of the board without
+            flinching and we are done.
 # The vocabulary an Offer is built from and an Exhibit bears on. Terms are
 # atomic: a public apology and a private one would be two Terms, never one Term
 # with a setting.

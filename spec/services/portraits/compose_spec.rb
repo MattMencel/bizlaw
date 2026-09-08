@@ -7,7 +7,7 @@ require "rails_helper"
 RSpec.describe Portraits::Compose do
   let(:seed) { "greaves-plaintiff" }
 
-  def portrait(expression: Portraits::FIRM, size: 78, seed: self.seed)
+  def portrait(expression: CaseClientBand::FIRM, size: 78, seed: self.seed)
     described_class.call(seed: seed, expression: expression, size: size)
   end
 
@@ -33,13 +33,13 @@ RSpec.describe Portraits::Compose do
 
   describe "what the engine picks and what the seed keeps" do
     it "moves the brows and the mouth between expressions" do
-      firm = portrait(expression: Portraits::FIRM)
-      ready = portrait(expression: Portraits::READY)
+      firm = portrait(expression: CaseClientBand::FIRM)
+      ready = portrait(expression: CaseClientBand::READY)
 
       expect(firm).not_to eq(ready)
       %w[brows mouth].each do |group|
-        expect(firm).to include(Portraits::PartSet.default.draw(group, Portraits::FIRM))
-        expect(ready).to include(Portraits::PartSet.default.draw(group, Portraits::READY))
+        expect(firm).to include(Portraits::PartSet.default.draw(group, CaseClientBand::FIRM))
+        expect(ready).to include(Portraits::PartSet.default.draw(group, CaseClientBand::READY))
       end
     end
 

@@ -33,8 +33,22 @@ class DocketEntry < ApplicationRecord
     self.simulation_id ||= side&.simulation_id || day&.simulation_id
   end
 
+  # The Consults on the ledger, which is both what a Team re-reads and what
+  # selects the variant the next one hears. One scope rather than a predicate in
+  # one place and a join in another.
+  scope :consults, -> { joins(:case_action).where(case_actions: {kind: CaseAction::CONSULT_CLIENT}) }
+
   validates :cost, numericality: {only_integer: true, greater_than_or_equal_to: 1}
   validates :half, inclusion: {in: DayBudget::HALVES}
 
   delegate :kind, to: :case_action, allow_nil: true
+
+  # The one Action that buys a read rather than paper.
+  def consult? = kind == CaseAction::CONSULT_CLIENT
+
+  # What this Team's Client said when this row was written, and nil on every
+  # other act — a band is what a Consult was charged for, so nothing else may
+  # carry one. The horizon is this row's own `created_at`, which is why the
+  # answer never changes once the row exists; see ADR 0006.
+  def reaction_band = consult? ? side.reaction_band(as_of: created_at) : nil
 end

@@ -110,6 +110,10 @@ class Side < ApplicationRecord
   # What this Team knows. See `CaseFile`.
   def case_file = CaseFile.for(self)
 
+  # Every Consult this Team has bought, oldest first, each still saying what the
+  # Client said on the Day it was bought. See `ConsultMemo`.
+  def consults = docket_entries.consults.map { |entry| ConsultMemo.for(entry) }
+
   # What the two Teams agreed, once one of them has taken the other's Offer.
   # Nothing is written for it and it answers `executed?` false until then. See
   # `ExecutedInstrument`.
@@ -122,7 +126,32 @@ class Side < ApplicationRecord
   # How far this Client has already travelled, as a fraction of its bound. A
   # fold over the shift ledger and never a column: the bound saturates rather
   # than refusing, and a counter with a CHECK on it would crash on a legal play.
-  def bound_consumed = client_shifts.sum(:applied_fraction)
+  #
+  # `as_of` puts a horizon on it. Without one it is where the Client stands now,
+  # which is what the next shift is clipped against; with one it is where they
+  # stood then, which is what a Consult bought — see `reaction_band`.
+  def bound_consumed(as_of: nil)
+    horizon = as_of.nil? ? client_shifts : client_shifts.where(created_at: ..as_of)
+    horizon.sum(:applied_fraction)
+  end
+
+  # What this Client says about where they stand, as of an instant — the only
+  # read a Team ever gets on how far their own Client has moved, and the thing a
+  # Consult is charged for.
+  #
+  # The instant is the spend's own `created_at` and never its Day, per ADR 0006.
+  # A Team that consulted on Day 3 and re-reads the line on Day 5 reads what the
+  # Client said then: lead-zero discoveries land mid-Day and the other Side's
+  # Exhibits arrive on a commit, so a Day-wide horizon would leave a Day 3 memo
+  # frozen in name and live in fact. A band that moves is shown at the next
+  # Consult, not the moment it moves.
+  #
+  # Nothing is stored. The horizon is unambiguous because a Consult yields no
+  # paper: `Days::Command` writes the Docket row and lands a lead-zero spend's
+  # documents in one transaction, so a shift written there would share the
+  # spend's timestamp — and `Cases::Import` refuses the Case that could author
+  # one.
+  def reaction_band(as_of:) = client.band_at(bound_consumed(as_of: as_of)).key
 
   # What travel is left. Never negative — an exhausted bound clips the next
   # shift to nothing rather than owing it.

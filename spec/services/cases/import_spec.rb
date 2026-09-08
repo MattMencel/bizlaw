@@ -16,6 +16,16 @@ RSpec.describe Cases::Import do
     {"took_it" => took_it, "had_it_taken" => had_it_taken}
   end
 
+  # What a Client says when their Team consults them: the engine's two bands,
+  # the lower one beginning where an unmoved Client is, and two variants apiece
+  # — the least this importer accepts.
+  def a_band_set(firm: ["Not moving.", "Still not moving."], ready: ["Tired.", "Bring it."])
+    {
+      CaseClientBand::FIRM => {"at" => 0.0, "lines" => firm},
+      CaseClientBand::READY => {"at" => 0.8, "lines" => ready}
+    }
+  end
+
   def authored(**overrides)
     data = {
       "identifier" => "bizlaw/reference",
@@ -40,13 +50,13 @@ RSpec.describe Cases::Import do
         "plaintiff" => {
           "bound" => 40_000,
           "opening_statement" => "I want my name back.",
-          "portrait_seed" => "plaintiff-face",
+          "portrait_seed" => "plaintiff-face", "bands" => a_band_set,
           "settlement" => a_settlement("I decided it was enough.", "They signed my number.")
         },
         "defendant" => {
           "bound" => 60_000,
           "opening_statement" => "I want this closed quietly.",
-          "portrait_seed" => "defendant-face",
+          "portrait_seed" => "defendant-face", "bands" => a_band_set,
           "settlement" => a_settlement("We take their paper today.", "They signed ours. File it.")
         }
       },
@@ -360,11 +370,13 @@ RSpec.describe Cases::Import do
         {
           "plaintiff" => {
             "bound" => 40_000, "opening_statement" => "Loudly.",
-            "portrait_seed" => "plaintiff-face", "settlement" => plaintiff
+            "portrait_seed" => "plaintiff-face", "bands" => a_band_set,
+            "settlement" => plaintiff
           },
           "defendant" => {
             "bound" => 60_000, "opening_statement" => "Quietly.",
-            "portrait_seed" => "defendant-face", "settlement" => defendant
+            "portrait_seed" => "defendant-face", "bands" => a_band_set,
+            "settlement" => defendant
           }
         }
       end
@@ -410,6 +422,120 @@ RSpec.describe Cases::Import do
       end
     end
 
+    # What a Client says when their Team consults them, and the only read a Team
+    # ever gets on how far their Client has moved. Two bands is engine; the edge
+    # between them is the Case's, and it is required with no default — a
+    # defaulted edge is a silent import.
+    describe "the Reaction Bands" do
+      def banded(plaintiff, defendant = a_band_set)
+        {
+          "plaintiff" => {
+            "bound" => 40_000, "opening_statement" => "Loudly.",
+            "portrait_seed" => "plaintiff-face", "bands" => plaintiff,
+            "settlement" => a_settlement("Enough.", "They signed.")
+          },
+          "defendant" => {
+            "bound" => 60_000, "opening_statement" => "Quietly.",
+            "portrait_seed" => "defendant-face", "bands" => defendant,
+            "settlement" => a_settlement("Done.", "Filed.")
+          }
+        }
+      end
+
+      it "loads each Client's bands with the edge they cross into them at" do
+        version = described_class.call(Rails.root.join("db/cases/reference.yml"))
+        plaintiff = version.clients.find_by!(role: Side::PLAINTIFF)
+
+        expect(plaintiff.bands.map { |band| [band.key, band.threshold.to_f] })
+          .to eq([[CaseClientBand::FIRM, 0.0], [CaseClientBand::READY, 0.8]])
+      end
+
+      it "loads the variants under the band that speaks them, in authored order" do
+        version = described_class.call(Rails.root.join("db/cases/reference.yml"))
+        defendant = version.clients.find_by!(role: Side::DEFENDANT)
+
+        expect(defendant.band_named(CaseClientBand::FIRM).lines.map(&:body))
+          .to match([a_string_including("Hold the line"), a_string_including("plant to run")])
+      end
+
+      it "refuses a Client with no bands, who would have nothing to say" do
+        expect { described_class.call(authored(clients: banded(nil))) }
+          .to raise_error(described_class::InvalidCase, /no bands for the plaintiff/)
+      end
+
+      it "refuses the second Client's bands as loudly as the first's" do
+        expect { described_class.call(authored(clients: banded(a_band_set, {}))) }
+          .to raise_error(described_class::InvalidCase, /no bands for the defendant/)
+      end
+
+      # Two bands is engine: a third earns nothing a second does not, and a
+      # fourth is strictly worse than three at every threshold measured.
+      it "refuses a band the engine does not know" do
+        invented = a_band_set.merge("furious" => {"at" => 0.5, "lines" => ["A.", "B."]})
+
+        expect { described_class.call(authored(clients: banded(invented))) }
+          .to raise_error(described_class::InvalidCase, /rather than one band for each of/)
+      end
+
+      it "refuses an edge that is not a fraction of the bound" do
+        adrift = a_band_set.merge(
+          CaseClientBand::READY => {"at" => "late", "lines" => ["A.", "B."]}
+        )
+
+        expect { described_class.call(authored(clients: banded(adrift))) }
+          .to raise_error(described_class::InvalidCase, /ready band at "late"/)
+      end
+
+      # A Consult can be bought twice, and one line per band would come back
+      # word for word — which is the tell the variants exist to prevent.
+      it "refuses a band given a single line" do
+        lonely = a_band_set(ready: ["The only thing I say."])
+
+        expect { described_class.call(authored(clients: banded(lonely))) }
+          .to raise_error(described_class::InvalidCase, /at least 2 variants/)
+      end
+
+      it "refuses a band whose lines are not lines" do
+        wordless = a_band_set(firm: [nil, ""])
+
+        expect { described_class.call(authored(clients: banded(wordless))) }
+          .to raise_error(described_class::InvalidCase, /not a set of lines they could say/)
+      end
+
+      # Every fold has to land in a band, and a Client who has not moved yet is
+      # the commonest fold there is.
+      it "refuses a band set that starts above an unmoved Client" do
+        floating = a_band_set.merge(
+          CaseClientBand::FIRM => {"at" => 0.2, "lines" => ["A.", "B."]}
+        )
+
+        expect { described_class.call(authored(clients: banded(floating))) }
+          .to raise_error(described_class::InvalidCase, /in no band at all/)
+      end
+
+      it "refuses edges that do not climb through the bound" do
+        upside_down = a_band_set.merge(
+          CaseClientBand::READY => {"at" => 0.0, "lines" => ["A.", "B."]}
+        )
+
+        expect { described_class.call(authored(clients: banded(upside_down))) }
+          .to raise_error(described_class::InvalidCase, /do not climb through the bound/)
+      end
+
+      it "replaces the bands of a draft, as it does the aspirations" do
+        described_class.call(authored(published: false))
+
+        version = described_class.call(
+          authored(published: false, clients: banded(a_band_set(firm: ["Once.", "Twice."])))
+        )
+
+        expect(version.clients.find_by!(role: Side::PLAINTIFF)
+          .band_named(CaseClientBand::FIRM).lines.map(&:body)).to eq(["Once.", "Twice."])
+        expect(CaseClientBand.count).to eq(4)
+        expect(CaseClientBandLine.count).to eq(8)
+      end
+    end
+
     # The whole of what a Case says about a Client's face: an opaque seed the
     # author rerolls until they like what it draws. Named part choices are not
     # authorable, because a name does not survive the set being reskinned and
@@ -419,11 +545,11 @@ RSpec.describe Cases::Import do
         {
           "plaintiff" => {
             "bound" => 40_000, "opening_statement" => "Loudly.", "portrait_seed" => plaintiff,
-            "settlement" => a_settlement("Enough.", "They signed.")
+            "bands" => a_band_set, "settlement" => a_settlement("Enough.", "They signed.")
           },
           "defendant" => {
             "bound" => 60_000, "opening_statement" => "Quietly.", "portrait_seed" => defendant,
-            "settlement" => a_settlement("Done.", "Filed.")
+            "bands" => a_band_set, "settlement" => a_settlement("Done.", "Filed.")
           }
         }
       end
@@ -492,12 +618,12 @@ RSpec.describe Cases::Import do
       {
         "plaintiff" => {
           "bound" => 40_000, "opening_statement" => "Loudly.", "aspirations" => plaintiff,
-          "portrait_seed" => "plaintiff-face",
+          "portrait_seed" => "plaintiff-face", "bands" => a_band_set,
           "settlement" => a_settlement("Enough.", "They signed.")
         },
         "defendant" => {
           "bound" => 60_000, "opening_statement" => "Quietly.", "aspirations" => defendant,
-          "portrait_seed" => "defendant-face",
+          "portrait_seed" => "defendant-face", "bands" => a_band_set,
           "settlement" => a_settlement("Done.", "Filed.")
         }
       }
@@ -718,6 +844,16 @@ RSpec.describe Cases::Import do
     it "refuses a document that waits behind no Action, because Provenance is checkable" do
       expect { described_class.call(authored(documents: a_tip(action: "subpoena_the_mayor"))) }
         .to raise_error(described_class::InvalidCase, /not on this Case's Action menu/)
+    end
+
+    # A Consult is answered by the Client rather than by paper, and the fold
+    # behind the band rests on it: `Days::Command` writes the Docket row and
+    # lands a lead-zero spend's documents in one transaction, so a shift landing
+    # there would share the spend's own timestamp. Refusing the Case is what
+    # removes the tiebreak — ADR 0006.
+    it "refuses a document authored behind a Consult, which yields no paper" do
+      expect { described_class.call(authored(documents: a_tip(action: "consult_client"))) }
+        .to raise_error(described_class::InvalidCase, /a Consult yields no documents/)
     end
 
     it "refuses a document authored without a title or a body" do

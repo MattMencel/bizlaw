@@ -22,10 +22,20 @@ class Docket
   OFFER_ACCEPTED = :offer_accepted
   SECOND_WAIVED = :second_waived
 
-  # One line of the record. `cost`, `half` and `lands_on_day` are the spend's
-  # and are nil on the three acts that have none — which is the distinction the
-  # Docket is making, so it is left visible rather than filled with zeroes.
-  Entry = Data.define(:at, :act, :by, :day, :cost, :half, :lands_on_day) do
+  # One line of the record. `kind`, `cost`, `half`, `band` and `lands_on_day`
+  # are the spend's and are nil on the three acts that have none — which is the
+  # distinction the Docket is making, so it is left visible rather than filled
+  # with zeroes.
+  #
+  # `kind` names the Action bought. Without it the record says "someone spent 1
+  # point of preparation" rather than "you consulted", which is not an answer to
+  # *what have we done*.
+  #
+  # `band` is what the Client said, on the one Action that buys a read rather
+  # than paper. The Client's beat is emphasis and never the sole carrier, and a
+  # Consult yields no document, so this line is the only other carrier there is.
+  # It is folded as of the spend and never stored — see `Side#reaction_band`.
+  Entry = Data.define(:at, :act, :by, :day, :kind, :cost, :half, :band, :lands_on_day) do
     def spend? = act == SPEND
 
     def instructor_action? = act == SECOND_WAIVED
@@ -72,8 +82,10 @@ class Docket
         act: SPEND,
         by: entry.spent_by,
         day: entry.day,
+        kind: entry.kind,
         cost: entry.cost,
         half: entry.half,
+        band: entry.reaction_band,
         lands_on_day: entry.lands_on_day
       )
     end
@@ -110,7 +122,10 @@ class Docket
   end
 
   def line(at:, act:, by:, day:)
-    Entry.new(at: at, act: act, by: by, day: day, cost: nil, half: nil, lands_on_day: nil)
+    Entry.new(
+      at: at, act: act, by: by, day: day,
+      kind: nil, cost: nil, half: nil, band: nil, lands_on_day: nil
+    )
   end
 
   def scoped(relation) = day.nil? ? relation : relation.where(day: day)
