@@ -13,6 +13,22 @@ class Simulation < ApplicationRecord
   # rather than raises.
   AlreadySettled = Class.new(StandardError)
 
+  # What makes two runs of one Case differ. A Consult's variants are chosen by
+  # this and the speak count together, so two Teams on one Case do not hear
+  # their Clients' lines in one fixed order; the Event Deck's draws will want it
+  # too, and nothing draws from it yet.
+  #
+  # Written once by `Simulations::Create` and never after. Immutability is the
+  # whole property: a Consult's memo is re-readable forever and reads back the
+  # variant the Client actually spoke, so a seed that moved would rewrite
+  # history a Docket line already claims. `attr_readonly` is the ordinary path's
+  # refusal, and it also refuses `update_column` and `update_all`; the
+  # `simulations_seed_is_written_once` trigger is what holds an UPDATE that
+  # skips the model entirely. A row rewritten by `INSERT OR REPLACE` gets past
+  # both, because SQLite implements that as a delete and an insert — nothing
+  # does this, and a `BEFORE DELETE` refusal would stand in Retention's way.
+  attr_readonly :seed
+
   belongs_to :section, inverse_of: :simulations
   belongs_to :case_version
   has_many :sides, inverse_of: :simulation, dependent: :restrict_with_error
@@ -26,6 +42,7 @@ class Simulation < ApplicationRecord
   # joined for. It defaults from the Section and is never inferred past that.
   before_validation { self.organization_id ||= section&.organization_id }
 
+  validates :seed, presence: true
   validate :case_version_is_published
 
   # The run's own calendar rather than the Case's, because the Section's Day

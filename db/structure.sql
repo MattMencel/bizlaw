@@ -16,16 +16,6 @@ FOREIGN KEY ("organization_id")
 );
 CREATE INDEX "index_sections_on_organization_id" ON "sections" ("organization_id") /*application='Bizlaw'*/;
 CREATE UNIQUE INDEX "index_sections_on_id_and_organization_id" ON "sections" ("id", "organization_id") /*application='Bizlaw'*/;
-CREATE TABLE IF NOT EXISTS "simulations" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "section_id" bigint NOT NULL, "case_version_id" integer NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_83b86dc775"
-FOREIGN KEY ("case_version_id")
-  REFERENCES "case_versions" ("id")
-, CONSTRAINT "fk_rails_5a9f88e258"
-FOREIGN KEY ("section_id", "organization_id")
-  REFERENCES "sections" ("id", "organization_id")
-);
-CREATE INDEX "index_simulations_on_case_version_id" ON "simulations" ("case_version_id") /*application='Bizlaw'*/;
-CREATE INDEX "index_simulations_on_section_id_and_organization_id" ON "simulations" ("section_id", "organization_id") /*application='Bizlaw'*/;
-CREATE UNIQUE INDEX "index_simulations_on_id_and_organization_id" ON "simulations" ("id", "organization_id") /*application='Bizlaw'*/;
 CREATE TABLE IF NOT EXISTS "sides" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "simulation_id" bigint NOT NULL, "role" varchar NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_8844f48244"
 FOREIGN KEY ("simulation_id", "organization_id")
   REFERENCES "simulations" ("id", "organization_id")
@@ -80,7 +70,6 @@ FOREIGN KEY ("case_term_id", "case_version_id")
 );
 CREATE UNIQUE INDEX "index_case_document_terms_on_case_document_id_and_case_term_id" ON "case_document_terms" ("case_document_id", "case_term_id") /*application='Bizlaw'*/;
 CREATE INDEX "index_case_document_terms_on_case_term_id" ON "case_document_terms" ("case_term_id") /*application='Bizlaw'*/;
-CREATE UNIQUE INDEX "index_simulations_on_id_and_case_version_id" ON "simulations" ("id", "case_version_id") /*application='Bizlaw'*/;
 CREATE TABLE IF NOT EXISTS "case_file_documents" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "simulation_id" bigint NOT NULL, "case_version_id" bigint NOT NULL, "side_id" bigint NOT NULL, "day_id" bigint NOT NULL, "case_document_id" bigint NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, "served_at" datetime(6) /*application='Bizlaw'*/, CONSTRAINT "fk_rails_35a3da4c80"
 FOREIGN KEY ("case_document_id", "case_version_id")
   REFERENCES "case_documents" ("id", "case_version_id")
@@ -411,7 +400,25 @@ FOREIGN KEY ("case_client_band_id", "case_version_id")
   REFERENCES "case_client_bands" ("id", "case_version_id")
 );
 CREATE INDEX "index_case_client_band_lines_on_case_client_band_id" ON "case_client_band_lines" ("case_client_band_id") /*application='Bizlaw'*/;
+CREATE TABLE IF NOT EXISTS "simulations" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "organization_id" bigint NOT NULL, "section_id" bigint NOT NULL, "case_version_id" integer NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, "seed" varchar NOT NULL, CONSTRAINT "fk_rails_5a9f88e258"
+FOREIGN KEY ("section_id", "organization_id")
+  REFERENCES "sections" ("id", "organization_id")
+, CONSTRAINT "fk_rails_83b86dc775"
+FOREIGN KEY ("case_version_id")
+  REFERENCES "case_versions" ("id")
+);
+CREATE INDEX "index_simulations_on_case_version_id" ON "simulations" ("case_version_id") /*application='Bizlaw'*/;
+CREATE INDEX "index_simulations_on_section_id_and_organization_id" ON "simulations" ("section_id", "organization_id") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_simulations_on_id_and_organization_id" ON "simulations" ("id", "organization_id") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_simulations_on_id_and_case_version_id" ON "simulations" ("id", "case_version_id") /*application='Bizlaw'*/;
+CREATE TRIGGER simulations_seed_is_written_once
+BEFORE UPDATE OF seed ON simulations
+WHEN NEW.seed IS NOT OLD.seed
+BEGIN
+  SELECT RAISE(ABORT, 'simulations_seed_is_written_once');
+END;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260908140000'),
 ('20260908120000'),
 ('20260907220000'),
 ('20260907140000'),

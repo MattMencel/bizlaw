@@ -20,13 +20,19 @@ RSpec.describe "the Organization boundary" do
       Simulation.create!(
         section: section,
         case_version: case_version,
-        organization_id: other_organization.id
+        organization_id: other_organization.id,
+        seed: SecureRandom.hex(16)
       )
     }.to raise_error(ActiveRecord::InvalidForeignKey)
   end
 
   it "refuses a Side whose Simulation belongs to another Organization" do
-    simulation = Simulation.create!(section: a_section, case_version: a_case_version)
+    # Explicit rather than the `a_simulation` builder: the builder lays out both
+    # Sides, so the row this refuses would trip the role's uniqueness first and
+    # never reach the boundary under test.
+    simulation = Simulation.create!(
+      section: a_section, case_version: a_case_version, seed: SecureRandom.hex(16)
+    )
 
     expect {
       Side.create!(

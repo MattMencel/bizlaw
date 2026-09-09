@@ -21,6 +21,11 @@ class CaseClientBand < ApplicationRecord
   READY = "ready"
   BANDS = [FIRM, READY].freeze
 
+  # How much of the digest an opening reads, as `Portraits::Identity::WORD`
+  # does: four bytes is far more entropy than a Case authors variants, and it
+  # keeps the draw a small integer.
+  DRAW_WIDTH = 8
+
   belongs_to :case_client, inverse_of: :bands
   # The variants, in authored order. Several, so that a Client consulted on five
   # Days does not repeat itself verbatim.
@@ -42,15 +47,36 @@ class CaseClientBand < ApplicationRecord
   # stored — and two bands sharing an edge is a partition with a tie in it.
   def self.threshold_scale = columns_hash.fetch("threshold").scale
 
-  # The variant this Consult hears. `speak_count` is how many times the node has
-  # already been spoken, so a Client consulted twice in one band says the second
-  # line and then comes back round to the first.
+  # The variant this Consult hears, chosen by the Simulation seed **and** how
+  # many times this node has already been spoken, per `CONTEXT.md` under
+  # *Dialogue Node*. The count walks the authored variants in order, so a Client
+  # consulted twice in one band says the second line and then comes back round
+  # to the first; the seed decides which of them the run opens on, so two Teams
+  # on one Case do not hear their Client in one fixed order.
   #
-  # `CONTEXT.md` under *Dialogue Node* wants the Simulation seed in here too.
-  # There is no seed on `simulations` yet and one is not added on the Event
-  # Deck's behalf; whoever builds the Deck adds it.
-  def line(speak_count)
+  # The node is this band and not the Side, so the count is over the Consults
+  # that read *this* band. A count across bands would spend a band's first
+  # variant on a Consult that never heard that band, and with two variants
+  # authored that makes a line unreachable in a run.
+  def line(speak_count, seed:)
     variants = lines.to_a
-    variants[speak_count % variants.size].body
+    variants[(opening(seed) + speak_count) % variants.size].body
+  end
+
+  private
+
+  # Where the run opens this node, salted with the node itself for the reason
+  # `Portraits::Identity.draw` salts per group: one draw shared across nodes
+  # would have a run's two Clients stepping in lockstep, which is the fixed
+  # order complaint at a smaller scale. The Client's id is a salt here rather
+  # than an identity — what has to differ between two runs of one Case is the
+  # seed, and it does.
+  #
+  # A band is engine domain and `Portraits` only borrowed its names, so this
+  # draws its own digest rather than calling into the compositor. Same width and
+  # same reason: enough hex for the modulus to fall evenly across any variant
+  # count a Case authors, and far short of what the digest hands back.
+  def opening(seed)
+    Digest::SHA256.hexdigest("#{seed}\0#{case_client_id}\0#{key}")[0, DRAW_WIDTH].to_i(16)
   end
 end
