@@ -14,7 +14,7 @@ FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 # Make sure NODE_VERSION matches the version in .node-version. Node is a
 # build-time dependency only (ADR 0001): it compiles the Svelte bundle and is
 # absent from the final image.
-ARG NODE_VERSION=22.22.3
+ARG NODE_VERSION=24.20.0
 
 # Rails app lives here
 WORKDIR /rails
@@ -38,12 +38,15 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-# Install Node
+# Install Node. node-build is pinned to a commit rather than `master` for the
+# same reason the workflows pin their actions: it is fetched and then executed,
+# and its output is copied into the runtime image.
+ARG NODE_BUILD_REF=b3156ab8609341498ce343d9f183147160c3b096 # v5.4.51
 ENV PATH=/usr/local/node/bin:$PATH
-RUN curl -sL -o /tmp/node-build.tar.gz https://github.com/nodenv/node-build/archive/master.tar.gz && \
+RUN curl -sL -o /tmp/node-build.tar.gz "https://github.com/nodenv/node-build/archive/${NODE_BUILD_REF}.tar.gz" && \
     tar xzf /tmp/node-build.tar.gz -C /tmp/ && \
-    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
-    rm -rf /tmp/node-build-master /tmp/node-build.tar.gz
+    "/tmp/node-build-${NODE_BUILD_REF}/bin/node-build" "${NODE_VERSION}" /usr/local/node && \
+    rm -rf "/tmp/node-build-${NODE_BUILD_REF}" /tmp/node-build.tar.gz
 
 # Install application gems
 COPY vendor/* ./vendor/
