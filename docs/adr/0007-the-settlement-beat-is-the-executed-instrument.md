@@ -76,6 +76,18 @@ role is the one dimension the act itself supplies, and "you took their number"
 and "they took ours" are different feelings about identical terms — a professor
 authoring the Case would write them differently. Cost is four lines per Case.
 
+*Amended by [#334](https://github.com/MattMencel/bizlaw/issues/334), which added
+the seed this argued from the absence of.* Half the argument is gone. A
+settlement node still has a speak-count of zero forever, but a seed selects at
+zero as readily as at three, so variants here would no longer resolve to the
+first — they would draw one per run, which is variety and not dead weight. What
+the decision now stands on is the other half: the acceptance role is a different
+kind of thing from a variant. It is *what happened*, which a Case has to author
+either way, where a variant is the same feeling said again. So the count stays at
+two, and #334's effect is on the price of reopening this rather than on the
+answer — a Case wanting per-run variety at the settlement could now have it, for
+one more authored line per role per Client.
+
 ## Consequences
 
 **`Days::Close` gains a fourth caller, and its comment is amended rather than
