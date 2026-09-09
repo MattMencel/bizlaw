@@ -8,7 +8,7 @@
 identifier: bizlaw/reference
 name: The Reference Case
 licence: Apache-2.0
-version: "1.0.0"
+version: "1.1.0"
 published: true
 # The Action Budget, measured on prototype/action-budget-pricing rather than
 # chosen. The exchange half is an absolute count of points: held as a fraction
@@ -276,3 +276,17 @@ documents:
       Fourteen settlements in this circuit over six years, with the terms each
       one turned on. Useful to argue from; not a document to put in front of
       anyone.
+  statement_to_the_trade_press:
+    action: manage_press
+    title: The statement given to the trade press
+    body: |
+      Four sentences and a name to call, agreed line by line before it went out.
+      It says the matter is in hand and says nothing else; what it is worth is
+      what it stopped being written instead.
+  report_of_the_employment_expert:
+    action: retain_expert
+    title: The employment expert's report
+    body: |
+      Thirty pages on what a plant of this size normally documents before a
+      reassignment, and what this one did. The conclusion is careful and the
+      appendix is where the argument is.

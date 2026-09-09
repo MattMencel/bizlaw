@@ -10,9 +10,11 @@ Given("a Section at Western Illinois University") do
 end
 
 Given("the reference Case also has a draft version") do
-  # A draft carries the same authored Budget as the version it is worked from.
+  # A draft carries the same authored Budget as the version it is worked from,
+  # and a version string derived from it rather than written down here — the
+  # reference Case's own version moves as it grows.
   @draft = @case_version.case.versions.create!(
-    version: "1.1.0",
+    version: "#{@case_version.version}-draft",
     budget_per_day: @case_version.budget_per_day,
     exchange_pool: @case_version.exchange_pool,
     exhibit_price: @case_version.exhibit_price,
