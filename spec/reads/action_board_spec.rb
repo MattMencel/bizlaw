@@ -89,4 +89,28 @@ RSpec.describe ActionBoard do
     expect { board.entries }.not_to change(DocketEntry, :count)
     expect(side.budget_on(day).reload.remaining_in(DayBudget::PREPARATION)).to eq(8)
   end
+
+  # The slip a student reads these prices on carries the Day's remaining halves
+  # at its head, so the Board answers that too — a second read over the same row
+  # could only ever disagree with the prices beside it.
+  describe "what the Day will still buy" do
+    it "answers each half off the Budget" do
+      expect(board.remaining_in(DayBudget::PREPARATION)).to eq(8)
+      expect(board.remaining_in(DayBudget::EXCHANGE)).to eq(2)
+    end
+
+    it "falls as the half is spent" do
+      Days::Command.apply(act: :spend, side: side, day: day, by: student,
+        kind: CaseAction::CONSULT_CLIENT)
+
+      expect(described_class.for(side, day: day).remaining_in(DayBudget::PREPARATION)).to eq(7)
+    end
+
+    # The same condition every Entry on a Day without a Budget is refused under.
+    it "is nil before the Day has opened" do
+      unopened = simulation.days.find_by!(ordinal: 4)
+
+      expect(board(on: unopened).remaining_in(DayBudget::PREPARATION)).to be_nil
+    end
+  end
 end
