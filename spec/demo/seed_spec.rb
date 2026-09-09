@@ -139,6 +139,18 @@ RSpec.describe Demo::Seed do
       expect(described_class.simulation(described_class::DEMO).id).to eq(second.demo.id)
     end
 
+    # Order alone would hand one of the two names to a third run laid down under
+    # this Organization by hand, and hand it over wrongly.
+    it "refuses to answer at all when the Organization holds more than the pair" do
+      third = Simulations::Create.call(
+        section: laid.demo.section, case_version: laid.demo.case_version
+      )
+
+      expect(third).to be_present
+      expect { described_class.simulation(described_class::COLD_OPEN) }
+        .to raise_error(/holds 3 Simulations/)
+    end
+
     it "refuses a name that is not a demo run" do
       laid
 

@@ -58,10 +58,22 @@ module Demo
     # The one place a screen asks which Simulation a demo URL names, so the
     # answer is not spelled out again in a controller. The two runs are told
     # apart by the order they were laid down in, which is the order this seed
-    # lays them down in and the only thing about them that is not identical.
+    # lays them down in and the only thing about them that is not identical:
+    # they share a Section and a Case Version, which is the point of the pair.
+    #
+    # Order alone would answer a third Simulation under this Organization to
+    # one of the two names, and answer it wrongly. The seed owns the whole
+    # Organization — the reset destroys everything under it on every run — so a
+    # third run there is an anomaly rather than something to choose between,
+    # and it is refused rather than resolved.
     def self.simulation(run)
       laid = Simulation.joins(section: :organization)
         .where(organizations: {name: ORGANIZATION}).order(:id).to_a
+      unless laid.size == 2
+        raise "#{ORGANIZATION} holds #{laid.size} Simulations, and the demo is a pair — " \
+              "re-run `rake demo:seed`"
+      end
+
       case run.to_s
       when DEMO then laid.first
       when COLD_OPEN then laid.last
