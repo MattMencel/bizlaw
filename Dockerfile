@@ -11,6 +11,11 @@
 ARG RUBY_VERSION=3.4.4
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
+# Make sure NODE_VERSION matches the version in .node-version. Node is a
+# build-time dependency only (ADR 0001): it compiles the Svelte bundle and is
+# absent from the final image.
+ARG NODE_VERSION=22.22.3
+
 # Rails app lives here
 WORKDIR /rails
 
@@ -28,17 +33,30 @@ ENV RAILS_ENV="production" \
 # Throw-away build stage to reduce size of final image
 FROM base AS build
 
-# Install packages needed to build gems
+# Install packages needed to build gems and the Svelte bundle
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
+# Install Node
+ENV PATH=/usr/local/node/bin:$PATH
+RUN curl -sL -o /tmp/node-build.tar.gz https://github.com/nodenv/node-build/archive/master.tar.gz && \
+    tar xzf /tmp/node-build.tar.gz -C /tmp/ && \
+    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
+    rm -rf /tmp/node-build-master /tmp/node-build.tar.gz
+
 # Install application gems
 COPY vendor/* ./vendor/
+# The Gemfile eval_gemfile's this, so bundler needs it before `COPY . .`.
+COPY gemfiles/ ./gemfiles/
 COPY Gemfile Gemfile.lock ./
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile --gemfile
+
+# Install node modules
+COPY package.json package-lock.json ./
+RUN npm ci
 
 # Copy application code
 COPY . .
@@ -46,8 +64,12 @@ COPY . .
 # Precompile bootsnap code for faster boot times
 RUN bundle exec bootsnap precompile app/ lib/
 
-
-
+# Build the Svelte bundle into public/vite. vite_ruby enhances assets:precompile
+# rather than defining it, so this is the one command that produces the game
+# view's assets. node_modules goes with the build stage: ADR 0001 keeps Node
+# out of the runtime image, not only out of the request path.
+RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile && \
+    rm -rf node_modules
 
 # Final stage for app image
 FROM base

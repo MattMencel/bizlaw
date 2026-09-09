@@ -169,3 +169,38 @@ jobs:
             exit 1
           fi
           bin/rails db:migrate
+
+  # The game view is a Vite bundle, so a green Ruby suite no longer proves the
+  # app can be deployed: `assets:precompile` is enhanced by vite_ruby and is
+  # the only place the Svelte build runs. This job is that proof.
+  assets:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.0
+        with:
+          # No job here runs an authenticated git command, so the checkout has
+          # no reason to leave GITHUB_TOKEN behind for the code it checks out.
+          persist-credentials: false
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install npm packages
+        run: npm ci
+
+      - name: Build the assets
+        env:
+          RAILS_ENV: production
+          SECRET_KEY_BASE: dummy
+        run: bin/rails assets:precompile

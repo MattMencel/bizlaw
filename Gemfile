@@ -9,6 +9,11 @@ gem "puma", ">= 5.0"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 
+# The student game view is Inertia + Svelte per ADR 0001. inertia_rails only
+# installs onto Vite Ruby, and wires its asset version to ViteRuby.digest.
+gem "inertia_rails", "~> 3.22"
+gem "vite_rails", "~> 3.11"
+
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 
@@ -48,4 +53,8 @@ end
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
+
+  # Runs Rails and Vite together for bin/dev. Pinned here rather than
+  # `gem install`ed at runtime by the generator's own bin/dev.
+  gem "foreman", "~> 0.90"
 end

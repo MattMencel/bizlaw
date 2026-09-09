@@ -17,8 +17,11 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag "application" %>
+    <%# No asset pipeline is installed, so the ERB side has no stylesheet yet;
+        the game view's CSS rides the Vite bundle. See #330. %>
+    <%= vite_client_tag %>
+    <%= vite_javascript_tag "inertia" %>
+    <%= inertia_ssr_head %>
   </head>
 
   <body>
