@@ -7,6 +7,11 @@ module Simulations
   # The Days exist before the first is played because an Action taken today has
   # to be able to name the Day its result lands on, and because an Instructor
   # previews the schedule before Day 1.
+  #
+  # It is also where the run's seed is drawn. There is no database default for
+  # it, so that this stays the one place a seed is written — and a seed is
+  # written once, because a Consult's memo reads back the variant the Client
+  # actually spoke.
   class Create
     def self.call(...) = new(...).call
 
@@ -17,7 +22,9 @@ module Simulations
 
     def call
       ActiveRecord::Base.transaction do
-        simulation = Simulation.create!(section: section, case_version: case_version)
+        simulation = Simulation.create!(
+          section: section, case_version: case_version, seed: SecureRandom.hex(16)
+        )
         Side::ROLES.each { |role| simulation.sides.create!(role: role) }
         case_version.calendar_days.each do |authored_day|
           simulation.days.create!(

@@ -82,6 +82,20 @@ RSpec.describe ConsultMemo do
     expect(side.consults.sole.band).to eq(CaseClientBand::FIRM)
   end
 
+  # The other half of ADR 0006, and what the per-node count has to leave intact:
+  # the words are as frozen as the band. Every Consult after this one is written
+  # with a higher id, so none of them reaches back into what this one counted.
+  it "keeps saying the same words however the run goes on around it" do
+    entry = a_consult
+    said = described_class.for(entry).beat.line
+    a_consult
+    a_shift(0.9)
+    a_consult
+
+    expect(described_class.for(entry).beat.line).to eq(said)
+    expect(side.consults.first.beat.line).to eq(said)
+  end
+
   it "carries the Day it was bought on and the instant it was spoken" do
     entry = a_consult
     memo = described_class.for(entry)
@@ -107,6 +121,34 @@ RSpec.describe ConsultMemo do
     )
 
     expect(described_class.for(a_consult).beat.line)
-      .to eq(side.client.band_named(CaseClientBand::FIRM).lines.first.body)
+      .to eq(side.client.band_named(CaseClientBand::FIRM).line(0, seed: simulation.seed))
+  end
+
+  # The run's own seed reaches the selection, which is what stops every Team on
+  # one Case hearing its Client's lines in one fixed order.
+  it "chooses the variant with the run's own seed" do
+    expect(described_class.for(a_consult).beat.line)
+      .to eq(side.client.band_named(CaseClientBand::FIRM).line(0, seed: simulation.seed))
+  end
+
+  # A node is the band, not the Side. A Team that consults once while firm and
+  # then once the Client is ready hears the *ready* node's opening line, not its
+  # second — the firm Consult spoke a different node and advanced nothing here.
+  it "counts the Consults that heard this band and not the ones that heard another" do
+    a_consult
+    a_shift(0.9)
+    ready = side.client.band_named(CaseClientBand::READY)
+
+    expect(described_class.for(a_consult).beat.line).to eq(ready.line(0, seed: simulation.seed))
+  end
+
+  it "advances within the band a second Consult reads" do
+    a_consult
+    a_shift(0.9)
+    heard = Array.new(2) { described_class.for(a_consult).beat.line }
+    ready = side.client.band_named(CaseClientBand::READY)
+
+    expect(heard).to eq([ready.line(0, seed: simulation.seed), ready.line(1, seed: simulation.seed)])
+    expect(heard.uniq.size).to eq(2)
   end
 end

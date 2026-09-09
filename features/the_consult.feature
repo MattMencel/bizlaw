@@ -27,3 +27,10 @@ Feature: A Consult buys the one read a Team gets on its own Client
     When Dana consults her Client on Day 1
     Then her Client is ready
     And the two Consults are answered in different words
+
+  Scenario: A band keeps its own count, so a Client moving does not skip a line
+    Given Dana consults her Client on Day 1
+    When the plaintiff Client is moved most of the way through their bound
+    And Dana consults her Client on Day 1
+    And Dana consults her Client on Day 1
+    Then the ready Client answered with its own two variants, in order

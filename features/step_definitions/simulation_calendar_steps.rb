@@ -58,3 +58,17 @@ Then("the Simulation is refused") do
   expect(@refusal).to be_a(ActiveRecord::RecordInvalid)
   expect(Simulation.count).to eq(0)
 end
+
+# A Section runs many concurrent Simulations of one Case. The seed is what keeps
+# them from being one script: it is drawn per run, and a Consult's variants are
+# chosen by it and the speak count together.
+When("the Instructor creates a second Simulation of the reference Case") do
+  @second_simulation = Simulations::Create.call(section: @section, case_version: @case_version)
+end
+
+Then("the two runs carry different seeds") do
+  seeds = [@simulation.seed, @second_simulation.seed]
+
+  # `all` is Capybara's finder inside a Cucumber World, not RSpec's matcher.
+  expect(seeds.compact_blank.uniq.size).to eq(2)
+end

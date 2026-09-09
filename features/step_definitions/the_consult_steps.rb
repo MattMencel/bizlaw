@@ -67,3 +67,16 @@ end
 Then("the two Consults are answered in different words") do
   expect(@consults.map { |memo| memo.beat.line }.uniq.size).to eq(@consults.size)
 end
+
+# The node a variant is selected on is the band, not the Side: the firm Consult
+# spoke a different node, so the ready Client opens on its own first variant
+# rather than skipping it. Which variant that is belongs to the run's seed,
+# which is why this asks the band rather than naming a line.
+Then("the ready Client answered with its own two variants, in order") do
+  ready = @side.client.band_named(CaseClientBand::READY)
+  seed = @side.simulation.seed
+  answered = @consults.select { |memo| memo.band == CaseClientBand::READY }
+
+  expect(answered.map { |memo| memo.beat.line })
+    .to eq([ready.line(0, seed: seed), ready.line(1, seed: seed)])
+end

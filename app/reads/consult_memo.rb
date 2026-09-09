@@ -56,7 +56,7 @@ class ConsultMemo
     Beat.new(
       client_role: client.role,
       band: band,
-      line: client.band_named(band).line(speak_count),
+      line: client.band_named(band).line(speak_count, seed: run_seed),
       expression: band,
       portrait_seed: client.portrait_seed
     )
@@ -68,16 +68,37 @@ class ConsultMemo
 
   def client = entry.side.client
 
-  # How many times this Client has already been consulted, which is what selects
-  # the variant. Counted over the rows written before this one rather than over
-  # a horizon in time: the Docket is append-only, so the id order is the order
-  # they were written, and two Consults written inside one fast Day can share a
-  # timestamp.
+  # The run's own seed, which is half of what selects the variant. Drawn once
+  # when the Simulation was laid out and immutable after, so this is as fixed as
+  # the row it is read beside.
+  def run_seed = entry.side.simulation.seed
+
+  # How many times this **node** has already been spoken, which is half of what
+  # selects the variant — the run's seed is the other half, and decides which
+  # variant the count opens on.
   #
-  # `CONTEXT.md` under *Dialogue Node* wants the Simulation seed in the
-  # selection too. There is no seed to read yet and this ticket does not add one
-  # on the Event Deck's behalf.
+  # The node is the band, per `CONTEXT.md` under *Dialogue Node*, so a Consult
+  # that read a different band advanced nothing here: a Team that consults once
+  # while firm and once ready hears the *ready* node's opening line rather than
+  # its second, and with two variants authored a count across bands would leave
+  # one of them unreachable in a run.
+  #
+  # Counted over the rows written before this one rather than over a horizon in
+  # time: the Docket is append-only, so the id order is the order they were
+  # written, and two Consults written inside one fast Day can share a timestamp.
+  #
+  # A prior's band is folded rather than stored — there is no band column, per
+  # ADR 0006 — so this is one fold per prior Consult, and ADR 0006's tie reaches
+  # a little further than it did: a shift sharing a Consult's timestamp could
+  # already misread that Consult's own band, and now it can also move what every
+  # later Consult in that band counts. What removes the tie is unchanged —
+  # `Cases::Import` refuses a Case authoring a document behind `consult_client`,
+  # so nothing writes a shift in a Consult's own transaction. The N is what a Team has
+  # bought all run, bounded by a Budget half a point at a time, and reusing
+  # `DocketEntry#reaction_band` is what keeps this count and the memo agreeing
+  # about what was heard rather than keeping two folds honest.
   def speak_count
-    entry.side.docket_entries.consults.where(id: ...entry.id).count
+    priors = entry.side.docket_entries.consults.where(id: ...entry.id)
+    priors.to_a.count { |prior| prior.reaction_band == band }
   end
 end

@@ -21,3 +21,8 @@ Feature: A Simulation arrives with its calendar already laid out
     Given the reference Case also has a draft version
     When the Instructor tries to create a Simulation of the draft version
     Then the Simulation is refused
+
+  Scenario: Two runs of one Case are not one script
+    Given the Instructor creates a Simulation of the reference Case
+    When the Instructor creates a second Simulation of the reference Case
+    Then the two runs carry different seeds

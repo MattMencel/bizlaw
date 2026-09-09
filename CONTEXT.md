@@ -8,6 +8,8 @@ One complete run of one Case, from opening to settlement or its failure. Two Tea
 
 It ends in exactly one of two ways, and they are mutually exclusive: an **Acceptance**, which ends it the moment it lands, or **Arbitration**, when it runs out of Days without one. A settled Simulation opens no further Day — the Day the Acceptance landed on closes with it, and the rest of the calendar is never played.
 
+A run carries its own **seed**, drawn when it is laid out and never afterward. It is what makes two runs of one Case differ where the Case itself does not decide: which variant a Dialogue Node opens on, and what the Event Deck will draw. It is fixed for the life of the run because a Consult's memo is re-readable forever and has to read back the variant the Client actually spoke.
+
 ## Case
 
 The authored dispute a Simulation runs on: the facts, the parties, the documents, and the private positions each Client holds. Data, not code. One Case can back many concurrent Simulations.
