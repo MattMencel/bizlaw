@@ -1,2 +1,7 @@
 #!/usr/bin/env ruby
-exec "./bin/rails", "server", *ARGV
+# The game view is served by Vite in development, so `bin/dev` runs the Rails
+# server and the Vite dev server together rather than Rails alone. foreman
+# defaults PORT to 5000; Rails' own default is what everything else here
+# assumes.
+ENV["PORT"] ||= "3000"
+exec "bundle", "exec", "foreman", "start", "-f", "Procfile.dev", *ARGV

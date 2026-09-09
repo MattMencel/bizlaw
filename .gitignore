@@ -75,3 +75,9 @@ mcp-server/
 features/scenario_*
 **/SCENARIO_*
 coverage/
+
+# Vite Ruby. `node_modules/` is already ignored above.
+/public/vite*
+# Vite uses dotenv and suggests ignoring local-only env files.
+# https://vite.dev/guide/env-and-mode.html#env-files
+*.local
