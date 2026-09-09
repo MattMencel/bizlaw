@@ -6,10 +6,11 @@ namespace :demo do
     abort "demo:seed does not run in production" if Rails.env.production?
 
     seed = Demo::Seed.new
-    laid = seed.call
+    seed.call
 
     puts "Seeded #{Demo::Seed::ORGANIZATION} / #{Demo::Seed::SECTION}"
-    puts "  #{"Day #{Demo::Seed::DEMO_DAY}, the plaintiff's:".ljust(24)}#{seed.url_for(laid.demo)}"
-    puts "  #{"Day 1, the cold open:".ljust(24)}#{seed.url_for(laid.cold_open, day: 1)}"
+    puts "  #{"Day #{Demo::Seed::DEMO_DAY}, the plaintiff's:".ljust(24)}" \
+         "#{seed.url_for(Demo::Seed::DEMO)}"
+    puts "  #{"Day 1, the cold open:".ljust(24)}#{seed.url_for(Demo::Seed::COLD_OPEN)}"
   end
 end

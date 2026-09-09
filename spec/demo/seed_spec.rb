@@ -106,27 +106,43 @@ RSpec.describe Demo::Seed do
     end
 
     it "deals the open hand and nothing else" do
-      cold_plaintiff = cold_open_plaintiff = laid.cold_open.plaintiff_side
+      cold_plaintiff = laid.cold_open.plaintiff_side
 
       expect(identifiers(CaseFile.for(cold_plaintiff).entries))
         .to contain_exactly("the_termination_letter", "the_claimants_own_notes")
-      expect(cold_open_plaintiff.client_shifts).to be_empty
+      expect(cold_plaintiff.client_shifts).to be_empty
     end
   end
 
   describe "re-running it" do
-    it "leaves the same state, at the same identifiers" do
-      first = laid
-      demo_id = first.demo.id
+    it "leaves the same state, and the same runs answer to the same names" do
+      laid
       before = Simulation.count
 
       second = described_class.call
 
-      expect(second.demo.id).to eq(demo_id)
-      expect(second.demo.id).to eq(described_class::DEMO_SIMULATION_ID)
-      expect(second.cold_open.id).to eq(described_class::COLD_OPEN_SIMULATION_ID)
+      expect(described_class.simulation(described_class::DEMO)).to eq(second.demo)
+      expect(described_class.simulation(described_class::COLD_OPEN)).to eq(second.cold_open)
       expect(Simulation.count).to eq(before)
       expect(Organization.where(name: described_class::ORGANIZATION).count).to eq(1)
+    end
+
+    # The rows underneath are new every time — a reserved primary key cannot be
+    # held, because SQLite allocates from the largest rowid present — so what
+    # the URL names is the run rather than its id.
+    it "answers to the same names over rows that were destroyed and laid again" do
+      first = laid.demo.id
+
+      second = described_class.call
+
+      expect(second.demo.id).not_to eq(first)
+      expect(described_class.simulation(described_class::DEMO).id).to eq(second.demo.id)
+    end
+
+    it "refuses a name that is not a demo run" do
+      laid
+
+      expect { described_class.simulation("day-4") }.to raise_error(ArgumentError, /not a demo run/)
     end
 
     it "reaches nothing outside its own Organization" do
@@ -145,14 +161,13 @@ RSpec.describe Demo::Seed do
   end
 
   describe "the URLs it prints" do
-    it "names the Simulation and the Day the screens will serve" do
+    it "names the run the screens will serve, and nothing that a reset moves" do
       seed = described_class.new(base_url: "http://localhost:3000")
-      laid_out = seed.call
+      seed.call
 
-      expect(seed.url_for(laid_out.demo))
-        .to eq("http://localhost:3000/simulations/900001/days/3")
-      expect(seed.url_for(laid_out.cold_open, day: 1))
-        .to eq("http://localhost:3000/simulations/900002/days/1")
+      expect(seed.url_for(described_class::DEMO)).to eq("http://localhost:3000/demo/day-3")
+      expect(seed.url_for(described_class::COLD_OPEN))
+        .to eq("http://localhost:3000/demo/cold-open")
     end
   end
 end

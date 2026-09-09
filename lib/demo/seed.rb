@@ -31,12 +31,15 @@ module Demo
     # Day 4 briefing entirely.
     DEMO_DAY = 3
 
-    # The stable identifiers. Both Simulations are laid down at reserved
-    # primary keys so the URLs this task prints are the same strings after
-    # every reset — a demo you have to re-read a URL for is a demo you stop
-    # re-running. See `at_the_reserved_id`.
-    DEMO_SIMULATION_ID = 900_001
-    COLD_OPEN_SIMULATION_ID = 900_002
+    # The stable identifiers, and they are not primary keys. A reserved id
+    # cannot be held: SQLite allocates from `MAX(sequence, the largest rowid
+    # present) + 1`, so the demo's own rows push the counter past the range it
+    # was trying to keep, and the next ordinary Simulation lands inside it. What
+    # is stable instead is the run's own name, resolved against the one
+    # Organization this seed owns — which is the name the reset is already
+    # guarded to, so there is one well-known identifier rather than three.
+    DEMO = "day-3"
+    COLD_OPEN = "cold-open"
 
     Result = Data.define(:demo, :cold_open)
 
@@ -44,13 +47,27 @@ module Demo
     # association in the run is `dependent: :restrict_with_error` — deletion is
     # Retention's business rather than a cascade — so the reset says the order
     # out loud rather than asking Rails to work it out.
-    RUN_TABLES = %w[
-      played_exhibits staged_offer_exhibits offer_acceptances committed_offers
-      staged_offers client_shifts second_waivers day_commitments docket_entries
-      case_file_documents day_budgets days sides simulations
+    RUN_TABLES = [
+      PlayedExhibit, StagedOfferExhibit, OfferAcceptance, CommittedOffer,
+      StagedOffer, ClientShift, SecondWaiver, DayCommitment, DocketEntry,
+      CaseFileDocument, DayBudget, Day, Side, Simulation
     ].freeze
 
     def self.call(...) = new(...).call
+
+    # The one place a screen asks which Simulation a demo URL names, so the
+    # answer is not spelled out again in a controller. The two runs are told
+    # apart by the order they were laid down in, which is the order this seed
+    # lays them down in and the only thing about them that is not identical.
+    def self.simulation(run)
+      laid = Simulation.joins(section: :organization)
+        .where(organizations: {name: ORGANIZATION}).order(:id).to_a
+      case run.to_s
+      when DEMO then laid.first
+      when COLD_OPEN then laid.last
+      else raise ArgumentError, "#{run.inspect} is not a demo run"
+      end
+    end
 
     def initialize(base_url: "http://localhost:3000")
       @base_url = base_url
@@ -67,9 +84,11 @@ module Demo
     # Where the player and the professor are sent. There is no route yet — the
     # view is what this seed exists to build — so this is the URL shape the
     # screens will serve, printed so it is one copy rather than one guess.
-    def url_for(simulation, day: DEMO_DAY)
-      "#{base_url}/simulations/#{simulation.id}/days/#{day}"
-    end
+    #
+    # It names the run rather than its id, which is the whole of why the URL a
+    # run prints is the URL the next reset prints: the rows underneath are new
+    # every time, and nothing in the address depends on them.
+    def url_for(run) = "#{base_url}/demo/#{run}"
 
     private
 
@@ -78,7 +97,7 @@ module Demo
     # The demo run, played forward through Days 1–3. The plaintiff's Day 3 is
     # deliberately untouched: it is the Day the player is handed.
     def demo_run(section)
-      simulation = at_the_reserved_id(DEMO_SIMULATION_ID) { lay_out(section) }
+      simulation = lay_out(section)
       day_one(simulation)
       day_two(simulation)
       the_defendant_moves_first(simulation)
@@ -90,7 +109,7 @@ module Demo
     # It shares the Section with the demo run, which is the exact case the
     # `(parent_id, simulation_id, organization_id)` keys exist for.
     def cold_open(section)
-      at_the_reserved_id(COLD_OPEN_SIMULATION_ID) { lay_out(section) }
+      lay_out(section)
     end
 
     def lay_out(section)
@@ -210,7 +229,7 @@ module Demo
     def import_the_reference_case = Cases::Import.call(Rails.root.join(REFERENCE_PATH))
 
     # Destroys the demo Organization and everything under it, and nothing else:
-    # every statement below is keyed to the one Organization found by the
+    # every statement below is scoped to the one Organization found by the
     # well-known name, so a run against a database holding real work cannot
     # reach it.
     def reset
@@ -219,11 +238,7 @@ module Demo
 
       ActiveRecord::Base.transaction do
         offer_terms_under(existing)
-        RUN_TABLES.each do |table|
-          ActiveRecord::Base.connection.exec_delete(
-            "DELETE FROM #{table} WHERE organization_id = #{existing.id.to_i}", "Demo::Seed reset"
-          )
-        end
+        RUN_TABLES.each { |model| model.where(organization_id: existing.id).delete_all }
         User.where(organization_id: existing.id).delete_all
         Section.where(organization_id: existing.id).delete_all
         existing.delete
@@ -233,42 +248,11 @@ module Demo
     # The two term tables carry no `organization_id` — a Term belongs to the
     # Offer it is written on — so they are deleted through their parents.
     def offer_terms_under(existing)
-      {
-        "staged_offer_terms" => "staged_offers",
-        "committed_offer_terms" => "committed_offers"
-      }.each do |terms, offers|
-        ActiveRecord::Base.connection.exec_delete(
-          "DELETE FROM #{terms} WHERE #{offers.singularize}_id IN " \
-          "(SELECT id FROM #{offers} WHERE organization_id = #{existing.id.to_i})",
-          "Demo::Seed reset"
-        )
+      {StagedOfferTerm => StagedOffer, CommittedOfferTerm => CommittedOffer}.each do |terms, offers|
+        terms.where(
+          offers.table_name.singularize => offers.where(organization_id: existing.id)
+        ).delete_all
       end
-    end
-
-    # A reserved primary key, so a URL printed by one run is still the URL after
-    # the next reset. The row is laid down by `Simulations::Create` like any
-    # other — the seam is not bypassed — and what is reserved is the counter it
-    # draws its id from. Reaching into `sqlite_sequence` is why this is a
-    # development seed rather than anything the engine does: the runtime schema
-    # is portable (ADR 0002) and nothing in it knows what a sequence table is.
-    def at_the_reserved_id(id)
-      set_sequence(id - 1)
-      # Left at the largest id the table holds, so the counter never sits under
-      # a live row and an ordinary Simulation created afterwards is unaffected.
-      yield.tap { set_sequence(Simulation.maximum(:id)) }
-    end
-
-    def set_sequence(value)
-      connection = ActiveRecord::Base.connection
-      unless connection.adapter_name.match?(/sqlite/i)
-        raise "demo:seed reserves ids through sqlite_sequence and this is " \
-              "#{connection.adapter_name}"
-      end
-
-      connection.exec_delete("DELETE FROM sqlite_sequence WHERE name = 'simulations'", "Demo::Seed")
-      connection.exec_insert(
-        "INSERT INTO sqlite_sequence (name, seq) VALUES ('simulations', #{value.to_i})", "Demo::Seed"
-      )
     end
   end
 end
