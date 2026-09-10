@@ -61,6 +61,45 @@ RSpec.describe "the working draft", type: :system do
     end
   end
 
+  # #332 hands him Day 3 untouched, so the demo never opens on a draft of his
+  # own. Staging one through the real seam is how the page's other half gets
+  # looked at — the mark that says our column is a draft rather than a position
+  # already taken, over a block with his own name on the first line.
+  #
+  # The executed half has no counterpart here: committing implies the Day
+  # commit, the defendant has already committed Day 3, so the Day closes and
+  # the route moves to Day 4. It is covered against the read instead.
+  describe "a draft he has drawn" do
+    before do
+      simulation = Demo::Seed.simulation(Demo::Seed::DEMO)
+      side = simulation.plaintiff_side
+      Offers::Stage.call(
+        side: side,
+        day: simulation.days.find_by!(ordinal: Demo::Seed::DEMO_DAY),
+        by: side.members.sole,
+        terms: {"money" => 180_000_00, "apology" => nil}
+      )
+
+      visit "/demo/#{Demo::Seed::DEMO}"
+    end
+
+    it "marks the sheet a draft, and puts his position in our column" do
+      expect(page).to have_text(/draft — not executed/i)
+      expect(page).to have_text("$180,000")
+    end
+
+    # He drew it, so he cannot second it, and there is nobody else to. The
+    # control is present and dead, which is how the Docket teaches the Second.
+    it "signs the first line and leaves the second one open to nobody" do
+      expect(page).to have_text("Sam Ortega")
+      expect(page).to have_button("Execute this draft", disabled: true)
+    end
+
+    it "is accessible" do
+      expect(page).to be_axe_clean
+    end
+  end
+
   # Day 1, nothing spent: the only Day on which the empty states are the whole
   # of what a student reads, and the claim that they are the tutorial.
   describe "the cold open" do

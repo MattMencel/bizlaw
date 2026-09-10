@@ -33,8 +33,11 @@ RSpec.describe "the demo run", type: :request do
     # He drew nothing overnight, so the block under the terms is blank — which
     # is the first thing the screen teaches.
     it "hands him an untouched draft over an unsigned block" do
-      expect(inertia.props[:countersignature])
-        .to eq("drawn_by" => nil, "may_sign" => [], "executed" => false)
+      expect(inertia.props[:countersignature]).to eq(
+        "drawn_by" => nil, "signed_by" => nil, "may_sign" => [],
+        "executed" => false, "waived" => false
+      )
+      expect(inertia.props[:term_sheet][:ours_staged]).to be(false)
     end
   end
 

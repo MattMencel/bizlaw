@@ -23,6 +23,13 @@ RSpec.describe WorkingDraft do
 
   def action(kind) = props[:slip][:actions].find { |row| row[:kind] == kind }
 
+  # `Side#members` folds from Attribution alone, so a teammate who has done
+  # nothing cannot second anything. This is what makes Priya one of us.
+  def seconder_on_this_side
+    Days::Command.apply(act: :spend, side: side, day: day, by: priya,
+      kind: CaseAction::CONSULT_CLIENT)
+  end
+
   describe "the letterhead" do
     it "names the matter, the Side and the Day" do
       expect(props[:letterhead]).to include(
@@ -97,7 +104,9 @@ RSpec.describe WorkingDraft do
 
   describe "the countersignature block" do
     it "is blank before there is a draft to sign, which is how the Day teaches it" do
-      expect(props[:countersignature]).to eq(drawn_by: nil, may_sign: [], executed: false)
+      expect(props[:countersignature]).to eq(
+        drawn_by: nil, signed_by: nil, may_sign: [], executed: false, waived: false
+      )
     end
 
     it "names who drew the draft and the teammates who may sign it" do
@@ -115,6 +124,56 @@ RSpec.describe WorkingDraft do
       Offers::Stage.call(side: side, day: day, by: dana, terms: {"apology" => nil})
 
       expect(props[:countersignature]).to include(drawn_by: dana.name, may_sign: [])
+    end
+
+    # Once it is executed the block is a record, not an invitation: both lines
+    # are filled and nobody may sign a thing that has already gone through.
+    it "fills both lines once the Offer is committed" do
+      seconder_on_this_side
+      Offers::Stage.call(side: side, day: day, by: dana, terms: {"apology" => nil})
+      Days::Command.apply(act: :commit_offer, side: side, day: day, by: dana,
+        seconded_by: priya)
+
+      expect(props[:countersignature]).to include(
+        drawn_by: dana.name, signed_by: priya.name, may_sign: [],
+        executed: true, waived: false
+      )
+    end
+
+    # A commit through the Instructor's waiver has no seconder at all, so the
+    # second line is not blank-and-waiting — it is waived, and says so.
+    it "says the second line was waived when there is no seconder" do
+      Offers::Stage.call(side: side, day: day, by: dana, terms: {"apology" => nil})
+      Offers::WaiveSecond.call(side: side, day: day, by: dana)
+      Days::Command.apply(act: :commit_offer, side: side, day: day, by: dana,
+        seconded_by: nil)
+
+      expect(props[:countersignature]).to include(
+        drawn_by: dana.name, signed_by: nil, executed: true, waived: true
+      )
+    end
+  end
+
+  # The distinction grammar C is built on: a draft on the table is not a
+  # position already taken, and the sheet says which it is looking at.
+  describe "whether our column is a draft" do
+    it "is not staged before anyone has drawn one" do
+      expect(props[:term_sheet][:ours_staged]).to be(false)
+    end
+
+    it "is staged while the draft is on the table" do
+      Offers::Stage.call(side: side, day: day, by: dana, terms: {"apology" => nil})
+
+      expect(props[:term_sheet][:ours_staged]).to be(true)
+    end
+
+    it "stops being staged once it is executed" do
+      seconder_on_this_side
+      Offers::Stage.call(side: side, day: day, by: dana, terms: {"apology" => nil})
+      Days::Command.apply(act: :commit_offer, side: side, day: day, by: dana,
+        seconded_by: priya)
+
+      expect(props[:term_sheet][:ours_staged]).to be(false)
     end
   end
 

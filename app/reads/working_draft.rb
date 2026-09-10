@@ -51,6 +51,8 @@ class WorkingDraft
 
   def staged = @staged ||= side.staged_offer_on(day)
 
+  def committed = @committed ||= side.committed_offer_on(day)
+
   # Who is reading. There is no authentication and no roster, so the only
   # answer available is Attribution: a Side whose acts are all one member's has
   # one member, and that is who this is. A Team that has done nothing has
@@ -91,19 +93,23 @@ class WorkingDraft
     }
   end
 
-  # Our column, theirs, and the Client's aspiration in the margin. `ours_staged`
-  # is what makes the column a draft rather than a position already taken, and
-  # it is the Track's own answer rather than one recomputed here.
+  # Our column, theirs, and the Client's aspiration in the margin.
+  #
+  # `ours_staged` is what makes our column a draft rather than a position
+  # already taken, and the sheet carries it once rather than on every Track:
+  # `TermsBoard` answers it per Track because a Track is what it returns, but
+  # the answer is the sheet's — one Offer is staged or it is not — and seven
+  # copies of one boolean is seven chances for a page to read the wrong one.
   def term_sheet
     {
       empty_state: terms.empty_state,
       note: staged&.note,
+      ours_staged: open_draft?,
       tracks: terms.tracks.map do |track|
         {
           term: track.term,
           label: label_for(track.term),
           ours: position(track.ours),
-          ours_staged: track.ours_staged,
           theirs: position(track.theirs),
           aspiration: position(track.aspiration),
           on_the_table: track.on_the_table?
@@ -117,13 +123,25 @@ class WorkingDraft
   # it, because an empty block is how the Day teaches that a commit needs a
   # second hand. On a Side of one the blank names nobody and the control is
   # inert, which is the lesson rather than an error.
+  #
+  # Once the Day's Offer is committed the block is a record rather than an
+  # invitation: it reads off `committed_offers`, both lines filled, and nobody
+  # may sign a thing that is already executed. A commit through an Instructor's
+  # waiver has no seconder at all, so `waived` is what keeps the second line
+  # from rendering as though it were still blank.
   def countersignature
+    offer = committed || staged
+
     {
-      drawn_by: staged&.staged_by&.name,
-      may_sign: staged ? side.seconders_other_than(staged.staged_by).map(&:name) : [],
-      executed: !side.committed_offer_on(day).nil?
+      drawn_by: offer&.staged_by&.name,
+      signed_by: committed&.seconded_by&.name,
+      may_sign: open_draft? ? side.seconders_other_than(staged.staged_by).map(&:name) : [],
+      executed: !committed.nil?,
+      waived: !committed.nil? && committed.seconded_by.nil?
     }
   end
+
+  def open_draft? = !staged.nil? && committed.nil?
 
   # Every Action, priced, whether or not the half will cover it — with the
   # refusal's own sentence beside the ones that will not.

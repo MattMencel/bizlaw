@@ -120,7 +120,14 @@
       <hr class="rule heavy" />
 
       <section aria-labelledby="term-sheet">
-        <h2 class="doc-title" id="term-sheet">Draft terms of settlement</h2>
+        <div class="sheet-head">
+          <h2 class="doc-title" id="term-sheet">Draft terms of settlement</h2>
+          {#if term_sheet.ours_staged}
+            <span class="draft-mark">Draft — not executed</span>
+          {:else if countersignature.executed}
+            <span class="draft-mark executed">Executed</span>
+          {/if}
+        </div>
         <p class="doc-sub">
           {letterhead.matter} · Day {letterhead.day}{#if countersignature.drawn_by}{" "}· drawn by
             {countersignature.drawn_by}{/if}
@@ -185,13 +192,21 @@
             <div class="cap">Drawn by</div>
           </div>
           <div class="sig">
-            <div class="line blank"></div>
+            <div class="line" class:blank={!countersignature.signed_by}>
+              {#if countersignature.signed_by}<span class="hand">{countersignature.signed_by}</span>{/if}
+            </div>
             <div class="cap">
-              Countersigned by{#if countersignature.may_sign.length}: {countersignature.may_sign.join(", ")}{/if}
+              {#if countersignature.waived}
+                Countersignature waived by the instructor
+              {:else}
+                Countersigned by{#if countersignature.may_sign.length}: {countersignature.may_sign.join(", ")}{/if}
+              {/if}
             </div>
           </div>
         </div>
-        <button type="button" class="execute" disabled>Execute this draft</button>
+        {#if !countersignature.executed}
+          <button type="button" class="execute" disabled>Execute this draft</button>
+        {/if}
       </section>
 
       <hr class="rule" />
@@ -539,6 +554,27 @@
     font-family: var(--mono);
     font-size: 11px;
     color: var(--muted);
+  }
+
+  .sheet-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .draft-mark {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    color: var(--redline);
+    border: 1px solid var(--redline);
+    padding: 2px 6px;
+    text-transform: uppercase;
+  }
+  .draft-mark.executed {
+    color: var(--stamp);
+    border-color: var(--stamp);
   }
 
   .countersign {
