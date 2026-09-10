@@ -3,7 +3,7 @@ Feature: The Morning Briefing and the Day's read surfaces
   that landed and the documents the other Side served. Beside them sits what the
   Team started with — the documents in hand at the open, the Client's opening
   statement, the calendar and the published Rubric — and one line of fixed copy
-  naming the two rooms. Every section is composed by the engine from objects the
+  naming the Day's grammar. Every section is composed by the engine from objects the
   Case already authors, so a briefing is never authored per Case.
 
   Three record surfaces sit alongside it, each answering its own question. The
@@ -35,7 +35,7 @@ Feature: The Morning Briefing and the Day's read surfaces
       Eleven years I gave them
       """
     And Dana's Morning Briefing on Day 1 carries all 10 Days
-    And Dana's Morning Briefing on Day 1 names the two rooms and how the Day ends
+    And Dana's Morning Briefing on Day 1 names the Day's grammar
     And Dana's Morning Briefing on Day 1 carries the published Rubric
       | Settlement quality, 40 points |
       | Legal strategy, 30 points     |

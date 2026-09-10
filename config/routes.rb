@@ -9,6 +9,14 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
+  # The demo run, and the only screen there is. Declared outside production for
+  # the same reason `demo:seed` aborts there: the rows this reads are laid down
+  # by a rake task that resets its own Organization, and neither belongs on a
+  # deployed instance.
+  unless Rails.env.production?
+    get "demo/:run", to: "demo/runs#show", as: :demo_run
+  end
+
   # Defines the root path route ("/")
   # root "posts#index"
 end

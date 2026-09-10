@@ -10,13 +10,17 @@
 # The empty states are the whole of Onboarding. There is no first-run pass and no
 # per-student progress flag — the empty state is the tutorial, so these sentences
 # do the work a tour would otherwise do.
+#
+# A Term's label is *not* here. Term keys are authored per Case, so the engine
+# cannot hold a sentence for a key it has never seen; an Action's kind and a
+# spend's refusal are the engine's own closed vocabularies and are.
 en:
   reads:
     morning_briefing:
-      two_rooms: >-
-        Prepare in the Firm and deal in the Boardroom. Move between them freely,
-        in either direction, as often as you like. The Day ends when both Sides
-        have committed it.
+      grammar: >-
+        Everything here is the case file — work it in any order. The Day ends
+        when both Sides have committed it, and an Offer commits only over a
+        teammate's countersignature.
       rubric:
         dimensions:
           - Settlement quality, 40 points
@@ -31,8 +35,40 @@ en:
         Nothing yet. Every Action your Team spends on lands here — what it was,
         which of you spent it, what it cost, and the Day its result arrives.
         Read forward, this is your Team's calendar.
+      acts:
+        offer_staged: Drew a draft
+        offer_accepted: Accepted their offer
+        second_waived: Countersignature waived by the instructor
     case_file:
       empty: >-
         Nothing yet. What your Actions turn up lands here, along with anything
         the other Side puts in front of you. This is what your Team knows, as
         against the Docket's what your Team has done.
+    terms_board:
+      empty: >-
+        No Term is on the table. Nothing here is zero — an offer of nothing is
+        a position somebody took, and nobody has taken one.
+    action_board:
+      kinds:
+        consult_client: Consult the Client
+        request_documents: Request documents
+        research_precedent: Research precedent
+        manage_press: Manage the press
+        depose_witness: Depose a witness
+        retain_expert: Retain an expert
+      halves:
+        preparation: preparation
+        exchange: exchange
+      refusals:
+        the_budget_cannot_cover_it: >-
+          Today's half will not cover it.
+        the_day_has_closed: >-
+          This Day has closed.
+        the_day_has_not_opened: >-
+          This Day has not opened yet.
+        the_offer_has_not_been_seconded: >-
+          A teammate has to countersign the draft before it can be executed.
+        the_result_would_land_past_the_last_day: >-
+          Its result would arrive after the last Day of the calendar.
+        the_simulation_has_settled: >-
+          The matter has settled. There is nothing left to buy.

@@ -208,4 +208,20 @@ RSpec.describe TermsBoard do
         .aspiration.amount_cents).to eq(250_000_00)
     end
   end
+
+  # Day 1 is the only Day nothing is on the table, which is what makes this the
+  # tutorial rather than an error state.
+  describe "before either Side has taken a position" do
+    it "is empty, and says what a Term on the table would be" do
+      expect(board).to be_empty
+      expect(board.empty_state).to include("an offer of nothing is a position")
+    end
+
+    it "stops being empty the moment one Term is addressed" do
+      Offers::Stage.call(side: side, day: day, by: dana, terms: {"apology" => nil})
+
+      expect(board).not_to be_empty
+      expect(board.empty_state).to be_nil
+    end
+  end
 end

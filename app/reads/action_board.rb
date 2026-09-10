@@ -55,9 +55,21 @@ class ActionBoard
   # arrives later.
   def affordable = entries.select(&:affordable?)
 
+  # What each half will still buy today. Read off `day_budgets` rather than
+  # folded, because that row is ADR 0002's one materialized exception and the
+  # authority for remaining — and the slip a student reads this on is the Action
+  # Board itself, so a second read over the same row could only ever disagree
+  # with the prices beside it.
+  #
+  # Nil before the Day has opened, which is the condition every Entry here is
+  # refused under anyway.
+  def remaining_in(half) = budget&.remaining_in(half)
+
   private
 
   attr_reader :side, :day
+
+  def budget = @budget ||= side.budget_on(day)
 
   def menu = side.case_version.actions
 end

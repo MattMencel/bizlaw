@@ -55,8 +55,8 @@ Then("Dana's Morning Briefing on Day {int} reports nothing landed") do |ordinal|
   expect(a_briefing(ordinal).landed).to be_empty
 end
 
-Then("Dana's Morning Briefing on Day {int} names the two rooms and how the Day ends") do |ordinal|
-  expect(a_briefing(ordinal).two_room_line).to include("Firm", "Boardroom", "both Sides")
+Then("Dana's Morning Briefing on Day {int} names the Day's grammar") do |ordinal|
+  expect(a_briefing(ordinal).grammar_line).to include("case file", "any order", "countersignature")
 end
 
 Then("Dana's Morning Briefing on Day {int} carries the published Rubric") do |ordinal, table|

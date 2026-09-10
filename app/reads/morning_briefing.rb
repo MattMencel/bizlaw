@@ -94,11 +94,13 @@ class MorningBriefing
     )
   end
 
-  # Where the two-room grammar is named, in one line of fixed interface copy. A
-  # room is never empty, so no room's own state can carry it — and it describes
-  # the machine rather than the dispute, which is why it is neither authored per
-  # Case nor generated.
-  def two_room_line = I18n.t("reads.morning_briefing.two_rooms")
+  # Where the Day's grammar is named, in one line of fixed interface copy:
+  # everything here is the case file, work it in any order, the Day ends when
+  # both Sides commit, and an Offer commits only over a teammate's
+  # countersignature. It describes the machine rather than the dispute, which is
+  # why it is neither authored per Case nor generated — and nothing else in the
+  # game states the rules of the machine, so no other surface can carry it.
+  def grammar_line = I18n.t("reads.morning_briefing.grammar")
 
   # The Days this briefing covers, in order. One on an ordinary morning, and as
   # many as a returning teammate missed.

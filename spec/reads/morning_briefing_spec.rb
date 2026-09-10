@@ -49,9 +49,9 @@ RSpec.describe MorningBriefing do
       expect(read.rubric.bonus).to include("Creative terms")
     end
 
-    # A room is never empty, so no room's own state can carry it.
-    it "names the two-room grammar in one line of fixed copy" do
-      expect(read.two_room_line).to include("Firm", "Boardroom", "both Sides")
+    # Nothing else in the game states the rules of the machine.
+    it "names the Day's grammar in one line of fixed copy" do
+      expect(read.grammar_line).to include("case file", "any order", "countersignature")
     end
 
     it "covers one Day" do

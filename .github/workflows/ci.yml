@@ -73,6 +73,20 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      # The suite now renders a screen. A request spec goes through the layout,
+      # which asks vite_ruby for the bundle, and `autoBuild` in test then builds
+      # it — so the Ruby suite needs `node_modules` the same way `assets` does.
+      # This is a build, not a runtime dependency: ADR 0001's Node boundary is
+      # about the request path in production, and nothing here puts Node in one.
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install npm packages
+        run: npm ci
+
       - name: Run specs
         env:
           RAILS_ENV: test

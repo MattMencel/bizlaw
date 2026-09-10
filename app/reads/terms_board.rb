@@ -54,6 +54,14 @@ class TermsBoard
     end
   end
 
+  # Nothing on the table at all — neither Side has taken a position on any Term.
+  # Day 1 is the only Day this is true on, which is what makes it the tutorial.
+  def empty? = tracks.none?(&:on_the_table?)
+
+  # Nil once there is a position to read, so a surface cannot show the lesson
+  # over the thing it was teaching.
+  def empty_state = empty? ? I18n.t("reads.terms_board.empty") : nil
+
   private
 
   attr_reader :side, :day

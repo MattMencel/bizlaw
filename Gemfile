@@ -48,6 +48,15 @@ group :development, :test do
   gem "rspec-rails", "~> 8.0"
 
   gem "cucumber-rails", "~> 4.1", require: false
+
+  # The screen's specs. Accessibility arrives with the first screen rather than
+  # after it — the unaided-legibility claim is what drove the stack choice in
+  # ADR 0001, and retrofitting axe across a built view layer is the expensive
+  # order. Inertia renders in the browser, so there is no server-rendered DOM
+  # for axe to read and a real driver is not optional.
+  gem "capybara", "~> 3.40"
+  gem "selenium-webdriver", "~> 4.27"
+  gem "axe-core-rspec", "~> 4.10"
 end
 
 group :development do
