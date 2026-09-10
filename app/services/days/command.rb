@@ -14,7 +14,7 @@ module Days
   # There are two acts. `:spend` buys an Action off the Case's menu, out of the
   # half that Action draws on. `:commit_offer` puts the Team's staged Offer on
   # the table for one point of the exchange half, plus the Case's Exhibit price
-  # for each Exhibit riding it — a Boardroom act rather than a menu entry, which
+  # for each Exhibit riding it — executing a draft rather than a menu entry, which
   # is why it names no authored Action, and the only act here that is gated by a
   # Second.
   #
@@ -163,7 +163,7 @@ module Days
     attr_reader :act, :side, :day, :by, :details
 
     # The authored Action this act spends on, and nil for the Offer commit,
-    # which is a Boardroom act rather than a menu entry. A kind the Case does
+    # which is executing a draft rather than a menu entry. A kind the Case does
     # not author is a caller with a menu the engine never offered, not a refusal
     # a student should see.
     def action

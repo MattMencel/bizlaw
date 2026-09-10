@@ -70,7 +70,7 @@ class Side < ApplicationRecord
   def staged_offer_on(day) = staged_offers.find_by(day: day)
 
   # The Offer this Team put on the table on a Day, if it committed one. At most
-  # one per Day, by unique index: committing an Offer is a Boardroom act.
+  # one per Day, by unique index: committing an Offer is executing a draft.
   def committed_offer_on(day) = committed_offers.find_by(day: day)
 
   # Whether the Instructor released the Second for this Team on this Day. A

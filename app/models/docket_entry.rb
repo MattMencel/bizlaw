@@ -23,7 +23,7 @@ class DocketEntry < ApplicationRecord
     foreign_key: :spent_by_user_id,
     inverse_of: :docket_entries
   # Every spend off the Action menu names its Action. The one act that names
-  # none is the Offer commit — a Boardroom act rather than a menu entry, gated
+  # none is the Offer commit — executing a draft rather than a menu entry, gated
   # by a Second, which is why it has no `case_actions` row to point at. The
   # CHECK underneath holds it to the exchange half.
   belongs_to :case_action, optional: true

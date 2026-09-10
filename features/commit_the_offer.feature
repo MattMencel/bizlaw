@@ -1,5 +1,5 @@
 Feature: A Team commits its Offer and the exchange half pays for it
-  Committing an Offer is a Boardroom act, at most one per Side per Day, and it
+  Committing an Offer is executing a draft, at most one per Side per Day, and it
   costs one point of the exchange half — the half that buys an Offer and the
   Exhibits riding it and nothing else. It is gated by the Second, and only the
   Instructor's waiver substitutes for one. Committing an Offer implies the Day

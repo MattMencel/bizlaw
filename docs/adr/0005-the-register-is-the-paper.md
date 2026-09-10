@@ -71,7 +71,7 @@ to read first; everything below is left for the change that actually touches
 the behaviour, and this ADR is what makes each of those a correction rather
 than a regression.
 
-What still says *room* and should stop:
+What still said *room*, and has now stopped:
 
 - **The Morning Briefing's own copy.** `app/reads/morning_briefing.rb`'s
   `two_room_line` and `config/locales/reads.en.yml` still tell a student to
@@ -91,6 +91,18 @@ What still says *room* and should stop:
   are no rooms either" in the sense of *not built yet*, and after this ADR that
   sentence reads as agreement when it is a different claim entirely.
 
+**Paid off.** The Briefing's copy went with the first screen
+([#342](https://github.com/MattMencel/bizlaw/issues/342)): `two_room_line`
+became `#grammar_line`, and `reads.en.yml`'s two-room string was replaced by the
+Day's grammar transcribed from `CONTEXT.md` § Morning Briefing. The rest — the
+implementation comments, the feature and spec prose, `README.md` and
+`CLAUDE.md` — went in
+[#359](https://github.com/MattMencel/bizlaw/issues/359), which found this list
+was the whole of the debt left: `CONTEXT.md` itself has been correct since this
+ADR landed, and the ticket that went looking for two rooms in it found none.
+*Boardroom* as the name of an act became **executing a draft**; *Boardroom* as
+the name of a surface became **the draft**.
+
 What keeps the word, correctly:
 
 - **ADR 0001** and the migrations under `db/migrate/`. Both are records of what
@@ -109,6 +121,14 @@ closer to Hotwire's strength than to Inertia's. The stack is not reopened here,
 and the accessibility argument that ruled out canvas engines is *strengthened*
 by a register made entirely of text. But the next session to touch the game view
 should ask the question before running the installer, not after.
+
+**It was not asked.** [#330](https://github.com/MattMencel/bizlaw/issues/330)
+ran the installer and [#342](https://github.com/MattMencel/bizlaw/issues/342)
+drew the first screen on it; neither recorded an answer. The stack stands, and
+reopening it is past the destination of
+[Map #358](https://github.com/MattMencel/bizlaw/issues/358) — but it stands
+unexamined rather than reaffirmed, and this paragraph is here so a later reader
+does not read the silence as a decision.
 
 **The commission changes kind.** One portrait in two Reaction Bands, plus
 typography, texture and stamps, in place of #267's per-Case cast. What that one

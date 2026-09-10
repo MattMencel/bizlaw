@@ -236,7 +236,7 @@ RSpec.describe "playing an Exhibit" do
   describe "an Exhibit plays exactly once" do
     before { play_the_personnel_file }
 
-    # The seam's refusal is the rule a student reads: a Boardroom reads
+    # The seam's refusal is the rule a student reads: the draft reads
     # playability off the Case File and never offers a spent Exhibit.
     it "is not a card a later Day can attach again" do
       following = simulation.days.third

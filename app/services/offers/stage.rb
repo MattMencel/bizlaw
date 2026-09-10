@@ -82,7 +82,7 @@ module Offers
     # the Team can actually play. A document carrying no Exhibit, one pointing
     # at this Team's own Client, one already spent, or one out of somebody
     # else's folder is a caller with a menu the engine never offered rather than
-    # a refusal a student should see — a Boardroom reads playability off the
+    # a refusal a student should see — the draft reads playability off the
     # Case File before it offers the control.
     def exhibits_held_for_play
       exhibits.each do |filed|

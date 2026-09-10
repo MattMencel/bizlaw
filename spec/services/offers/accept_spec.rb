@@ -148,7 +148,7 @@ RSpec.describe Offers::Accept do
   end
 
   # The idempotent answer above is the accepting Team's own. A Side reaching for
-  # its own Offer after the other Team took it is still a control the Boardroom
+  # its own Offer after the other Team took it is still a control the draft
   # never offered, and handing back the row the other Team wrote would answer it
   # with their Attribution.
   it "refuses it just as firmly once the other Side has taken it" do

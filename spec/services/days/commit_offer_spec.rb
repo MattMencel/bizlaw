@@ -56,7 +56,7 @@ RSpec.describe "committing an Offer" do
       expect(confirmation.remaining_after).to eq(1)
     end
 
-    # A refusal is a refusal rather than a fault, so a Boardroom can leave the
+    # A refusal is a refusal rather than a fault, so the draft can leave the
     # commit control present and dead without a failed write.
     it "refuses a Team with nothing on its table" do
       expect(quote(seconded_by: a_teammate).refusal).to eq(:there_is_no_offer_on_the_table)

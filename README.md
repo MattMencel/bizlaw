@@ -5,7 +5,7 @@
 Engine for a two-team, asynchronous legal negotiation simulation used in college
 business law courses. Two student teams take opposing sides of one authored case
 and negotiate toward a settlement their client will accept, across a calendar of
-Days at a firm. An instructor runs sections, drives the clock and grades.
+Days. An instructor runs sections, drives the clock and grades.
 
 ## Status
 
