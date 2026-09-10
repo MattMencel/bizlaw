@@ -97,9 +97,14 @@ became `#grammar_line`, and `reads.en.yml`'s two-room string was replaced by the
 Day's grammar transcribed from `CONTEXT.md` § Morning Briefing. The rest — the
 implementation comments, the feature and spec prose, `README.md` and
 `CLAUDE.md` — went in
-[#359](https://github.com/MattMencel/bizlaw/issues/359), which found this list
-was the whole of the debt left: `CONTEXT.md` itself has been correct since this
-ADR landed, and the ticket that went looking for two rooms in it found none.
+[#359](https://github.com/MattMencel/bizlaw/issues/359), along with one site
+this list had missed: `docs/docs/intro.md`, the docs site's own front page,
+carried `README.md`'s sentence verbatim and its "Days at a firm" with it. The
+list was the shape of the debt rather than an inventory of it, and a sweep that
+greps only the words *Boardroom* and *Firm* will miss that one — the phrase
+names no room and still describes two. What the list had right is that
+`CONTEXT.md` itself has been correct since this ADR landed, and the ticket that
+went looking for two rooms in it found none.
 *Boardroom* as the name of an act became **executing a draft**; *Boardroom* as
 the name of a surface became **the draft**.
 
