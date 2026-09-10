@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# What a Day opens with, over the Firm's table: the Actions that have just
+# What a Day opens with, as the draft's front matter: the Actions that have just
 # landed and any documents the other Side served, beside what the Team started
 # with — the documents in hand at the open, the Client's opening statement, the
 # calendar and the published Rubric.

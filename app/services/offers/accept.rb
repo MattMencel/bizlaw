@@ -46,7 +46,7 @@ module Offers
 
     def call
       # Accepting your own Offer is not a deal, and no gate inside one Team
-      # could make it one. It is a caller reaching for a control the Boardroom
+      # could make it one. It is a caller reaching for a control the draft
       # never offered, not a refusal a student should see — and it is asked
       # first, above the idempotent answer below, because that answer is scoped
       # to the accepting Team and this caller is not on it.

@@ -1,5 +1,5 @@
 Feature: The Morning Briefing and the Day's read surfaces
-  A Day opens over the Firm's table with what has just happened: the Actions
+  A Day opens on the draft's front matter with what has just happened: the Actions
   that landed and the documents the other Side served. Beside them sits what the
   Team started with — the documents in hand at the open, the Client's opening
   statement, the calendar and the published Rubric — and one line of fixed copy
