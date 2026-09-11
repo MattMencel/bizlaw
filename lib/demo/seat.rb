@@ -88,8 +88,6 @@ module Demo
       # than testing the Side for nil, because the answer is about the person
       # and not about the column.
       def seated? = !side.nil?
-
-      def instructor? = !seated?
     end
   end
 end

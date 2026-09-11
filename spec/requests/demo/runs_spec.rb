@@ -97,7 +97,7 @@ RSpec.describe "the demo run", type: :request do
   # map, and the waiver's surface arrives with the control that grants it.
   it "has no page for the Instructor it seats" do
     expect(Demo::Seat.for(Demo::Seed.simulation(Demo::Seed::DEMO), Demo::Seat::INSTRUCTOR))
-      .to be_instructor
+      .not_to be_seated
 
     get "/demo/#{Demo::Seed::DEMO}/#{Demo::Seat::INSTRUCTOR}"
 

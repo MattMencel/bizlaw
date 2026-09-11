@@ -43,9 +43,14 @@ module Demo
       seated = Seat.for(Seed.simulation(params[:run]), params[:seat])
       return seated if seated.seated?
 
-      head :not_found
-      nil
+      no_page
     rescue ArgumentError
+      no_page
+    end
+
+    # The two ways there is nothing to render: a run or a seat the seed did not
+    # lay down, and the Instructor, who is seated and is not in the dispute.
+    def no_page
       head :not_found
       nil
     end
