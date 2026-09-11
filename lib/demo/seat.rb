@@ -22,7 +22,18 @@ module Demo
   # This is demo scaffolding and it is namespaced as such. When there is
   # authentication, it is replaced rather than grown into.
   class Seat
+    # A segment nobody sits at. It is the reader's doing — a mistyped URL — so
+    # the route turns it into a 404, which is what the `ArgumentError` it shares
+    # with an unknown run is read as.
     UnknownSeat = Class.new(ArgumentError)
+
+    # A seat nobody is sitting in. This is the seed's doing rather than the
+    # reader's, and it names the one command that repairs it, so it is
+    # deliberately *not* an `ArgumentError`: it has to surface rather than be
+    # answered "not found" on a laptop where the fix is one line. The same
+    # distinction `Seed.simulation` already draws between a run it does not know
+    # and an Organization that does not hold the pair.
+    SeedIncomplete = Class.new(StandardError)
 
     # The Instructor's segment. The two Sides are addressed by their role, which
     # is the name the URL already wants and one this cannot get out of step
@@ -73,11 +84,12 @@ module Demo
 
     # Resolved against the Organization the seed owns outright, so a database
     # holding other work cannot answer here. A missing person is the seed not
-    # having been run, which is the same fault `Seed.simulation` already names.
+    # having been run, which is the same fault `Seed.simulation` already names
+    # and is raised as such — see `SeedIncomplete`.
     def user(email)
       User.find_by(organization_id: simulation.organization_id, email: email) ||
-        raise(UnknownSeat, "#{Seed::ORGANIZATION} seats nobody at #{email} — " \
-                           "re-run `rake demo:seed`")
+        raise(SeedIncomplete, "#{Seed::ORGANIZATION} seats nobody at #{email} — " \
+                              "re-run `rake demo:seed`")
     end
 
     # The pair, plus the segment it was named by. Held as a value rather than

@@ -128,7 +128,8 @@ module Demo
     #
     # The seat is optional, and the bare form is the player's — see
     # `Demo::Seat`. It is named only for the second tab, which is where the
-    # Acceptance and the Instructor's waiver come from.
+    # Acceptance comes from. The waiver is the Instructor's and is attributed to
+    # them, so it is never granted from that tab.
     def url_for(run, seat = nil) = ["#{base_url}/demo/#{run}", seat].compact.join("/")
 
     private

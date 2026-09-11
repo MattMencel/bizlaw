@@ -68,6 +68,24 @@ RSpec.describe Demo::Seat do
     expect { seat("whatever") }.to raise_error(described_class::UnknownSeat)
   end
 
+  # A segment nobody addresses and a cast member who is missing are different
+  # faults, and only the first is the reader's doing. The second says to re-run
+  # the seed, which is the fix, so it must not be an `UnknownSeat`: the route
+  # turns those into 404s, and "not found" would hide a one-command repair.
+  #
+  # The Instructor is the one who can actually go missing. Everyone else is
+  # pinned by the Attribution their own acts wrote, so a database seeded before
+  # this cast grew is exactly this shape — two Simulations standing, so
+  # `Seed.simulation` is satisfied, and nobody at the Instructor's address.
+  it "tells a missing cast member apart from a seat nobody addresses" do
+    simulation
+    User.find_by!(email: Demo::Seed::INSTRUCTOR_EMAIL).delete
+
+    expect { seat(described_class::INSTRUCTOR) }
+      .to raise_error(described_class::SeedIncomplete, /re-run/)
+    expect(described_class::SeedIncomplete).not_to be < ArgumentError
+  end
+
   # The invariant the whole demo rests on, and the one a seat could quietly
   # break: `Side#members` folds from Attribution, and a second attributed
   # plaintiff makes the countersignature block live and deletes the waiver

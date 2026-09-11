@@ -62,8 +62,8 @@ RSpec.describe "the demo run", type: :request do
   end
 
   # The second tab. It acts as a different person on the opposing Side, which is
-  # where the Acceptance and the Instructor's waiver come from — there is no
-  # second live player and no Instructor console.
+  # where the Acceptance comes from — there is no second live player. The waiver
+  # is not its to grant: that is the Instructor's, seated apart from both Sides.
   describe "the second tab" do
     before { get "/demo/#{Demo::Seed::DEMO}/#{Side::DEFENDANT}" }
 
