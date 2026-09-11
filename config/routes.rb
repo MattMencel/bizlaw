@@ -13,8 +13,15 @@ Rails.application.routes.draw do
   # the same reason `demo:seed` aborts there: the rows this reads are laid down
   # by a rake task that resets its own Organization, and neither belongs on a
   # deployed instance.
+  #
+  # The seat is optional because the bare form is what `demo:seed` prints and
+  # what the player is handed: it means his own seat, and naming it resolves to
+  # the same page. The segment exists for the second tab, which acts as a
+  # different person on the opposing Side — there is no authentication, no
+  # session and no second live player, so the URL is the whole of what says who
+  # is reading.
   unless Rails.env.production?
-    get "demo/:run", to: "demo/runs#show", as: :demo_run
+    get "demo/:run(/:seat)", to: "demo/runs#show", as: :demo_run
   end
 
   # Defines the root path route ("/")

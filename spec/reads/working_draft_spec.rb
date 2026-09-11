@@ -17,7 +17,7 @@ RSpec.describe WorkingDraft do
       email: "priya@example.edu")
   end
 
-  def props(on: day) = described_class.for(side, day: on).to_props
+  def props(on: day, you: dana) = described_class.for(side, day: on, you: you).to_props
 
   def track(key) = props[:term_sheet][:tracks].find { |row| row[:term] == key }
 
@@ -40,27 +40,23 @@ RSpec.describe WorkingDraft do
       )
     end
 
-    # There is no authentication and no roster, so Attribution is the only
-    # answer available: a Side whose acts are all one member's has one member.
-    it "names nobody on a Team that has done nothing" do
-      expect(props[:letterhead][:you]).to be_nil
-    end
-
-    it "names the sole member of a Team that has acted" do
-      Days::Command.apply(act: :spend, side: side, day: day, by: dana,
-        kind: CaseAction::CONSULT_CLIENT)
-
+    # Who is reading is handed in. There is no authentication, so nothing here
+    # could work it out — and the roster it used to be folded from answers a
+    # different question.
+    it "names whoever is reading, on a Team that has done nothing" do
       expect(props[:letterhead][:you]).to eq(dana.name)
     end
 
-    # Two members and no way to tell which is reading. The letterhead goes
-    # unnamed rather than picking one.
-    it "names nobody once a second member has acted" do
+    # The case that separates the two questions. Both have acted, so the roster
+    # is two and could name neither of them; the letterhead names the one
+    # holding the page.
+    it "names the reader rather than the Team, once two members have acted" do
       Days::Command.apply(act: :spend, side: side, day: day, by: dana,
         kind: CaseAction::CONSULT_CLIENT)
       Offers::Stage.call(side: side, day: day, by: priya, terms: {"apology" => nil})
 
-      expect(props[:letterhead][:you]).to be_nil
+      expect(side.members).to contain_exactly(dana, priya)
+      expect(props(you: priya)[:letterhead][:you]).to eq(priya.name)
     end
   end
 

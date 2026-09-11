@@ -19,9 +19,10 @@
 class WorkingDraft
   def self.for(...) = new(...)
 
-  def initialize(side, day:)
+  def initialize(side, day:, you:)
     @side = side
     @day = day
+    @you = you
   end
 
   def to_props
@@ -37,7 +38,14 @@ class WorkingDraft
 
   private
 
-  attr_reader :side, :day
+  # `you` is who is reading, handed in rather than folded for. There is no
+  # authentication yet, so the caller is the only thing that knows — and the
+  # fold this replaces answered a different question. `Side#members` is the
+  # roster, *who has acted for this Team*, and the two coincide only while
+  # exactly one member has acted. They come apart at the cold open, where the
+  # ledgers are empty and the player is sitting there all the same, and again
+  # the moment a second act is attributed.
+  attr_reader :side, :day, :you
 
   def briefing = @briefing ||= MorningBriefing.for(side, day: day)
 
@@ -53,18 +61,6 @@ class WorkingDraft
 
   def committed = @committed ||= side.committed_offer_on(day)
 
-  # Who is reading. There is no authentication and no roster, so the only
-  # answer available is Attribution: a Side whose acts are all one member's has
-  # one member, and that is who this is. A Team that has done nothing has
-  # nobody — which is the cold open, and the letterhead goes unnamed rather
-  # than inventing a name for an empty ledger.
-  def you
-    @you ||= begin
-      members = side.members.to_a
-      members.first if members.one?
-    end
-  end
-
   def letterhead
     {
       matter: side.case_version.case.name,
@@ -72,7 +68,7 @@ class WorkingDraft
       day: day.ordinal,
       of: side.simulation.days.count,
       in_fiction_date: day.in_fiction_date.to_s,
-      you: you&.name
+      you: you.name
     }
   end
 

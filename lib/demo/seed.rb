@@ -41,6 +41,27 @@ module Demo
     DEMO = "day-3"
     COLD_OPEN = "cold-open"
 
+    # The cast, by the one thing about a person that is stable across a reset.
+    # There is no authentication and no roster, so a screen cannot ask who is
+    # reading — `Demo::Seat` answers it from here instead, which is why these
+    # are published rather than buried in the methods that create them.
+    #
+    # The cast is four and the seats are three. Ray acts — he files the
+    # defendant's Day 2 and seconds its Day 3 commit — and holds no URL: the
+    # Second is named on the control it gates, from `seconders_other_than`.
+    # Giving him an address to make the list tidy would be inventing a tab
+    # nobody sits at.
+    PLAYER_EMAIL = "player@example.edu"
+    DEFENDANT_LEAD_EMAIL = "dana@example.edu"
+    DEFENDANT_SECOND_EMAIL = "ray@example.edu"
+    # The Instructor is not a player, so they are in the cast without ever being
+    # on a Side. They exist because `Offers::WaiveSecond` takes a `by:` and the
+    # waiver is one of the things the professor was convened to see — and
+    # attributing it to a student would put a player's name on an Instructor
+    # act. `second_waivers` sits outside the `Side#members` fold, so granting
+    # one cannot make them a phantom teammate.
+    INSTRUCTOR_EMAIL = "instructor@example.edu"
+
     Result = Data.define(:demo, :cold_open)
 
     # The tables a Simulation's run writes, children before parents. Every
@@ -90,17 +111,26 @@ module Demo
       organization = Organization.create!(name: ORGANIZATION)
       section = organization.sections.create!(name: SECTION)
 
+      # The Instructor never acts in the seed, so nothing else would bring them
+      # into being. They are laid down here, with the Section they run, rather
+      # than by the first act that needs them.
+      instructor
+
       Result.new(demo: demo_run(section), cold_open: cold_open(section))
     end
 
-    # Where the player and the professor are sent. There is no route yet — the
-    # view is what this seed exists to build — so this is the URL shape the
-    # screens will serve, printed so it is one copy rather than one guess.
+    # Where the player and the professor are sent, printed so it is one copy
+    # rather than one guess.
     #
     # It names the run rather than its id, which is the whole of why the URL a
     # run prints is the URL the next reset prints: the rows underneath are new
     # every time, and nothing in the address depends on them.
-    def url_for(run) = "#{base_url}/demo/#{run}"
+    #
+    # The seat is optional, and the bare form is the player's — see
+    # `Demo::Seat`. It is named only for the second tab, which is where the
+    # Acceptance comes from. The waiver is the Instructor's and is attributed to
+    # them, so it is never granted from that tab.
+    def url_for(run, seat = nil) = ["#{base_url}/demo/#{run}", seat].compact.join("/")
 
     private
 
@@ -210,12 +240,17 @@ module Demo
     # return one, and the dead countersignature block the Docket teaches by —
     # along with the waiver that revives it — would both evaporate.
     def player
-      @player ||= member("Sam Ortega", "player@example.edu")
+      @player ||= member("Sam Ortega", PLAYER_EMAIL)
     end
 
-    def defendant_lead = @defendant_lead ||= member("Dana Whitfield", "dana@example.edu")
+    def defendant_lead = @defendant_lead ||= member("Dana Whitfield", DEFENDANT_LEAD_EMAIL)
 
-    def defendant_second = @defendant_second ||= member("Ray Okonkwo", "ray@example.edu")
+    def defendant_second = @defendant_second ||= member("Ray Okonkwo", DEFENDANT_SECOND_EMAIL)
+
+    # Created rather than left to the first waiver, because a seat that resolves
+    # to nobody is a seat that fails at the moment it is first used — in front
+    # of the professor, on the act it exists for.
+    def instructor = @instructor ||= member("Professor Adeyemi", INSTRUCTOR_EMAIL)
 
     def member(name, email)
       User.create_or_find_by!(organization: organization, email: email) do |user|
