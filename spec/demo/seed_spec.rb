@@ -66,7 +66,7 @@ RSpec.describe Demo::Seed do
     # dead control the Docket teaches by — with the waiver that revives it —
     # would both evaporate.
     it "leaves the countersignature block dead in a lone hand" do
-      expect(plaintiff.members.map(&:email)).to eq(["player@example.edu"])
+      expect(plaintiff.members.map(&:email)).to eq([described_class::PLAYER_EMAIL])
       expect(plaintiff.seconders_other_than(plaintiff.members.first)).to be_empty
     end
 
@@ -180,6 +180,41 @@ RSpec.describe Demo::Seed do
       expect(seed.url_for(described_class::DEMO)).to eq("http://localhost:3000/demo/day-3")
       expect(seed.url_for(described_class::COLD_OPEN))
         .to eq("http://localhost:3000/demo/cold-open")
+    end
+
+    # The second tab is the only way the Acceptance and the waiver happen at
+    # all, so its address is printed rather than constructed by hand in front of
+    # the professor.
+    it "names the second tab too" do
+      seed = described_class.new(base_url: "http://localhost:3000")
+      seed.call
+
+      expect(seed.url_for(described_class::DEMO, Side::DEFENDANT))
+        .to eq("http://localhost:3000/demo/day-3/defendant")
+    end
+  end
+
+  # The waiver is one of the things the professor was convened to see, and
+  # `Offers::WaiveSecond` takes a `by:`. Nothing in the seed's own play needs
+  # the Instructor, so nothing else would bring them into being.
+  describe "the Instructor" do
+    it "lays one down, in the Organization it owns" do
+      laid
+
+      expect(User.find_by(email: described_class::INSTRUCTOR_EMAIL))
+        .to have_attributes(organization: Organization.find_by!(name: described_class::ORGANIZATION))
+    end
+
+    # `second_waivers` sits outside the `Side#members` fold, so an Instructor
+    # who grants one never becomes a teammate — which is what keeps the dead
+    # countersignature block dead.
+    it "is on neither Side, before or after granting a waiver" do
+      Offers::WaiveSecond.call(
+        side: plaintiff, day: demo_day,
+        by: User.find_by!(email: described_class::INSTRUCTOR_EMAIL)
+      )
+
+      expect(plaintiff.members.map(&:email)).to eq([described_class::PLAYER_EMAIL])
     end
   end
 end

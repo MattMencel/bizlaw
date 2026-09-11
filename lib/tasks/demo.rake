@@ -9,8 +9,13 @@ namespace :demo do
     seed.call
 
     puts "Seeded #{Demo::Seed::ORGANIZATION} / #{Demo::Seed::SECTION}"
-    puts "  #{"Day #{Demo::Seed::DEMO_DAY}, the plaintiff's:".ljust(24)}" \
+    puts "  #{"Day #{Demo::Seed::DEMO_DAY}, the plaintiff's:".ljust(28)}" \
          "#{seed.url_for(Demo::Seed::DEMO)}"
-    puts "  #{"Day 1, the cold open:".ljust(24)}#{seed.url_for(Demo::Seed::COLD_OPEN)}"
+    # The second tab. It acts as the other firm, which is where the Acceptance
+    # and the Instructor's waiver come from — so its address is printed rather
+    # than constructed by hand mid-demo.
+    puts "  #{"Day #{Demo::Seed::DEMO_DAY}, the second tab:".ljust(28)}" \
+         "#{seed.url_for(Demo::Seed::DEMO, Side::DEFENDANT)}"
+    puts "  #{"Day 1, the cold open:".ljust(28)}#{seed.url_for(Demo::Seed::COLD_OPEN)}"
   end
 end

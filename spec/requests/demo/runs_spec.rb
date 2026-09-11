@@ -50,11 +50,64 @@ RSpec.describe "the demo run", type: :request do
       expect(inertia.props[:back][:docket][:empty_state]).to be_present
     end
 
-    # `Side#members` folds from Attribution, and nothing has been spent. There
-    # is no name to put on the letterhead and none is invented.
-    it "names nobody" do
-      expect(inertia.props[:letterhead][:you]).to be_nil
+    # The case that separates the two questions. `Side#members` folds from
+    # Attribution and nothing has been spent, so the roster is empty — but the
+    # player is sitting there, and the letterhead asks who is reading rather
+    # than who has acted. The seat knows him before he has done anything.
+    it "names the player sitting at an empty ledger" do
+      expect(inertia.props[:letterhead][:you]).to eq("Sam Ortega")
+      expect(Demo::Seed.simulation(Demo::Seed::COLD_OPEN).plaintiff_side.members)
+        .to be_empty
     end
+  end
+
+  # The second tab. It acts as a different person on the opposing Side, which is
+  # where the Acceptance and the Instructor's waiver come from — there is no
+  # second live player and no Instructor console.
+  describe "the second tab" do
+    before { get "/demo/#{Demo::Seed::DEMO}/#{Side::DEFENDANT}" }
+
+    it "seats the other firm on the other Side of the same Day" do
+      expect(inertia.props[:letterhead])
+        .to include(role: Side::DEFENDANT, day: 3, you: "Dana Whitfield")
+    end
+
+    # It has already played its whole morning, which is what the player is
+    # sitting down opposite.
+    it "shows it the Offer it committed" do
+      expect(inertia.props[:term_sheet][:tracks].find { |t| t[:term] == "money" }[:ours])
+        .to eq("amount" => "$40,000", "money" => true)
+    end
+  end
+
+  # One address, not two shapes. The bare form is what `rake demo:seed` prints
+  # and what the player is handed; naming his seat resolves to the same page
+  # rather than to a second one.
+  it "answers the player's named seat as it answers the bare form" do
+    get "/demo/#{Demo::Seed::DEMO}/#{Side::PLAINTIFF}"
+    named = inertia.props
+
+    get "/demo/#{Demo::Seed::DEMO}"
+
+    expect(named).to eq(inertia.props)
+  end
+
+  # The Instructor is seated — `Offers::WaiveSecond` needs a `by:` and it exists
+  # — but has no page. The Instructor console is out of scope for the whole
+  # map, and the waiver's surface arrives with the control that grants it.
+  it "has no page for the Instructor it seats" do
+    expect(Demo::Seat.for(Demo::Seed.simulation(Demo::Seed::DEMO), Demo::Seat::INSTRUCTOR))
+      .to be_instructor
+
+    get "/demo/#{Demo::Seed::DEMO}/#{Demo::Seat::INSTRUCTOR}"
+
+    expect(response).to have_http_status(:not_found)
+  end
+
+  it "does not know a seat it did not lay down" do
+    get "/demo/#{Demo::Seed::DEMO}/whoever"
+
+    expect(response).to have_http_status(:not_found)
   end
 
   it "does not know a run it did not lay down" do
