@@ -1,0 +1,133 @@
+/* The register: the paper itself, and the marks any part of it may make.
+
+   This is global rather than scoped because the paper is one system, not one
+   per section. Svelte scopes a component's styles to that component's own
+   markup, so the moment the draft was split into its five parts every shared
+   primitive here would have had to be duplicated into each of them or reached
+   with `:global()`. A stylesheet says the same thing once, and says it in the
+   place a commissioned set would be swapped in.
+
+   A mark used by exactly one part of the draft stays with that part. What is
+   here is what two or more of them make, plus the ground they sit on.
+
+   Four values are darkened from the #315 prototype's — muted, rule-2, redline
+   and stamp — because the prototype was drawn to be looked at and this one has
+   to pass axe. */
+
+:root {
+  --paper: #f4f1e8;
+  --paper-2: #ece7da;
+  --ink: #1c1a17;
+  --muted: #615b4e;
+  --rule: #cfc7b4;
+  --rule-2: #9d9280;
+  --redline: #8e2619;
+  --stamp: #2b435f;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --mono: "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+/* Type and ink only. The dark ground the sheet lies on is the draft's own desk
+   and is painted by the page, not here: this stylesheet rides the entrypoint
+   chunk and so loads on every page, and `body` is the one selector a future
+   page's scoped styles could not out-specify. */
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Bare element selectors are anchored to the sheet: global CSS is not scoped,
+   and the draft is not the only thing that will ever be on a page. */
+.sheet h2,
+.sheet h3 {
+  font-weight: 600;
+  margin: 0;
+}
+.sheet section {
+  padding-bottom: 8px;
+}
+
+.doc-title {
+  font-size: 19px;
+  margin-bottom: 2px;
+}
+.doc-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 16px 0 10px;
+  font-weight: 400;
+}
+.prose p {
+  margin: 0 0 10px;
+}
+.small {
+  font-size: 13.5px;
+}
+.muted {
+  color: var(--muted);
+}
+.tiny {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.rule {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 18px 0;
+}
+.rule.heavy {
+  border-top: 2px solid var(--ink);
+}
+ul.plain,
+ol.plain {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+ul.plain li {
+  margin-bottom: 4px;
+}
+
+.stamp {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border: 2px solid var(--stamp);
+  color: var(--stamp);
+  transform: rotate(-2.5deg);
+}
+.stamp.warn {
+  border-color: var(--redline);
+  color: var(--redline);
+}
+
+.empty-state {
+  border: 1px dashed var(--rule-2);
+  padding: 16px 18px;
+  color: var(--muted);
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.35);
+}
