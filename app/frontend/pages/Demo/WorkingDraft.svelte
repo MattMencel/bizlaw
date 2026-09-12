@@ -85,8 +85,12 @@
 </main>
 
 <style>
+  /* The desk the sheet lies on. It is the page's and not the register's: the
+     register is the paper, and a surface to put paper down on is what this
+     screen happens to need. */
   .desk {
     min-height: 100vh;
+    background: #3a352c;
     display: flex;
     justify-content: center;
     padding: 26px 20px 60px;

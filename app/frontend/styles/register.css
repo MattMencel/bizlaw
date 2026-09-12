@@ -27,9 +27,12 @@
   --mono: "SFMono-Regular", Menlo, Consolas, monospace;
 }
 
+/* Type and ink only. The dark ground the sheet lies on is the draft's own desk
+   and is painted by the page, not here: this stylesheet rides the entrypoint
+   chunk and so loads on every page, and `body` is the one selector a future
+   page's scoped styles could not out-specify. */
 body {
   margin: 0;
-  background: #3a352c;
   color: var(--ink);
   font-family: var(--serif);
   font-size: 15px;
