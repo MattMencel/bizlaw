@@ -39,6 +39,20 @@ en:
         offer_staged: Drew a draft
         offer_accepted: Accepted their offer
         second_waived: Countersignature waived by the instructor
+    consult_memo:
+      empty: >-
+        You have not asked. Consulting your Client is the only read you get on
+        how far they have actually moved, and it costs a point of preparation —
+        which is why it is an instrument for an occasion rather than a habit.
+    # What a Reaction Band reads as. Two surfaces name one — the memo a Consult
+    # bought and the Docket line beside it — so there is one key rather than
+    # two: a band spelled differently on the two faces of one instrument would
+    # be two vocabularies for one rule. The words are the ones `CONTEXT.md`
+    # names the bands by under *Reaction Band*, because a band is qualitative
+    # and paraphrasing it here would be the engine interpreting the Client.
+    bands:
+      firm: firm
+      ready: ready
     case_file:
       empty: >-
         Nothing yet. What your Actions turn up lands here, along with anything

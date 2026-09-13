@@ -7,9 +7,17 @@
 # **Nothing is written for it.** A Consult's whole write path is the one
 # `docket_entries` row `Days::Command` charges it on; the band is folded from
 # the shift ledger as of that row's own `created_at` and the wording is authored
-# under the band it belongs to. So a memo is re-readable forever and reads back
-# what the Client said *then*, which is what an Action was charged for. A band
-# that moves is shown at the next Consult, not the moment it moves.
+# under the band it belongs to. So a memo is re-readable — read next week it
+# still reads back what the Client said *then*, which is what an Action was
+# charged for. A band that moves is shown at the next Consult, not the moment it
+# moves.
+#
+# That is a guarantee about the *row*, and not a claim that a surface reaches
+# it. `WorkingDraft` carries the Day's own Consults on the front of the
+# instrument, and nothing reads a closed Day's words today; what survives the
+# Day is the band, on the Docket line. A surface for the record would need
+# nothing new here — folding as of the spend is what already makes one
+# possible.
 #
 # It reaches this Team's own Client only. No other Party ever speaks and no
 # other Party is drawn at all.

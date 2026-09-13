@@ -2,21 +2,30 @@
 
 # The whole of a Day as one page, in the grammar #315 settled: the draft is the
 # page. Front matter on top, the term sheet through the middle with the
-# countersignature block beneath it, the Action slip along the foot, and the
-# Case File and the Docket on the back of the same instrument.
+# countersignature block beneath it, the Client's memo under that, the Action
+# slip along the foot, and the Case File and the Docket on the back of the same
+# instrument.
 #
-# It composes the five reads rather than replacing any of them. Each of those
-# answers one question and answers it in domain objects — a `Day`, a `User`, a
-# refusal symbol — and this is the one place those become the flat, JSON-shaped
-# thing a page is handed: Days reduced to ordinals, Users to names, money
-# formatted once, and every symbol the engine names a rule by given its
-# sentence. Doing that inside the five would make each of them a view; doing it
+# It composes the reads rather than replacing any of them. Each of those answers
+# one question and answers it in domain objects — a `Day`, a `User`, a refusal
+# symbol, a Client's seed and expression — and this is the one place those
+# become the flat, JSON-shaped thing a page is handed: Days reduced to ordinals,
+# Users to names, money formatted once, every symbol the engine names a rule by
+# given its sentence, and the Client's face composed at the one size the memo
+# serves. Doing that inside the reads would make each of them a view; doing it
 # in the controller would spread it across every screen that ever renders a Day.
 #
 # It is not itself a domain object and has no entry in `CONTEXT.md`. Nothing
 # here decides anything: if a number or a sentence appears below, one of the
-# five reads or the Case authored it.
+# reads or the Case authored it. The one thing it *chooses* is a render size,
+# which exists nowhere else — see `portrait`.
 class WorkingDraft
+  # The one size the Consult memo's face is served at, of the three the part set
+  # has been looked at in. A passport photograph clipped to a file is the
+  # register's own idiom for a face on a legal memo, and it is the size #325
+  # checked the stock set survives the halftone at.
+  PORTRAIT_SIZE = 78
+
   def self.for(...) = new(...)
 
   # `refused` is the spend that did not happen, carried back from the request
@@ -36,6 +45,7 @@ class WorkingDraft
       front_matter: front_matter,
       term_sheet: term_sheet,
       countersignature: countersignature,
+      memo: memo,
       slip: slip,
       back: back
     }
@@ -144,6 +154,52 @@ class WorkingDraft
 
   def open_draft? = !staged.nil? && committed.nil?
 
+  # What the Client said, on the Day they were asked. The Consult is the one
+  # Action that buys words rather than paper, so there is no Case File row for
+  # it to land in and this is the whole of where it lands.
+  #
+  # **Today's only.** A `ConsultMemo` is re-readable forever — the band is
+  # folded as of the spend's own row, so one read next week still says what was
+  # said — but the front of the instrument is today's working state, and no
+  # surface currently reaches a closed Day's words. The Docket keeps the band
+  # after the Day, which is the carrier `CONTEXT.md` names under *Reaction
+  # Band*; the wording is bought for the Day it was bought on.
+  #
+  # Newest first, because the reader is sent here by having just asked.
+  def memo
+    beats = side.consults(day: day).reverse.map(&:beat)
+
+    {
+      empty_state: beats.empty? ? I18n.t("reads.consult_memo.empty") : nil,
+      portrait: beats.first && portrait(beats.first),
+      entries: beats.map do |beat|
+        {band: band_label(beat.band), line: beat.line}
+      end
+    }
+  end
+
+  # The face, printed **once** — on the newest Consult, whose expression is the
+  # band that stands now. It is the one portrait in the game (ADR 0005), and
+  # repeating it down a stack would be the same drawing several times and, since
+  # `Portraits::Compose` scopes its screen ids to the seed, the expression and
+  # the size, literally the same element ids several times.
+  #
+  # ADR 0008 binds the **read**: `ConsultMemo::Beat` hands on a seed and an
+  # expression and never a rendered portrait, because a halftone screen is fixed
+  # in ink on the page and a read has no business choosing a size. This layer is
+  # where a size exists — the same act as formatting money once and giving a
+  # refusal its sentence.
+  #
+  # Composed here rather than fetched from an endpoint of its own: the two inks
+  # resolve through custom properties on an ancestor, and an SVG behind an
+  # `<img>` cannot see the page it sits on — so the portrait would stop
+  # following the paper, which is the whole of what ADR 0008 decided about ink.
+  def portrait(beat)
+    Portraits::Compose.call(
+      seed: beat.portrait_seed, expression: beat.expression, size: PORTRAIT_SIZE
+    )
+  end
+
   # Every Action, priced, whether or not the half will cover it — with the
   # refusal's own sentence beside the ones that will not.
   #
@@ -230,7 +286,7 @@ class WorkingDraft
       cost: entry.cost,
       half: entry.half,
       half_label: entry.half && half_label(entry.half),
-      band: entry.band,
+      band: entry.band && band_label(entry.band),
       lands_on_day: entry.lands_on_day&.ordinal,
       spend: entry.spend?,
       instructor_action: entry.instructor_action?
@@ -258,6 +314,11 @@ class WorkingDraft
       cents / 100.0, precision: (cents % 100).zero? ? 0 : 2
     )
   end
+
+  # The band is a symbol the engine names a rule by, like a refusal and an
+  # Action's kind, so it becomes text here and not on a page. One key serves the
+  # memo and the Docket line both — see the locale file for why.
+  def band_label(band) = I18n.t("reads.bands.#{band}")
 
   def kind_label(kind) = I18n.t("reads.action_board.kinds.#{kind}")
 

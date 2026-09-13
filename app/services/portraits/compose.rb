@@ -117,8 +117,18 @@ module Portraits
       levels.sort.map { |tone, fill| ".#{scope} .#{tone}{fill:#{fill}}" }.join
     end
 
-    # Deterministic, so a redeploy does not rewrite every id, and unique per
-    # render, so the ids in one portrait's screens cannot collide with another's.
+    # Deterministic, so a redeploy does not rewrite every id, and keyed to the
+    # three inputs that decide what is drawn, so two portraits differing in any
+    # of them cannot collide — which is what the size argument needs, since one
+    # page showing one face at two sizes must not share a screen.
+    #
+    # Two renders of the *same* seed, expression and size therefore carry the
+    # same ids by construction, and putting both on one page is duplicate-id
+    # invalid HTML. That is a caller's decision rather than something to salt
+    # away: the same face twice on one page is the same drawing twice, and a
+    # counter here would make the markup differ between two requests that drew
+    # the identical thing. `WorkingDraft#portrait` is where the game declines
+    # it, by printing the Consult memo's face once.
     def scope
       @scope ||= "portrait-#{Digest::SHA256.hexdigest([seed, expression, size].join("\0"))[0, 8]}"
     end

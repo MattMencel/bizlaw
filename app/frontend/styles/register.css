@@ -23,6 +23,15 @@
   --rule-2: #9d9280;
   --redline: #8e2619;
   --stamp: #2b435f;
+  /* The two inks the Client's face is printed in. `Portraits::Compose` reads
+     them off an ancestor and falls back to `currentColor` on white, which on
+     this paper would be a white rectangle of pure-black dots pasted onto cream
+     — the sticker ADR 0008 chose the halftone to avoid. They live here rather
+     than on the memo because more than one part of the draft will draw a face
+     before the demo is done, and because this stylesheet is the place a
+     commissioned set is swapped in. */
+  --portrait-ink: var(--ink);
+  --portrait-paper: var(--paper);
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
   --mono: "SFMono-Regular", Menlo, Consolas, monospace;
 }

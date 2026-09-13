@@ -112,9 +112,8 @@ RSpec.describe "the working draft", type: :system do
     end
 
     # ADR 0006: a Consult yields no paper, so what it lands is a Docket line and
-    # a Client who has been read. The memo and the face are #364's — until then
-    # this is the whole of what a Consult shows, and it is a line rather than a
-    # hole.
+    # a Client who has been read. The words are the memo's; the line is what
+    # survives the Day.
     it "lands a Consult as a Docket line and a Band, with no paper behind it" do
       slip_line("Consult the Client").click_button("Spend")
       click_button "Confirm"
@@ -125,6 +124,79 @@ RSpec.describe "the working draft", type: :system do
 
     it "is accessible with a confirmation open" do
       slip_line("Consult the Client").click_button("Spend")
+
+      expect(page).to be_axe_clean
+    end
+  end
+
+  # The Consult, which is the one Action that buys words rather than paper — and
+  # the one place in the whole game a face is drawn (ADR 0005).
+  describe "consulting the Client" do
+    before { visit "/demo/#{Demo::Seed::DEMO}" }
+
+    def slip_line(label) = find("li.slip", text: label)
+
+    def consult
+      slip_line("Consult the Client").click_button("Spend")
+      click_button "Confirm"
+    end
+
+    # The empty state is the tutorial: the memo says what it would hold before
+    # anything has been bought, rather than being absent until it is.
+    it "says what has not been asked, before he asks" do
+      expect(page).to have_text("You have not asked.")
+      expect(page).to have_no_css("section .portrait")
+    end
+
+    # #332's arithmetic: `ready` sits at 0.8 of the bound and one 0.25 Exhibit
+    # cannot reach it, so Day 3's Client is firm. That is the honest finding
+    # #314 predicted and is not to be flattered by moving an authored number.
+    #
+    # *Which* firm line is read off the run rather than written down here: #334
+    # draws a `simulations.seed` per run and it decides which variant the node
+    # opens on, so a literal would be a coin flip. What is under test is that
+    # the words the engine chose reach the page.
+    it "prints what the Client said, under the band they said it in" do
+      consult
+
+      said = Demo::Seed.simulation(Demo::Seed::DEMO).plaintiff_side.consults.last.beat.line
+
+      expect(page).to have_text(/reads\s+firm/i)
+      expect(page).to have_text(said.squish)
+    end
+
+    it "draws the face, composed into the page rather than fetched" do
+      consult
+
+      expect(page).to have_css("section svg.portrait", visible: :all)
+    end
+
+    # Two variants are authored per band for this, and `CaseClientBand#line`
+    # steps through them by the speak count — so two Consults reach both
+    # whichever variant the seed opened on. The face is printed once:
+    # `Portraits::Compose` keys its screen ids to the seed, the expression and
+    # the size, so a second copy would be duplicate ids on one page.
+    it "stacks a second asking under the first, and still draws one face" do
+      consult
+      consult
+
+      expect(page).to have_css("section svg.portrait", count: 1, visible: :all)
+      expect(page).to have_text("I have thought about it and the answer is still no")
+      expect(page).to have_text("I have been reasonable for eleven years")
+    end
+
+    # #363 put focus back on the control because a refusal is wired to it. The
+    # Consult is the first act whose whole product is words further up the page,
+    # so focus follows the result instead.
+    it "leaves a keyboard reader on the words he just bought" do
+      consult
+
+      expect(page).to have_text(/reads\s+firm/i)
+      expect(page.evaluate_script("document.activeElement.id")).to eq("memo")
+    end
+
+    it "is accessible with the memo on the page" do
+      consult
 
       expect(page).to be_axe_clean
     end

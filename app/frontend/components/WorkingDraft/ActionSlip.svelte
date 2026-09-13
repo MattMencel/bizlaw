@@ -11,6 +11,10 @@
   other five prices off the screen at the moment the trade-off between them is
   the thing being decided.
 
+  After the round trip, focus goes to wherever the act's result can be read: the
+  control for a refusal, which carries the sentence, and the memo for a Consult,
+  whose result is words further up the draft. See `RESULT_ANCHOR`.
+
   The page never sends a price. `router.post` carries the Action's kind and the
   Day it was priced on, and `Days::Command` quotes inside the request that
   charges — so a stub read from props that have gone stale can be refused but
@@ -32,15 +36,27 @@
 
   const toggle = (kind) => (open = open === kind ? null : kind)
 
+  // Where an act's result is legible. A refusal is wired to the control by
+  // `aria-describedby`, so that is where a refused spend reads; a Consult's
+  // whole product is the memo further up the page, and a reader left on the
+  // button is told nothing at all about what the Client said.
+  //
+  // One rule rather than two: #363 wrote it as "focus returns to the control"
+  // when no act yet put anything on the page, and the Consult is the first that
+  // does. An act with nowhere else to land keeps the control.
+  const RESULT_ANCHOR = {consult_client: "memo"}
+
   // The round trip re-renders the whole draft, which on a page this long leaves
   // a keyboard reader at the top of the document with no account of what just
-  // happened. Focus goes back to the Action's own control, where the refusal —
-  // wired to it by `aria-describedby` — is announced along with it. Found by id
-  // rather than held as a binding, because the visit may remount this component
-  // and a held node would be the old one.
+  // happened. Found by id rather than held as a binding, because the visit may
+  // remount this component and a held node would be the old one — which is also
+  // why the refusal is read off the *fresh* props rather than remembered across
+  // the post.
   async function restoreFocus(kind) {
     await tick()
-    document.getElementById(`spend-${kind}`)?.focus()
+    const refused = slip.actions.find((a) => a.kind === kind)?.refused_just_now
+    const anchor = (!refused && RESULT_ANCHOR[kind]) || `spend-${kind}`
+    document.getElementById(anchor)?.focus()
   }
 
   function spend(kind) {
