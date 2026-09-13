@@ -22,7 +22,7 @@ module Demo
           seated.side,
           day: sitting_day(seated.side.simulation),
           you: seated.user,
-          refused: flash[:spend_refusal]
+          refused: refusal_for(seated)
         ).to_props.merge(spend_path: spend_path(seated))
     end
   end

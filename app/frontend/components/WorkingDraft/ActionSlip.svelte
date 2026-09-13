@@ -11,15 +11,19 @@
   other five prices off the screen at the moment the trade-off between them is
   the thing being decided.
 
-  The page never sends a price. `router.post` carries the Action's kind, and
-  `Days::Command` quotes inside the request that charges — so a stub read from
-  props that have gone stale can be refused but never quietly repriced.
+  The page never sends a price. `router.post` carries the Action's kind and the
+  Day it was priced on, and `Days::Command` quotes inside the request that
+  charges — so a stub read from props that have gone stale can be refused but
+  never quietly repriced. The Day rides along because it is the one part of what
+  he agreed to that the server re-asking would answer *differently* rather than
+  not at all: a Day can close between this page and this press, and the next one
+  has a Budget of its own.
 -->
 <script>
   import { router } from "@inertiajs/svelte"
   import { tick } from "svelte"
 
-  let { slip, spend_path } = $props()
+  let { slip, spend_path, day } = $props()
 
   // Which Action's stub is open, and one at a time: the whole argument for
   // confirming in place was keeping the other five prices in view, and two open
@@ -43,7 +47,7 @@
     open = null
     router.post(
       spend_path,
-      { kind },
+      { kind, day },
       { preserveScroll: true, onFinish: () => restoreFocus(kind) }
     )
   }

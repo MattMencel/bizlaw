@@ -4,12 +4,16 @@ module Demo
   # Buying one Action off the Case's menu — the first thing in this app that
   # writes, and the shape every act after it follows.
   #
-  # What arrives is a `kind` and nothing else. The price the student read was
-  # rendered from `Days::Command.quote` on the page that posted this, and it is
-  # as old as that page; `apply` builds its own quote inside the request that
-  # charges, so a stale slip can only ever be *refused* here, never charged a
-  # different number than the one he agreed to. A price crossing the wire would
-  # give that number a second author.
+  # What arrives is a `kind` and the Day it was quoted against — and no price.
+  # The price the student read was rendered from `Days::Command.quote` on the
+  # page that posted this, and it is as old as that page; `apply` builds its own
+  # quote inside the request that charges, so a stale slip can only ever be
+  # *refused* here, never charged a different number than the one he agreed to.
+  # A price crossing the wire would give that number a second author.
+  #
+  # The Day is the one thing the page has to say, because it is the only part of
+  # what he agreed to that re-asking would answer *differently* rather than not
+  # at all — see `quoted_day`.
   #
   # A refusal is the game telling him something, so it is carried back as the
   # engine's own symbol on the flash and turned into a sentence by
@@ -26,20 +30,28 @@ module Demo
       seated = resolve
       return if performed?
 
+      day = quoted_day(seated)
+      return no_page if day.nil?
+
       Days::Command.apply(
         act: :spend,
         side: seated.side,
-        day: sitting_day(seated.side.simulation),
+        day: day,
         by: seated.user,
         kind: params[:kind]
       )
 
       redirect_to draft_path(seated)
     rescue Days::Command::Refused => e
-      # Both halves, because the line that carries the stamp is found by kind
-      # and the sentence under it is named by the reason. A page handed one
-      # without the other has a refusal it cannot place or cannot read.
-      flash[:spend_refusal] = {"kind" => params[:kind].to_s, "reason" => e.quote.refusal.to_s}
+      # All three, because the line that carries the stamp is found by kind, the
+      # sentence under it is named by the reason, and the tab it belongs to is
+      # named by the seat. A page handed one without the others has a refusal it
+      # cannot place, cannot read, or was never owed.
+      flash[:spend_refusal] = {
+        "kind" => params[:kind].to_s,
+        "reason" => e.quote.refusal.to_s,
+        "seat" => seated.segment
+      }
       redirect_to draft_path(seated)
     rescue ArgumentError
       no_page

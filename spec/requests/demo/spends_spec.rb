@@ -12,8 +12,8 @@ RSpec.describe "spending an Action", type: :request do
   let(:side) { simulation.plaintiff_side }
   let(:day) { simulation.days.find_by!(ordinal: Demo::Seed::DEMO_DAY) }
 
-  def spend(kind, run: Demo::Seed::DEMO, seat: nil)
-    post ["/demo/#{run}", seat, "spends"].compact.join("/"), params: {kind: kind}
+  def spend(kind, run: Demo::Seed::DEMO, seat: nil, on: Demo::Seed::DEMO_DAY)
+    post ["/demo/#{run}", seat, "spends"].compact.join("/"), params: {kind: kind, day: on}
   end
 
   describe "an Action the half will cover" do
@@ -109,6 +109,51 @@ RSpec.describe "spending an Action", type: :request do
       expect(others).to all(include(affordable: false, refused_just_now: false))
       expect(others.pluck(:refusal)).to all(be_present)
     end
+  end
+
+  # The Day is the one part of what he agreed to that asking twice would answer
+  # differently rather than not at all, so the page says which Day it priced and
+  # the seam judges that one.
+  describe "a Day that closed under the confirmation" do
+    # The defendant has already committed Day 3, so the plaintiff's commit is
+    # the second and closes it — and Day 4 opens with a Budget of its own.
+    before do
+      Days::Commit.call(side: side, day: day, by: side.members.sole)
+    end
+
+    it "refuses the spend rather than charging the Day that opened behind it" do
+      expect { spend(CaseAction::REQUEST_DOCUMENTS) }.not_to change(DocketEntry, :count)
+
+      follow_redirect!
+      line = inertia.props[:slip][:actions].find { |a| a[:kind] == CaseAction::REQUEST_DOCUMENTS }
+      expect(line).to include(refused_just_now: true)
+      expect(line[:refusal]).to eq("This Day has closed.")
+    end
+
+    it "leaves the Day that opened behind it untouched" do
+      spend(CaseAction::REQUEST_DOCUMENTS)
+
+      expect(side.docket_entries.where(day: simulation.days.find_by!(ordinal: 4))).to be_empty
+    end
+  end
+
+  it "does not know a Day off the Simulation's calendar" do
+    expect { spend(CaseAction::CONSULT_CLIENT, on: 99) }.not_to change(DocketEntry, :count)
+
+    expect(response).to have_http_status(:not_found)
+  end
+
+  # The flash is the session and the session is the browser, so the demo's two
+  # tabs share it. A refusal one seat earned is not the other's to read.
+  it "does not put one seat's refusal on the other's draft" do
+    [CaseAction::RETAIN_EXPERT, CaseAction::DEPOSE_WITNESS].each do |kind|
+      Days::Command.apply(act: :spend, side: side, day: day, by: side.members.sole, kind: kind)
+    end
+    spend(CaseAction::CONSULT_CLIENT, seat: Side::PLAINTIFF)
+
+    get "/demo/#{Demo::Seed::DEMO}/#{Side::DEFENDANT}"
+
+    expect(inertia.props[:slip][:actions]).to all(include(refused_just_now: false))
   end
 
   # A kind off no menu the engine ever offered. Nothing on the page can produce

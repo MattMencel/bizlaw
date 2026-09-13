@@ -79,7 +79,7 @@
 
       <hr class="rule" />
 
-      <ActionSlip {slip} {spend_path} />
+      <ActionSlip {slip} {spend_path} day={letterhead.day} />
     {:else}
       <BackOfFile {back} />
     {/if}

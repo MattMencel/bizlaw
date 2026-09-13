@@ -53,6 +53,26 @@ module Demo
         simulation.days.order(:ordinal).last
     end
 
+    # The Day an act was quoted against — named by the request rather than
+    # resolved a second time.
+    #
+    # `sitting_day` answers *which Day is this Team in*, and between the read
+    # that priced a control and the write that confirms it, that answer can
+    # move: the other Side commits, a deadline fires, an Instructor force-closes
+    # — and the Day the student read is closed while the next one is open, with
+    # a Budget of its own and a landing Day one further out. Asking the same
+    # question twice would charge him against a Day he never saw.
+    #
+    # So the page sends the Day it was priced on and the seam judges it. A Day
+    # that has since closed is already `the_day_has_closed` and a Day that has
+    # not opened is already `the_day_has_not_opened`; both are sentences the
+    # slip knows how to render, which is why this needs no guard of its own. An
+    # ordinal off the Simulation's calendar is nobody's Day and is the caller's
+    # doing, so it reads as a 404 like a mistyped seat.
+    def quoted_day(seated)
+      seated.side.simulation.days.find_by(ordinal: params[:day])
+    end
+
     # Where the slip posts, and where a spend sends the reader back to. Built
     # here rather than in `WorkingDraft`, because a path is routing and that
     # read is domain: it turns Days into ordinals and refusals into sentences
@@ -73,5 +93,18 @@ module Demo
     def draft_path(seated) = demo_run_path(run: params[:run], seat: canonical(seated))
 
     def canonical(seated) = (seated.segment unless seated.segment == Seat::DEFAULT)
+
+    # A refusal this seat is owed, and nobody else's.
+    #
+    # The flash is the session, and the session is the browser — so the two tabs
+    # the demo is played from share it. A refusal left unscoped is read by
+    # whichever tab navigates first, which stamps the wrong Side's board *and*
+    # takes the sentence away from the tab that earned it. Scoped, the worst
+    # that race can do is lose it, and a refusal that writes nothing anywhere is
+    # something a page can afford to lose.
+    def refusal_for(seated)
+      carried = flash[:spend_refusal]
+      carried if carried && carried["seat"] == seated.segment
+    end
   end
 end
