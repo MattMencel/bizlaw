@@ -10,6 +10,11 @@ module Demo
   # refuses to render and a seat a spend accepts would be two answers to the
   # question the address exists to ask.
   class SeatedController < InertiaController
+    # Where a refusal waits for the seat that earned it. One key for both seats
+    # rather than one each: the payload names its own seat, so a second key
+    # would be a second place for that name to be wrong.
+    SPEND_REFUSAL = "spend_refusal"
+
     private
 
     # `Demo::Seed.simulation` and `Demo::Seat` are the resolvers rather than
@@ -101,17 +106,26 @@ module Demo
 
     def canonical(seated) = (seated.segment unless seated.segment == Seat::DEFAULT)
 
-    # A refusal this seat is owed, and nobody else's.
+    # A refusal this seat is owed, and nobody else's — taken off the shelf by
+    # the seat that earned it and by no other.
     #
-    # The flash is the session, and the session is the browser — so the two tabs
-    # the demo is played from share it. A refusal left unscoped is read by
-    # whichever tab navigates first, which stamps the wrong Side's board *and*
-    # takes the sentence away from the tab that earned it. Scoped, the worst
-    # that race can do is lose it, and a refusal that writes nothing anywhere is
-    # something a page can afford to lose.
+    # The session is the browser, and the demo is played from two tabs, so both
+    # seats share it. The flash is the obvious carrier and the wrong one: it is
+    # swept by *whichever* request comes next, so the other tab navigating in
+    # the window between the POST and its own redirect takes the sentence away
+    # from the tab that earned it — without ever being the tab that wanted it.
+    #
+    # A plain session entry read by its owner has no such window. The wrong seat
+    # looks, does not match, and leaves it where it is; the right seat finds it
+    # however long the round trip took, and clears it on the way past so it is
+    # read exactly once. What is left behind is bounded to one entry per seat,
+    # overwritten by that seat's next refusal.
     def refusal_for(seated)
-      carried = flash[:spend_refusal]
-      carried if carried && carried["seat"] == seated.segment
+      carried = session[SPEND_REFUSAL]
+      return nil unless carried && carried["seat"] == seated.segment
+
+      session.delete(SPEND_REFUSAL)
+      carried
     end
   end
 end

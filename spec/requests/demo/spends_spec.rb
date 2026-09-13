@@ -159,17 +159,44 @@ RSpec.describe "spending an Action", type: :request do
     expect(response).to have_http_status(:not_found)
   end
 
-  # The flash is the session and the session is the browser, so the demo's two
-  # tabs share it. A refusal one seat earned is not the other's to read.
-  it "does not put one seat's refusal on the other's draft" do
-    [CaseAction::RETAIN_EXPERT, CaseAction::DEPOSE_WITNESS].each do |kind|
-      Days::Command.apply(act: :spend, side: side, day: day, by: side.members.sole, kind: kind)
+  # The session is the browser and the demo is played from two tabs, so both
+  # seats share it. A refusal one seat earned is not the other's to read — and
+  # not the other's to consume on its way past either, which is why it waits in
+  # the session rather than in the flash.
+  describe "a refusal one seat earned" do
+    before do
+      [CaseAction::RETAIN_EXPERT, CaseAction::DEPOSE_WITNESS].each do |kind|
+        Days::Command.apply(act: :spend, side: side, day: day, by: side.members.sole, kind: kind)
+      end
+      spend(CaseAction::CONSULT_CLIENT, seat: Side::PLAINTIFF)
     end
-    spend(CaseAction::CONSULT_CLIENT, seat: Side::PLAINTIFF)
 
-    get "/demo/#{Demo::Seed::DEMO}/#{Side::DEFENDANT}"
+    def stamped = inertia.props[:slip][:actions].select { |a| a[:refused_just_now] }
 
-    expect(inertia.props[:slip][:actions]).to all(include(refused_just_now: false))
+    it "is not read by the other seat" do
+      get "/demo/#{Demo::Seed::DEMO}/#{Side::DEFENDANT}"
+
+      expect(stamped).to be_empty
+    end
+
+    # The window the flash could not survive: the other tab navigates before
+    # this one follows its own redirect.
+    it "is still there when the seat that earned it arrives late" do
+      get "/demo/#{Demo::Seed::DEMO}/#{Side::DEFENDANT}"
+
+      get "/demo/#{Demo::Seed::DEMO}"
+
+      expect(stamped.pluck(:kind)).to eq([CaseAction::CONSULT_CLIENT])
+    end
+
+    it "is read exactly once" do
+      get "/demo/#{Demo::Seed::DEMO}"
+      expect(stamped).not_to be_empty
+
+      get "/demo/#{Demo::Seed::DEMO}"
+
+      expect(stamped).to be_empty
+    end
   end
 
   # A kind off no menu the engine ever offered. Nothing on the page can produce

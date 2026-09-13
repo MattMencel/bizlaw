@@ -47,7 +47,10 @@ module Demo
       # sentence under it is named by the reason, and the tab it belongs to is
       # named by the seat. A page handed one without the others has a refusal it
       # cannot place, cannot read, or was never owed.
-      flash[:spend_refusal] = {
+      #
+      # The session rather than the flash, and `refusal_for` is why: this waits
+      # for the seat that earned it instead of for whichever request comes next.
+      session[SPEND_REFUSAL] = {
         "kind" => params[:kind].to_s,
         "reason" => e.quote.refusal.to_s,
         "seat" => seated.segment
