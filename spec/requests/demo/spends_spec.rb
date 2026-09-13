@@ -137,6 +137,22 @@ RSpec.describe "spending an Action", type: :request do
     end
   end
 
+  # The Day is not bound to the one the page happened to show, and does not need
+  # to be: `Days::Open` writes a Day's Budget only as the Day before it closes,
+  # so of a Simulation's Days exactly one is ever both unclosed and budgeted.
+  # Every other ordinal a caller could name is already a refusal the seam owns —
+  # `the_day_has_closed` behind, `the_day_has_not_opened` ahead. A controller
+  # re-stating that would be a second authority on which Days a Team may act.
+  it "refuses a Day the calendar has not opened yet" do
+    expect { spend(CaseAction::REQUEST_DOCUMENTS, on: Demo::Seed::DEMO_DAY + 1) }
+      .not_to change(DocketEntry, :count)
+
+    follow_redirect!
+    line = inertia.props[:slip][:actions].find { |a| a[:kind] == CaseAction::REQUEST_DOCUMENTS }
+    expect(line).to include(refused_just_now: true)
+    expect(line[:refusal]).to eq("This Day has not opened yet.")
+  end
+
   it "does not know a Day off the Simulation's calendar" do
     expect { spend(CaseAction::CONSULT_CLIENT, on: 99) }.not_to change(DocketEntry, :count)
 

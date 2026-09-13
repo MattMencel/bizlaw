@@ -69,6 +69,13 @@ module Demo
     # slip knows how to render, which is why this needs no guard of its own. An
     # ordinal off the Simulation's calendar is nobody's Day and is the caller's
     # doing, so it reads as a 404 like a mistyped seat.
+    #
+    # It is deliberately not bound to `sitting_day`, and does not need to be:
+    # `Days::Open` writes a Day's Budget only as the Day before it closes, so of
+    # a Simulation's Days exactly one is ever both unclosed and budgeted. Every
+    # other ordinal is one of the two refusals above already. Checking it here
+    # would put a second authority on which Days a Team may act beside the seam
+    # that owns the question.
     def quoted_day(seated)
       seated.side.simulation.days.find_by(ordinal: params[:day])
     end
