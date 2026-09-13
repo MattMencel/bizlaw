@@ -31,6 +31,38 @@
   import ActionSlip from "../../components/WorkingDraft/ActionSlip.svelte"
   import BackOfFile from "../../components/WorkingDraft/BackOfFile.svelte"
 
+  // PROTOTYPE (#373) — three term sheets on one route, `?variant=A|B|C`.
+  // Throwaway: this import block, `VARIANTS`, `variant`, the `{#if}` around
+  // the term sheet and the bar at the foot all come out when one wins.
+  import TermSheetA from "../../components/WorkingDraft/prototype/TermSheetA.svelte"
+  import TermSheetB from "../../components/WorkingDraft/prototype/TermSheetB.svelte"
+  import TermSheetC from "../../components/WorkingDraft/prototype/TermSheetC.svelte"
+  import VariantSwitcher from "../../components/WorkingDraft/prototype/VariantSwitcher.svelte"
+
+  const VARIANTS = [
+    {key: "A", name: "the table, as shipped", component: TermSheetA},
+    {key: "B", name: "redline in place, true margin", component: TermSheetB},
+    {key: "C", name: "numbered articles", component: TermSheetC},
+  ]
+
+  const fromUrl = () => {
+    const asked = new URLSearchParams(window.location.search).get("variant")
+    return VARIANTS.some((v) => v.key === asked) ? asked : "A"
+  }
+
+  const DEV = import.meta.env.DEV
+
+  let variant = $state(DEV ? fromUrl() : null)
+
+  const pick = (key) => {
+    variant = key
+    const url = new URL(window.location.href)
+    url.searchParams.set("variant", key)
+    window.history.replaceState({}, "", url)
+  }
+
+  const Variant = $derived(VARIANTS.find((v) => v.key === variant)?.component ?? TermSheet)
+
   let {
     letterhead,
     front_matter,
@@ -81,7 +113,7 @@
 
       <hr class="rule heavy" />
 
-      <TermSheet {term_sheet} {letterhead} {countersignature} />
+      <Variant {term_sheet} {letterhead} {countersignature} />
 
       <hr class="rule" />
 
@@ -99,6 +131,10 @@
     {/if}
   </article>
 </main>
+
+{#if DEV}
+  <VariantSwitcher variants={VARIANTS} current={variant} onpick={pick} />
+{/if}
 
 <style>
   /* The desk the sheet lies on. It is the page's and not the register's: the
