@@ -15,8 +15,13 @@
 # writes nothing doing it. A second path to the same numbers is a second place
 # for them to disagree with what a student is actually charged.
 class ActionBoard
-  # One Action, priced against this Side's Day.
-  Entry = Data.define(:kind, :cost, :half, :lead_time_days, :landing_day, :refusal) do
+  # One Action, priced against this Side's Day. `remaining_after` is what the
+  # half would still hold if this one went through, and it is nil on a refused
+  # Entry for the same reason `Quote` carries none: there is no negative Budget
+  # to render. It is what a confirmation is written from — the number that makes
+  # a price a trade-off rather than a fact.
+  Entry = Data.define(:kind, :cost, :half, :lead_time_days, :landing_day, :remaining_after,
+    :refusal) do
     def affordable? = refusal.nil?
 
     # A lead time of zero lands the result on the Day it was bought.
@@ -44,6 +49,7 @@ class ActionBoard
         half: action.half,
         lead_time_days: action.lead_time_days,
         landing_day: quote.landing_day,
+        remaining_after: quote.remaining_after,
         refusal: quote.refusal
       )
     end

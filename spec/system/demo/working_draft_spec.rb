@@ -61,6 +61,112 @@ RSpec.describe "the working draft", type: :system do
     end
   end
 
+  # The first act in the game. Three legs across one Inertia round trip — the
+  # price offered on the slip, the confirmation read from the same quote, and
+  # the charge — and the whole of it has to read as paper rather than as a
+  # browser dialog.
+  describe "spending an Action" do
+    before { visit "/demo/#{Demo::Seed::DEMO}" }
+
+    def slip_line(label) = find("li.slip", text: label)
+
+    it "opens the price in place, against what the half has left" do
+      slip_line("Consult the Client").click_button("Spend")
+
+      expect(page).to have_text("1 preparation · 7 preparation left after · lands today")
+      expect(page).to have_button("Confirm")
+    end
+
+    # The argument for confirming on the line rather than over the sheet: the
+    # other five prices are what makes this one a trade-off.
+    it "leaves the rest of the menu on the page while he decides" do
+      slip_line("Consult the Client").click_button("Spend")
+
+      expect(page).to have_text("Retain an expert")
+      expect(page).to have_text("Depose a witness")
+    end
+
+    it "opens one stub at a time" do
+      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Retain an expert").click_button("Spend")
+
+      expect(page).to have_css("button", text: /confirm/i, count: 1)
+    end
+
+    it "charges nothing on Cancel" do
+      slip_line("Consult the Client").click_button("Spend")
+      click_button "Cancel"
+
+      expect(page).to have_no_button("Confirm")
+      expect(page).to have_text(/8 preparation/i)
+    end
+
+    it "charges the half and writes the Docket when he confirms" do
+      slip_line("Request documents").click_button("Spend")
+      click_button "Confirm"
+
+      expect(page).to have_text(/6 preparation/i)
+
+      click_button "Turn the page over"
+      expect(page).to have_text("Request documents")
+    end
+
+    # ADR 0006: a Consult yields no paper, so what it lands is a Docket line and
+    # a Client who has been read. The memo and the face are #364's — until then
+    # this is the whole of what a Consult shows, and it is a line rather than a
+    # hole.
+    it "lands a Consult as a Docket line and a Band, with no paper behind it" do
+      slip_line("Consult the Client").click_button("Spend")
+      click_button "Confirm"
+      click_button "Turn the page over"
+
+      expect(page).to have_text(/Consult the Client — Sam Ortega · the Client reads \w+/)
+    end
+
+    it "is accessible with a confirmation open" do
+      slip_line("Consult the Client").click_button("Spend")
+
+      expect(page).to be_axe_clean
+    end
+  end
+
+  # Eight points of preparation, spent. Every Action on the menu is then priced
+  # and refused, which is the Board's own claim about itself — and the one state
+  # in the demo where a student meets a refusal rather than a price.
+  describe "a half with nothing left in it" do
+    before do
+      simulation = Demo::Seed.simulation(Demo::Seed::DEMO)
+      side = simulation.plaintiff_side
+      day = simulation.days.find_by!(ordinal: Demo::Seed::DEMO_DAY)
+      [CaseAction::RETAIN_EXPERT, CaseAction::DEPOSE_WITNESS].each do |kind|
+        Days::Command.apply(act: :spend, side: side, day: day, by: side.members.sole, kind: kind)
+      end
+
+      visit "/demo/#{Demo::Seed::DEMO}"
+    end
+
+    # Present and dead rather than absent, and reachable rather than `disabled`:
+    # the sentence saying why is the thing the Board exists to teach, so it
+    # cannot be the part a keyboard skips over.
+    it "keeps every control on the slip, refused and reachable" do
+      expect(page).to have_text("Today's half will not cover it.", count: 6)
+
+      control = find("#spend-consult_client")
+      expect(control["aria-disabled"]).to eq("true")
+      expect(control["aria-describedby"]).to eq("refusal-consult_client")
+    end
+
+    it "opens nothing when a refused control is pressed" do
+      find("#spend-consult_client").click
+
+      expect(page).to have_no_button("Confirm")
+    end
+
+    it "is accessible" do
+      expect(page).to be_axe_clean
+    end
+  end
+
   # #332 hands him Day 3 untouched, so the demo never opens on a draft of his
   # own. Staging one through the real seam is how the page's other half gets
   # looked at — the mark that says our column is a draft rather than a position

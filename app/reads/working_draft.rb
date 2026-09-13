@@ -19,10 +19,15 @@
 class WorkingDraft
   def self.for(...) = new(...)
 
-  def initialize(side, day:, you:)
+  # `refused` is the spend that did not happen, carried back from the request
+  # that tried it: the Action's kind and the engine's own refusal symbol. It is
+  # an argument rather than something folded for, because a refusal writes
+  # nothing — there is no row anywhere that remembers it, and that is the point.
+  def initialize(side, day:, you:, refused: nil)
     @side = side
     @day = day
     @you = you
+    @refused = refused
   end
 
   def to_props
@@ -45,7 +50,7 @@ class WorkingDraft
   # exactly one member has acted. They come apart at the cold open, where the
   # ledgers are empty and the player is sitting there all the same, and again
   # the moment a second act is attributed.
-  attr_reader :side, :day, :you
+  attr_reader :side, :day, :you, :refused
 
   def briefing = @briefing ||= MorningBriefing.for(side, day: day)
 
@@ -141,12 +146,26 @@ class WorkingDraft
 
   # Every Action, priced, whether or not the half will cover it — with the
   # refusal's own sentence beside the ones that will not.
+  #
+  # A spend that was just refused is the same sentence on the same line, marked
+  # as having happened: `refused_just_now` is the whole difference between an
+  # Action he cannot afford and an Action he tried to buy a moment ago, which
+  # re-rendering alone cannot say. There is one refusal vocabulary and this is
+  # its second occasion, not a second vocabulary.
+  #
+  # The Entry's own refusal wins where there is one, because it was computed
+  # against the Day as it stands now; the carried reason is the fallback for the
+  # case the seam documents as impossible — a half that moved back under its
+  # ceiling between the failed charge and this read — where the line would
+  # otherwise carry a stamp with nothing under it.
   def slip
     {
       remaining: DayBudget::HALVES.to_h do |half|
         [half, {left: board.remaining_in(half), label: half_label(half)}]
       end,
       actions: board.entries.map do |entry|
+        just_now = refused_kind == entry.kind
+
         {
           kind: entry.kind,
           label: kind_label(entry.kind),
@@ -156,12 +175,18 @@ class WorkingDraft
           lead_time_days: entry.lead_time_days,
           lands_today: entry.lands_today?,
           landing_day: entry.landing_day&.ordinal,
+          remaining_after: entry.remaining_after,
           affordable: entry.affordable?,
-          refusal: refusal_sentence(entry.refusal)
+          refused_just_now: just_now,
+          refusal: refusal_sentence(entry.refusal || (just_now ? refused_reason : nil))
         }
       end
     }
   end
+
+  def refused_kind = refused && refused["kind"]
+
+  def refused_reason = refused && refused["reason"].presence
 
   # What we know, and what we have done — under one heading, because the back
   # of the instrument is one surface.

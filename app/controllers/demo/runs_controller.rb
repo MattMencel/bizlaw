@@ -12,54 +12,18 @@ module Demo
   # answers it. Nothing is held between requests: the pair is resolved from the
   # URL each time, which is why two tabs can be two people without either one
   # standing on the other.
-  class RunsController < InertiaController
+  class RunsController < SeatedController
     def show
       seated = resolve
       return if performed?
 
       render inertia: "Demo/WorkingDraft",
         props: WorkingDraft.for(
-          seated.side, day: sitting_day(seated.side.simulation), you: seated.user
-        ).to_props
-    end
-
-    private
-
-    # `Demo::Seed.simulation` and `Demo::Seat` are the resolvers rather than
-    # lookups written here: each already documents itself as the one place a
-    # screen asks its question, and a run's name and a seat's are both stable
-    # across resets where the rows underneath are not.
-    #
-    # An unknown run or seat is a 404. An Organization that does not hold the
-    # pair raises instead, and that error is left to surface — it says to re-run
-    # `rake demo:seed`, which is the fix, and a 404 would hide it behind "not
-    # found" on a laptop where the fix is one command.
-    #
-    # The Instructor is seated and has no page. They are not in the dispute, so
-    # there is no draft to render them; the surface for the one act they take
-    # arrives with the control that grants it, and until then this is a seat the
-    # resolver knows and the route does not serve.
-    def resolve
-      seated = Seat.for(Seed.simulation(params[:run]), params[:seat])
-      return seated if seated.seated?
-
-      no_page
-    rescue ArgumentError
-      no_page
-    end
-
-    # The two ways there is nothing to render: a run or a seat the seed did not
-    # lay down, and the Instructor, who is seated and is not in the dispute.
-    def no_page
-      head :not_found
-      nil
-    end
-
-    # The Day the Team is sitting in. It falls back to the last Day rather than
-    # failing, so a run played to its end still renders a page.
-    def sitting_day(simulation)
-      simulation.days.where(closed_at: nil).order(:ordinal).first ||
-        simulation.days.order(:ordinal).last
+          seated.side,
+          day: sitting_day(seated.side.simulation),
+          you: seated.user,
+          refused: flash[:spend_refusal]
+        ).to_props.merge(spend_path: spend_path(seated))
     end
   end
 end

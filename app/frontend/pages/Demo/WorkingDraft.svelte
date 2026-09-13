@@ -18,8 +18,9 @@
   a link that can be handed over already flipped would answer the question the
   demo was built to ask.
 
-  Every control here renders and none of them writes. The acts are their own
-  ticket.
+  The slip writes: buying an Action off the menu is the first act in the game
+  and the shape the rest follow. Everything else here still only renders — the
+  Offer, the Second and the Day's close are their own tickets.
 -->
 <script>
   import FrontMatter from "../../components/WorkingDraft/FrontMatter.svelte"
@@ -28,7 +29,8 @@
   import ActionSlip from "../../components/WorkingDraft/ActionSlip.svelte"
   import BackOfFile from "../../components/WorkingDraft/BackOfFile.svelte"
 
-  let { letterhead, front_matter, term_sheet, countersignature, slip, back } = $props()
+  let { letterhead, front_matter, term_sheet, countersignature, slip, back, spend_path } =
+    $props()
 
   let face = $state("front")
 
@@ -77,7 +79,7 @@
 
       <hr class="rule" />
 
-      <ActionSlip {slip} />
+      <ActionSlip {slip} {spend_path} />
     {:else}
       <BackOfFile {back} />
     {/if}

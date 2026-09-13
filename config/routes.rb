@@ -22,6 +22,11 @@ Rails.application.routes.draw do
   # is reading.
   unless Rails.env.production?
     get "demo/:run(/:seat)", to: "demo/runs#show", as: :demo_run
+    # The spend, nested under the seat that takes it. The page never sends a
+    # price — only which Action off the menu — because `Days::Command` quotes
+    # inside the same request that charges, and a price crossing the wire would
+    # be a second authority for a number this design keeps in one place.
+    post "demo/:run(/:seat)/spends", to: "demo/spends#create", as: :demo_run_spends
   end
 
   # Defines the root path route ("/")
