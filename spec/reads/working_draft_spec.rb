@@ -198,6 +198,53 @@ RSpec.describe WorkingDraft do
         cost: 5, affordable: false, refusal: "Today's half will not cover it."
       )
     end
+
+    # What a confirmation is written from: a price is a trade-off only against
+    # what is left once it is paid.
+    it "says what the half would still hold if each Action went through" do
+      expect(action(CaseAction::DEPOSE_WITNESS)).to include(remaining_after: 5)
+      expect(action(CaseAction::RETAIN_EXPERT)).to include(remaining_after: 3)
+    end
+
+    it "carries no remaining-after on an Action it has already refused" do
+      Days::Command.apply(act: :spend, side: side, day: day, by: dana,
+        kind: CaseAction::RETAIN_EXPERT)
+
+      expect(action(CaseAction::RETAIN_EXPERT)).to include(remaining_after: nil)
+    end
+
+    # The one mark that separates an Action he cannot afford from an Action he
+    # tried to buy a moment ago. Nothing anywhere remembers a refusal, so it is
+    # handed in and survives exactly this read.
+    describe "a spend that was just refused" do
+      def refused_props(kind:, reason:)
+        described_class.for(side, day: day, you: dana,
+          refused: {"kind" => kind, "reason" => reason}).to_props
+      end
+
+      it "stamps the line it was refused on, and only that one" do
+        props = refused_props(kind: CaseAction::RETAIN_EXPERT,
+          reason: "the_budget_cannot_cover_it")
+        stamped = props[:slip][:actions].select { |row| row[:refused_just_now] }
+
+        expect(stamped.pluck(:kind)).to eq([CaseAction::RETAIN_EXPERT])
+      end
+
+      # The fallback the seam documents as impossible: a half back under its
+      # ceiling between the failed charge and this read. The line would carry a
+      # stamp with nothing under it, so the carried reason is what it reads.
+      it "gives the stamped line the carried sentence where the quote has none" do
+        props = refused_props(kind: CaseAction::RETAIN_EXPERT,
+          reason: "the_budget_cannot_cover_it")
+        line = props[:slip][:actions].find { |row| row[:kind] == CaseAction::RETAIN_EXPERT }
+
+        expect(line).to include(affordable: true, refusal: "Today's half will not cover it.")
+      end
+
+      it "marks nothing when no spend was refused" do
+        expect(props[:slip][:actions]).to all(include(refused_just_now: false, refusal: nil))
+      end
+    end
   end
 
   describe "the back of the file" do
