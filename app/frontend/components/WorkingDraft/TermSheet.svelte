@@ -2,15 +2,46 @@
   The term sheet: the centre of the draft, and the only place the two Sides'
   positions are set against each other.
 
-  `TermsBoard` keeps three ways to be silent distinct and so does this — a Term
-  nobody has tabled, a Position with no figure, and a Client with no aspiration
-  are three different cells, never one zero. Par is never shown.
+  One ruled line per Term, in the register #315 asked for and #373 settled by
+  looking: their last committed position **struck through in place**, ours
+  written on the same line after it, and the Client's aspiration outside the
+  text block in a margin. What this replaced was a four-column table — Term /
+  Ours / Theirs / What she asked for — which made the reader compare cells
+  rather than read a document somebody had marked up.
 
-  Whether this reads as paper or as a diff view is an open question against
-  #315's grammar; the table is what #344 shipped and what axe has passed.
+  The three ways to be silent stay distinct here without a word doing the work,
+  which is most of why this register won. `TermsBoard` keeps them apart and so
+  does the line:
+
+    · nobody has tabled the Term    → nothing struck, and the line is empty
+    · a Position carrying no figure → the word, on the line or struck
+    · the Client is indifferent     → the margin is empty
+
+  Par is never shown.
+
+  **It is still a table.** Four columns under a visually hidden `<thead>`, so a
+  reader who cannot see the strike is told whose each figure is — the strike and
+  the redline colour carry nothing on their own, which is what the axe pass over
+  this screen exists to keep true. What the eye gets instead of a header row is
+  the `<caption>`, because a header row is the thing that made this a diff view
+  and a caption is where a table's reading convention belongs. It is the one
+  sentence both readers get.
+
+  **A silence is an empty cell, and all three are empty the same way.** The
+  caption says so once rather than every cell saying it for itself: this sheet
+  is mostly silence by design — on the Day #332 hands the player, seventeen of
+  its twenty-one cells are empty — and filling each one with its own explanation
+  would bury the four that say something. The header names the column and the
+  cell is blank, which is what a data table means by nothing.
 -->
 <script>
   let { term_sheet, letterhead, countersignature } = $props()
+
+  // A Position present without an amount is a Team offering the Term itself —
+  // an apology is an apology — so it is a word on the line rather than a zero.
+  const written = (position) => (position.money ? position.amount : "Included")
+
+  const asked = (aspiration) => (aspiration.money ? aspiration.amount : "Asked for")
 </script>
 
 <section aria-labelledby="term-sheet">
@@ -31,38 +62,30 @@
     <p class="empty-state">{term_sheet.empty_state}</p>
   {:else}
     <table class="terms">
-      <thead>
+      <caption class="rubric">
+        Struck through, their last committed offer. Written in, ours. The margin is the
+        Client's. Where there is nothing, nobody has said anything.
+      </caption>
+      <thead class="sr-only">
         <tr>
           <th scope="col">Term</th>
-          <th scope="col">Ours</th>
-          <th scope="col">Theirs</th>
-          <th scope="col">What she asked for</th>
+          <th scope="col">Their last committed position</th>
+          <th scope="col">Our position</th>
+          <th scope="col">What the Client asked for</th>
         </tr>
       </thead>
       <tbody>
         {#each term_sheet.tracks as track (track.term)}
           <tr>
             <th scope="row" class="term">{track.label}</th>
-            <td>
-              {#if track.ours}
-                {track.ours.money ? track.ours.amount : "Included"}
-              {:else}
-                <span class="silent">silent</span>
-              {/if}
+            <td class="line struck">
+              {#if track.theirs}<s>{written(track.theirs)}</s>{/if}
             </td>
-            <td>
-              {#if track.theirs}
-                <span class="theirs">{track.theirs.money ? track.theirs.amount : "Included"}</span>
-              {:else}
-                <span class="silent">silent</span>
-              {/if}
+            <td class="line ours">
+              {#if track.ours}{written(track.ours)}{/if}
             </td>
-            <td class="asp">
-              {#if track.aspiration}
-                {track.aspiration.money ? track.aspiration.amount : "Asked for"}
-              {:else}
-                <span class="silent">—</span>
-              {/if}
+            <td class="margin">
+              {#if track.aspiration}<span class="hand">{asked(track.aspiration)}</span>{/if}
             </td>
           </tr>
         {/each}
@@ -95,48 +118,62 @@
     color: var(--stamp);
     border-color: var(--stamp);
   }
+  /* What a header row would have said, said once in the register's own voice —
+     and, being the caption, said to both readers out of one element. */
+  caption.rubric {
+    text-align: left;
+    font-size: 12.5px;
+    font-style: italic;
+    color: var(--muted);
+    padding: 0 0 14px;
+  }
 
   table.terms {
     width: 100%;
     border-collapse: collapse;
-    font-size: 14px;
-  }
-  table.terms th[scope="col"] {
-    text-align: left;
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 400;
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
-    color: var(--muted);
-    border-bottom: 1px solid var(--ink);
-    padding: 0 10px 5px 0;
-  }
-  table.terms td,
-  table.terms th[scope="row"] {
-    padding: 7px 10px 7px 0;
-    border-bottom: 1px solid var(--rule);
-    vertical-align: top;
-    text-align: left;
-    font-weight: 400;
+    font-size: 15px;
   }
   .term {
+    width: 158px;
+    text-align: left;
+    font-weight: 400;
     font-variant: small-caps;
     letter-spacing: 0.04em;
+    padding: 11px 12px 3px 0;
+    vertical-align: baseline;
   }
-  /* Redline is the register's mark for their position, and it is decoration
-     only: the column header is what says whose it is, so nothing here depends
-     on seeing the strike or the colour. */
-  .theirs {
+  /* The writing space, ruled whether or not anybody has written on it: what a
+     reader sees is a line with something on it or a line with nothing, rather
+     than two kinds of cell. It is two cells so the hidden header can say whose
+     each figure is, and `border-collapse` joins their rules into the one line
+     that the strike and the writing both sit on.
+
+     `width: 1%` shrinks the struck cell onto its content, which is what puts
+     our figure immediately after theirs instead of in a column of its own. */
+  .line {
+    border-bottom: 1px solid var(--rule-2);
+    padding: 11px 0 3px;
+    vertical-align: baseline;
+  }
+  .struck {
+    width: 1%;
+    white-space: nowrap;
+    padding-right: 10px;
+  }
+  s {
     color: var(--redline);
-    text-decoration: line-through;
-    text-decoration-color: rgba(142, 38, 25, 0.5);
+    text-decoration-color: rgba(142, 38, 25, 0.55);
   }
-  .silent {
-    color: var(--muted);
-    font-style: italic;
+  /* Past the rule is annotation rather than drafting, which is the whole of the
+     difference between a margin and a fourth column: a fixed measure so it
+     cannot grow into one, and a smaller hand off the ink of the instrument. */
+  .margin {
+    width: 148px;
+    padding: 11px 0 3px 18px;
+    border-left: 1px solid var(--rule);
+    vertical-align: baseline;
   }
-  .asp {
+  .hand {
     font-family: var(--mono);
     font-size: 11px;
     color: var(--muted);
@@ -144,5 +181,6 @@
   .note {
     font-style: italic;
     color: var(--muted);
+    margin-top: 14px;
   }
 </style>

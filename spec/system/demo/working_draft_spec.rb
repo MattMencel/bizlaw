@@ -25,6 +25,17 @@ RSpec.describe "the working draft", type: :system do
     it "puts their offer on the term sheet beside what his Client asked for" do
       expect(page).to have_text("$40,000")
       expect(page).to have_text("$250,000")
+      expect(page).to have_text("Struck through, their last committed offer")
+    end
+
+    # The register #373 settled carries whose a position is in a strike and a
+    # margin rather than in column headings, so the headings are still there and
+    # only the eye is spared them. Nothing on the sheet depends on seeing the
+    # strike or the redline colour.
+    it "says whose each figure is for a reader who cannot see the strike" do
+      expect(page).to have_css("thead th", text: "Their last committed position", visible: :all)
+      expect(page).to have_css("thead th", text: "Our position", visible: :all)
+      expect(page).to have_css("table.terms caption", text: "Where there is nothing")
     end
 
     # The block is on the page before there is a draft to sign, because an empty
@@ -298,6 +309,46 @@ RSpec.describe "the working draft", type: :system do
       click_button "Turn the page over"
 
       expect(page).to have_text("Nothing yet.")
+    end
+
+    it "is accessible" do
+      expect(page).to be_axe_clean
+    end
+  end
+
+  # The redline only has two sides to it once this Side has taken a position,
+  # and #332 hands the player a Day he has not acted on — so on the seeded sheet
+  # every one of our slots is blank and half the register never renders. Staging
+  # a draft is what puts all four states on one sheet: a figure written over a
+  # struck figure, a Term tabled without one, a Term nobody has raised, and a
+  # Client who is indifferent about it.
+  describe "the term sheet once there is a draft on our own table" do
+    before do
+      simulation = Demo::Seed.simulation(Demo::Seed::DEMO)
+      Offers::Stage.call(
+        side: simulation.plaintiff_side,
+        day: simulation.days.find_by!(ordinal: Demo::Seed::DEMO_DAY),
+        by: User.find_by!(email: Demo::Seed::PLAYER_EMAIL),
+        terms: {"money" => 150_000_00, "apology" => nil}
+      )
+      visit "/demo/#{Demo::Seed::DEMO}"
+    end
+
+    def line_for(label) = find("th[scope='row']", text: label, exact_text: true).ancestor("tr")
+
+    it "writes our figure in over theirs, struck in place" do
+      expect(line_for("Money")).to have_css("s", text: "$40,000")
+      expect(line_for("Money")).to have_text("$150,000")
+    end
+
+    # A Term tabled without a figure is a word on the line; a Term nobody has
+    # raised is a line with nothing on it; a Client with nothing to say about it
+    # leaves the margin empty. Three silences, and no word doing the work —
+    # which is why Training's whole line reads as its own label and nothing
+    # else, in the DOM as well as on the page.
+    it "keeps the three silences apart" do
+      expect(line_for("Apology")).to have_text("Included")
+      expect(line_for("Training").text(:all).strip).to eq("Training")
     end
 
     it "is accessible" do
