@@ -111,8 +111,15 @@ class Side < ApplicationRecord
   def case_file = CaseFile.for(self)
 
   # Every Consult this Team has bought, oldest first, each still saying what the
-  # Client said on the Day it was bought. See `ConsultMemo`.
-  def consults = docket_entries.consults.map { |entry| ConsultMemo.for(entry) }
+  # Client said on the Day it was bought. `day:` narrows it to one Day's, which
+  # is what the draft's memo carries: the front of the instrument is today's
+  # working state, and a Day's own Consults are what was bought while sitting in
+  # it. See `ConsultMemo`.
+  def consults(day: nil)
+    scope = docket_entries.consults
+    scope = scope.where(day: day) if day
+    scope.map { |entry| ConsultMemo.for(entry) }
+  end
 
   # What the two Teams agreed, once one of them has taken the other's Offer.
   # Nothing is written for it and it answers `executed?` false until then. See

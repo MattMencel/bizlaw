@@ -247,6 +247,83 @@ RSpec.describe WorkingDraft do
     end
   end
 
+  # The Consult is the one Action that buys words rather than paper, so the memo
+  # is the only place they land — and the only place a face is drawn.
+  describe "the Client's memo" do
+    def consult(by: dana)
+      Days::Command.apply(act: :spend, side: side, day: day, by: by,
+        kind: CaseAction::CONSULT_CLIENT)
+    end
+
+    it "says what a Team that has not asked is missing, and draws nobody" do
+      expect(props[:memo][:entries]).to be_empty
+      expect(props[:memo][:portrait]).to be_nil
+      expect(props[:memo][:empty_state]).to include("You have not asked")
+    end
+
+    it "carries what the Client said, under the band they said it in" do
+      consult
+
+      expect(props[:memo][:entries].sole).to include(band: "firm")
+      expect(props[:memo][:entries].sole[:line]).to be_present
+    end
+
+    # Two variants are authored per band for exactly this, so the second Consult
+    # is a second thing heard rather than the first one repeated.
+    it "stacks a Day's Consults newest first" do
+      consult
+      consult
+
+      # The association orders by id, so these are in the order they were bought.
+      first, second = side.docket_entries.consults.to_a
+      lines = props[:memo][:entries].pluck(:line)
+
+      expect(lines).to eq([ConsultMemo.for(second).beat.line, ConsultMemo.for(first).beat.line])
+      expect(lines.uniq.length).to eq(2)
+    end
+
+    # The face is the one portrait in the game, and `Portraits::Compose` keys
+    # its screen ids to the seed, the expression and the size — so a second copy
+    # on one page would be the same ids twice, which is invalid HTML before it
+    # is anything else.
+    it "prints one face however many times the Client was asked" do
+      consult
+      consult
+
+      expect(props[:memo][:portrait]).to include("<svg")
+      expect(props[:memo][:portrait].scan("<svg").length).to eq(1)
+    end
+
+    # ADR 0008 binds the read: `ConsultMemo::Beat` hands on a seed and an
+    # expression and never a picture. The size exists here and nowhere earlier.
+    it "composes the face at the one size the memo serves" do
+      consult
+
+      expect(props[:memo][:portrait]).to include(%(width="#{WorkingDraft::PORTRAIT_SIZE}"))
+      expect(Portraits::Compose::SIZES).to include(WorkingDraft::PORTRAIT_SIZE)
+    end
+
+    # The front of the instrument is today's working state. What survives a Day
+    # is the band on the Docket line; the wording is bought for the Day it was
+    # bought on.
+    it "carries this Day's Consults and not another Day's" do
+      consult
+      other = simulation.days.find_by!(ordinal: 2)
+
+      expect(props(on: other)[:memo][:entries]).to be_empty
+      expect(props(on: other)[:memo][:empty_state]).to be_present
+    end
+
+    # One key, both surfaces: a band spelled one way on the memo and another on
+    # the Docket line would be two vocabularies for one rule.
+    it "spells the band the same way the Docket line does" do
+      consult
+
+      expect(props[:back][:docket][:entries].sole[:band])
+        .to eq(props[:memo][:entries].sole[:band])
+    end
+  end
+
   describe "the back of the file" do
     it "names a spend by the Action it bought and the member who spent it" do
       Days::Command.apply(act: :spend, side: side, day: day, by: dana,

@@ -19,18 +19,28 @@
   demo was built to ask.
 
   The slip writes: buying an Action off the menu is the first act in the game
-  and the shape the rest follow. Everything else here still only renders — the
-  Offer, the Second and the Day's close are their own tickets.
+  and the shape the rest follow. The Consult memo is the first thing an act puts
+  *on* the page — everything else here still only renders, and the Offer, the
+  Second and the Day's close are their own tickets.
 -->
 <script>
   import FrontMatter from "../../components/WorkingDraft/FrontMatter.svelte"
   import TermSheet from "../../components/WorkingDraft/TermSheet.svelte"
   import Countersignature from "../../components/WorkingDraft/Countersignature.svelte"
+  import ConsultMemo from "../../components/WorkingDraft/ConsultMemo.svelte"
   import ActionSlip from "../../components/WorkingDraft/ActionSlip.svelte"
   import BackOfFile from "../../components/WorkingDraft/BackOfFile.svelte"
 
-  let { letterhead, front_matter, term_sheet, countersignature, slip, back, spend_path } =
-    $props()
+  let {
+    letterhead,
+    front_matter,
+    term_sheet,
+    countersignature,
+    memo,
+    slip,
+    back,
+    spend_path
+  } = $props()
 
   let face = $state("front")
 
@@ -76,6 +86,10 @@
       <hr class="rule" />
 
       <Countersignature {countersignature} />
+
+      <hr class="rule" />
+
+      <ConsultMemo {memo} />
 
       <hr class="rule" />
 
