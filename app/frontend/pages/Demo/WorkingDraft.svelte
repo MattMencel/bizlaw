@@ -20,12 +20,15 @@
 
   The slip writes: buying an Action off the menu is the first act in the game
   and the shape the rest follow. The Consult memo is the first thing an act puts
-  *on* the page — everything else here still only renders, and the Offer, the
-  Second and the Day's close are their own tickets.
+  *on* the page. The draft writes too — the term sheet is the surface a position
+  is drawn on and the clip rail is what rides it, both owned by `Draft`, because
+  `Offers::Stage` replaces the Terms and the Exhibits as one position. The
+  countersignature block prices executing it and cannot: the commit, the waiver
+  and the Day's close are their own tickets.
 -->
 <script>
   import FrontMatter from "../../components/WorkingDraft/FrontMatter.svelte"
-  import TermSheet from "../../components/WorkingDraft/TermSheet.svelte"
+  import Draft from "../../components/WorkingDraft/Draft.svelte"
   import Countersignature from "../../components/WorkingDraft/Countersignature.svelte"
   import ConsultMemo from "../../components/WorkingDraft/ConsultMemo.svelte"
   import ActionSlip from "../../components/WorkingDraft/ActionSlip.svelte"
@@ -35,14 +38,31 @@
     letterhead,
     front_matter,
     term_sheet,
+    clipped,
     countersignature,
     memo,
     slip,
     back,
-    spend_path
+    spend_path,
+    offer_path
   } = $props()
 
   let face = $state("front")
+
+  // What the server says is on the table. `Draft` seeds its pending position
+  // from these props and then holds edits locally, so it is remounted whenever
+  // the answer changes — a staging that lands clears the edits it landed, and
+  // one that is refused leaves them exactly where they were, under the sentence
+  // saying why. Keying it here rather than reconciling inside the component
+  // keeps that rule in one line instead of an effect that writes what it reads.
+  const onTheTable = $derived(
+    JSON.stringify([
+      term_sheet.tracks.map((track) => track.draft),
+      term_sheet.note,
+      term_sheet.writable,
+      clipped.documents.map((doc) => doc.clipped)
+    ])
+  )
 
   const role = (r) => r.charAt(0).toUpperCase() + r.slice(1)
 
@@ -81,7 +101,16 @@
 
       <hr class="rule heavy" />
 
-      <TermSheet {term_sheet} {letterhead} {countersignature} />
+      {#key onTheTable}
+        <Draft
+          {term_sheet}
+          {clipped}
+          {letterhead}
+          {countersignature}
+          {offer_path}
+          day={letterhead.day}
+        />
+      {/key}
 
       <hr class="rule" />
 

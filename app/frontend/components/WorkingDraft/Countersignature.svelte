@@ -1,11 +1,36 @@
 <!--
   The countersignature block, permanently under the term sheet — present before
   there is anything to sign, because an empty signature line is how the Day
-  teaches that a commit needs a second hand. The control renders and is dead:
-  the acts are their own tickets.
+  teaches that a commit needs a second hand.
+
+  **The dead control is the lesson, not a defect.** On a Side of one the blank
+  line names nobody and Execute cannot be pressed, and that is the beat the whole
+  demo was built around: the rule is never explained in advance, and an unsigned
+  line on the draft in your own hand teaches it where fixed copy elsewhere would
+  not. So it is a form that cannot be executed yet rather than a greyed button —
+  `aria-disabled` and not `disabled`, so the sentence saying why stays in the tab
+  order with the control it describes, the way an unaffordable Action's does.
+
+  It also prints what executing would cost. The price and the refusal together
+  are the beat — *this would take your whole exchange half, and you cannot
+  execute it alone* — and either half alone is not: a price with no obstacle
+  reads as a button, and an obstacle with no price hides the trade-off the
+  exchange half exists to force, which on this Case is one point for the Offer
+  and one for each Exhibit clipped to it.
+
+  The sentence is always owed; the price is not. Under an executed instrument
+  the block is a record — both lines filled, nobody left to sign — and it says
+  nothing at all. On a Day with nothing drawn it says there is no draft to
+  execute and prints no figure, because a price for a position that does not
+  exist is a number with nothing under it.
+
+  The Execute control itself is still inert: the commit lands with the waiver,
+  in #366.
 -->
 <script>
   let { countersignature } = $props()
+
+  const execution = $derived(countersignature.execution)
 </script>
 
 <section class="countersign" aria-labelledby="countersign">
@@ -31,7 +56,23 @@
     </div>
   </div>
   {#if !countersignature.executed}
-    <button type="button" class="execute" disabled>Execute this draft</button>
+    <div class="execution">
+      <button
+        type="button"
+        class="control execute"
+        id="execute-the-draft"
+        aria-disabled={!execution || !!execution.refusal}
+        aria-describedby={execution?.refusal ? "execution-refusal" : undefined}
+      >
+        Execute this draft
+      </button>
+      {#if execution?.cost}
+        <span class="price">{execution.cost} {execution.half_label}</span>
+      {/if}
+      {#if execution?.refusal}
+        <span class="refusal" id="execution-refusal">{execution.refusal}</span>
+      {/if}
+    </div>
   {/if}
 </section>
 
@@ -76,17 +117,20 @@
     letter-spacing: 0.07em;
     padding-top: 4px;
   }
-  .execute {
+  .execution {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-top: 4px;
+  }
+  .price {
     font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 7px 14px;
-    border: 1px solid var(--rule-2);
-    background: none;
+    font-size: 11.5px;
     color: var(--muted);
   }
-  .execute[disabled] {
-    cursor: not-allowed;
+  .refusal {
+    font-size: 12.5px;
+    color: var(--redline);
   }
 </style>

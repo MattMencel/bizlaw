@@ -13,7 +13,13 @@ module Demo
     # Where a refusal waits for the seat that earned it. One key for both seats
     # rather than one each: the payload names its own seat, so a second key
     # would be a second place for that name to be wrong.
+    #
+    # Two shelves rather than two mechanisms, and they are split by *act* and not
+    # by seat: a refused spend stamps the Action line it names, a refused staging
+    # belongs to the sheet and names nothing, and one shelf holding both would
+    # have a spend's refusal swept by a staging that had nothing to do with it.
     SPEND_REFUSAL = "spend_refusal"
+    DRAFT_REFUSAL = "draft_refusal"
 
     private
 
@@ -99,6 +105,8 @@ module Demo
     # takes.
     def spend_path(seated) = demo_run_spends_path(run: params[:run], seat: canonical(seated))
 
+    def offer_path(seated) = demo_run_offers_path(run: params[:run], seat: canonical(seated))
+
     # A spend redirects rather than rendering, so the whole instrument is
     # re-read against what the write left behind — the slip, the Docket and the
     # front matter move together, or the page tells three stories about one act.
@@ -120,12 +128,19 @@ module Demo
     # however long the round trip took, and clears it on the way past so it is
     # read exactly once. What is left behind is bounded to one entry per seat,
     # overwritten by that seat's next refusal.
-    def refusal_for(seated)
-      carried = session[SPEND_REFUSAL]
+    def refusal_for(key, seated)
+      carried = session[key]
       return nil unless carried && carried["seat"] == seated.segment
 
-      session.delete(SPEND_REFUSAL)
+      session.delete(key)
       carried
+    end
+
+    # Put one on the shelf. The seat is stamped here rather than by the caller,
+    # because it is the half of the payload the reader matches on and the one
+    # thing about it no act gets to decide.
+    def carry_refusal(key, seated, payload)
+      session[key] = payload.merge("seat" => seated.segment)
     end
   end
 end

@@ -93,8 +93,13 @@ RSpec.describe "the figures no student-facing read exposes" do
   # shape is pinned rather than only swept. Three slots and no fourth: the
   # Client's aspiration is the in-fiction stand-in precisely because Par cannot
   # be one of them.
+  #
+  # The two fields that are not slots say something about the Term or the Day
+  # rather than about a figure anybody holds — whether this Term takes a figure
+  # at all, and whether our own slot is a live draft. Neither can carry a number,
+  # which is what the pin is for.
   it "gives the Terms Board three slots per Term and no room for a fourth" do
-    expect(TermsBoard::Track.members).to eq(%i[term ours ours_staged theirs aspiration])
+    expect(TermsBoard::Track.members).to eq(%i[term money ours ours_staged theirs aspiration])
   end
 
   # The published Rubric is copy, and copy is what a student is owed on day one.

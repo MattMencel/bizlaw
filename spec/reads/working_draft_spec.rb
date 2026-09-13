@@ -100,8 +100,34 @@ RSpec.describe WorkingDraft do
 
   describe "the countersignature block" do
     it "is blank before there is a draft to sign, which is how the Day teaches it" do
-      expect(props[:countersignature]).to eq(
+      expect(props[:countersignature]).to include(
         drawn_by: nil, signed_by: nil, may_sign: [], executed: false, waived: false
+      )
+    end
+
+    # The sentence is always owed and the price is not: a dead control that will
+    # not say why is what #363 ruled out, and a figure for a position that does
+    # not exist is a number with nothing under it.
+    it "says why it cannot be executed, and prices nothing, before there is a draft" do
+      expect(props[:countersignature][:execution]).to eq(
+        cost: nil, half_label: nil, refusal: I18n.t("reads.refusals.there_is_no_offer_on_the_table")
+      )
+    end
+
+    # The price and the reason together, once there is a draft to price. What the
+    # figure is made of is `Days::Command`'s — one point of the exchange half for
+    # the Offer plus the Case's Exhibit price for each one riding it, quoted as
+    # one figure — and this is that the quote reaches the page rather than being
+    # computed a second time here. The Exhibit's share is exercised on the demo
+    # seed, which is the only fixture holding a playable one; see the system
+    # spec's clip rail.
+    it "prices the draft beside the reason it cannot be executed" do
+      Offers::Stage.call(side: side, day: day, by: dana, terms: {"apology" => nil})
+
+      expect(props[:countersignature][:execution]).to eq(
+        cost: CommittedOffer::EXCHANGE_COST,
+        half_label: "exchange",
+        refusal: I18n.t("reads.refusals.the_offer_has_not_been_seconded")
       )
     end
 

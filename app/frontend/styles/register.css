@@ -133,6 +133,38 @@ ul.plain li {
   color: var(--redline);
 }
 
+/* The mark every control on the instrument makes. It lived with the Action slip
+   while the slip was the only part that pressed anything, with a comment saying
+   the countersignature block made the same one; three parts make it now — the
+   slip, the block, and the act that puts a position on the table — so it says
+   it once here instead of drifting three ways.
+
+   `aria-disabled` and never `disabled`: a dead control on this instrument is
+   teaching something, and the sentence saying why is what a reader who cannot
+   see the greyed line most needs to reach. `disabled` takes the control out of
+   the tab order and the sentence with it. */
+.control {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border: 1px solid var(--rule-2);
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+.control:hover {
+  background: var(--paper-2);
+}
+.control[aria-disabled="true"] {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+.control[aria-disabled="true"]:hover {
+  background: none;
+}
+
 .empty-state {
   border: 1px dashed var(--rule-2);
   padding: 16px 18px;

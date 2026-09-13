@@ -27,6 +27,16 @@ Rails.application.routes.draw do
     # inside the same request that charges, and a price crossing the wire would
     # be a second authority for a number this design keeps in one place.
     post "demo/:run(/:seat)/spends", to: "demo/spends#create", as: :demo_run_spends
+    # Drawing the position, which is one act however much of it changed: the
+    # Terms, the Exhibits riding them and the covering note all arrive together
+    # and replace what was on the table. `Offers::Stage` is one seam because a
+    # revision replaces a position rather than amending it, and the teammate who
+    # Seconds confirms the whole play — so a wire that could move the Exhibits
+    # without the Terms would be handing them half of it.
+    #
+    # It costs nothing and is ungated, so there is no confirmation and no price:
+    # the only thing this can be refused for is a Day that ended underneath it.
+    post "demo/:run(/:seat)/offers", to: "demo/offers#create", as: :demo_run_offers
   end
 
   # Defines the root path route ("/")

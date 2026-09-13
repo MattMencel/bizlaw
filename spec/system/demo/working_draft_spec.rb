@@ -40,9 +40,14 @@ RSpec.describe "the working draft", type: :system do
 
     # The block is on the page before there is a draft to sign, because an empty
     # signature block is how the Day teaches that a commit needs a second hand.
+    #
+    # `aria-disabled` and not `disabled`: the control stays in the tab order so
+    # the sentence saying why it cannot be pressed stays reachable with it, which
+    # is the rule #363 set for an Action the half will not cover.
     it "shows the countersignature block, with the execute control dead" do
       expect(page).to have_text(/countersigned by/i)
-      expect(page).to have_button("Execute this draft", disabled: true)
+      expect(page).to have_css("button#execute-the-draft[aria-disabled='true']")
+      expect(page).to have_text("There is no draft to execute")
     end
 
     it "prices every Action on the slip, whether or not today will cover it" do
@@ -274,14 +279,22 @@ RSpec.describe "the working draft", type: :system do
 
     it "marks the sheet a draft, and puts his position in our column" do
       expect(page).to have_text(/draft — not executed/i)
-      expect(page).to have_text("$180,000")
+      expect(page).to have_field(type: "text", with: "$180,000")
     end
 
     # He drew it, so he cannot second it, and there is nobody else to. The
     # control is present and dead, which is how the Docket teaches the Second.
     it "signs the first line and leaves the second one open to nobody" do
       expect(page).to have_text("Sam Ortega")
-      expect(page).to have_button("Execute this draft", disabled: true)
+      expect(page).to have_css("button#execute-the-draft[aria-disabled='true']")
+      expect(page).to have_text("A teammate has to countersign the draft")
+    end
+
+    # The price and the refusal together are the beat. An Offer costs one point
+    # of the exchange half and this Case prices an Exhibit at one more, so a
+    # draft with nothing clipped to it is one.
+    it "prices executing it beside the reason he cannot" do
+      expect(page).to have_text("1 exchange")
     end
 
     it "is accessible" do
@@ -336,9 +349,12 @@ RSpec.describe "the working draft", type: :system do
 
     def line_for(label) = find("th[scope='row']", text: label, exact_text: true).ancestor("tr")
 
+    # The figure is in a field he can type over, and it is still the printed
+    # figure: one currency decision, so the two halves of one ruled line are not
+    # typeset as two documents.
     it "writes our figure in over theirs, struck in place" do
       expect(line_for("Money")).to have_css("s", text: "$40,000")
-      expect(line_for("Money")).to have_text("$150,000")
+      expect(line_for("Money")).to have_field(type: "text", with: "$150,000")
     end
 
     # A Term tabled without a figure is a word on the line; a Term nobody has
@@ -349,6 +365,129 @@ RSpec.describe "the working draft", type: :system do
     it "keeps the three silences apart" do
       expect(line_for("Apology")).to have_text("Included")
       expect(line_for("Training").text(:all).strip).to eq("Training")
+    end
+
+    it "is accessible" do
+      expect(page).to be_axe_clean
+    end
+  end
+
+  # The beat this ticket exists for: he writes a position onto the sheet, clips
+  # his one Exhibit to it, and finds he cannot execute it alone.
+  describe "drawing a position on the sheet" do
+    before { visit "/demo/#{Demo::Seed::DEMO}" }
+
+    def line_for(label) = find("th[scope='row']", text: label, exact_text: true).ancestor("tr")
+
+    def write(money:, terms: [], clip: nil)
+      check "Money"
+      fill_in "Our position on Money, in dollars", with: money
+      terms.each { |term| check term }
+      check clip if clip
+    end
+
+    # Edits are local until the act, and the sheet says so — because a teammate
+    # may be reading it to decide whether to countersign, and *what you are
+    # looking at is not what is on the table* is the one thing the register must
+    # not leave to an input's internal state.
+    it "marks the sheet unposted while the edits are only his" do
+      write(money: "$120,000")
+
+      expect(page).to have_text(/not yet on the table/i)
+      expect(page).to have_text(/still reading the last one/i)
+    end
+
+    it "puts the position on the table and marks it a draft" do
+      write(money: "$120,000", terms: ["Apology"])
+      click_button "Put this on the table"
+
+      expect(page).to have_text(/draft — not executed/i)
+      expect(page).not_to have_text(/not yet on the table/i)
+      expect(line_for("Apology")).to have_text("Included")
+      expect(line_for("Money")).to have_field(type: "text", with: "$120,000")
+    end
+
+    # The act's result is the sheet: what he wrote is now what the sheet prints,
+    # and the mark above it has changed. #364's rule is where the result is
+    # legible rather than the control that was pressed.
+    it "returns him to the sheet, which is where the result reads" do
+      write(money: "$120,000")
+      click_button "Put this on the table"
+
+      expect(page).to have_text(/draft — not executed/i)
+      expect(page.evaluate_script("document.activeElement.id")).to eq("term-sheet")
+    end
+
+    # An Offer names at least one Term and money is worth an amount. Both are
+    # caller faults at the seam rather than refusals a student should read, so
+    # the control is what makes them unreachable — and it says which, staying in
+    # the tab order to do it.
+    it "holds the control dead with its reason while there is no position" do
+      expect(page).to have_css("button#draw-the-position[aria-disabled='true']")
+      expect(page).to have_text("An offer names at least one term.")
+    end
+
+    it "holds it dead while money is on the table without a figure" do
+      check "Money"
+
+      expect(page).to have_css("button#draw-the-position[aria-disabled='true']")
+      expect(page).to have_text("An offer of money is worth an amount.")
+    end
+
+    it "is accessible while it is being written on" do
+      write(money: "$120,000", terms: ["Apology"])
+
+      expect(page).to be_axe_clean
+    end
+  end
+
+  # An Exhibit rides the draft rather than being played alone, and it is clipped
+  # down the side of the instrument rather than taken on the back — the back
+  # being the surface #315 knowingly accepted may never be turned to.
+  describe "the clip rail" do
+    before { visit "/demo/#{Demo::Seed::DEMO}" }
+
+    it "offers this Team's own playable Exhibit and nothing it was served" do
+      within("aside", text: /clipped to this draft/i) do
+        expect(page).to have_field("The claimant's personnel file")
+        expect(page).not_to have_text("Deposition of the plant supervisor")
+      end
+    end
+
+    # One point for the Offer and one more for the Exhibit is the whole of this
+    # Team's exchange half, which is what makes clipping it a decision.
+    it "prices the Exhibit into executing the draft as one figure" do
+      check "Money"
+      fill_in "Our position on Money, in dollars", with: "$120,000"
+      click_button "Put this on the table"
+      expect(page).to have_text("1 exchange")
+
+      check "The claimant's personnel file"
+      click_button "Put this on the table"
+
+      expect(page).to have_text("2 exchange")
+    end
+  end
+
+  # A Team that has committed today has no second Offer to draw, and an executed
+  # instrument is a record rather than a working surface. The defendant's seat is
+  # the live case: it drew, seconded and committed its Day 3 before the player
+  # sat down.
+  describe "a sheet that may not be written on" do
+    before { visit "/demo/#{Demo::Seed::DEMO}/#{Side::DEFENDANT}" }
+
+    it "prints the executed position rather than offering inputs" do
+      expect(page).to have_text("$40,000")
+      expect(page).to have_no_field("Our position on Money, in dollars")
+      expect(page).to have_no_button("Put this on the table")
+    end
+
+    # Both lines filled, nobody left to sign, and no price for an act that has
+    # already happened.
+    it "reads as a record, with no control and no price" do
+      expect(page).to have_text("Dana Whitfield")
+      expect(page).to have_text("Ray Okonkwo")
+      expect(page).to have_no_css("button#execute-the-draft")
     end
 
     it "is accessible" do

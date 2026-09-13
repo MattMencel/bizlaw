@@ -12,8 +12,9 @@
 # do the work a tour would otherwise do.
 #
 # A Term's label is *not* here. Term keys are authored per Case, so the engine
-# cannot hold a sentence for a key it has never seen; an Action's kind and a
-# spend's refusal are the engine's own closed vocabularies and are.
+# cannot hold a sentence for a key it has never seen; an Action's kind and the
+# refusals `Days::Command` names its rules by are the engine's own closed
+# vocabularies and are.
 en:
   reads:
     morning_briefing:
@@ -53,6 +54,42 @@ en:
     bands:
       firm: firm
       ready: ready
+    # What a refusal reads as. `Days::Command` names every rule it turns an act
+    # down by with a symbol, and the symbols are one closed vocabulary across
+    # both its acts — so this sits beside `bands` rather than under any one
+    # surface, for the same reason.
+    #
+    # It was under `action_board` until the countersignature block needed it,
+    # which was already wrong: `the_offer_has_not_been_seconded` refuses an
+    # Offer commit, and no entry on the Action Board can produce it. A commit is
+    # executing a draft rather than buying a menu entry — the distinction
+    # `docket_entries.case_action_id` is nullable for — so the two surfaces read
+    # one vocabulary from one place instead of the Board owning words it cannot
+    # say.
+    #
+    # Two of `commit_offer`'s reasons have no sentence here, because nothing can
+    # currently reach them. The block goes silent once the Day's Offer is
+    # executed, so `an_offer_has_already_been_committed_today` names a state it
+    # does not print in — and the term sheet withdraws its inputs on that Day, so
+    # no second draft is ever drawn to be refused. An Exhibit cannot yet be
+    # played at all. Copy with no surface is copy nobody has read; each is owed a
+    # sentence by the ticket that first renders it.
+    refusals:
+      the_budget_cannot_cover_it: >-
+        Today's half will not cover it.
+      the_day_has_closed: >-
+        This Day has closed.
+      the_day_has_not_opened: >-
+        This Day has not opened yet.
+      the_offer_has_not_been_seconded: >-
+        A teammate has to countersign the draft before it can be executed.
+      there_is_no_offer_on_the_table: >-
+        There is no draft to execute. Write your terms above and put them on the
+        table first.
+      the_result_would_land_past_the_last_day: >-
+        Its result would arrive after the last Day of the calendar.
+      the_simulation_has_settled: >-
+        The matter has settled. There is nothing left to buy.
     case_file:
       empty: >-
         Nothing yet. What your Actions turn up lands here, along with anything
@@ -73,16 +110,3 @@ en:
       halves:
         preparation: preparation
         exchange: exchange
-      refusals:
-        the_budget_cannot_cover_it: >-
-          Today's half will not cover it.
-        the_day_has_closed: >-
-          This Day has closed.
-        the_day_has_not_opened: >-
-          This Day has not opened yet.
-        the_offer_has_not_been_seconded: >-
-          A teammate has to countersign the draft before it can be executed.
-        the_result_would_land_past_the_last_day: >-
-          Its result would arrive after the last Day of the calendar.
-        the_simulation_has_settled: >-
-          The matter has settled. There is nothing left to buy.

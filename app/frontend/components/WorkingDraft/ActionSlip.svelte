@@ -168,30 +168,6 @@
     flex-basis: 100%;
   }
 
-  /* The same mark the countersignature block's control makes, because they are
-     the two ends of one instrument and a student reads them as one object. */
-  .control {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 5px 12px;
-    border: 1px solid var(--rule-2);
-    background: none;
-    color: var(--ink);
-    cursor: pointer;
-  }
-  .control:hover {
-    background: var(--paper-2);
-  }
-  .control[aria-disabled="true"] {
-    color: var(--muted);
-    cursor: not-allowed;
-  }
-  .control[aria-disabled="true"]:hover {
-    background: none;
-  }
-
   /* The stub is pinned to the line it belongs to: a confirmation that floated
      free of its Action would be the dialog by another name. */
   .stub {
