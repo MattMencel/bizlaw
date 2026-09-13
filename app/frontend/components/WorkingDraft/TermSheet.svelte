@@ -23,9 +23,16 @@
   reader who cannot see the strike is told whose each figure is — the strike and
   the redline colour carry nothing on their own, which is what the axe pass over
   this screen exists to keep true. What the eye gets instead of a header row is
-  one line of rubric, because a header row is the thing that made this a diff
-  view. An empty writing space is a picture the same way, so it says `not filled
-  in` for a reader who is given only the cell.
+  the `<caption>`, because a header row is the thing that made this a diff view
+  and a caption is where a table's reading convention belongs. It is the one
+  sentence both readers get.
+
+  **A silence is an empty cell, and all three are empty the same way.** The
+  caption says so once rather than every cell saying it for itself: this sheet
+  is mostly silence by design — on the Day #332 hands the player, seventeen of
+  its twenty-one cells are empty — and filling each one with its own explanation
+  would bury the four that say something. The header names the column and the
+  cell is blank, which is what a data table means by nothing.
 -->
 <script>
   let { term_sheet, letterhead, countersignature } = $props()
@@ -54,12 +61,11 @@
   {#if term_sheet.empty_state}
     <p class="empty-state">{term_sheet.empty_state}</p>
   {:else}
-    <p class="rubric">
-      Struck through, their last committed offer. Written in, ours. The margin is the
-      Client's.
-    </p>
-
     <table class="terms">
+      <caption class="rubric">
+        Struck through, their last committed offer. Written in, ours. The margin is the
+        Client's. Where there is nothing, nobody has said anything.
+      </caption>
       <thead class="sr-only">
         <tr>
           <th scope="col">Term</th>
@@ -76,11 +82,7 @@
               {#if track.theirs}<s>{written(track.theirs)}</s>{/if}
             </td>
             <td class="line ours">
-              {#if track.ours}
-                {written(track.ours)}
-              {:else}
-                <span class="sr-only">not filled in</span>
-              {/if}
+              {#if track.ours}{written(track.ours)}{/if}
             </td>
             <td class="margin">
               {#if track.aspiration}<span class="hand">{asked(track.aspiration)}</span>{/if}
@@ -116,13 +118,14 @@
     color: var(--stamp);
     border-color: var(--stamp);
   }
-  /* What a header row would have said, said once in the register's own voice.
-     The hidden `<thead>` is what carries it for a reader who is not looking. */
-  .rubric {
+  /* What a header row would have said, said once in the register's own voice —
+     and, being the caption, said to both readers out of one element. */
+  caption.rubric {
+    text-align: left;
     font-size: 12.5px;
     font-style: italic;
     color: var(--muted);
-    margin: 0 0 14px;
+    padding: 0 0 14px;
   }
 
   table.terms {

@@ -31,12 +31,11 @@ RSpec.describe "the working draft", type: :system do
     # The register #373 settled carries whose a position is in a strike and a
     # margin rather than in column headings, so the headings are still there and
     # only the eye is spared them. Nothing on the sheet depends on seeing the
-    # strike or the redline colour — and a writing space nobody has written on
-    # is a picture, which is an empty cell to a reader who is given the cell.
+    # strike or the redline colour.
     it "says whose each figure is for a reader who cannot see the strike" do
       expect(page).to have_css("thead th", text: "Their last committed position", visible: :all)
       expect(page).to have_css("thead th", text: "Our position", visible: :all)
-      expect(page).to have_text(:all, "not filled in")
+      expect(page).to have_css("table.terms caption", text: "Where there is nothing")
     end
 
     # The block is on the page before there is a draft to sign, because an empty
@@ -344,11 +343,12 @@ RSpec.describe "the working draft", type: :system do
 
     # A Term tabled without a figure is a word on the line; a Term nobody has
     # raised is a line with nothing on it; a Client with nothing to say about it
-    # leaves the margin empty. Three silences, and no word doing the work.
+    # leaves the margin empty. Three silences, and no word doing the work —
+    # which is why Training's whole line reads as its own label and nothing
+    # else, in the DOM as well as on the page.
     it "keeps the three silences apart" do
       expect(line_for("Apology")).to have_text("Included")
-      expect(line_for("Training")).to have_text(:all, "not filled in")
-      expect(line_for("Training")).to have_no_text("Asked for")
+      expect(line_for("Training").text(:all).strip).to eq("Training")
     end
 
     it "is accessible" do
