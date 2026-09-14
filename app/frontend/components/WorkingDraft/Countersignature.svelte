@@ -24,8 +24,16 @@
   execute and prints no figure, because a price for a position that does not
   exist is a number with nothing under it.
 
-  The Execute control itself is still inert: the commit lands with the waiver,
-  in #366.
+  The Execute control itself is still inert: the commit lands with the waiver, in
+  #366. So it is `aria-disabled` unconditionally rather than only where the quote
+  refuses — an Instructor's waiver is the one thing that clears that refusal, and
+  a control that went live-looking there would be pressable and do nothing. When
+  #366 gives it a handler the condition becomes the refusal, and the waived case
+  becomes the one state in which it can actually be pressed.
+
+  Nothing grants a waiver from any surface yet, so that state is not reachable
+  today; this is what keeps it from becoming reachable and wrong on the same
+  commit.
 -->
 <script>
   let { countersignature } = $props()
@@ -61,7 +69,7 @@
         type="button"
         class="control execute"
         id="execute-the-draft"
-        aria-disabled={!execution || !!execution.refusal}
+        aria-disabled={true}
         aria-describedby={execution?.refusal ? "execution-refusal" : undefined}
       >
         Execute this draft

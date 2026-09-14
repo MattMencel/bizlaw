@@ -434,6 +434,21 @@ RSpec.describe "the working draft", type: :system do
       expect(page).to have_text("An offer of money is worth an amount.")
     end
 
+    # `params[:note].presence` turns a note of nothing but spaces into no note at
+    # all, so a client comparing what was typed would see a difference the server
+    # had already discarded — and the sheet would go on saying *Not yet on the
+    # table* about a position that is on it. The mark exists to be true about
+    # that one thing.
+    it "clears the unposted mark when the note it sent was only spaces" do
+      write(money: "$120,000")
+      click_button "Put this on the table"
+      expect(page).to have_text(/draft — not executed/i)
+
+      fill_in "Covering note", with: "   "
+
+      expect(page).to have_no_text(/not yet on the table/i)
+    end
+
     it "is accessible while it is being written on" do
       write(money: "$120,000", terms: ["Apology"])
 

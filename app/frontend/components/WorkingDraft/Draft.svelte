@@ -79,6 +79,15 @@
 
   const figure = $derived(bare(position.amount))
 
+  // The note as the server will hold it. `params[:note].presence` turns a note
+  // of nothing but spaces into no note at all, so a client that compared what
+  // was typed would see a difference the server had already thrown away: the
+  // post lands, `term_sheet.note` does not move, the page is not remounted, and
+  // the sheet goes on saying *Not yet on the table* about a position that is on
+  // it. Trimmed here, posted trimmed, and compared trimmed, so all three agree
+  // on what the note is.
+  const tidy = (written) => String(written ?? "").trim()
+
   const owesAnAmount = $derived(position.terms[moneyTrack?.term] === true)
 
   const wellFormed = $derived(FIGURE.test(position.amount.trim()))
@@ -101,12 +110,17 @@
       term_sheet.tracks.filter((t) => t.draft.on).map((t) => t.term),
       bare(moneyTrack?.draft.amount),
       clipped.documents.filter((d) => d.clipped).map((d) => d.identifier),
-      term_sheet.note ?? ""
+      tidy(term_sheet.note)
     ])
   )
 
   const pending = $derived(
-    JSON.stringify([drawn, owesAnAmount ? figure : "", named(position.exhibits), position.note])
+    JSON.stringify([
+      drawn,
+      owesAnAmount ? figure : "",
+      named(position.exhibits),
+      tidy(position.note)
+    ])
   )
 
   const unposted = $derived(pending !== onTheTable)
@@ -130,7 +144,7 @@
         terms: drawn,
         amount: owesAnAmount ? figure : null,
         exhibits: named(position.exhibits),
-        note: position.note
+        note: tidy(position.note)
       },
       { preserveScroll: true, onFinish: focusTheSheet }
     )
