@@ -22,8 +22,11 @@ module Demo
           seated.side,
           day: sitting_day(seated.side.simulation),
           you: seated.user,
-          refused: refusal_for(seated)
-        ).to_props.merge(spend_path: spend_path(seated))
+          refused: refusal_for(SPEND_REFUSAL, seated),
+          draft_refused: refusal_for(DRAFT_REFUSAL, seated)&.fetch("reason")
+        ).to_props.merge(
+          spend_path: spend_path(seated), offer_path: offer_path(seated)
+        )
     end
   end
 end

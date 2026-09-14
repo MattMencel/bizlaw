@@ -29,8 +29,17 @@ class TermsBoard
   # draft it was copied from, so a draft with a committed Offer behind it on the
   # same Day is a position taken: the Team cannot commit a second one that Day,
   # and the first is already on the other Side's table.
-  Track = Data.define(:term, :ours, :ours_staged, :theirs, :aspiration) do
+  #
+  # `money` is what kind of Term this is, as against what anyone has offered on
+  # it. The three slots above are all `Position`s, and a `Position` only ever
+  # says whether it carries a figure — which for every Term but one is *no*
+  # forever. A surface that lets a Team write a position has to know which Term
+  # takes a figure before anybody has written one, and the row it would ask is
+  # the `CaseTerm` this Track was built from.
+  Track = Data.define(:term, :money, :ours, :ours_staged, :theirs, :aspiration) do
     def on_the_table? = !ours.nil? || !theirs.nil?
+
+    def money? = money
   end
 
   def self.for(...) = new(...)
@@ -46,6 +55,7 @@ class TermsBoard
     @tracks ||= side.case_version.terms.order(:id).map do |term|
       Track.new(
         term: term.key,
+        money: term.money?,
         ours: ours[term.id],
         ours_staged: still_a_draft?,
         theirs: theirs[term.id],

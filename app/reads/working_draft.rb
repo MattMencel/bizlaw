@@ -32,11 +32,19 @@ class WorkingDraft
   # that tried it: the Action's kind and the engine's own refusal symbol. It is
   # an argument rather than something folded for, because a refusal writes
   # nothing — there is no row anywhere that remembers it, and that is the point.
-  def initialize(side, day:, you:, refused: nil)
+  #
+  # `draft_refused` is the same thing for a staging that did not happen, and it
+  # is a second argument rather than a second field on the first because the two
+  # land in different places on the page: a spend's refusal stamps the Action
+  # line it was refused on, and a staging's has no line — it belongs to the
+  # sheet. It carries a bare reason, since there is only ever one draft to
+  # refuse and naming it would be naming the only one there is.
+  def initialize(side, day:, you:, refused: nil, draft_refused: nil)
     @side = side
     @day = day
     @you = you
     @refused = refused
+    @draft_refused = draft_refused
   end
 
   def to_props
@@ -44,6 +52,7 @@ class WorkingDraft
       letterhead: letterhead,
       front_matter: front_matter,
       term_sheet: term_sheet,
+      clipped: clipped,
       countersignature: countersignature,
       memo: memo,
       slip: slip,
@@ -60,7 +69,7 @@ class WorkingDraft
   # exactly one member has acted. They come apart at the cold open, where the
   # ledgers are empty and the player is sitting there all the same, and again
   # the moment a second act is attributed.
-  attr_reader :side, :day, :you, :refused
+  attr_reader :side, :day, :you, :refused, :draft_refused
 
   def briefing = @briefing ||= MorningBriefing.for(side, day: day)
 
@@ -111,23 +120,78 @@ class WorkingDraft
   # `TermsBoard` answers it per Track because a Track is what it returns, but
   # the answer is the sheet's — one Offer is staged or it is not — and seven
   # copies of one boolean is seven chances for a page to read the wrong one.
+  # `writable` is whether the sheet carries inputs at all — see `may_draft?`. It
+  # sits beside `ours_staged` rather than replacing it: one says whether there is
+  # a live draft, the other whether a new one may be written, and on the Day a
+  # Team commits they part company.
+  #
+  # `note` is the staged Offer's own and does not carry forward from the last
+  # committed one, which is the one place the sheet does not pre-fill from
+  # `TermsBoard#ours`. A note is a covering line rather than a position — the
+  # defendant's reads *open for acceptance today* — so yesterday's would restate
+  # a deadline that has passed as though it were still standing.
   def term_sheet
     {
       empty_state: terms.empty_state,
       note: staged&.note,
       ours_staged: open_draft?,
+      writable: may_draft?,
       tracks: terms.tracks.map do |track|
         {
           term: track.term,
           label: label_for(track.term),
+          money: track.money?,
           ours: position(track.ours),
           theirs: position(track.theirs),
           aspiration: position(track.aspiration),
-          on_the_table: track.on_the_table?
+          on_the_table: track.on_the_table?,
+          draft: drafted(track)
         }
-      end
+      end,
+      refusal: refusal_sentence(draft_refused)
     }
   end
+
+  # What the inputs open holding: the position `TermsBoard` already prints in the
+  # `ours` column, which is the draft on the table if there is one and otherwise
+  # the last Offer this Team committed. A Team's negotiating position is what it
+  # last put in front of the other Side, so opening empty would make every Day's
+  # first act retyping yesterday — and a blank sheet reads as *we have withdrawn*,
+  # which is a position nobody took.
+  #
+  # `amount` belongs to the money Term alone, which is what `StagedOfferTerm`
+  # validates, and it is the **printed** figure rather than a raw one — the same
+  # string the `ours` column above carries, currency symbol and separators
+  # included.
+  #
+  # That is the register and not a convenience. #373 settled this sheet as print,
+  # and a figure typed onto the ruled line beside a printed one it is being
+  # measured against cannot be typeset differently from it without the line
+  # reading as two documents. So there is one currency decision, `money`, and the
+  # field opens holding its answer; what a student types over it is their own
+  # hand, and the controller strips the symbol back off at the boundary. A
+  # position that lands is printed again on the way back, which is what a working
+  # draft does to a figure written on it.
+  def drafted(track)
+    {
+      on: !track.ours.nil?,
+      amount: (track.money? && track.ours) ? money(track.ours.amount_cents) : nil
+    }
+  end
+
+  # Whether a position may still be written on this Day — the three things
+  # `Offers::Stage` refuses, asked ahead of the press rather than after it. A
+  # sheet that withdraws its inputs and a seam that refuses the write are the
+  # same rule at two distances: the affordance is gone before the reader reaches
+  # for it, and a page that went stale between the render and the press is still
+  # refused rather than landing.
+  #
+  # The last of the three is what keeps inputs off an executed instrument, which
+  # is a record rather than a working surface — and `Offers::Stage` holds it too,
+  # because `TermsBoard#ours` prefers the draft to the committed Offer and a
+  # revision landing there would print terms over two countersignatures that
+  # never signed them.
+  def may_draft? = committed.nil? && !day.closed? && !day.simulation.settled?
 
   # One line signed and one blank naming the teammates who may sign it, per
   # `CONTEXT.md` § Second — permanently, whether or not there is a draft under
@@ -148,8 +212,87 @@ class WorkingDraft
       signed_by: committed&.seconded_by&.name,
       may_sign: open_draft? ? side.seconders_other_than(staged.staged_by).map(&:name) : [],
       executed: !committed.nil?,
-      waived: !committed.nil? && committed.seconded_by.nil?
+      waived: !committed.nil? && committed.seconded_by.nil?,
+      execution: execution
     }
+  end
+
+  # What executing this draft would cost, and what stands in the way. Both, at
+  # once: on a Side of one the price is real and the refusal is permanent, and
+  # *this would take your whole exchange half, and you cannot execute it alone*
+  # is the beat — either half on its own is not.
+  #
+  # It reaches `Days::Command.quote` directly rather than through a read, for the
+  # reason `ActionBoard` reaches it: the seam already computes what a control
+  # needs and writes nothing doing it, and a second path to the price is a second
+  # place for it to disagree with what a Team is actually charged. It is not *on*
+  # the Action Board, because a commit is executing a draft rather than buying a
+  # menu entry — the distinction `docket_entries.case_action_id` is nullable for.
+  #
+  # `seconded_by: nil` asks the question the block's own control asks: may this
+  # be executed as things stand, with nobody named. A Side with teammates gets
+  # the same refusal and the block names them on the line beneath.
+  #
+  # **The sentence is always owed and the price is not.** A dead control that
+  # will not say why is what #363 ruled out, so a block with nothing drawn still
+  # carries its reason — but not a figure: a price for a position that does not
+  # exist is a number with nothing under it, and `cost` there is the bare point
+  # an Offer costs before anyone has decided what rides it.
+  #
+  # Nil only once the draft is executed. The block is a record then, both lines
+  # filled and nobody left to sign, so there is neither a price nor an obstacle
+  # to name.
+  def execution
+    return nil unless committed.nil?
+
+    quote = Days::Command.quote(
+      act: :commit_offer, side: side, day: day, by: you, seconded_by: nil
+    )
+
+    {
+      cost: staged && quote.cost,
+      half_label: staged && half_label(quote.half),
+      refusal: refusal_sentence(quote.refusal)
+    }
+  end
+
+  # The Exhibits clipped to the draft, and the ones that could be — down the side
+  # of the instrument, which is where `CONTEXT.md` § Register puts them.
+  #
+  # `available` is `CaseFile`'s own gate and the one thing on this whole surface
+  # that gates: it reads *has this Team ever held a playable Exhibit*, so the
+  # rail is absent on a Day 1 that has never seen one and permanent afterwards.
+  # An affordance for a thing a Team has never held would teach a control that
+  # does nothing; taking it away again once the Exhibit is spent would teach the
+  # opposite.
+  #
+  # A spent Exhibit stays listed. The document is not spent — it stays in the
+  # Case File as what the Team knows — and a row that vanished on being played
+  # would read as a document lost rather than a card played.
+  #
+  # Documents are named by their authored identifier rather than by row id: it is
+  # what `Offers::Stage` is reached with here, and it is stable across the
+  # `demo:seed` reset that moves every id underneath it.
+  def clipped
+    {
+      available: case_file.exhibits_available?,
+      writable: may_draft?,
+      documents: case_file.entries.select { |entry| entry.playable || entry.spent }
+        .map do |entry|
+          {
+            identifier: entry.identifier,
+            title: entry.title,
+            spent: entry.spent,
+            clipped: riding.include?(entry.identifier)
+          }
+        end
+    }
+  end
+
+  # What is on the draft now. Empty where there is no draft, which is also every
+  # Day before the Team has drawn one.
+  def riding
+    @riding ||= staged ? staged.exhibits.map { |filed| filed.case_document.identifier } : []
   end
 
   def open_draft? = !staged.nil? && committed.nil?
@@ -324,8 +467,13 @@ class WorkingDraft
 
   def half_label(half) = I18n.t("reads.action_board.halves.#{half}")
 
+  # One vocabulary, two surfaces: the slip's Action lines, the countersignature
+  # block's price and the term sheet's own staging refusal all name a rule
+  # `Days::Command` or `Offers::Stage` turned an act down by. The key sits at
+  # `reads.refusals` rather than under the Board for that reason — see the
+  # locale file.
   def refusal_sentence(refusal)
-    refusal && I18n.t("reads.action_board.refusals.#{refusal}")
+    refusal.presence && I18n.t("reads.refusals.#{refusal}")
   end
 
   # A Term's key is authored per Case, so the engine has no sentence for it and
