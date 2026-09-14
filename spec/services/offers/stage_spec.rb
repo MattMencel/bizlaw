@@ -112,6 +112,51 @@ RSpec.describe Offers::Stage do
     expect { stage }.to raise_error(Offers::DayClosed)
   end
 
+  # The other end of `an_offer_has_already_been_committed_today`. A Team commits
+  # at most one Offer a Day, so a Day whose Offer is executed has no second
+  # position to put on the table — and the Day stays open until the other Side
+  # commits, so the window is real. What it protects is the executed instrument:
+  # `TermsBoard#ours` prefers the draft to the committed Offer, so a revision
+  # landing here would print terms over two countersignatures that never signed
+  # them.
+  describe "a Day this Team has already executed its Offer on" do
+    before do
+      stage
+      Days::Command.apply(
+        act: :commit_offer, side: side, day: day, by: dana, seconded_by: seconder
+      )
+    end
+
+    # `Side#members` folds from Attribution, so a teammate who has done nothing
+    # cannot second anything.
+    let(:seconder) do
+      Days::Command.apply(act: :spend, side: side, day: day, by: ravi,
+        kind: CaseAction::CONSULT_CLIENT)
+      ravi
+    end
+
+    it "refuses a fresh position" do
+      expect { stage(terms: {"apology" => nil}) }.to raise_error(Offers::AlreadyCommitted)
+    end
+
+    it "leaves the draft the commit was copied from exactly as it was" do
+      expect {
+        begin
+          stage(terms: {"apology" => nil})
+        rescue Offers::AlreadyCommitted
+          nil
+        end
+      }.not_to change { side.staged_offer_on(day).terms.map(&:key) }
+    end
+
+    # The Day is still open. It closes on the second Side's commitment, and the
+    # other Side has not filed.
+    it "refuses it while the Day is still open" do
+      expect { stage(terms: {"apology" => nil}) }.to raise_error(Offers::AlreadyCommitted)
+      expect(day.reload).not_to be_closed
+    end
+  end
+
   # The service refuses it against a Day it holds in memory; the trigger is the
   # rule where a stale object cannot get past it.
   it "refuses one underneath the model too" do

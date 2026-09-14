@@ -67,14 +67,18 @@ en:
     # one vocabulary from one place instead of the Board owning words it cannot
     # say.
     #
-    # Two of `commit_offer`'s reasons have no sentence here, because nothing can
-    # currently reach them. The block goes silent once the Day's Offer is
-    # executed, so `an_offer_has_already_been_committed_today` names a state it
-    # does not print in — and the term sheet withdraws its inputs on that Day, so
-    # no second draft is ever drawn to be refused. An Exhibit cannot yet be
-    # played at all. Copy with no surface is copy nobody has read; each is owed a
+    # One of `commit_offer`'s reasons has no sentence here, because nothing can
+    # reach it: an Exhibit cannot yet be played at all, so nothing can play one
+    # twice. Copy with no surface is copy nobody has read, and it is owed a
     # sentence by the ticket that first renders it.
+    #
+    # `an_offer_has_already_been_committed_today` is shared by both ends of one
+    # rule — `Days::Command` refusing the second commit, and `Offers::Stage`
+    # refusing the draft that would be revised under it — which is the argument
+    # for this block sitting where it does rather than under either seam.
     refusals:
+      an_offer_has_already_been_committed_today: >-
+        Your team has already executed an offer today.
       the_budget_cannot_cover_it: >-
         Today's half will not cover it.
       the_day_has_closed: >-

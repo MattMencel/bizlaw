@@ -5,10 +5,15 @@ module Demo
   # note, arriving together and replacing what was on the Team's table.
   #
   # Unlike a spend there is nothing to confirm and nothing to quote. Staging
-  # costs nothing, writes no Docket row and is ungated — `Offers::Stage` is the
-  # only path a position reaches the table, and the whole of what it refuses is a
-  # Day that has ended. So the page posts the position and is sent back to read
-  # it, with no price crossing the wire in either direction.
+  # costs nothing, writes no Docket row and is gated by nothing inside the Team —
+  # `Offers::Stage` is the only path a position reaches the table, and what it
+  # refuses is the table being gone: a settled run, a closed Day, or a Day whose
+  # Offer this Team has already executed. So the page posts the position and is
+  # sent back to read it, with no price crossing the wire in either direction.
+  #
+  # The sheet withdraws its inputs on all three, so each refusal here is a page
+  # that went stale under its reader rather than a control that should not have
+  # been offered.
   #
   # It is one act rather than one per field. A teammate Seconds a *position*, and
   # a position that reshaped itself under them while they read it is the thing
@@ -39,6 +44,8 @@ module Demo
       redirect_to draft_path(seated)
     rescue Offers::DayClosed
       refuse(seated, :the_day_has_closed)
+    rescue Offers::AlreadyCommitted
+      refuse(seated, :an_offer_has_already_been_committed_today)
     rescue Simulation::AlreadySettled
       refuse(seated, :the_simulation_has_settled)
     rescue ArgumentError
@@ -53,12 +60,14 @@ module Demo
 
     private
 
-    # The two races the sheet cannot rule out. Both are already refusals the
-    # engine names — the Day the Team was drafting on ended between the page and
-    # the press — so they come back as the engine's own symbols on the shelf and
-    # become sentences in `WorkingDraft`, the one place in this app that knows
-    # what a refusal reads like. The demo is played from two tabs, which is
-    # exactly where a Day closes under somebody.
+    # The three races the sheet cannot rule out. It withdraws its inputs on a Day
+    # that has ended and on one whose Offer is committed, so each of these is a
+    # page that went stale under the reader — the Day closed, the run settled, or
+    # a teammate executed the draft — between the render and the press. Each is
+    # already a refusal the engine names, so it comes back as the engine's own
+    # symbol on the shelf and becomes a sentence in `WorkingDraft`, the one place
+    # in this app that knows what a refusal reads like. The demo is played from
+    # two tabs, which is exactly where a Day ends under somebody.
     def refuse(seated, reason)
       carry_refusal(DRAFT_REFUSAL, seated, {"reason" => reason.to_s})
       redirect_to draft_path(seated)
@@ -93,15 +102,24 @@ module Demo
     # taking every Exhibit off the draft and a 404.
     def named(key) = Array(params[key]).map(&:to_s).compact_blank.uniq
 
-    # Whole dollars or a decimal figure, as typed, with the separators a student
-    # may have written it with. Anything else is not something a field that
-    # accepts an amount can have produced, so it is the caller's doing.
-    def cents(typed)
-      figure = typed.to_s.delete(",$ ").presence
-      raise ArgumentError, "an offer of money is worth an amount" if figure.nil?
-      raise ArgumentError, "#{typed.inspect} is not an amount" unless /\A\d+(\.\d{1,2})?\z/.match?(figure)
+    # A figure as a student would write one: an optional currency symbol, digits
+    # either plain or grouped in threes, and at most two decimal places.
+    #
+    # **Validated as written, before anything is thrown away.** Stripping the
+    # separators first and checking the digits after turns a malformed figure
+    # into a well-formed different one — `1,50` becomes `150`, and $1.50 is
+    # staged as $150 with nothing anywhere saying so. On an instrument whose
+    # whole subject is how much money changes hands, a silently altered amount
+    # is the worst failure available, so the grammar is checked against what was
+    # actually typed and the separators come off only once it has passed.
+    FIGURE = /\A\$?(\d{1,3}(?:,\d{3})*|\d+)(?:\.\d{1,2})?\z/
 
-      (BigDecimal(figure) * 100).to_i
+    def cents(typed)
+      written = typed.to_s.strip
+      raise ArgumentError, "an offer of money is worth an amount" if written.empty?
+      raise ArgumentError, "#{typed.inspect} is not an amount" unless FIGURE.match?(written)
+
+      (BigDecimal(written.delete("$,")) * 100).to_i
     end
 
     # The Case File rows the Exhibits ride out of — this Team's own, which is

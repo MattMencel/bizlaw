@@ -58,18 +58,30 @@
 
   const drawn = $derived(named(position.terms))
 
-  // An amount as a student would write one, separators and all — and the field
-  // opens holding the *printed* figure, so the currency symbol is there before
-  // anybody types. This is the one shape both the comparison below and the wire
-  // use, which is what keeps `$180,000` and `180000` from reading as two
-  // different positions. The server strips the same characters at the boundary.
+  // A figure as a student would write one: an optional currency symbol, digits
+  // either plain or grouped in threes, at most two decimal places. The same
+  // grammar the controller holds — `Demo::OffersController::FIGURE` — because a
+  // figure this control lets through and the server refuses is a 404 where the
+  // reader should have had a dead control and a sentence.
+  //
+  // It is matched against what was **typed**, not against the stripped digits: a
+  // malformed figure with its separators taken out is a well-formed different
+  // one, so `1,50` would pass as `150` and put $150 on the table in place of
+  // $1.50, silently, on the one instrument whose whole subject is how much money
+  // changes hands.
+  const FIGURE = /^\$?(\d{1,3}(?:,\d{3})*|\d+)(?:\.\d{1,2})?$/
+
+  // The figure with its notation off. This is what crosses the wire and what the
+  // comparison below is made on — `$180,000` and `180000` are one position, and
+  // a comparison that kept the notation would read them as two. It is never what
+  // decides whether the figure is well formed.
   const bare = (typed) => String(typed ?? "").replace(/[,$\s]/g, "")
 
   const figure = $derived(bare(position.amount))
 
   const owesAnAmount = $derived(position.terms[moneyTrack?.term] === true)
 
-  const wellFormed = $derived(/^\d+(\.\d{1,2})?$/.test(figure))
+  const wellFormed = $derived(FIGURE.test(position.amount.trim()))
 
   // Why the act cannot be taken, or null. `Offers::Stage` refuses an Offer
   // naming no Term and `StagedOfferTerm` refuses money without a figure; both

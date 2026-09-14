@@ -146,17 +146,47 @@ RSpec.describe "drawing the Offer", type: :request do
   end
 
   # The second tab is a different person on the other Side, and the address is
-  # the whole of what says so. The defendant drew and committed its Day 3 before
-  # the player sat down, so this revises a table that already has a position on
-  # it — which the screen there does not offer, its Offer being committed, and
-  # which the seam allows all the same: staging is ungated, and `Offers::Stage`
-  # is the authority rather than the affordance.
+  # the whole of what says so. Read on the cold open, where neither Side has
+  # committed anything: the demo run's defendant executed its Day 3 before the
+  # player sat down, and a Day whose Offer is committed has no table left to draw
+  # on.
   it "draws on the table the seat sits at" do
-    draw(seat: Side::DEFENDANT, terms: ["training"], amount: nil)
+    cold = Demo::Seed.simulation(Demo::Seed::COLD_OPEN)
+    cold_day = cold.days.find_by!(ordinal: 1)
 
-    expect(simulation.defendant_side.staged_offer_on(day).terms.map(&:key)).to eq(["training"])
-    expect(side.staged_offers).to be_empty
-    expect(response).to redirect_to("/demo/#{Demo::Seed::DEMO}/#{Side::DEFENDANT}")
+    draw(run: Demo::Seed::COLD_OPEN, seat: Side::DEFENDANT,
+      terms: ["training"], amount: nil, on: 1)
+
+    expect(cold.defendant_side.staged_offer_on(cold_day).terms.map(&:key)).to eq(["training"])
+    expect(cold.plaintiff_side.staged_offers).to be_empty
+    expect(response).to redirect_to("/demo/#{Demo::Seed::COLD_OPEN}/#{Side::DEFENDANT}")
+  end
+
+  # A Team commits at most one Offer a Day, so a Day whose Offer is executed has
+  # no second position to put on the table. The sheet withdraws its inputs there,
+  # so reaching this is a page that went stale — and the seam is what refuses it,
+  # rather than the screen, because `TermsBoard#ours` prefers the draft to the
+  # committed Offer: a revision landing here would leave the executed instrument
+  # printing terms over two countersignatures that never signed them.
+  describe "a Day whose Offer is already executed" do
+    it "refuses the draft rather than revising what was executed" do
+      expect {
+        draw(seat: Side::DEFENDANT, terms: ["training"], amount: nil)
+      }.not_to change { simulation.defendant_side.staged_offer_on(day).terms.map(&:key) }
+
+      follow_redirect!
+      expect(inertia.props[:term_sheet][:refusal])
+        .to eq("Your team has already executed an offer today.")
+    end
+
+    # The whole window this closes: the Day stays open until the other Side
+    # commits, so a tab left sitting on it is not looking at a closed Day.
+    it "is refused on a Day that is still open" do
+      draw(seat: Side::DEFENDANT, terms: ["training"], amount: nil)
+      follow_redirect!
+
+      expect(day.reload).not_to be_closed
+    end
   end
 
   # One seat, one address, however it was reached. #360 handed the player the
@@ -167,10 +197,10 @@ RSpec.describe "drawing the Offer", type: :request do
     expect(response).to redirect_to("/demo/#{Demo::Seed::DEMO}")
   end
 
-  # The sheet withdraws its inputs on a Day that has ended, so this is a race:
-  # the Day closed between the page and the press. It is a refusal the engine
-  # already names, so it comes back as the engine's own symbol and becomes a
-  # sentence on the page rather than a fault.
+  # The sheet withdraws its inputs on a Day that has ended, so this is a page
+  # that went stale: the Day closed between the render and the press. It is a
+  # refusal the engine already names, so it comes back as the engine's own symbol
+  # and becomes a sentence on the page rather than a fault.
   describe "a Day that ended under the drafting" do
     # The defendant has already committed Day 3, so the plaintiff's commitment
     # is the second and closes it.
@@ -233,6 +263,55 @@ RSpec.describe "drawing the Offer", type: :request do
       draw(amount: "about a hundred grand")
 
       expect(response).to have_http_status(:not_found)
+    end
+
+    # The figure is read **as written**. Stripping the separators first and
+    # checking the digits after turns a malformed figure into a well-formed
+    # different one — and a silently altered amount is the worst failure
+    # available on an instrument whose whole subject is how much money changes
+    # hands.
+    it "does not read a malformed figure as a different amount" do
+      draw(amount: "1,50")
+
+      expect(response).to have_http_status(:not_found)
+      expect(staged).to be_nil
+    end
+
+    it "does not take a group that is not three digits" do
+      ["1,5000", "12,34,567", "1 50", "1.234"].each do |written|
+        draw(amount: written)
+
+        expect(response).to have_http_status(:not_found), "accepted #{written.inspect}"
+      end
+    end
+
+    it "reads the figures a student would actually write" do
+      {"$150,000" => 150_000_00, "150000" => 150_000_00,
+       "1,500.25" => 1_500_25, "$12" => 12_00}.each do |written, in_cents|
+        draw(amount: written)
+
+        expect(staged.amount_cents).to eq(in_cents), "read #{written.inspect} wrong"
+      end
+    end
+  end
+
+  # The session is the browser and the demo is played from two tabs, so one
+  # seat's refusal must not be readable by the other — and must not be erased by
+  # it either, which a single shelf naming its own seat in the payload could not
+  # promise.
+  describe "two seats refused before either reads" do
+    before do
+      Days::Commit.call(side: side, day: day, by: player)
+      draw(seat: Side::PLAINTIFF)
+      draw(seat: Side::DEFENDANT)
+    end
+
+    it "keeps each seat's sentence for the seat that earned it" do
+      get "/demo/#{Demo::Seed::DEMO}"
+      expect(inertia.props[:term_sheet][:refusal]).to eq("This Day has closed.")
+
+      get "/demo/#{Demo::Seed::DEMO}/#{Side::DEFENDANT}"
+      expect(inertia.props[:term_sheet][:refusal]).to eq("This Day has closed.")
     end
 
     it "does not know a Day off the Simulation's calendar" do

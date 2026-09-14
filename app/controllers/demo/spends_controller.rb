@@ -43,11 +43,10 @@ module Demo
 
       redirect_to draft_path(seated)
     rescue Days::Command::Refused => e
-      # The kind and the reason, and `carry_refusal` stamps the seat: the line
-      # that carries the stamp is found by kind, the sentence under it is named
-      # by the reason, and the tab it belongs to is named by the seat. A page
-      # handed one without the others has a refusal it cannot place, cannot
-      # read, or was never owed.
+      # The kind and the reason: the line that carries the stamp is found by
+      # kind and the sentence under it is named by the reason. A page handed one
+      # without the other has a refusal it cannot place or cannot read. The seat
+      # names the shelf rather than riding along — see `carry_refusal`.
       #
       # The session rather than the flash, and `refusal_for` is why: this waits
       # for the seat that earned it instead of for whichever request comes next.

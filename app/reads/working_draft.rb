@@ -179,13 +179,18 @@ class WorkingDraft
     }
   end
 
-  # Whether a position may still be written on this Day. Narrower than the
-  # refusals `Offers::Stage` raises, by exactly one: a Team that has committed
-  # today can still stage, and `Days::Command` then refuses the second commit
-  # with `an_offer_has_already_been_committed_today`. Offering the gesture there
-  # would be offering a draft whose only outcome is a refusal — and it would put
-  # inputs over an executed instrument, which is a record rather than a working
-  # surface.
+  # Whether a position may still be written on this Day — the three things
+  # `Offers::Stage` refuses, asked ahead of the press rather than after it. A
+  # sheet that withdraws its inputs and a seam that refuses the write are the
+  # same rule at two distances: the affordance is gone before the reader reaches
+  # for it, and a page that went stale between the render and the press is still
+  # refused rather than landing.
+  #
+  # The last of the three is what keeps inputs off an executed instrument, which
+  # is a record rather than a working surface — and `Offers::Stage` holds it too,
+  # because `TermsBoard#ours` prefers the draft to the committed Offer and a
+  # revision landing there would print terms over two countersignatures that
+  # never signed them.
   def may_draft? = committed.nil? && !day.closed? && !day.simulation.settled?
 
   # One line signed and one blank naming the teammates who may sign it, per

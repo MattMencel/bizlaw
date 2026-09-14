@@ -9,6 +9,10 @@ module Offers
   # It costs nothing and writes no Docket row, because nothing has been spent —
   # what the Docket shows is the staging itself, folded in on read.
   #
+  # It refuses three things and only three: a settled run, a closed Day, and a
+  # Day this Team has already committed its Offer on. The first two are the
+  # table being gone; the third is the position already being taken.
+  #
   # Terms are given as a Hash over the Case's authored vocabulary, mapping each
   # Term's key to money's amount in cents and every other Term to nil:
   #
@@ -42,6 +46,16 @@ module Offers
       end
 
       raise DayClosed, "Day #{day.ordinal} has already closed" if day.closed?
+
+      # A Team commits at most one Offer a Day, so a Day whose Offer is committed
+      # has no second position to put on the table — and revising the draft it
+      # was copied from would leave the executed instrument printing terms that
+      # were never signed, `TermsBoard#ours` preferring the draft to the
+      # committed Offer. The Day stays open until the other Side commits, so this
+      # window is real rather than theoretical.
+      if side.committed_offer_on(day)
+        raise AlreadyCommitted, "this Team has already executed an Offer on Day #{day.ordinal}"
+      end
 
       vocabulary = terms_authored_for(terms.keys)
       riding = exhibits_held_for_play

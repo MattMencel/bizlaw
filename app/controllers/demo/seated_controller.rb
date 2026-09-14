@@ -10,14 +10,22 @@ module Demo
   # refuses to render and a seat a spend accepts would be two answers to the
   # question the address exists to ask.
   class SeatedController < InertiaController
-    # Where a refusal waits for the seat that earned it. One key for both seats
-    # rather than one each: the payload names its own seat, so a second key
-    # would be a second place for that name to be wrong.
+    # Where a refusal waits for the seat that earned it — one shelf per act per
+    # seat, named by both.
     #
-    # Two shelves rather than two mechanisms, and they are split by *act* and not
-    # by seat: a refused spend stamps the Action line it names, a refused staging
-    # belongs to the sheet and names nothing, and one shelf holding both would
-    # have a spend's refusal swept by a staging that had nothing to do with it.
+    # By act, because a refused spend stamps the Action line it names while a
+    # refused staging belongs to the sheet and names nothing: one shelf holding
+    # both would have a spend's refusal swept by a staging that had nothing to do
+    # with it.
+    #
+    # By seat, because the session is the browser and the demo is played from two
+    # tabs. #363 put the seat in the payload instead and had the reader match on
+    # it, on the grounds that a second key would be a second place for that name
+    # to be wrong — but the key is derived from the same `seated.segment`, so
+    # there is no second place, and one shelf for two seats means the second tab
+    # to be refused *overwrites* the first tab's sentence before it has followed
+    # its own redirect. That reasoning was sound while one act could be refused
+    # and one tab could write; this PR made both of those two.
     SPEND_REFUSAL = "spend_refusal"
     DRAFT_REFUSAL = "draft_refusal"
 
@@ -114,8 +122,8 @@ module Demo
 
     def canonical(seated) = (seated.segment unless seated.segment == Seat::DEFAULT)
 
-    # A refusal this seat is owed, and nobody else's — taken off the shelf by
-    # the seat that earned it and by no other.
+    # A refusal this seat is owed, and nobody else's — taken off that seat's own
+    # shelf and cleared on the way past, so it is read exactly once.
     #
     # The session is the browser, and the demo is played from two tabs, so both
     # seats share it. The flash is the obvious carrier and the wrong one: it is
@@ -123,24 +131,24 @@ module Demo
     # the window between the POST and its own redirect takes the sentence away
     # from the tab that earned it — without ever being the tab that wanted it.
     #
-    # A plain session entry read by its owner has no such window. The wrong seat
-    # looks, does not match, and leaves it where it is; the right seat finds it
-    # however long the round trip took, and clears it on the way past so it is
-    # read exactly once. What is left behind is bounded to one entry per seat,
-    # overwritten by that seat's next refusal.
-    def refusal_for(key, seated)
-      carried = session[key]
-      return nil unless carried && carried["seat"] == seated.segment
-
-      session.delete(key)
-      carried
+    # A shelf named by the seat has no such window in either direction. The other
+    # tab never reads this one and never writes over it, however long either
+    # round trip takes. What is left behind is bounded to one entry per act per
+    # seat, overwritten only by that seat's next refusal of that act.
+    def refusal_for(act, seated)
+      session.delete(shelf(act, seated))
     end
 
-    # Put one on the shelf. The seat is stamped here rather than by the caller,
-    # because it is the half of the payload the reader matches on and the one
-    # thing about it no act gets to decide.
-    def carry_refusal(key, seated, payload)
-      session[key] = payload.merge("seat" => seated.segment)
+    # Put one on the shelf. The seat names the shelf rather than riding in the
+    # payload, so a refusal cannot be read by the wrong seat or erased by it.
+    def carry_refusal(act, seated, payload)
+      session[shelf(act, seated)] = payload
     end
+
+    # The player's seat resolves from an address that may or may not spell it
+    # out, so the shelf is named from the seat the resolver settled on — the same
+    # value `canonical` writes his URL from. One seat, one shelf, however the
+    # address reached it.
+    def shelf(act, seated) = "#{act}:#{seated.segment}"
   end
 end

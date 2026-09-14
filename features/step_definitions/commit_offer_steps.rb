@@ -92,6 +92,19 @@ Then("committing the plaintiff Offer on Day {int} again is refused") do |ordinal
   }.to raise_error(Days::Command::Refused)
 end
 
+# The other end of the same rule. A draft on a Day whose Offer is executed could
+# never be committed and cannot be carried forward — `staged_offers` is keyed to
+# the Day — so it is a position with no future; and because `TermsBoard#ours`
+# prefers the draft to the committed Offer, one landing here would leave the
+# executed instrument printing terms that were never signed.
+Then("drawing a new plaintiff Offer on Day {int} is refused") do |ordinal|
+  expect {
+    Offers::Stage.call(
+      side: @side, day: a_plaintiff_day(ordinal), by: @student, terms: {"money" => 42_000_00}
+    )
+  }.to raise_error(Offers::AlreadyCommitted)
+end
+
 Then("the plaintiff Offer on Day {int} has been accepted by {word}") do |ordinal, name|
   acceptance = a_committed_offer(ordinal).acceptance
 
