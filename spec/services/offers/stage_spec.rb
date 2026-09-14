@@ -10,6 +10,8 @@ RSpec.describe Offers::Stage do
   let(:dana) { a_user(organization: organization, name: "Dana", email: "dana@wiu.edu") }
   let(:ravi) { a_user(organization: organization, name: "Ravi", email: "ravi@wiu.edu") }
 
+  def term(key) = simulation.case_version.terms.find_by!(key: key)
+
   def stage(by: dana, terms: {"money" => 45_000_00}, note: nil)
     described_class.call(side: side, day: day, by: by, terms: terms, note: note)
   end
@@ -139,6 +141,36 @@ RSpec.describe Offers::Stage do
       expect { stage(terms: {"apology" => nil}) }.to raise_error(Offers::AlreadyCommitted)
     end
 
+    # The service refuses it against a read taken before the transaction; the
+    # triggers are the rule where a commit landing inside that window cannot get
+    # past it. A revision touches no `staged_offers` row an INSERT trigger would
+    # see, so the Terms carry the rule too.
+    it "refuses one underneath the model too" do
+      expect {
+        StagedOffer.create!(side: side, day: day, staged_by: ravi)
+      }.to raise_error(ActiveRecord::StatementInvalid, /staged_offers_need_an_unexecuted_day/)
+    end
+
+    it "refuses a revision underneath the model too" do
+      offer = side.staged_offer_on(day)
+
+      expect {
+        offer.offer_terms.create!(case_term: term("apology"), amount_cents: nil)
+      }.to raise_error(
+        ActiveRecord::StatementInvalid, /staged_offer_terms_need_an_unexecuted_day/
+      )
+    end
+
+    # The race the trigger exists for: the commit lands between this seam's read
+    # and its write. What a caller gets is this seam's own refusal rather than a
+    # database fault, the way `Days::Command` turns its raced ceilings back into
+    # quotes — a student is owed the sentence, not a 500.
+    it "reads a commit that lands inside its own window as the same refusal" do
+      allow(side).to receive(:committed_offer_on).with(day).and_return(nil)
+
+      expect { stage(terms: {"apology" => nil}) }.to raise_error(Offers::AlreadyCommitted)
+    end
+
     it "leaves the draft the commit was copied from exactly as it was" do
       expect {
         begin
@@ -154,6 +186,19 @@ RSpec.describe Offers::Stage do
     it "refuses it while the Day is still open" do
       expect { stage(terms: {"apology" => nil}) }.to raise_error(Offers::AlreadyCommitted)
       expect(day.reload).not_to be_closed
+    end
+  end
+
+  # The same race on the other rule, and the same answer. The other Side closes
+  # the Day by committing it, so a draft in flight when that happens is the
+  # ordinary two-tab case rather than a fault.
+  describe "a Day that closes inside the staging window" do
+    it "reads it as the Day having closed rather than as a fault" do
+      stage
+      Days::Close.call(day)
+      allow(day).to receive(:closed?).and_return(false)
+
+      expect { stage(terms: {"apology" => nil}) }.to raise_error(Offers::DayClosed)
     end
   end
 

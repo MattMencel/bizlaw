@@ -417,7 +417,45 @@ WHEN NEW.seed IS NOT OLD.seed
 BEGIN
   SELECT RAISE(ABORT, 'simulations_seed_is_written_once');
 END;
+CREATE TRIGGER staged_offers_need_an_unexecuted_day
+BEFORE INSERT ON staged_offers
+WHEN EXISTS (
+  SELECT 1 FROM committed_offers
+WHERE committed_offers.side_id = NEW.side_id
+  AND committed_offers.day_id = NEW.day_id
+
+)
+BEGIN
+  SELECT RAISE(ABORT, 'staged_offers_need_an_unexecuted_day');
+END;
+CREATE TRIGGER staged_offer_terms_need_an_unexecuted_day
+BEFORE INSERT ON staged_offer_terms
+WHEN EXISTS (
+  SELECT 1 FROM staged_offers
+JOIN committed_offers
+  ON committed_offers.side_id = staged_offers.side_id
+ AND committed_offers.day_id = staged_offers.day_id
+WHERE staged_offers.id = NEW.staged_offer_id
+
+)
+BEGIN
+  SELECT RAISE(ABORT, 'staged_offer_terms_need_an_unexecuted_day');
+END;
+CREATE TRIGGER staged_offer_terms_stay_on_an_unexecuted_day
+BEFORE UPDATE ON staged_offer_terms
+WHEN EXISTS (
+  SELECT 1 FROM staged_offers
+JOIN committed_offers
+  ON committed_offers.side_id = staged_offers.side_id
+ AND committed_offers.day_id = staged_offers.day_id
+WHERE staged_offers.id = NEW.staged_offer_id
+
+)
+BEGIN
+  SELECT RAISE(ABORT, 'staged_offer_terms_stay_on_an_unexecuted_day');
+END;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260914090000'),
 ('20260908140000'),
 ('20260908120000'),
 ('20260907220000'),

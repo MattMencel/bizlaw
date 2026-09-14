@@ -13,6 +13,14 @@ module Offers
   # Day this Team has already committed its Offer on. The first two are the
   # table being gone; the third is the position already being taken.
   #
+  # The last two are held twice — once here, for the sentence, and once in the
+  # database, for the race. Both are read before the transaction that writes, so
+  # a Day closing or an Offer committing in that window passes the read and lands
+  # on a trigger instead; `RACED_CLOSE` and `RACED_COMMIT` turn that back into
+  # the same refusal, so one rule has one answer however the race fell out. See
+  # the `..._an_unexecuted_day` migration for why the guard is in the database
+  # rather than re-read inside the transaction.
+  #
   # Terms are given as a Hash over the Case's authored vocabulary, mapping each
   # Term's key to money's amount in cents and every other Term to nil:
   #
@@ -27,6 +35,31 @@ module Offers
   # would let them play cards the member who took the position never proposed.
   # Any number may ride one Offer; they cost nothing until it commits.
   class Stage
+    # The two rules this seam refuses that a database trigger also holds, and the
+    # triggers' own names. Each check here is made **before** the transaction
+    # that writes, so a Day closing or an Offer committing in that window slips
+    # past it and lands on the trigger instead — the ordinary two-tab case rather
+    # than a fault, since the other Side closes the Day by committing and a
+    # teammate executes the draft from a second seat.
+    #
+    # So the fault is turned back into the refusal this seam already names, the
+    # way `Days::Command` turns its own raced ceilings back into quotes. A caller
+    # gets one answer for one rule however the race fell out, and a student gets
+    # the sentence rather than a 500.
+    #
+    # Anything else out of the database is a fault and is not caught.
+    RACED_CLOSE = Regexp.union(
+      "staged_offers_need_an_unclosed_day",
+      "staged_offer_terms_need_an_unclosed_day",
+      "staged_offer_terms_stay_on_an_unclosed_day",
+      "staged_offer_exhibits_need_an_unclosed_day"
+    )
+    RACED_COMMIT = Regexp.union(
+      "staged_offers_need_an_unexecuted_day",
+      "staged_offer_terms_need_an_unexecuted_day",
+      "staged_offer_terms_stay_on_an_unexecuted_day"
+    )
+
     def self.call(...) = new(...).call
 
     def initialize(side:, day:, by:, terms:, exhibits: [], note: nil)
@@ -53,6 +86,12 @@ module Offers
       # were never signed, `TermsBoard#ours` preferring the draft to the
       # committed Offer. The Day stays open until the other Side commits, so this
       # window is real rather than theoretical.
+      #
+      # This and the Day above are both read before the transaction below, so
+      # neither is the last word: a commit or a close landing in that window is
+      # caught by the trigger and turned back into this same refusal — see
+      # `RACED_COMMIT`. What this pair is for is answering without a failed write
+      # in the ordinary case, which is every case but the race.
       if side.committed_offer_on(day)
         raise AlreadyCommitted, "this Team has already executed an Offer on Day #{day.ordinal}"
       end
@@ -86,6 +125,14 @@ module Offers
         riding.each { |filed| offer.offer_exhibits.create!(case_file_document: filed) }
         offer.reload
       end
+    rescue ActiveRecord::StatementInvalid => e
+      raise DayClosed, "Day #{day.ordinal} has already closed" if RACED_CLOSE.match?(e.message)
+
+      if RACED_COMMIT.match?(e.message)
+        raise AlreadyCommitted, "this Team has already executed an Offer on Day #{day.ordinal}"
+      end
+
+      raise
     end
 
     private
