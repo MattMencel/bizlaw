@@ -307,8 +307,12 @@ RSpec.describe "the working draft", type: :system do
   describe "the cold open" do
     before { visit "/demo/#{Demo::Seed::COLD_OPEN}" }
 
+    # Every empty state names its section and says what would fill it. The two
+    # in the front matter said only that there was nothing, until #368 — and
+    # they are the first two things a Day 1 reader meets.
     it "is not a blank page" do
-      expect(page).to have_text("The other Side has put nothing in front of you.")
+      expect(page).to have_text("An Action you spend comes back on the Day its lead time names")
+      expect(page).to have_text("any exhibit riding it is served on you")
       expect(page).to have_text("an offer of nothing is a position somebody took")
       expect(page).to have_text("The termination letter")
     end
@@ -322,6 +326,29 @@ RSpec.describe "the working draft", type: :system do
       click_button "Turn the page over"
 
       expect(page).to have_text("Nothing yet.")
+    end
+
+    # The claim under test is not that the sentences are written but that they
+    # are the tutorial — so the Day has to be playable from them alone. One
+    # press against an empty Docket turns three of them into content: the slip
+    # charges, the memo fills with what the Client actually said, and the Docket
+    # takes its first line. It is the cheapest Action on the board and the only
+    # one that lands the same morning, which is why it is the one a cold open
+    # can prove anything with.
+    it "plays from the empty states alone" do
+      expect(page).to have_text(/8 preparation/i)
+
+      click_button "Spend Consult the Client"
+      click_button "Confirm spending Consult the Client"
+
+      expect(page).to have_text(/7 preparation/i)
+      expect(page).to have_text(/reads firm/i)
+      expect(page).to have_no_text("You have not asked.")
+
+      click_button "Turn the page over"
+
+      expect(page).to have_text("Consult the Client")
+      expect(page).to have_no_text("Nothing yet. Every Action your Team spends on lands here")
     end
 
     it "is accessible" do

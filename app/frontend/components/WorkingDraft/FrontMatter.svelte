@@ -2,6 +2,12 @@
   The Morning Briefing, as front matter on the draft rather than as a room or a
   dialog: #315 settled that it is scrolled past, not dismissed, which is why
   nothing here is collapsible and nothing remembers having been read.
+
+  Its three empty states come down from `MorningBriefing` as sentences, the way
+  the Case File's, the Docket's, the Terms Board's and the memo's already did.
+  They were written here until #368, and being the one copy site outside
+  `reads.en.yml` is why they were also the only two that named an absence
+  without saying what would fill it — the two things a Day 1 reader meets first.
 -->
 <script>
   let { front_matter, day } = $props()
@@ -11,33 +17,37 @@
   <h2 class="doc-sub" id="front-matter">Front matter · the morning of Day {day}</h2>
 
   <h3 class="doc-sub">Landed today</h3>
-  {#if front_matter.landed.length}
+  {#if front_matter.landed_empty_state}
+    <p class="empty-state">{front_matter.landed_empty_state}</p>
+  {:else}
     <ul class="plain">
       {#each front_matter.landed as doc (doc.identifier)}
         <li>{doc.title}</li>
       {/each}
     </ul>
-  {:else}
-    <p class="muted small">Nothing you bought has come back yet.</p>
   {/if}
 
   <h3 class="doc-sub">Served on you</h3>
-  {#if front_matter.served.length}
+  {#if front_matter.served_empty_state}
+    <p class="empty-state">{front_matter.served_empty_state}</p>
+  {:else}
     <ul class="plain">
       {#each front_matter.served as doc (doc.identifier)}
         <li>{doc.title} <span class="stamp warn">Served</span></li>
       {/each}
     </ul>
-  {:else}
-    <p class="muted small">The other Side has put nothing in front of you.</p>
   {/if}
 
   <h3 class="doc-sub">What you started with</h3>
-  <ul class="plain">
-    {#each front_matter.what_you_start_with as doc (doc.identifier)}
-      <li>{doc.title}</li>
-    {/each}
-  </ul>
+  {#if front_matter.what_you_start_with_empty_state}
+    <p class="empty-state">{front_matter.what_you_start_with_empty_state}</p>
+  {:else}
+    <ul class="plain">
+      {#each front_matter.what_you_start_with as doc (doc.identifier)}
+        <li>{doc.title}</li>
+      {/each}
+    </ul>
+  {/if}
 
   <hr class="rule" />
   <!-- Neither a pronoun nor a role. This component renders for both Sides and

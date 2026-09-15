@@ -72,6 +72,29 @@ class MorningBriefing
     @what_you_start_with ||= case_file.entries.select { |entry| started_with?(entry) }
   end
 
+  # The empty state is the tutorial: a section holding nothing says what that
+  # section would hold. Each is nil once there is something to read, so a
+  # surface cannot show the lesson over the thing it was teaching — the shape
+  # `CaseFile`, `Docket`, `TermsBoard` and the Consult memo already answer in.
+  #
+  # The briefing was the one read that did not, and its two sentences sat inline
+  # in the component instead. They are the first two things a Day 1 reader meets
+  # and were the only two that named an absence without saying what would fill
+  # it — the drift a fifth copy site makes inevitable.
+  #
+  # All three are emptier than the cold open alone: *served* is empty on the
+  # demo's own defendant on Day 3, and *landed* on any morning a Team bought
+  # nothing due back. The third is unreachable in the reference Case, which
+  # authors documents at the open for both Sides — a Case that authored none
+  # would otherwise print a heading over white space.
+  def landed_empty_state = landed.empty? ? I18n.t("reads.morning_briefing.landed.empty") : nil
+
+  def served_empty_state = served.empty? ? I18n.t("reads.morning_briefing.served.empty") : nil
+
+  def what_you_start_with_empty_state
+    what_you_start_with.empty? ? I18n.t("reads.morning_briefing.what_you_start_with.empty") : nil
+  end
+
   # What this Team's own Client said they want, on the Day the Team first sat
   # down. Authored prose, never generated: it is an object in the dispute rather
   # than a line about something the engine computed.
