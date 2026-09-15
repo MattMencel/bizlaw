@@ -197,6 +197,54 @@ RSpec.describe MorningBriefing do
       seconded_by: priya)
   end
 
+  # The empty state is the tutorial, so each section that can hold nothing says
+  # what it would hold — and says it only while there is nothing, so a surface
+  # cannot print the lesson over the thing it was teaching.
+  describe "the empty states" do
+    it "says what would land, and what being served means" do
+      read = briefing(on: day(1))
+
+      expect(read.landed_empty_state).to include("lead time", "due back today")
+      expect(read.served_empty_state).to include("exhibit riding it", "argued at")
+    end
+
+    it "goes silent on the section that has something in it" do
+      expect(briefing(on: day(1)).what_you_start_with_empty_state).to be_nil
+    end
+
+    it "goes silent once something has landed" do
+      spend(CaseAction::DEPOSE_WITNESS, on: day(1))
+      open_day(2)
+      open_day(3)
+
+      expect(briefing(on: day(3)).landed_empty_state).to be_nil
+    end
+
+    # No demo route reaches this one: the reference Case authors documents at
+    # the open for both Sides, and the two that render on the cold open do not.
+    # A Case that authored none for a Side would otherwise print a heading over
+    # white space, so the sentence is owed a surface even though this is the
+    # only one it has.
+    context "when the Case authored nothing for this Side at the open" do
+      let(:case_version) do
+        a_case_version.tap do |version|
+          version.documents.in_hand_at_the_open.find_each do |document|
+            document.update_column(:provenance, Side::DEFENDANT)
+          end
+        end
+      end
+      let(:simulation) { a_simulation(case_version: case_version) }
+
+      it "says the Team was handed nothing, rather than showing a bare heading" do
+        read = briefing(on: day(1))
+
+        expect(read.what_you_start_with).to be_empty
+        expect(read.what_you_start_with_empty_state)
+          .to include("handed no documents at the open")
+      end
+    end
+  end
+
   it "writes nothing" do
     first = day(1)
 

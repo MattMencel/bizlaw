@@ -118,8 +118,11 @@ class WorkingDraft
   def front_matter
     {
       landed: briefing.landed.map { |entry| document(entry) },
+      landed_empty_state: briefing.landed_empty_state,
       served: briefing.served.map { |entry| document(entry) },
+      served_empty_state: briefing.served_empty_state,
       what_you_start_with: briefing.what_you_start_with.map { |entry| document(entry) },
+      what_you_start_with_empty_state: briefing.what_you_start_with_empty_state,
       opening_statement: briefing.opening_statement,
       calendar: briefing.calendar.map do |calendar_day|
         {ordinal: calendar_day.ordinal,

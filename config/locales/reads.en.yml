@@ -18,6 +18,29 @@
 en:
   reads:
     morning_briefing:
+      # The briefing's three sections that can hold nothing. They were written
+      # inline in `FrontMatter.svelte` until #368 and were the only two
+      # student-facing sentences left in a component — which is why they were
+      # also the only two that named an absence without saying what would fill
+      # it, while every empty state written here instructs.
+      landed:
+        empty: >-
+          Nothing yet. An Action you spend comes back on the Day its lead time
+          names, and lands here that morning. Nothing you have bought is due
+          back today.
+      served:
+        empty: >-
+          Nothing yet. When the other Side executes an offer, any exhibit
+          riding it is served on you and appears here. It is how you learn you
+          have been argued at — never what the argument was worth.
+      # Unreachable in the reference Case, which authors documents at the open
+      # for both Sides, and owed a sentence all the same: a heading over white
+      # space is the one thing an empty section must not be.
+      what_you_start_with:
+        empty: >-
+          Nothing. Your Team was handed no documents at the open, so everything
+          you come to know is something you bought or something they served on
+          you.
       grammar: >-
         Everything here is the case file — work it in any order. The Day ends
         when both Sides have committed it, and an Offer commits only over a
