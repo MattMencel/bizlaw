@@ -41,6 +41,67 @@ RSpec.describe Offers::Accept do
     described_class.call(offer: offer, side: side, day: on, by: by, seconded_by: seconded_by)
   end
 
+  # The same list of refusals the seam raises from, as the symbols a surface
+  # renders. It exists so the acceptance block's sentence and the write's
+  # refusal are one rule: an affordance computed beside a seam is a second
+  # authority on it, and it drifts.
+  describe ".refusal_for" do
+    def refusal(offer, side: accepting, on: day, by: kofi, seconded_by: nil)
+      described_class.refusal_for(
+        offer: offer, side: side, day: on, by: by, seconded_by: seconded_by
+      )
+    end
+
+    it "names the gate when nobody is countersigning" do
+      offer = an_offer_on_the_table
+      a_member_of(accepting, noor)
+
+      expect(refusal(offer, by: kofi)).to eq(:the_acceptance_has_not_been_seconded)
+    end
+
+    it "answers nil when the act would land" do
+      offer = an_offer_on_the_table
+      a_member_of(accepting, kofi)
+      a_member_of(accepting, noor)
+
+      expect(refusal(offer, by: kofi, seconded_by: noor)).to be_nil
+    end
+
+    it "names the Day when it has closed underneath the reader" do
+      offer = an_offer_on_the_table
+      a_member_of(accepting, kofi)
+      a_member_of(accepting, noor)
+      Days::Close.call(day)
+
+      expect(refusal(offer, by: kofi, seconded_by: noor)).to eq(:the_day_has_closed)
+    end
+
+    # A settled run answers first, and the order is load-bearing: an Acceptance
+    # across the table closes the Day it landed on, so a caller reading a stale
+    # page would otherwise be told its Day had closed when what happened is
+    # that the matter ended.
+    it "names the settlement ahead of the Day it closed" do
+      offer = an_offer_on_the_table
+      a_member_of(accepting, kofi)
+      a_member_of(accepting, noor)
+      accept(offer, by: kofi, seconded_by: noor)
+
+      expect(refusal(offer, on: following, by: kofi, seconded_by: noor))
+        .to eq(:the_matter_has_already_settled)
+    end
+
+    # Every symbol it can answer with has a sentence. A refusal with no copy is
+    # a dead control that will not say why, which #363 ruled out.
+    it "answers only symbols the register can read aloud" do
+      %i[
+        the_acceptance_has_not_been_seconded the_day_has_closed
+        the_matter_has_already_settled
+      ].each do |reason|
+        expect(I18n.t("reads.refusals.#{reason}", default: nil)).to be_present
+      end
+    end
+  end
+
   it "records the Acceptance against the Team that took it, naming both members" do
     offer = an_offer_on_the_table
     a_member_of(accepting, noor)

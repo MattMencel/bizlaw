@@ -34,6 +34,11 @@ module Demo
     # the countersignature block, which is the control that was pressed and the
     # only part of the instrument that can say what happened to it.
     COMMIT_REFUSAL = "commit_refusal"
+    # The Acceptance's, and a fourth for the reason the third was a third: it
+    # lands somewhere else again. The acceptance block is the other Side's paper
+    # on this page, and it is the only part of the instrument that can say what
+    # happened to an act taken on it.
+    ACCEPTANCE_REFUSAL = "acceptance_refusal"
     # The Instructor's. Their seat names it like any other, which is what keeps
     # a Day that closed under the minute from writing a sentence onto a
     # student's page.
@@ -138,6 +143,13 @@ module Demo
     # not the Instructor's: the waiver releases the gate, but the act is still
     # the Team's own and is attributed to the member who presses it.
     def commit_path(seated) = demo_run_commits_path(run: params[:run], seat: canonical(seated))
+
+    # Where taking their deal posts. The seat's own, like the other three: the
+    # Acceptance is attributed to the member who takes it, and the teammate it
+    # names countersigns rather than presses.
+    def acceptance_path(seated)
+      demo_run_acceptances_path(run: params[:run], seat: canonical(seated))
+    end
 
     # A spend redirects rather than rendering, so the whole instrument is
     # re-read against what the write left behind — the slip, the Docket and the

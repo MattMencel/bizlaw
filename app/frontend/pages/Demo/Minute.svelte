@@ -24,19 +24,34 @@
 
   It re-reads on focus like the registers do — the professor grants here, moves
   to the player's tab, and comes back.
+
+  **Once the matter has settled it is one line.** There is no Day being played
+  after an Acceptance — `Days::Close` opens nothing — so there is nothing to
+  grant a waiver on and no position that could still be executed. Without that
+  branch this page renders the first *unclosed* Day, which after a settlement is
+  one `Simulations::Create` laid down and `Days::Open` never reached: the
+  professor's own tab would print a live tomorrow with two empty ruled lines,
+  asserting the game was still going one gesture after the ending.
+
+  It stays the minute rather than becoming the instrument. The executed agreement
+  is the Teams' paper, and this page has never read their file.
 -->
 <script>
   import { router } from "@inertiajs/svelte"
   import { rereadOnFocus } from "../../lib/live.svelte.js"
 
-  let { letterhead, lines, waiver_path } = $props()
+  let { letterhead, settled, lines, waiver_path } = $props()
 
   rereadOnFocus()
 
   const role = (r) => r.charAt(0).toUpperCase() + r.slice(1)
 
   const meta = $derived(
-    [`Day ${letterhead.day}/${letterhead.of}`, letterhead.in_fiction_date, letterhead.you]
+    [
+      settled ? "Settled" : `Day ${letterhead.day}/${letterhead.of}`,
+      settled ? settled.in_fiction_date : letterhead.in_fiction_date,
+      letterhead.you
+    ]
       .filter(Boolean)
       .join(" · ")
   )
@@ -59,7 +74,7 @@
 </script>
 
 <svelte:head>
-  <title>Minute — Day {letterhead.day}</title>
+  <title>{settled ? "Minute — settled" : `Minute — Day ${letterhead.day}`}</title>
 </svelte:head>
 
 <main class="desk">
@@ -73,58 +88,75 @@
 
     <h2 class="doc-title">Minute of the instructor</h2>
     <p class="small muted matter">
-      {letterhead.matter} · Day {letterhead.day} of {letterhead.of}{letterhead.closed
-        ? " · this Day has closed"
-        : ""}
+      {#if settled}
+        {letterhead.matter} · settled on Day {settled.day}
+      {:else}
+        {letterhead.matter} · Day {letterhead.day} of {letterhead.of}{letterhead.closed
+          ? " · this Day has closed"
+          : ""}
+      {/if}
     </p>
 
     <hr class="rule heavy" />
 
-    <section aria-labelledby="waivers">
-      <h3 class="doc-sub" id="waivers">Waiver of the second</h3>
-      <p class="small muted rubric">
-        A team whose other members are absent can draw an offer it cannot execute.
-        Releasing the second lets that team execute alone, for this Day only. It is
-        granted, never exercised — nobody countersigns on a team's behalf — and it
-        cannot be taken back.
-      </p>
+    {#if settled}
+      <!-- One line, and no controls. Their powers over this run are spent: a
+           waiver releases the gate on executing a draft, and there is no Day
+           left for one to be drawn on. -->
+      <section aria-labelledby="closed">
+        <h3 class="doc-sub" id="closed">The matter is closed</h3>
+        <p class="small">
+          The two Sides settled on Day {settled.day}, {settled.in_fiction_date}. No
+          further Day opens, and there is nothing left to release.
+        </p>
+      </section>
+    {:else}
+      <section aria-labelledby="waivers">
+        <h3 class="doc-sub" id="waivers">Waiver of the second</h3>
+        <p class="small muted rubric">
+          A team whose other members are absent can draw an offer it cannot execute.
+          Releasing the second lets that team execute alone, for this Day only. It is
+          granted, never exercised — nobody countersigns on a team's behalf — and it
+          cannot be taken back.
+        </p>
 
-      <ul class="plain">
-        {#each lines as line (line.role)}
-          <li class="minute" class:settled={!!line.granted}>
-            <span class="k">{role(line.role)}</span>
-            <span class="p">
-              {line.drawn
-                ? "a position is on the table, unexecuted"
-                : "nothing drawn on the table"}
-            </span>
+        <ul class="plain">
+          {#each lines as line (line.role)}
+            <li class="minute" class:settled={!!line.granted}>
+              <span class="k">{role(line.role)}</span>
+              <span class="p">
+                {line.drawn
+                  ? "a position is on the table, unexecuted"
+                  : "nothing drawn on the table"}
+              </span>
 
-            {#if line.granted}
-              <p class="record">
-                The second is waived for this Day. Granted by {line.granted.by},
-                {granted(line.granted.at)}.
-              </p>
-            {:else}
-              <button
-                type="button"
-                class="control"
-                id={`waive-${line.role}`}
-                aria-label={`Waive the second for the ${line.role}`}
-                aria-disabled={letterhead.closed}
-                aria-describedby={line.refusal ? `waiver-refusal-${line.role}` : undefined}
-                onclick={() => !letterhead.closed && grant(line.role)}
-              >
-                Waive the second
-              </button>
-            {/if}
+              {#if line.granted}
+                <p class="record">
+                  The second is waived for this Day. Granted by {line.granted.by},
+                  {granted(line.granted.at)}.
+                </p>
+              {:else}
+                <button
+                  type="button"
+                  class="control"
+                  id={`waive-${line.role}`}
+                  aria-label={`Waive the second for the ${line.role}`}
+                  aria-disabled={letterhead.closed}
+                  aria-describedby={line.refusal ? `waiver-refusal-${line.role}` : undefined}
+                  onclick={() => !letterhead.closed && grant(line.role)}
+                >
+                  Waive the second
+                </button>
+              {/if}
 
-            {#if line.refusal}
-              <span class="refusal" id={`waiver-refusal-${line.role}`}>{line.refusal}</span>
-            {/if}
-          </li>
-        {/each}
-      </ul>
-    </section>
+              {#if line.refusal}
+                <span class="refusal" id={`waiver-refusal-${line.role}`}>{line.refusal}</span>
+              {/if}
+            </li>
+          {/each}
+        </ul>
+      </section>
+    {/if}
   </article>
 </main>
 

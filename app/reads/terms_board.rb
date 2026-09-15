@@ -72,6 +72,19 @@ class TermsBoard
   # over the thing it was teaching.
   def empty_state = empty? ? I18n.t("reads.terms_board.empty") : nil
 
+  # The row the struck-through column is folded from — the other Side's last
+  # committed Offer, whole, as of this Day.
+  #
+  # It is public for one reason: an Acceptance countersigns *that* instrument,
+  # and the sheet printing one Offer while a control beside it accepted another
+  # is the worst failure this surface has available. One read answers which
+  # Offer "theirs" means, so the two cannot disagree.
+  #
+  # Nil where there is nothing across the table, which is what a surface gates
+  # its acceptance control on: a control for paper nobody has served is an
+  # affordance for an act unavailable in principle.
+  def their_offer = theirs_committed
+
   private
 
   attr_reader :side, :day
@@ -100,7 +113,15 @@ class TermsBoard
   # It reaches `committed_offers`, which per ADR 0002 is a separate table from
   # the drafts precisely so that a cross-Side read cannot find a live position.
   def theirs
-    @theirs ||= positions(last_committed(side.opponent))
+    @theirs ||= positions(theirs_committed)
+  end
+
+  # `defined?` rather than `||=`, which memoizes nothing when the other Side has
+  # committed nothing and asks the database again for every track on the board.
+  def theirs_committed
+    return @theirs_committed if defined?(@theirs_committed)
+
+    @theirs_committed = last_committed(side.opponent)
   end
 
   # Last **as of this Day**, which is the whole board's tense: the draft slot

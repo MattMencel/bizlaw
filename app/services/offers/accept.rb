@@ -36,6 +36,20 @@ module Offers
 
     def self.call(...) = new(...).call
 
+    # What this seam would refuse right now, as the symbol a surface renders,
+    # and `nil` when it would land. It exists so the control and the write are
+    # one rule rather than two: the acceptance block prints its obstacle from
+    # here and `call` raises from the same list, in the same order.
+    #
+    # An Acceptance has no `quote` to carry its reason the way a commit's does —
+    # it costs nothing, which is the whole reason this seam sits beside
+    # `Days::Command` rather than inside it — so this is the counterpart of
+    # `WorkingDraft#may_draft?` being exactly `Offers::Stage`'s three refusals.
+    # Review made that correction on #365 for the reason it applies here: an
+    # affordance computed beside a seam is a second authority on the same rule,
+    # and it drifts.
+    def self.refusal_for(...) = new(...).refusal
+
     def initialize(offer:, side:, day:, by:, seconded_by: nil)
       @offer = offer
       @side = side
@@ -57,13 +71,7 @@ module Offers
       taken = OfferAcceptance.find_by(committed_offer: offer, side: side)
       return taken if taken
 
-      if simulation.settled?
-        raise Simulation::AlreadySettled, "this Simulation has already settled"
-      end
-
-      raise DayClosed, "Day #{day.ordinal} has already closed" if day.closed?
-
-      raise NotSeconded, "the Acceptance has not been seconded" unless seconded?
+      refuse!
 
       ActiveRecord::Base.transaction do
         acceptance = OfferAcceptance.create_or_find_by!(committed_offer: offer) do |row|
@@ -88,16 +96,40 @@ module Offers
       # refusal a caller already knows how to render, which is the shape
       # `Days::Command` uses for the same class of race.
       day.reload
-      if simulation.settled?
-        raise Simulation::AlreadySettled, "this Simulation has already settled"
-      end
-
+      refuse!
       raise DayClosed, "Day #{day.ordinal} has already closed"
+    end
+
+    # The three things this seam refuses, in the order it asks them. A settled
+    # run first, because it is the one that outlives the others: an Acceptance
+    # landing across the table closes the Day it landed on, so a caller reading
+    # a stale page would otherwise be told its Day had closed when what actually
+    # happened is that the matter ended.
+    def refusal
+      return :the_matter_has_already_settled if simulation.settled?
+      return :the_day_has_closed if day.closed?
+      return :the_acceptance_has_not_been_seconded unless seconded?
+
+      nil
     end
 
     private
 
     attr_reader :offer, :side, :day, :by, :seconded_by
+
+    # The same list as an exception apiece, because a caller that asked first
+    # renders a sentence and one that did not has to be stopped. The refusal is
+    # the rule and these are what it reads as to a caller that skipped the ask.
+    def refuse!
+      case refusal
+      when :the_matter_has_already_settled
+        raise Simulation::AlreadySettled, "this Simulation has already settled"
+      when :the_day_has_closed
+        raise DayClosed, "Day #{day.ordinal} has already closed"
+      when :the_acceptance_has_not_been_seconded
+        raise NotSeconded, "the Acceptance has not been seconded"
+      end
+    end
 
     def simulation = day.simulation
 

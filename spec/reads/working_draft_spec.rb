@@ -142,8 +142,13 @@ RSpec.describe WorkingDraft do
       Days::Command.apply(act: :spend, side: side, day: day, by: priya,
         kind: CaseAction::CONSULT_CLIENT)
 
+      # Each teammate carries the identifier an act posts them back by as well
+      # as the name the line prints: #367 gave the Acceptance a hand to name,
+      # and a name is not postable — two members could share one.
       expect(props[:countersignature]).to include(
-        drawn_by: dana.name, may_sign: [priya.name], executed: false
+        drawn_by: dana.name,
+        may_sign: [{name: priya.name, email: priya.email}],
+        executed: false
       )
     end
 
@@ -359,8 +364,8 @@ RSpec.describe WorkingDraft do
     it "composes the face at the one size the memo serves" do
       consult
 
-      expect(props[:memo][:portrait]).to include(%(width="#{WorkingDraft::PORTRAIT_SIZE}"))
-      expect(Portraits::Compose::SIZES).to include(WorkingDraft::PORTRAIT_SIZE)
+      expect(props[:memo][:portrait]).to include(%(width="#{Typeset::PORTRAIT_SIZE}"))
+      expect(Portraits::Compose::SIZES).to include(Typeset::PORTRAIT_SIZE)
     end
 
     # The front of the instrument is today's working state. What survives a Day
@@ -381,6 +386,79 @@ RSpec.describe WorkingDraft do
 
       expect(props[:back][:docket][:entries].sole[:band])
         .to eq(props[:memo][:entries].sole[:band])
+    end
+  end
+
+  # Their paper, on our page. #373 settled that the other Side's instrument
+  # reaches this surface as a strike through our own line and in no other form,
+  # so this block is the only thing an Acceptance has to attach to.
+  describe "the acceptance block" do
+    def acceptance(you: dana) = props(you: you)[:acceptance]
+
+    # Not a permanent fixture, unlike the countersignature block. There is no
+    # lesson in a control for paper nobody has served.
+    it "is absent while there is nothing across the table" do
+      expect(acceptance).to be_nil
+    end
+
+    context "once the other Side has committed an Offer" do
+      before do
+        Days::Command.apply(act: :spend, side: opponent, day: day, by: dana,
+          kind: CaseAction::CONSULT_CLIENT)
+        Offers::Stage.call(side: opponent, day: day, by: priya,
+          terms: {"money" => 40_000_00}, note: "Without prejudice. Open for acceptance today.")
+        Days::Command.apply(act: :commit_offer, side: opponent, day: day, by: priya,
+          seconded_by: dana)
+      end
+
+      it "names the instrument, the hand that drew it and the Day it landed on" do
+        expect(acceptance).to include(day: day.ordinal, drawn_by: priya.name)
+      end
+
+      # Their covering line, which until #367 nothing on any surface read.
+      it "prints their covering note" do
+        expect(acceptance[:note]).to eq("Without prejudice. Open for acceptance today.")
+      end
+
+      # The terms are the strike column on the sheet above. Restating them here
+      # would put one position in two places, which is the defect #373 removed.
+      it "restates none of the terms" do
+        expect(acceptance.keys)
+          .to contain_exactly(:day, :drawn_by, :note, :committed_on, :may_sign, :refusal, :refused)
+      end
+
+      # The wire names the Offer by the Day it was committed on, which is unique
+      # per Side and survives the `demo:seed` reset that moves every row id.
+      it "names the Offer by the Day it was committed on" do
+        expect(acceptance[:committed_on]).to eq(day.ordinal)
+      end
+
+      it "carries the gate's own sentence on a Side of one" do
+        expect(acceptance).to include(
+          may_sign: [],
+          refusal: I18n.t("reads.refusals.the_acceptance_has_not_been_seconded")
+        )
+      end
+
+      it "goes live once a teammate can countersign, and names them" do
+        seconder_on_this_side
+
+        expect(acceptance).to include(
+          may_sign: [{name: priya.name, email: priya.email}], refusal: nil
+        )
+      end
+
+      # The gate is the same rule the commit is gated by, so the Instructor's
+      # waiver releases both: it is granted to a Side for a Day and not to an
+      # act. A block that stayed dead under one would be a second rule.
+      it "goes live under the Instructor's waiver, with nobody to name" do
+        Offers::WaiveSecond.call(side: side, day: day, by: a_user(
+          organization: simulation.section.organization, name: "Professor Adeyemi",
+          email: "adeyemi@example.edu"
+        ))
+
+        expect(acceptance).to include(may_sign: [], refusal: nil)
+      end
     end
   end
 
