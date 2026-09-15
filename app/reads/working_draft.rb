@@ -39,12 +39,22 @@ class WorkingDraft
   # line it was refused on, and a staging's has no line — it belongs to the
   # sheet. It carries a bare reason, since there is only ever one draft to
   # refuse and naming it would be naming the only one there is.
-  def initialize(side, day:, you:, refused: nil, draft_refused: nil)
+  #
+  # `commit_refused` is the third, and it is a third rather than sharing the
+  # staging's because the two belong to different parts of the instrument: a
+  # staging's refusal is the sheet's and a commit's is the countersignature
+  # block's, which is the control that was pressed. It also has to survive a
+  # state the other two never meet — a commit refused *because* a teammate's
+  # landed first leaves the block a record, with no quote left to carry a
+  # sentence — so it is rendered there whether or not there is an execution to
+  # price.
+  def initialize(side, day:, you:, refused: nil, draft_refused: nil, commit_refused: nil)
     @side = side
     @day = day
     @you = you
     @refused = refused
     @draft_refused = draft_refused
+    @commit_refused = commit_refused
   end
 
   def to_props
@@ -69,7 +79,7 @@ class WorkingDraft
   # exactly one member has acted. They come apart at the cold open, where the
   # ledgers are empty and the player is sitting there all the same, and again
   # the moment a second act is attributed.
-  attr_reader :side, :day, :you, :refused, :draft_refused
+  attr_reader :side, :day, :you, :refused, :draft_refused, :commit_refused
 
   def briefing = @briefing ||= MorningBriefing.for(side, day: day)
 
@@ -212,8 +222,25 @@ class WorkingDraft
       signed_by: committed&.seconded_by&.name,
       may_sign: open_draft? ? side.seconders_other_than(staged.staged_by).map(&:name) : [],
       executed: !committed.nil?,
-      waived: !committed.nil? && committed.seconded_by.nil?,
-      execution: execution
+      # How this instrument landed, or — before it has — whether the gate is
+      # open. The two are one question asked at two moments, and the *committed*
+      # row is the authority wherever there is one: a Team that was granted a
+      # waiver and had a teammate sign anyway executed under the signature, and
+      # the record has to name them rather than the waiver they did not use.
+      #
+      # Before the commit there is no row to ask, and the answer is the ledger's.
+      # Without this the block goes quiet the moment the waiver lands — the
+      # refusal disappears and the control comes alive under a dashed line still
+      # captioned *countersigned by*, which is now a line nobody will ever sign.
+      # That is the one beat of this act the reader has to be told rather than
+      # left to infer from an absence.
+      waived: committed ? committed.seconded_by.nil? : side.second_waived_on?(day),
+      execution: execution,
+      # Beside `execution` rather than inside it, because it outlives it: the
+      # refusal a two-tab race actually produces is a teammate's commit landing
+      # first, which makes this block a record and `execution` nil on the very
+      # read that has to say so.
+      refusal: refusal_sentence(commit_refused)
     }
   end
 
@@ -252,6 +279,11 @@ class WorkingDraft
     {
       cost: staged && quote.cost,
       half_label: staged && half_label(quote.half),
+      # What the half has left afterwards, for the confirmation the block opens
+      # before it charges — the same three facts a spend's stub carries. It is
+      # nil on a refused quote because there is no negative Budget to render,
+      # which is also every state in which no confirmation can be opened.
+      remaining_after: quote.remaining_after,
       refusal: refusal_sentence(quote.refusal)
     }
   end
@@ -438,7 +470,16 @@ class WorkingDraft
 
   # A spend is named by the Action it bought; the three acts with no cost are
   # named by the act, because there is no Action behind them to name.
+  #
+  # And so is the fourth, which *does* have a cost: executing a draft is a spend
+  # with no authored Action behind it, so there is no kind to name it by —
+  # `docket_entries.case_action_id` is nullable and CHECKed to the exchange half
+  # for precisely that. Asking `kind_label(nil)` instead hands I18n a key with
+  # nothing after the dot, which resolves to the whole kinds Hash and prints as
+  # `[object Object]` on the one line a Team most wants to read back.
   def act_label(entry)
+    return I18n.t("reads.docket.acts.offer_committed") if entry.commit?
+
     entry.spend? ? kind_label(entry.kind) : I18n.t("reads.docket.acts.#{entry.act}")
   end
 

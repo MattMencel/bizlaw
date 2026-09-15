@@ -21,6 +21,19 @@ Rails.application.routes.draw do
   # session and no second live player, so the URL is the whole of what says who
   # is reading.
   unless Rails.env.production?
+    # The Instructor's minute, declared **above** the seated route because the
+    # optional seat segment would otherwise swallow it. It is a route of its own
+    # rather than a seat the draft renders differently: they are not in the
+    # dispute, so what they are handed is a different instrument and not the
+    # same one read from another chair.
+    get "demo/:run/#{Demo::Seat::INSTRUCTOR}", to: "demo/minutes#show", as: :demo_run_minute
+    # Releasing the Second for one Team for one Day. It carries the Side it is
+    # granted to and the Day it is granted on, and nothing else — a waiver has
+    # no cost, no quote and nothing to confirm, which is why it sits beside
+    # `Days::Command` rather than inside it.
+    post "demo/:run/#{Demo::Seat::INSTRUCTOR}/waivers",
+      to: "demo/waivers#create", as: :demo_run_waivers
+
     get "demo/:run(/:seat)", to: "demo/runs#show", as: :demo_run
     # The spend, nested under the seat that takes it. The page never sends a
     # price — only which Action off the menu — because `Days::Command` quotes
@@ -37,6 +50,17 @@ Rails.application.routes.draw do
     # It costs nothing and is ungated, so there is no confirmation and no price:
     # the only thing this can be refused for is a Day that ended underneath it.
     post "demo/:run(/:seat)/offers", to: "demo/offers#create", as: :demo_run_offers
+    # Executing the draft. Like the spend it carries the Day it was quoted
+    # against and no price, because it is the same seam charging it — and unlike
+    # the spend it carries nothing else at all: `Days::Command` reads the
+    # position off the table inside the transaction that charges, so what a
+    # commit is *of* was settled by the act that put it there.
+    #
+    # It names no seconder. The gate this map opens is the Instructor's waiver,
+    # and "one attributed plaintiff, forever" means `seconders_other_than`
+    # answers nobody on every page the demo renders: a control naming a teammate
+    # would be one no reader here could ever open.
+    post "demo/:run(/:seat)/commits", to: "demo/commits#create", as: :demo_run_commits
   end
 
   # Defines the root path route ("/")

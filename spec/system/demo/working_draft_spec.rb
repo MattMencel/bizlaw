@@ -509,4 +509,192 @@ RSpec.describe "the working draft", type: :system do
       expect(page).to be_axe_clean
     end
   end
+
+  # The beat the whole demo was convened for: he draws a position, finds the
+  # countersignature line dead in his own hand, and it comes alive under an
+  # Instructor's waiver granted from another tab.
+  #
+  # The two tabs are two visits here rather than two windows. What crosses
+  # between them is a database row and the page's own re-read, neither of which
+  # cares how many browsers are open.
+  describe "executing the draft under a waiver" do
+    let(:simulation) { Demo::Seed.simulation(Demo::Seed::DEMO) }
+    let(:side) { simulation.plaintiff_side }
+    let(:day) { simulation.days.find_by!(ordinal: Demo::Seed::DEMO_DAY) }
+
+    def draw_a_position
+      visit "/demo/#{Demo::Seed::DEMO}"
+      check "Money"
+      fill_in "Our position on Money, in dollars", with: "$150,000"
+      click_button "Put this on the table"
+      expect(page).to have_text(/draft — not executed/i)
+    end
+
+    def waive_it
+      visit "/demo/#{Demo::Seed::DEMO}/#{Demo::Seat::INSTRUCTOR}"
+      find("#waive-#{Side::PLAINTIFF}").click
+      expect(page).to have_text("The second is waived for this Day.")
+    end
+
+    it "brings the dead control alive, and says who released it" do
+      draw_a_position
+
+      expect(find("#execute-the-draft")["aria-disabled"]).to eq("true")
+
+      waive_it
+      visit "/demo/#{Demo::Seed::DEMO}"
+
+      expect(find("#execute-the-draft")["aria-disabled"]).to eq("false")
+      expect(page).to have_no_text("A teammate has to countersign the draft")
+    end
+
+    # Losing the refusal is not the same as being told. Without this the block
+    # goes quiet — a live control over a dashed line still captioned
+    # *countersigned by*, which is now a line nobody will ever sign.
+    it "says the line was released rather than leaving it blank" do
+      draw_a_position
+      waive_it
+      visit "/demo/#{Demo::Seed::DEMO}"
+
+      # Case-insensitive: the caption is small-caps by `text-transform`, so what
+      # the DOM holds and what the eye reads differ in case alone.
+      expect(page).to have_text(/countersignature waived by the instructor/i)
+    end
+
+    # The same grammar the slip taught, for the same reason: this is
+    # irreversible, it takes the whole exchange half, and it ends his Day. The
+    # block printing a price standing is the trade-off, not an agreement to
+    # spend it.
+    it "confirms in place before it charges" do
+      draw_a_position
+      waive_it
+      visit "/demo/#{Demo::Seed::DEMO}"
+
+      find("#execute-the-draft").click
+
+      expect(page).to have_text("1 exchange · 1 exchange left after · this also commits your Day")
+      expect(page).to have_button("Confirm")
+    end
+
+    it "charges nothing on Cancel" do
+      draw_a_position
+      waive_it
+      visit "/demo/#{Demo::Seed::DEMO}"
+
+      find("#execute-the-draft").click
+      click_button "Cancel"
+
+      expect(page).to have_no_button("Confirm")
+      expect(side.committed_offer_on(day)).to be_nil
+    end
+
+    # It lands, and the Day goes with it: a commit implies the Day commit, the
+    # defendant committed Day 3 before he sat down, so Day 3 closes and Day 4
+    # opens underneath him. The page moving on is the engine being honest.
+    it "lands the Offer and closes the Day with it" do
+      draw_a_position
+      waive_it
+      visit "/demo/#{Demo::Seed::DEMO}"
+
+      find("#execute-the-draft").click
+      click_button "Confirm"
+
+      expect(page).to have_text("Day #{Demo::Seed::DEMO_DAY + 1}/10")
+      expect(side.committed_offer_on(day)).to be_present
+      expect(day.reload).to be_closed
+    end
+
+    # A commit that landed under a waiver carries no seconder at all, so the
+    # record cannot read as though somebody signed for him.
+    it "leaves a record naming the waiver rather than a countersignature" do
+      draw_a_position
+      waive_it
+      visit "/demo/#{Demo::Seed::DEMO}"
+      find("#execute-the-draft").click
+      click_button "Confirm"
+
+      click_button "Turn the page over"
+      expect(page).to have_text(/waived.*Professor Adeyemi|Professor Adeyemi/)
+      expect(side.committed_offer_on(day).seconded_by).to be_nil
+    end
+
+    it "is accessible with the execution open" do
+      draw_a_position
+      waive_it
+      visit "/demo/#{Demo::Seed::DEMO}"
+      find("#execute-the-draft").click
+
+      expect(page).to be_axe_clean
+    end
+  end
+
+  # The paper re-reads itself when you come back to it — which is what makes the
+  # waiver land on a page the player never touched. There is no timer and no
+  # subscription: a tab nobody is looking at learns nothing, which is what paper
+  # on a desk does and the whole of what a demo on one laptop needs.
+  describe "coming back to the tab" do
+    it "picks up what happened in another one" do
+      simulation = Demo::Seed.simulation(Demo::Seed::DEMO)
+      side = simulation.plaintiff_side
+      day = simulation.days.find_by!(ordinal: Demo::Seed::DEMO_DAY)
+      Offers::Stage.call(side: side, day: day, by: side.members.sole,
+        terms: {"apology" => nil})
+
+      visit "/demo/#{Demo::Seed::DEMO}"
+      expect(page).to have_text("A teammate has to countersign the draft")
+
+      Offers::WaiveSecond.call(
+        side: side, day: day, by: User.find_by!(email: Demo::Seed::INSTRUCTOR_EMAIL)
+      )
+      page.execute_script("window.dispatchEvent(new Event('focus'))")
+
+      expect(page).to have_no_text("A teammate has to countersign the draft")
+      expect(find("#execute-the-draft")["aria-disabled"]).to eq("false")
+    end
+
+    # The other half of that rule, and its limit. What is on the table is the
+    # same on both sides of a Day boundary whenever neither Day has a position
+    # on it — so the key alone would leave Day 3's typing sitting on Day 4's
+    # sheet, under a letterhead that has moved, still marked *not yet on the
+    # table* about a table that is no longer the one it was typed against. The
+    # Day is part of which instrument this is, so it is part of the key.
+    it "takes it away when the Day underneath it has changed" do
+      simulation = Demo::Seed.simulation(Demo::Seed::DEMO)
+      side = simulation.plaintiff_side
+      day = simulation.days.find_by!(ordinal: Demo::Seed::DEMO_DAY)
+
+      visit "/demo/#{Demo::Seed::DEMO}"
+      check "Money"
+      fill_in "Our position on Money, in dollars", with: "$99,000"
+
+      # The Day ends under him: the defendant committed Day 3 in the seed, so a
+      # teammate filing his is the second commitment and closes it.
+      Days::Commit.call(side: side, day: day, by: side.members.sole)
+      page.execute_script("window.dispatchEvent(new Event('focus'))")
+
+      expect(page).to have_text("Day #{Demo::Seed::DEMO_DAY + 1}/10")
+      # `disabled: :all` because the figure field is dead until Money is
+      # checked, and clearing his typing unchecks it — which is the sheet
+      # re-seeded from Day 4's position rather than holding Day 3's.
+      expect(page).to have_field(
+        "Our position on Money, in dollars", with: "", disabled: :all
+      )
+      expect(page).to have_no_text(/not yet on the table/i)
+    end
+
+    # It must not cost him the position he is typing. The draft is keyed on what
+    # is on the *table*, so a re-read that finds the table unchanged leaves his
+    # unposted edits exactly where they were.
+    it "does not take away what he has not put on the table yet" do
+      visit "/demo/#{Demo::Seed::DEMO}"
+      check "Money"
+      fill_in "Our position on Money, in dollars", with: "$99,000"
+      expect(page).to have_text(/not yet on the table/i)
+
+      page.execute_script("window.dispatchEvent(new Event('focus'))")
+
+      expect(page).to have_field("Our position on Money, in dollars", with: "$99,000")
+      expect(page).to have_text(/not yet on the table/i)
+    end
+  end
 end

@@ -40,7 +40,12 @@
   </ul>
 
   <hr class="rule" />
-  <h3 class="doc-sub">She said, on the day you sat down</h3>
+  <!-- Neither a pronoun nor a role. This component renders for both Sides and
+       the two Clients are different people, so a heading that guessed either
+       would attribute one Client's opening statement to something the Case
+       never authored — `case_clients` carries no name, and giving it one is
+       authored-content work (#343) this surface does not need. -->
+  <h3 class="doc-sub">Your client said, on the day you sat down</h3>
   <div class="prose">
     {#each front_matter.opening_statement.split("\n\n") as para}
       <p>{para}</p>

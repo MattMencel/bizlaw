@@ -22,9 +22,15 @@
   and the shape the rest follow. The Consult memo is the first thing an act puts
   *on* the page. The draft writes too — the term sheet is the surface a position
   is drawn on and the clip rail is what rides it, both owned by `Draft`, because
-  `Offers::Stage` replaces the Terms and the Exhibits as one position. The
-  countersignature block prices executing it and cannot: the commit, the waiver
-  and the Day's close are their own tickets.
+  `Offers::Stage` replaces the Terms and the Exhibits as one position. And the
+  countersignature block executes: the one act on this page that is gated rather
+  than merely priced, and the one that can end the Day.
+
+  It also re-reads itself when you come back to it. The demo is three tabs on one
+  laptop and the acts cross between them — see `lib/live.svelte.js` for why that
+  is a focus listener and not a subscription. It is safe over the draft he is
+  typing because the key below is what decides whether `Draft` remounts, and it
+  is derived from what is on the *table* rather than from the whole prop tree.
 -->
 <script>
   import FrontMatter from "../../components/WorkingDraft/FrontMatter.svelte"
@@ -33,6 +39,7 @@
   import ConsultMemo from "../../components/WorkingDraft/ConsultMemo.svelte"
   import ActionSlip from "../../components/WorkingDraft/ActionSlip.svelte"
   import BackOfFile from "../../components/WorkingDraft/BackOfFile.svelte"
+  import { rereadOnFocus } from "../../lib/live.svelte.js"
 
   let {
     letterhead,
@@ -44,19 +51,33 @@
     slip,
     back,
     spend_path,
-    offer_path
+    offer_path,
+    commit_path
   } = $props()
+
+  rereadOnFocus()
 
   let face = $state("front")
 
-  // What the server says is on the table. `Draft` seeds its pending position
-  // from these props and then holds edits locally, so it is remounted whenever
-  // the answer changes — a staging that lands clears the edits it landed, and
-  // one that is refused leaves them exactly where they were, under the sentence
-  // saying why. Keying it here rather than reconciling inside the component
-  // keeps that rule in one line instead of an effect that writes what it reads.
+  // What the server says is on the table, and which Day's table it is. `Draft`
+  // seeds its pending position from these props and then holds edits locally, so
+  // it is remounted whenever the answer changes — a staging that lands clears the
+  // edits it landed, and one that is refused leaves them exactly where they were,
+  // under the sentence saying why. Keying it here rather than reconciling inside
+  // the component keeps that rule in one line instead of an effect that writes
+  // what it reads.
+  //
+  // The Day is part of it because it is part of *which instrument this is*, and
+  // the table alone cannot say so: two Days with no position on either are
+  // identical by every other value here, so a re-read that crosses a Day boundary
+  // would leave yesterday's typing sitting on today's sheet — under a letterhead
+  // that has moved, still marked *not yet on the table* about a table that is no
+  // longer the one it was typed against. That is the defect #365 removed in
+  // another form: the position in two places, and the reader left to compare
+  // them.
   const onTheTable = $derived(
     JSON.stringify([
+      letterhead.day,
       term_sheet.tracks.map((track) => track.draft),
       term_sheet.note,
       term_sheet.writable,
@@ -114,7 +135,7 @@
 
       <hr class="rule" />
 
-      <Countersignature {countersignature} />
+      <Countersignature {countersignature} {commit_path} day={letterhead.day} />
 
       <hr class="rule" />
 

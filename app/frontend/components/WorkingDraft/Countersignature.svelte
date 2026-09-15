@@ -24,25 +24,65 @@
   execute and prints no figure, because a price for a position that does not
   exist is a number with nothing under it.
 
-  The Execute control itself is still inert: the commit lands with the waiver, in
-  #366. So it is `aria-disabled` unconditionally rather than only where the quote
-  refuses — an Instructor's waiver is the one thing that clears that refusal, and
-  a control that went live-looking there would be pressable and do nothing. When
-  #366 gives it a handler the condition becomes the refusal, and the waived case
-  becomes the one state in which it can actually be pressed.
+  **The control is now live, and exactly one thing makes it so.** #363's rule
+  finally applies to the control that taught it: `aria-disabled` is the quote's
+  own refusal rather than an unconditional true. On a Side of one that refusal is
+  `the_offer_has_not_been_seconded` and nothing the Team does clears it — the
+  Instructor's waiver does, from a tab of their own, and `Second.satisfied?`
+  reads it off the Side and the Day so the block needs to know nothing about it
+  beyond what the quote already says.
 
-  Nothing grants a waiver from any surface yet, so that state is not reachable
-  today; this is what keeps it from becoming reachable and wrong on the same
-  commit.
+  It confirms in place, in the slip's grammar, and for the slip's reason:
+  executing is irreversible, it takes this Team's whole exchange half, and it
+  commits the Day with it. The block printing a price standing is #365's beat
+  about the trade-off and not an agreement to spend it — skipping the
+  confirmation would make the one irreversible act on this page the only one
+  that never asks.
+
+  The refusal it carries back is the block's own and sits beside the quote rather
+  than inside it, because it outlives the quote. The race this demo actually
+  produces is a teammate's commit landing first, which makes this block a record
+  and the quote nil on the very read that has to say what happened — without it,
+  a reader who pressed Execute gets back an executed instrument he did not
+  execute and not one word about it.
 -->
 <script>
-  let { countersignature } = $props()
+  import { router } from "@inertiajs/svelte"
+  import { tick } from "svelte"
+
+  let { countersignature, commit_path, day } = $props()
 
   const execution = $derived(countersignature.execution)
+  const live = $derived(!!execution && !execution.refusal)
+
+  let open = $state(false)
+
+  // Focus goes where the act's result is legible, which for this act is the
+  // block itself: executing turns it into a record with both lines filled, and
+  // a refusal is wired to the control by `aria-describedby`. Found by id after
+  // the round trip rather than held, because the visit re-renders this subtree.
+  async function restoreFocus() {
+    await tick()
+    document.getElementById("countersign")?.focus()
+  }
+
+  // No price on the wire and no position either: `Days::Command` re-reads the
+  // table inside the transaction that charges, so what this costs is decided
+  // there. The Day rides along for the reason a spend's does — it is the one
+  // part of what he agreed to that the server re-asking would answer
+  // *differently* rather than not at all.
+  function execute() {
+    open = false
+    router.post(
+      commit_path,
+      { day },
+      { preserveScroll: true, onFinish: restoreFocus }
+    )
+  }
 </script>
 
 <section class="countersign" aria-labelledby="countersign">
-  <h2 class="doc-sub" id="countersign">Executed by</h2>
+  <h2 class="doc-sub" id="countersign" tabindex="-1">Executed by</h2>
   <div class="sig-lines">
     <div class="sig">
       <div class="line">
@@ -63,14 +103,32 @@
       </div>
     </div>
   </div>
+
+  <!-- The refusal outlives the execution block it would otherwise sit in: an
+       executed instrument has no price and no obstacle left to name, and is
+       exactly the state a refused commit comes back to. -->
+  {#if countersignature.refusal}
+    <p class="refusal refused-just-now" id="commit-refusal">
+      <span class="stamp warn">Refused</span>
+      {countersignature.refusal}
+    </p>
+  {/if}
+
   {#if !countersignature.executed}
     <div class="execution">
       <button
         type="button"
         class="control execute"
         id="execute-the-draft"
-        aria-disabled={true}
-        aria-describedby={execution?.refusal ? "execution-refusal" : undefined}
+        aria-expanded={open}
+        aria-controls={open ? "execution-stub" : undefined}
+        aria-disabled={!live}
+        aria-describedby={execution?.refusal
+          ? "execution-refusal"
+          : countersignature.refusal
+            ? "commit-refusal"
+            : undefined}
+        onclick={() => live && (open = !open)}
       >
         Execute this draft
       </button>
@@ -81,6 +139,30 @@
         <span class="refusal" id="execution-refusal">{execution.refusal}</span>
       {/if}
     </div>
+
+    {#if open}
+      <!-- Pinned under the block rather than floating over the sheet, for the
+           reason the slip's stub is pinned to its line: a confirmation that
+           came loose of what it confirms is the dialog #363 rejected, by
+           another name. -->
+      <div class="stub" id="execution-stub">
+        <p class="terms">
+          {execution.cost}
+          {execution.half_label} ·
+          {execution.remaining_after}
+          {execution.half_label} left after · this also commits your Day
+        </p>
+        <button
+          type="button"
+          class="control confirm"
+          aria-label="Confirm executing this draft"
+          onclick={execute}
+        >
+          Confirm
+        </button>
+        <button type="button" class="control" onclick={() => (open = false)}>Cancel</button>
+      </div>
+    {/if}
   {/if}
 </section>
 
@@ -92,6 +174,12 @@
   }
   .countersign .doc-sub {
     margin-top: 0;
+  }
+  /* Focus lands here after the round trip, and a heading is not normally a
+     focus target: the ring is what says so to a reader who can see it. */
+  .countersign .doc-sub:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
   }
   .sig-lines {
     display: flex;
@@ -140,5 +228,31 @@
   .refusal {
     font-size: 12.5px;
     color: var(--redline);
+  }
+  .refused-just-now {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 8px 0 0;
+  }
+
+  .stub {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    padding: 9px 12px;
+    background: var(--paper);
+    border-left: 3px solid var(--ink);
+  }
+  .stub .terms {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    margin: 0;
+    margin-right: auto;
+  }
+  .stub .confirm {
+    border-color: var(--ink);
   }
 </style>
