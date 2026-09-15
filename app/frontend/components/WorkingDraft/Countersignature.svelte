@@ -98,7 +98,12 @@
         {#if countersignature.waived}
           Countersignature waived by the instructor
         {:else}
-          Countersigned by{#if countersignature.may_sign.length}: {countersignature.may_sign.join(", ")}{/if}
+          <!-- Each teammate carries a name and the identifier an act posts them
+               back by, since #367 gave the Acceptance a hand to name. This line
+               only ever reads the names. -->
+          Countersigned by{#if countersignature.may_sign.length}: {countersignature.may_sign
+              .map((member) => member.name)
+              .join(", ")}{/if}
         {/if}
       </div>
     </div>
@@ -220,39 +225,9 @@
     flex-wrap: wrap;
     padding-top: 4px;
   }
-  .price {
-    font-family: var(--mono);
-    font-size: 11.5px;
-    color: var(--muted);
-  }
-  .refusal {
-    font-size: 12.5px;
-    color: var(--redline);
-  }
+  /* The block's own: the refusal sits directly under the signature lines, so it
+     wants no leading of its own above the control beneath it. */
   .refused-just-now {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    margin: 8px 0 0;
-  }
-
-  .stub {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 8px;
-    padding: 9px 12px;
-    background: var(--paper);
-    border-left: 3px solid var(--ink);
-  }
-  .stub .terms {
-    font-family: var(--mono);
-    font-size: 11.5px;
-    margin: 0;
-    margin-right: auto;
-  }
-  .stub .confirm {
-    border-color: var(--ink);
+    margin-bottom: 0;
   }
 </style>

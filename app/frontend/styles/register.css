@@ -165,6 +165,68 @@ ul.plain li {
   background: none;
 }
 
+/* The confirmation, pinned to what it confirms. Three parts of the instrument
+   open one now — the Action slip, the countersignature block and the acceptance
+   block — which is the same trigger that moved `.control` here: a mark two or
+   more parts make says itself once.
+
+   It is pinned rather than floating because #363 settled the confirmation as
+   paper: a stub that came loose of the line it belongs to is the dialog that
+   ticket rejected, by another name. The slip's own copy overrides the ground and
+   the basis, because a stub inside a flex row of Actions has to break the line. */
+.stub {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  padding: 9px 12px;
+  background: var(--paper);
+  border-left: 3px solid var(--ink);
+}
+.stub .terms {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  margin: 0;
+  margin-right: auto;
+}
+.stub .confirm {
+  border-color: var(--ink);
+}
+
+/* What an act costs, beside the control that takes it. Nil is a price too: the
+   acceptance block prints *no cost*, which is the beat rather than an absence. */
+.price {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+/* Why an act was turned down. One vocabulary, one colour, wherever it is read —
+   `reads.refusals` is one closed list and a sentence out of it should not look
+   like two different kinds of bad news on two parts of one instrument. */
+.refusal {
+  font-size: 12.5px;
+  color: var(--redline);
+}
+/* The same sentence, marked as having *just* happened. It is the whole
+   difference between an act a Team cannot take and one it tried to take a
+   moment ago, which re-rendering alone cannot say. */
+.refused-just-now {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 8px 0;
+}
+
+/* The masthead is sticky, so a heading scrolled to the top of the viewport sits
+   *under* it. Every focus landing on both instruments is one of these headings —
+   an act returns the reader to where its result is legible — so the offset is
+   the register's rather than each act's, and it is the masthead's own height. */
+.sheet [tabindex="-1"] {
+  scroll-margin-top: 108px;
+}
+
 .empty-state {
   border: 1px dashed var(--rule-2);
   padding: 16px 18px;

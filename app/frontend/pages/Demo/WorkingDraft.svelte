@@ -24,7 +24,10 @@
   is drawn on and the clip rail is what rides it, both owned by `Draft`, because
   `Offers::Stage` replaces the Terms and the Exhibits as one position. And the
   countersignature block executes: the one act on this page that is gated rather
-  than merely priced, and the one that can end the Day.
+  than merely priced, and the one that can end the Day. Under it, once there is
+  something across the table, is the other Side's own paper and the act that
+  takes it — the only act on this instrument that ends the whole run, and the
+  only one with no price at all.
 
   It also re-reads itself when you come back to it. The demo is three tabs on one
   laptop and the acts cross between them — see `lib/live.svelte.js` for why that
@@ -36,6 +39,7 @@
   import FrontMatter from "../../components/WorkingDraft/FrontMatter.svelte"
   import Draft from "../../components/WorkingDraft/Draft.svelte"
   import Countersignature from "../../components/WorkingDraft/Countersignature.svelte"
+  import Acceptance from "../../components/WorkingDraft/Acceptance.svelte"
   import ConsultMemo from "../../components/WorkingDraft/ConsultMemo.svelte"
   import ActionSlip from "../../components/WorkingDraft/ActionSlip.svelte"
   import BackOfFile from "../../components/WorkingDraft/BackOfFile.svelte"
@@ -47,12 +51,14 @@
     term_sheet,
     clipped,
     countersignature,
+    acceptance,
     memo,
     slip,
     back,
     spend_path,
     offer_path,
-    commit_path
+    commit_path,
+    acceptance_path
   } = $props()
 
   rereadOnFocus()
@@ -136,6 +142,14 @@
       <hr class="rule" />
 
       <Countersignature {countersignature} {commit_path} day={letterhead.day} />
+
+      <!-- Their paper, under ours. It is absent until there is something across
+           the table, which the cold open never has — see `Acceptance.svelte`. -->
+      {#if acceptance}
+        <hr class="rule" />
+
+        <Acceptance {acceptance} {acceptance_path} day={letterhead.day} />
+      {/if}
 
       <hr class="rule" />
 

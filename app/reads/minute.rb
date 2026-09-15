@@ -52,13 +52,40 @@ class Minute
   def to_props
     {
       letterhead: letterhead,
-      lines: sides.map { |side| line(side) }
+      settled: settled,
+      lines: settled ? [] : sides.map { |side| line(side) }
     }
   end
 
   private
 
   attr_reader :simulation, :day, :you, :refused
+
+  # The matter ended, and with it the one act this page is for.
+  #
+  # A settled run has no Day being played — `Days::Close` opens nothing after an
+  # Acceptance — so there is nothing to grant a waiver on and no position that
+  # could still be executed. Without this the minute renders the first *unclosed*
+  # Day, which after a settlement is one `Simulations::Create` laid down and
+  # `Days::Open` never reached: the professor's own tab would print a live
+  # tomorrow with two empty ruled lines, asserting the game was still going one
+  # gesture after the ending.
+  #
+  # It stays the minute rather than becoming the instrument. The executed
+  # agreement is the Teams' paper and this page has never read their file; what
+  # an Instructor is owed here is the one line that says their powers over this
+  # run are spent.
+  # `defined?` rather than `||=`: the answer is nil for the whole of every run
+  # that has not settled, which is every run until its last act, and `||=` would
+  # ask the database again for each of the three slots that read it.
+  def settled
+    return @settled if defined?(@settled)
+
+    @settled = if simulation.settled?
+      struck = simulation.settlement.day
+      {day: struck.ordinal, in_fiction_date: struck.in_fiction_date.to_s}
+    end
+  end
 
   # Plaintiff first, which is the order the caption of any matter is written in
   # — not the order the rows came back in, and not alphabetical, which would put
@@ -70,13 +97,17 @@ class Minute
 
   # The Section rather than the matter. An Instructor runs a Section and reads
   # this in one; the matter is on the Sides' own paper, where the dispute is.
+  # The Day goes once the matter has settled, for the reason the Sides' own
+  # letterhead drops it: the *of ten* is a clock, and printing an ordinal out of
+  # a calendar nobody will reach again invites the reader to ask what happens on
+  # the Day after. What the ending is dated by is `settled` above.
   def letterhead
     {
       section: simulation.section.name,
       matter: simulation.case_version.case.name,
-      day: day.ordinal,
+      day: settled ? nil : day.ordinal,
       of: simulation.days.count,
-      in_fiction_date: day.in_fiction_date.to_s,
+      in_fiction_date: settled ? nil : day.in_fiction_date.to_s,
       closed: day.closed?,
       you: you.name
     }

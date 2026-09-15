@@ -162,32 +162,19 @@
     font-size: 11.5px;
     margin-left: auto;
   }
+  /* The sentence breaks the Action's own line rather than sitting after the
+     price: it is a whole clause and the line it would share is three columns
+     wide. The colour and size are the register's — see `register.css`. */
   .slip .refusal {
-    font-size: 12.5px;
-    color: var(--redline);
     flex-basis: 100%;
   }
 
-  /* The stub is pinned to the line it belongs to: a confirmation that floated
-     free of its Action would be the dialog by another name. */
+  /* The slip's own two: a stub inside a flex row of Actions has to break the
+     line, and it sits on the slip's darker ground rather than the sheet's. The
+     rest of the mark is the register's. */
   .stub {
     flex-basis: 100%;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
     margin-top: 6px;
-    padding: 9px 12px;
     background: var(--paper-2);
-    border-left: 3px solid var(--ink);
-  }
-  .stub .terms {
-    font-family: var(--mono);
-    font-size: 11.5px;
-    margin: 0;
-    margin-right: auto;
-  }
-  .stub .confirm {
-    border-color: var(--ink);
   }
 </style>

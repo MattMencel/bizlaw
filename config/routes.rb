@@ -61,6 +61,25 @@ Rails.application.routes.draw do
     # answers nobody on every page the demo renders: a control naming a teammate
     # would be one no reader here could ever open.
     post "demo/:run(/:seat)/commits", to: "demo/commits#create", as: :demo_run_commits
+    # Taking the other Side's deal. It carries the Day it is taken on — which
+    # is the Day it closes — the Day their Offer was committed on, and the
+    # teammate countersigning it.
+    #
+    # The Offer is named by the Day it landed on rather than by its row id:
+    # `committed_offers` is unique on `(side_id, day_id)`, so a Side and a Day
+    # name exactly one instrument, and an ordinal survives the `demo:seed`
+    # reset that moves every id underneath it. It is also what makes the press
+    # unambiguous — he takes the paper he read, even if a newer Offer has since
+    # landed, which is legal play rather than a race: an Offer stands on the
+    # table until it is taken or the run ends.
+    #
+    # Unlike the commit it *does* name a seconder, and the difference is not a
+    # change of rule. "One attributed plaintiff, forever" is what makes
+    # `seconders_other_than` empty on his page; the defendant's Side has two
+    # members who have both acted, so it is the one seat in the demo where the
+    # Second can be satisfied rather than waived.
+    post "demo/:run(/:seat)/acceptances",
+      to: "demo/acceptances#create", as: :demo_run_acceptances
   end
 
   # Defines the root path route ("/")

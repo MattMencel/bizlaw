@@ -20,11 +20,11 @@
 # reads or the Case authored it. The one thing it *chooses* is a render size,
 # which exists nowhere else — see `portrait`.
 class WorkingDraft
-  # The one size the Consult memo's face is served at, of the three the part set
-  # has been looked at in. A passport photograph clipped to a file is the
-  # register's own idiom for a face on a legal memo, and it is the size #325
-  # checked the stock set survives the halftone at.
-  PORTRAIT_SIZE = 78
+  # The marks the whole register makes the same way — a figure, a Term's label,
+  # a document, a Docket line, the back of the file, the Client's face at the
+  # one size it is served at. #367 gave the game a second page composer, and two
+  # copies of a decision are two decisions. See `Typeset`.
+  include Typeset
 
   def self.for(...) = new(...)
 
@@ -48,13 +48,20 @@ class WorkingDraft
   # landed first leaves the block a record, with no quote left to carry a
   # sentence — so it is rendered there whether or not there is an execution to
   # price.
-  def initialize(side, day:, you:, refused: nil, draft_refused: nil, commit_refused: nil)
+  #
+  # `acceptance_refused` is the fourth, and it is a fourth for the reason the
+  # third was a third: it lands somewhere else. The acceptance block is the
+  # other Side's paper on this page, and it is the only part of the instrument
+  # that can say what happened to an act taken on it.
+  def initialize(side, day:, you:, refused: nil, draft_refused: nil, commit_refused: nil,
+    acceptance_refused: nil)
     @side = side
     @day = day
     @you = you
     @refused = refused
     @draft_refused = draft_refused
     @commit_refused = commit_refused
+    @acceptance_refused = acceptance_refused
   end
 
   def to_props
@@ -64,6 +71,7 @@ class WorkingDraft
       term_sheet: term_sheet,
       clipped: clipped,
       countersignature: countersignature,
+      acceptance: acceptance,
       memo: memo,
       slip: slip,
       back: back
@@ -79,7 +87,8 @@ class WorkingDraft
   # exactly one member has acted. They come apart at the cold open, where the
   # ledgers are empty and the player is sitting there all the same, and again
   # the moment a second act is attributed.
-  attr_reader :side, :day, :you, :refused, :draft_refused, :commit_refused
+  attr_reader :side, :day, :you, :refused, :draft_refused, :commit_refused,
+    :acceptance_refused
 
   def briefing = @briefing ||= MorningBriefing.for(side, day: day)
 
@@ -220,7 +229,7 @@ class WorkingDraft
     {
       drawn_by: offer&.staged_by&.name,
       signed_by: committed&.seconded_by&.name,
-      may_sign: open_draft? ? side.seconders_other_than(staged.staged_by).map(&:name) : [],
+      may_sign: open_draft? ? signatories(staged.staged_by) : [],
       executed: !committed.nil?,
       # How this instrument landed, or — before it has — whether the gate is
       # open. The two are one question asked at two moments, and the *committed*
@@ -288,6 +297,72 @@ class WorkingDraft
     }
   end
 
+  # **The other Side's paper, and the one act taken on it.** An Acceptance is a
+  # countersignature on their instrument, and #373 settled that their instrument
+  # reaches this page as a strike through our own line and in no other form — it
+  # is not in the Case File, which answers what we know, and not in the front
+  # matter, which is what arrived. So there is nothing here shaped like their
+  # paper to sign, and this block is what gives it one: it names the instrument
+  # the strike column was folded from and carries the control.
+  #
+  # It names it and never restates it. The terms are the strike column above,
+  # and a block reprinting them would put one position in two places and make
+  # the reader compare them — the defect #373 removed and #365 was corrected for
+  # reintroducing. `TermsBoard#their_offer` is the same row the column folds, so
+  # the two cannot name different Offers.
+  #
+  # It also prints their covering note, which until now nothing did. The
+  # defendant's reads *Without prejudice. Open for acceptance today.* and the
+  # Day it says that of is over by the time it can be taken, which is the
+  # register telling the reader a deadline passed rather than a line of copy
+  # about one.
+  #
+  # **Nil where there is nothing across the table.** Unlike the countersignature
+  # block this is not a permanent fixture: that block is about a draft the Team
+  # could always draw, and its empty signature line is the lesson. There is no
+  # lesson in a control for paper nobody has served, so the gate is the same one
+  # `Clipped` uses — the thing exists or the rail is absent.
+  def acceptance
+    offer = terms.their_offer
+    return nil if offer.nil?
+
+    {
+      day: offer.day.ordinal,
+      drawn_by: offer.staged_by.name,
+      note: offer.note,
+      # Named by the Day it was committed on rather than by its row id: one
+      # Offer per Side per Day by unique index, and the ordinal survives the
+      # `demo:seed` reset that moves every id underneath it. It is also what
+      # makes the press unambiguous — he accepts the instrument he read, even if
+      # a newer one has since landed, which is legal play rather than a race:
+      # an Offer stands on the table until it is taken or the run ends.
+      committed_on: offer.day.ordinal,
+      may_sign: signatories(you),
+      refusal: refusal_sentence(acceptance_refusal),
+      refused: refusal_sentence(acceptance_refused)
+    }
+  end
+
+  # What the seam would refuse if this were pressed now, asked with the seconder
+  # the control would actually send. Asking with `nil` instead would print *a
+  # teammate has to countersign* under a control that would have landed, which
+  # is the same class of defect as pricing an act against a Day the press does
+  # not carry.
+  def acceptance_refusal
+    Offers::Accept.refusal_for(
+      offer: terms.their_offer, side: side, day: day, by: you,
+      seconded_by: side.seconders_other_than(you).first
+    )
+  end
+
+  # The teammates who may countersign an act this reader takes, each with the
+  # one thing about a person that survives a `demo:seed` reset. A name cannot be
+  # posted back — two members could share one — and a row id moves, so the
+  # identifier is the email, which is what `Demo::Seat` already keys the cast by.
+  def signatories(taken_by)
+    side.seconders_other_than(taken_by).map { |member| {name: member.name, email: member.email} }
+  end
+
   # The Exhibits clipped to the draft, and the ones that could be — down the side
   # of the instrument, which is where `CONTEXT.md` § Register puts them.
   #
@@ -353,28 +428,6 @@ class WorkingDraft
     }
   end
 
-  # The face, printed **once** — on the newest Consult, whose expression is the
-  # band that stands now. It is the one portrait in the game (ADR 0005), and
-  # repeating it down a stack would be the same drawing several times and, since
-  # `Portraits::Compose` scopes its screen ids to the seed, the expression and
-  # the size, literally the same element ids several times.
-  #
-  # ADR 0008 binds the **read**: `ConsultMemo::Beat` hands on a seed and an
-  # expression and never a rendered portrait, because a halftone screen is fixed
-  # in ink on the page and a read has no business choosing a size. This layer is
-  # where a size exists — the same act as formatting money once and giving a
-  # refusal its sentence.
-  #
-  # Composed here rather than fetched from an endpoint of its own: the two inks
-  # resolve through custom properties on an ancestor, and an SVG behind an
-  # `<img>` cannot see the page it sits on — so the portrait would stop
-  # following the paper, which is the whole of what ADR 0008 decided about ink.
-  def portrait(beat)
-    Portraits::Compose.call(
-      seed: beat.portrait_seed, expression: beat.expression, size: PORTRAIT_SIZE
-    )
-  end
-
   # Every Action, priced, whether or not the half will cover it — with the
   # refusal's own sentence beside the ones that will not.
   #
@@ -419,69 +472,7 @@ class WorkingDraft
 
   def refused_reason = refused && refused["reason"].presence
 
-  # What we know, and what we have done — under one heading, because the back
-  # of the instrument is one surface.
-  def back
-    {
-      case_file: {
-        empty_state: case_file.empty_state,
-        documents: case_file.entries.map { |entry| document(entry) }
-      },
-      docket: {
-        empty_state: docket.empty_state,
-        entries: docket.entries.map { |entry| docket_line(entry) }
-      }
-    }
-  end
-
-  def document(entry)
-    {
-      identifier: entry.identifier,
-      title: entry.title,
-      body: entry.body,
-      day: entry.day.ordinal,
-      # A symbol survives to the page as a string, so it is made one here: what
-      # a spec asserts on and what the page reads have to be the same value.
-      arrival: entry.arrival.to_s,
-      served: entry.served?,
-      playable: entry.playable,
-      spent: entry.spent,
-      at_the_open: entry.at_the_open?
-    }
-  end
-
-  def docket_line(entry)
-    {
-      at: entry.at.iso8601,
-      act: entry.act.to_s,
-      act_label: act_label(entry),
-      by: entry.by&.name,
-      day: entry.day&.ordinal,
-      kind: entry.kind,
-      cost: entry.cost,
-      half: entry.half,
-      half_label: entry.half && half_label(entry.half),
-      band: entry.band && band_label(entry.band),
-      lands_on_day: entry.lands_on_day&.ordinal,
-      spend: entry.spend?,
-      instructor_action: entry.instructor_action?
-    }
-  end
-
-  # A spend is named by the Action it bought; the three acts with no cost are
-  # named by the act, because there is no Action behind them to name.
-  #
-  # And so is the fourth, which *does* have a cost: executing a draft is a spend
-  # with no authored Action behind it, so there is no kind to name it by —
-  # `docket_entries.case_action_id` is nullable and CHECKed to the exchange half
-  # for precisely that. Asking `kind_label(nil)` instead hands I18n a key with
-  # nothing after the dot, which resolves to the whole kinds Hash and prints as
-  # `[object Object]` on the one line a Team most wants to read back.
-  def act_label(entry)
-    return I18n.t("reads.docket.acts.offer_committed") if entry.commit?
-
-    entry.spend? ? kind_label(entry.kind) : I18n.t("reads.docket.acts.#{entry.act}")
-  end
+  def back = back_of_file(case_file, docket)
 
   def position(value)
     return nil if value.nil?
@@ -489,24 +480,6 @@ class WorkingDraft
 
     {amount: money(value.amount_cents), money: true}
   end
-
-  # Whole dollars where the amount is whole, which every authored figure so far
-  # is. Formatted here rather than in the page: one currency decision, and the
-  # page has nothing to compute.
-  def money(cents)
-    ActiveSupport::NumberHelper.number_to_currency(
-      cents / 100.0, precision: (cents % 100).zero? ? 0 : 2
-    )
-  end
-
-  # The band is a symbol the engine names a rule by, like a refusal and an
-  # Action's kind, so it becomes text here and not on a page. One key serves the
-  # memo and the Docket line both — see the locale file for why.
-  def band_label(band) = I18n.t("reads.bands.#{band}")
-
-  def kind_label(kind) = I18n.t("reads.action_board.kinds.#{kind}")
-
-  def half_label(half) = I18n.t("reads.action_board.halves.#{half}")
 
   # One vocabulary, two surfaces: the slip's Action lines, the countersignature
   # block's price and the term sheet's own staging refusal all name a rule
@@ -516,8 +489,4 @@ class WorkingDraft
   def refusal_sentence(refusal)
     refusal.presence && I18n.t("reads.refusals.#{refusal}")
   end
-
-  # A Term's key is authored per Case, so the engine has no sentence for it and
-  # humanizes instead. The label belongs on the authored table — #343.
-  def label_for(key) = key.humanize
 end
