@@ -68,4 +68,41 @@ RSpec.describe Offers::WaiveSecond do
 
     expect { waive }.to raise_error(Offers::DayClosed)
   end
+
+  # The race the trigger exists for, and the one the demo actually produces: the
+  # Instructor grants from their own tab while a Team's commit or a deadline ends
+  # the Day underneath the read. A caller is owed this seam's own refusal rather
+  # than a database fault, the way `Offers::Stage` turns the same class of race
+  # back into one.
+  it "reads a Day that closes inside its own window as the same refusal" do
+    Days::Close.call(day)
+    allow(day).to receive(:closed?).and_return(false)
+
+    expect { waive }.to raise_error(Offers::DayClosed)
+  end
+
+  # A Day the calendar holds but nobody has reached. `Day#open?` is only
+  # `closed_at IS NULL`, so an unplayed Day reads as open to both this seam and
+  # the trigger — and a waiver is irreversible, so one granted there silently
+  # disarms the Second on a Day nobody has played yet and nothing ever says so.
+  #
+  # The seam owns it rather than a caller. That is the whole reason #374's same
+  # finding was declined for `quoted_day`: `Days::Command` already refuses an
+  # unbudgeted Day, so binding the controller would have put a second authority
+  # beside the seam that owns the question. Here there was no such refusal, so
+  # the answer is to give the seam one rather than to reverse that decision.
+  it "refuses a Day that has not opened yet" do
+    expect { waive(on: simulation.days.find_by!(ordinal: 7)) }
+      .to raise_error(Offers::DayNotOpen)
+  end
+
+  # The service refuses it against a Day it holds in memory; the trigger is the
+  # rule where a stale object cannot get past it.
+  it "refuses one underneath the model too" do
+    Days::Close.call(day)
+
+    expect {
+      SecondWaiver.create!(side: side, day: day, granted_by: instructor)
+    }.to raise_error(ActiveRecord::StatementInvalid, /second_waivers_need_an_unclosed_day/)
+  end
 end

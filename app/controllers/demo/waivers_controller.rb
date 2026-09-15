@@ -35,6 +35,12 @@ module Demo
       carry_refusal(WAIVER_REFUSAL, instructor,
         {"role" => params[:role].to_s, "reason" => :the_day_has_closed.to_s})
       redirect_to minute_path
+    rescue Offers::DayNotOpen
+      # A Day nobody has reached. The minute renders the sitting Day and posts
+      # that, so this cannot come from the page at all — it is a caller with a
+      # calendar the surface never offered rather than a refusal a reader should
+      # see, which is what a mistyped seat is already read as.
+      no_page
     rescue ArgumentError
       no_page
     end

@@ -115,6 +115,16 @@ RSpec.describe "waiving the Second", type: :request do
       expect(response).to have_http_status(:not_found)
     end
 
+    # A Day the calendar holds but nobody has reached. The minute renders the
+    # sitting Day and posts that, so this cannot come from the page — and a
+    # waiver cannot be taken back, so one granted into the future would disarm
+    # the Second on a Day nobody had played with nothing anywhere saying so.
+    it "does not grant one on a Day nobody has reached" do
+      expect { waive(on: 7) }.not_to change { SecondWaiver.count }
+
+      expect(response).to have_http_status(:not_found)
+    end
+
     it "does not know a run it did not lay down" do
       waive(run: "whatever")
 

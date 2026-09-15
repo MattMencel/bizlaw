@@ -15,6 +15,21 @@ module Offers
   # commit against a Budget that has already expired.
   DayClosed = Class.new(StandardError)
 
+  # Raised when the Instructor reaches for a Day nobody has played yet. `Day` is
+  # only ever *closed* or not — `Day#open?` is `closed_at IS NULL` — so the rest
+  # of the calendar reads as open to every check there is, including the
+  # triggers. What actually marks a Day as opened is its Budget, which
+  # `Days::Open` writes only as the Day before it closes.
+  #
+  # `Days::Command` already refuses one as `the_day_has_not_opened`, which is
+  # why #374 declined binding a Team's act to the sitting Day: the seam owned
+  # the question and a controller checking it again would have been a second
+  # authority on it. The waiver had no such refusal and is irreversible, so one
+  # granted into the future disarmed the Second on a Day nobody had reached and
+  # nothing anywhere said so. The answer is to give this seam the rule rather
+  # than to reverse that decision.
+  DayNotOpen = Class.new(StandardError)
+
   # Raised when a Team stages onto a Day whose Offer it has already committed.
   # `Days::Command` refuses the second commit with
   # `an_offer_has_already_been_committed_today`, and this is the same rule at the

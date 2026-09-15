@@ -652,6 +652,36 @@ RSpec.describe "the working draft", type: :system do
       expect(find("#execute-the-draft")["aria-disabled"]).to eq("false")
     end
 
+    # The other half of that rule, and its limit. What is on the table is the
+    # same on both sides of a Day boundary whenever neither Day has a position
+    # on it — so the key alone would leave Day 3's typing sitting on Day 4's
+    # sheet, under a letterhead that has moved, still marked *not yet on the
+    # table* about a table that is no longer the one it was typed against. The
+    # Day is part of which instrument this is, so it is part of the key.
+    it "takes it away when the Day underneath it has changed" do
+      simulation = Demo::Seed.simulation(Demo::Seed::DEMO)
+      side = simulation.plaintiff_side
+      day = simulation.days.find_by!(ordinal: Demo::Seed::DEMO_DAY)
+
+      visit "/demo/#{Demo::Seed::DEMO}"
+      check "Money"
+      fill_in "Our position on Money, in dollars", with: "$99,000"
+
+      # The Day ends under him: the defendant committed Day 3 in the seed, so a
+      # teammate filing his is the second commitment and closes it.
+      Days::Commit.call(side: side, day: day, by: side.members.sole)
+      page.execute_script("window.dispatchEvent(new Event('focus'))")
+
+      expect(page).to have_text("Day #{Demo::Seed::DEMO_DAY + 1}/10")
+      # `disabled: :all` because the figure field is dead until Money is
+      # checked, and clearing his typing unchecks it — which is the sheet
+      # re-seeded from Day 4's position rather than holding Day 3's.
+      expect(page).to have_field(
+        "Our position on Money, in dollars", with: "", disabled: :all
+      )
+      expect(page).to have_no_text(/not yet on the table/i)
+    end
+
     # It must not cost him the position he is typing. The draft is keyed on what
     # is on the *table*, so a re-read that finds the table unchanged leaves his
     # unposted edits exactly where they were.

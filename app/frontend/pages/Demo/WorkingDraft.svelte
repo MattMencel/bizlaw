@@ -59,14 +59,25 @@
 
   let face = $state("front")
 
-  // What the server says is on the table. `Draft` seeds its pending position
-  // from these props and then holds edits locally, so it is remounted whenever
-  // the answer changes — a staging that lands clears the edits it landed, and
-  // one that is refused leaves them exactly where they were, under the sentence
-  // saying why. Keying it here rather than reconciling inside the component
-  // keeps that rule in one line instead of an effect that writes what it reads.
+  // What the server says is on the table, and which Day's table it is. `Draft`
+  // seeds its pending position from these props and then holds edits locally, so
+  // it is remounted whenever the answer changes — a staging that lands clears the
+  // edits it landed, and one that is refused leaves them exactly where they were,
+  // under the sentence saying why. Keying it here rather than reconciling inside
+  // the component keeps that rule in one line instead of an effect that writes
+  // what it reads.
+  //
+  // The Day is part of it because it is part of *which instrument this is*, and
+  // the table alone cannot say so: two Days with no position on either are
+  // identical by every other value here, so a re-read that crosses a Day boundary
+  // would leave yesterday's typing sitting on today's sheet — under a letterhead
+  // that has moved, still marked *not yet on the table* about a table that is no
+  // longer the one it was typed against. That is the defect #365 removed in
+  // another form: the position in two places, and the reader left to compare
+  // them.
   const onTheTable = $derived(
     JSON.stringify([
+      letterhead.day,
       term_sheet.tracks.map((track) => track.draft),
       term_sheet.note,
       term_sheet.writable,
