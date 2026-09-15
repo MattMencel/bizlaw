@@ -38,6 +38,16 @@ class Docket
   Entry = Data.define(:at, :act, :by, :day, :kind, :cost, :half, :band, :lands_on_day) do
     def spend? = act == SPEND
 
+    # A spend with no Action behind it, which is the one there can be: executing
+    # a draft. `docket_entries.case_action_id` is nullable and CHECKed to the
+    # exchange half for exactly this — an Offer commit is not a menu entry, so
+    # there is no `case_actions` row to name it by and `kind` is nil.
+    #
+    # It is asked rather than inferred from a nil, because a caller reaching for
+    # the Action's name and finding none has no way to tell *this line bought no
+    # Action* from *this line lost its Action*.
+    def commit? = spend? && kind.nil?
+
     def instructor_action? = act == SECOND_WAIVED
   end
 

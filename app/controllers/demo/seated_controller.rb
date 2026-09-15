@@ -28,6 +28,16 @@ module Demo
     # and one tab could write; this PR made both of those two.
     SPEND_REFUSAL = "spend_refusal"
     DRAFT_REFUSAL = "draft_refusal"
+    # The commit's own, and it is a third shelf rather than the draft's for the
+    # reason the draft's is not the spend's: the two land in different places on
+    # the page. A staging's refusal belongs to the sheet; a commit's belongs to
+    # the countersignature block, which is the control that was pressed and the
+    # only part of the instrument that can say what happened to it.
+    COMMIT_REFUSAL = "commit_refusal"
+    # The Instructor's. Their seat names it like any other, which is what keeps
+    # a Day that closed under the minute from writing a sentence onto a
+    # student's page.
+    WAIVER_REFUSAL = "waiver_refusal"
 
     private
 
@@ -41,19 +51,28 @@ module Demo
     # `rake demo:seed`, which is the fix, and a 404 would hide it behind "not
     # found" on a laptop where the fix is one command.
     #
-    # The Instructor is seated and has no page. They are not in the dispute, so
-    # there is no draft to render them and no half of theirs to spend; the
-    # surface for the one act they take arrives with the control that grants it,
-    # and until then this is a seat the resolver knows and the routes do not
-    # serve.
+    # The Instructor has no draft. They are not in the dispute, so there is
+    # nothing of theirs to render here and no half of theirs to spend — their
+    # one act is the waiver, and it has an instrument of its own. An address
+    # spelling out their seat on a Team's surface is a reader asking for a page
+    # that does not exist, which is a 404 like any other.
     def resolve
-      seated = Seat.for(Seed.simulation(params[:run]), params[:seat])
+      seated = seat_at(params[:seat])
       return seated if seated.seated?
 
       no_page
     rescue ArgumentError
       no_page
     end
+
+    # The Instructor, resolved by the constant rather than by what the address
+    # spelled. Their routes name the segment outright, so there is nothing here
+    # to read off the request: the minute is the Instructor's instrument, and a
+    # seat parameter that could say otherwise would be a second authority on who
+    # is looking at it.
+    def resolve_instructor = seat_at(Seat::INSTRUCTOR)
+
+    def seat_at(segment) = Seat.for(Seed.simulation(params[:run]), segment)
 
     # The two ways there is nothing here: a run or a seat the seed did not lay
     # down, and the Instructor, who is seated and is not in the dispute.
@@ -115,10 +134,23 @@ module Demo
 
     def offer_path(seated) = demo_run_offers_path(run: params[:run], seat: canonical(seated))
 
+    # Where executing the draft posts. It is the seat's like the other two, and
+    # not the Instructor's: the waiver releases the gate, but the act is still
+    # the Team's own and is attributed to the member who presses it.
+    def commit_path(seated) = demo_run_commits_path(run: params[:run], seat: canonical(seated))
+
     # A spend redirects rather than rendering, so the whole instrument is
     # re-read against what the write left behind — the slip, the Docket and the
     # front matter move together, or the page tells three stories about one act.
     def draft_path(seated) = demo_run_path(run: params[:run], seat: canonical(seated))
+
+    # The Instructor's two. They carry no seat: the minute is addressed by the
+    # seat it belongs to and there is only ever one person at it, so spelling it
+    # out a second time in a path built from the same constant would be two
+    # places for one name to be wrong.
+    def minute_path = demo_run_minute_path(run: params[:run])
+
+    def waiver_path = demo_run_waivers_path(run: params[:run])
 
     def canonical(seated) = (seated.segment unless seated.segment == Seat::DEFAULT)
 

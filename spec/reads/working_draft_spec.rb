@@ -110,7 +110,8 @@ RSpec.describe WorkingDraft do
     # not exist is a number with nothing under it.
     it "says why it cannot be executed, and prices nothing, before there is a draft" do
       expect(props[:countersignature][:execution]).to eq(
-        cost: nil, half_label: nil, refusal: I18n.t("reads.refusals.there_is_no_offer_on_the_table")
+        cost: nil, half_label: nil, remaining_after: nil,
+        refusal: I18n.t("reads.refusals.there_is_no_offer_on_the_table")
       )
     end
 
@@ -127,6 +128,11 @@ RSpec.describe WorkingDraft do
       expect(props[:countersignature][:execution]).to eq(
         cost: CommittedOffer::EXCHANGE_COST,
         half_label: "exchange",
+        # Nil beside a price, which is the one combination worth naming here: a
+        # refused quote carries no remaining-after, because there is no negative
+        # Budget to render — and the confirmation that would print it is exactly
+        # what this refusal is holding shut.
+        remaining_after: nil,
         refusal: I18n.t("reads.refusals.the_offer_has_not_been_seconded")
       )
     end
@@ -173,6 +179,34 @@ RSpec.describe WorkingDraft do
       expect(props[:countersignature]).to include(
         drawn_by: dana.name, signed_by: nil, executed: true, waived: true
       )
+    end
+
+    # Before the commit there is no row to ask, so the answer is the ledger's —
+    # and it is owed then, not only afterwards. Without it the block goes quiet
+    # the moment the waiver lands: the refusal disappears and the control comes
+    # alive under a dashed line still captioned *countersigned by*, which is now
+    # a line nobody will ever sign.
+    it "says the line is released as soon as the waiver lands, before the commit" do
+      Offers::Stage.call(side: side, day: day, by: dana, terms: {"apology" => nil})
+      Offers::WaiveSecond.call(side: side, day: day, by: dana)
+
+      expect(props[:countersignature]).to include(executed: false, waived: true)
+    end
+
+    # The committed row is the authority wherever there is one: a Team granted a
+    # waiver that had a teammate sign anyway executed under the signature, and
+    # the record names them rather than the waiver they did not use.
+    it "names the seconder over the waiver where both exist" do
+      # There is no roster, so Priya is a teammate only once Attribution has
+      # seen her act — which is what makes her eligible to second at all.
+      Days::Command.apply(act: :spend, side: side, day: day, by: priya,
+        kind: CaseAction::CONSULT_CLIENT)
+      Offers::Stage.call(side: side, day: day, by: dana, terms: {"apology" => nil})
+      Offers::WaiveSecond.call(side: side, day: day, by: dana)
+      Days::Command.apply(act: :commit_offer, side: side, day: day, by: dana,
+        seconded_by: priya)
+
+      expect(props[:countersignature]).to include(signed_by: priya.name, waived: false)
     end
   end
 
@@ -368,6 +402,25 @@ RSpec.describe WorkingDraft do
 
       expect(props[:back][:docket][:entries].sole).to include(
         act_label: "Drew a draft", by: dana.name, cost: nil, spend: false
+      )
+    end
+
+    # The fourth case, and the one with a price: executing a draft is a spend
+    # with no authored Action behind it, so there is no kind to name it by.
+    # Reaching for one anyway hands I18n a key with nothing after the dot, which
+    # resolves to the whole kinds Hash and prints as `[object Object]` — on the
+    # one line a Team most wants to read back.
+    it "names executing a draft, which is a spend with no Action behind it" do
+      Offers::Stage.call(side: side, day: day, by: dana, terms: {"apology" => nil})
+      Offers::WaiveSecond.call(side: side, day: day, by: dana)
+      Days::Command.apply(act: :commit_offer, side: side, day: day, by: dana,
+        seconded_by: nil)
+
+      committed = props[:back][:docket][:entries].find { |line| line[:cost] == 1 }
+
+      expect(committed).to include(
+        act_label: "Executed the draft", by: dana.name,
+        half_label: "exchange", kind: nil, spend: true
       )
     end
 

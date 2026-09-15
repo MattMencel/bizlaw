@@ -22,9 +22,15 @@
   and the shape the rest follow. The Consult memo is the first thing an act puts
   *on* the page. The draft writes too — the term sheet is the surface a position
   is drawn on and the clip rail is what rides it, both owned by `Draft`, because
-  `Offers::Stage` replaces the Terms and the Exhibits as one position. The
-  countersignature block prices executing it and cannot: the commit, the waiver
-  and the Day's close are their own tickets.
+  `Offers::Stage` replaces the Terms and the Exhibits as one position. And the
+  countersignature block executes: the one act on this page that is gated rather
+  than merely priced, and the one that can end the Day.
+
+  It also re-reads itself when you come back to it. The demo is three tabs on one
+  laptop and the acts cross between them — see `lib/live.svelte.js` for why that
+  is a focus listener and not a subscription. It is safe over the draft he is
+  typing because the key below is what decides whether `Draft` remounts, and it
+  is derived from what is on the *table* rather than from the whole prop tree.
 -->
 <script>
   import FrontMatter from "../../components/WorkingDraft/FrontMatter.svelte"
@@ -33,6 +39,7 @@
   import ConsultMemo from "../../components/WorkingDraft/ConsultMemo.svelte"
   import ActionSlip from "../../components/WorkingDraft/ActionSlip.svelte"
   import BackOfFile from "../../components/WorkingDraft/BackOfFile.svelte"
+  import { rereadOnFocus } from "../../lib/live.svelte.js"
 
   let {
     letterhead,
@@ -44,8 +51,11 @@
     slip,
     back,
     spend_path,
-    offer_path
+    offer_path,
+    commit_path
   } = $props()
+
+  rereadOnFocus()
 
   let face = $state("front")
 
@@ -114,7 +124,7 @@
 
       <hr class="rule" />
 
-      <Countersignature {countersignature} />
+      <Countersignature {countersignature} {commit_path} day={letterhead.day} />
 
       <hr class="rule" />
 

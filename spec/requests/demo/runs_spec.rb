@@ -94,14 +94,27 @@ RSpec.describe "the demo run", type: :request do
     expect(named).to eq(inertia.props)
   end
 
-  # The Instructor is seated — `Offers::WaiveSecond` needs a `by:` and it exists
-  # — but has no page. The Instructor console is out of scope for the whole
-  # map, and the waiver's surface arrives with the control that grants it.
-  it "has no page for the Instructor it seats" do
+  # The Instructor is seated and is on no Side, so there is no draft of theirs to
+  # render. What is at their address is the minute, which is a route of its own
+  # declared above the optional seat — so this is not the working draft read from
+  # another chair, and the assertion is that it is a different page entirely.
+  it "serves the Instructor their own instrument rather than a draft" do
     expect(Demo::Seat.for(Demo::Seed.simulation(Demo::Seed::DEMO), Demo::Seat::INSTRUCTOR))
       .not_to be_seated
 
     get "/demo/#{Demo::Seed::DEMO}/#{Demo::Seat::INSTRUCTOR}"
+
+    expect(response).to have_http_status(:ok)
+    expect(inertia.component).to eq("Demo/Minute")
+  end
+
+  # The route above only intercepts the read. The acts still take an optional
+  # seat, and the Instructor has no half to spend and no position to draw — so
+  # the guard that used to keep them off this page is still what answers them
+  # there, and it is a 404 like a mistyped seat.
+  it "refuses an act taken from the Instructor's seat" do
+    post "/demo/#{Demo::Seed::DEMO}/#{Demo::Seat::INSTRUCTOR}/spends",
+      params: {kind: CaseAction::CONSULT_CLIENT, day: Demo::Seed::DEMO_DAY}
 
     expect(response).to have_http_status(:not_found)
   end

@@ -127,9 +127,13 @@ module Demo
     # every time, and nothing in the address depends on them.
     #
     # The seat is optional, and the bare form is the player's — see
-    # `Demo::Seat`. It is named only for the second tab, which is where the
-    # Acceptance comes from. The waiver is the Instructor's and is attributed to
-    # them, so it is never granted from that tab.
+    # `Demo::Seat`. It is named for the second tab, which is where the Acceptance
+    # comes from, and for the Instructor's, which is where the waiver comes from:
+    # the waiver is attributed to them, so it is never granted from a Team's tab.
+    #
+    # The Instructor's seat is a different instrument rather than the same one
+    # read from another chair — the minute — so its address is a route of its
+    # own that happens to be spelled the same way.
     def url_for(run, seat = nil) = ["#{base_url}/demo/#{run}", seat].compact.join("/")
 
     private
