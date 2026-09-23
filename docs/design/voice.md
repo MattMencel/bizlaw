@@ -62,6 +62,16 @@ Decided in [What does sending an Offer get called, if not "execute"?](https://gi
 
 *Commit* belongs to the Day alone.
 
+## Inside the register
+
+Decided in [Does the paper register need revisiting?](https://github.com/MattMencel/bizlaw/issues/394). The audit found seven places where the paper itself caused the reading problem. [ADR 0005](../adr/0005-the-register-is-the-paper.md) stands: each one is fixed in the copy. The two signature-block findings are settled by [ADR 0009](../adr/0009-an-offer-is-sent-not-executed.md).
+
+- **Headings use the glossary name.** A student should see the words the professor uses in class: "Morning Briefing · Day n", "Actions", "Case File", "Docket". The paper name can stay as a small subtitle where it helps the look ("Case File · the papers"). "Front matter" and "slip" never appear as the heading. The Minute's heading is settled when the Minute is rewritten.
+- **The page-turn control says what is on the back**: "Turn over: Case File & Docket". It doesn't describe what you're looking at now. The gesture stays.
+- **The term sheet gets a plain key**: struck through = theirs · written in = ours · margin = the Client. Real redlines carry a key, so it fits the register. ADR 0005's "needed no legend" argued for the paper, and it doesn't bar a key.
+- **Stubs stay stubs.** Rule 6 puts the consequence first, capitalised and at the stub's own weight: "Ends the game: …", "Ends our Day. …". No banners.
+- **Nothing states a rule before it applies** (`CONTEXT.md` § Second, § Morning Briefing). The Briefing's grammar line names the Day. A gloss defines a word. A refusal, or a control that can't be used yet, says what's missing and what to do next. Each empty state says only what to do on its own surface, so no single empty state carries the whole tutorial.
+
 ## Not decided here
 
 - **One name per concept, and capitalisation** (audit category 5).

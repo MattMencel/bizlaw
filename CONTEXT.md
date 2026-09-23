@@ -102,7 +102,7 @@ Both Sides read a beat on it, each from their own Client. The Team whose Offer w
 
 A teammate's confirmation, and the only gate inside a Team. An Offer or an Acceptance lands only when a member other than the one who staged it confirms it. Nothing else in the game requires one — the preparation half stays ungated.
 
-The Second is never explained in advance. A draft carries a **countersignature block** with one line signed and one blank naming the teammates who may sign it, and the staging lands in the Docket with Attribution so it surfaces in a teammate's next Morning Briefing. An unsigned line on the draft in your own hand teaches the rule; fixed copy elsewhere would not.
+The Second is never explained ahead of the moment it bites. A draft carries a **countersignature block** with one line signed and one blank naming the teammates who may sign it, and the staging lands in the Docket with Attribution so it surfaces in a teammate's next Morning Briefing. An unsigned line on the draft in your own hand teaches the rule, and a send control that cannot yet be used says whose countersignature it waits on; fixed copy elsewhere would not.
 
 A Team whose other members are absent can stage an Offer it cannot send. That is not a mechanic; it is an Instructor **waiver** of the Second, granted to one Team for one Day and recorded in the Docket as an Instructor action. The Instructor never Seconds on a Team's behalf — Attribution would then name someone who did not take the position.
 
@@ -202,7 +202,7 @@ What a Day opens with: the Actions that have just landed and any documents the o
 
 It carries a further section, **what you start with** — the documents in hand at the open, drawn from Provenance, beside the Client's opening statement, the calendar and the Rubric. On Day 1 that is the only non-empty section, because nothing has landed and nothing has been served yet; on later Days it is what a returning teammate is caught up on. Every section is composed by the engine from objects the Case already authors, so a briefing is never authored per Case.
 
-It is also where the Day's grammar is **named**, in one line of fixed copy: everything here is the case file, work it in any order, the Day ends when both Sides commit, and an Offer is sent only over a teammate's countersignature. Nothing else in the game states the rules of the machine, so no other surface can carry it.
+It is also where the Day's grammar is **named**, in one line of fixed copy: everything here is the case file, work it in any order, the Day ends when both Sides commit, and an Offer is sent only over a teammate's countersignature. Nothing else states the rules of the machine ahead of the moment they bite. A gloss defines a word, a refusal or an unusable control says what is missing and what to do next, and an empty state says only its own surface's move — so the teaching is spread across the surfaces rather than crammed into the few that may explain.
 
 ## Onboarding
 
