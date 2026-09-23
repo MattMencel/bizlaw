@@ -166,6 +166,14 @@ The portrait is **composed, not drawn per Case**: independent brow and mouth lay
 
 **Brows and mouth are the only groups the engine picks**, and it reads them from the band at a Consult and from the authored settlement expression at a settlement, where there is no band. Everything else is identity, drawn once by the seed: hair, garment, glasses, facial hair and the skull. Identity is carried by **shape alone**, because two inks leave no skin tone and no hair colour to carry it — which is why the two Clients of one Case, the only pair anyone ever sees together, are the only pair that must differ. See ADR 0008.
 
+## House Rule
+
+A rule of play that departs from US law on purpose, said to the player where it takes effect. It gives the game's rule and then the law's in plain words, so a student does not carry the game's version into an exam. An Offer that stays open after a counter is one. So is an instrument that carries no release, and a settlement made without the Client.
+
+It is not a gloss. A gloss says what a word means, once, on first contact. A House Rule says a rule differs from the law, and it sits where the rule bites. Not every departure is said to the player. Serving a document, playing an Exhibit and a deposition that arrives as a surprise belong to the register's metaphor rather than to contract law, so only the Debrief Packet names them.
+
+_Avoid_: disclaimer, caveat, simplification
+
 ## Terms Board
 
 Where the shape of the deal is visible: each Term as a track carrying the Team's own position, the other Side's **last committed** Offer, and the Team's own Client's stated aspiration. Reachable whenever a Team is working, because deliberating over the shape of a deal is preparation work even though executing one is not.
@@ -378,7 +386,7 @@ The single Instructor action per Simulation that makes outcome, scores and debri
 
 ## Debrief Packet
 
-What the app hands the Instructor when a Simulation ends: the outcome, both Clients' private ranges, each Side's Par against what was actually settled, the full Docket, and the provisional scores with their evidence trails. The Instructor runs the debrief; the packet is only what is in the envelope.
+What the app hands the Instructor when a Simulation ends: the outcome, both Clients' private ranges, each Side's Par against what was actually settled, the full Docket, the provisional scores with their evidence trails, and every House Rule the run played under with the law it departs from. The Instructor runs the debrief; the packet is only what is in the envelope.
 
 Student prose does not travel in it. Deliberation threads and Offer notes stay in the application, and the packet points into the run rather than carrying them — which is what keeps it from being a bulk export of student writing. Those pointers resolve to nothing once the prose is purged, and render as a tombstone rather than as an empty thread.
 
