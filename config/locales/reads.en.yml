@@ -100,18 +100,17 @@ en:
     # so an uncovered symbol fails a spec instead of printing *Translation
     # missing* at a student.
     #
-    # Two of these are reached only past the page, by a request the page never
+    # One of these is reached only past the page, by a request the page never
     # sends. `the_day_has_not_opened` needs an ordinal after the sitting Day,
     # because only the sitting Day is both open and budgeted.
-    # `an_exhibit_has_already_been_played` needs a draft staged onto a Day
-    # before that Day opened. `Offers::Stage` refuses a closed Day but not an
-    # unopened one, so the draft can sit there while the same Exhibit is played
-    # on the Day before it.
     #
-    # Two more are returned and never printed. `the_simulation_has_settled` and
-    # `the_matter_has_already_settled` refuse acts on a settled run, and a
+    # Three more are returned and never printed. `the_simulation_has_settled`
+    # and `the_matter_has_already_settled` refuse acts on a settled run, and a
     # settled run renders the executed instrument, which prints no refusal. See
-    # `Demo::RunsController#executed`.
+    # `Demo::RunsController#executed`. `an_exhibit_has_already_been_played`
+    # needs a draft carrying an Exhibit spent on another Day, and since
+    # `Offers::Stage` refuses a Day that has not opened, only one Day at a time
+    # can hold a draft for `Days::Command` to find that way.
     #
     # `an_offer_has_already_been_committed_today` is shared by both ends of one
     # rule — `Days::Command` refusing the second commit, and `Offers::Stage`

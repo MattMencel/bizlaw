@@ -293,6 +293,16 @@ RSpec.describe "drawing the Offer", type: :request do
         expect(staged.amount_cents).to eq(in_cents), "read #{written.inspect} wrong"
       end
     end
+
+    # The sheet posts the sitting Day and no other, so a Day on the calendar
+    # that nobody has reached is a hand-written request rather than a page that
+    # went stale — the same reading the waiver's address gives it.
+    it "does not draw on a Day that has not opened yet" do
+      draw(on: Demo::Seed::DEMO_DAY + 1)
+
+      expect(response).to have_http_status(:not_found)
+      expect(side.staged_offers).to be_empty
+    end
   end
 
   # The session is the browser and the demo is played from two tabs, so one

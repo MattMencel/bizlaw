@@ -15,7 +15,8 @@ module Offers
   # commit against a Budget that has already expired.
   DayClosed = Class.new(StandardError)
 
-  # Raised when the Instructor reaches for a Day nobody has played yet. `Day` is
+  # Raised when the Instructor's waiver or a Team's draft reaches for a Day
+  # nobody has played yet. `Day` is
   # only ever *closed* or not — `Day#open?` is `closed_at IS NULL` — so the rest
   # of the calendar reads as open to every check there is, including the
   # triggers. What actually marks a Day as opened is its Budget, which
@@ -28,6 +29,10 @@ module Offers
   # granted into the future disarmed the Second on a Day nobody had reached and
   # nothing anywhere said so. The answer is to give this seam the rule rather
   # than to reverse that decision.
+  #
+  # `Offers::Stage` refuses it for the same reason from the other side: a draft
+  # left waiting on a later Day is read for playability only when it is drawn,
+  # so it could arrive on its Day carrying an Exhibit spent on the Day before.
   DayNotOpen = Class.new(StandardError)
 
   # Raised when a Team stages onto a Day whose Offer it has already committed.

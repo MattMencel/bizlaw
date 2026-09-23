@@ -8,7 +8,8 @@ module Demo
   # costs nothing, writes no Docket row and is gated by nothing inside the Team —
   # `Offers::Stage` is the only path a position reaches the table, and what it
   # refuses is the table being gone: a settled run, a closed Day, or a Day whose
-  # Offer this Team has already executed. So the page posts the position and is
+  # Offer this Team has already executed. It also refuses a Day not yet opened,
+  # which the sheet never posts and which reads as a 404. So the page posts the position and is
   # sent back to read it, with no price crossing the wire in either direction.
   #
   # The sheet withdraws its inputs on all three, so each refusal here is a page
@@ -48,6 +49,11 @@ module Demo
       refuse(seated, :an_offer_has_already_been_committed_today)
     rescue Simulation::AlreadySettled
       refuse(seated, :the_simulation_has_settled)
+    rescue Offers::DayNotOpen
+      # A Day nobody has reached. The sheet posts the sitting Day and no other,
+      # so this is a caller with a calendar the page never offered rather than a
+      # page that went stale — read as the waiver's address reads it.
+      no_page
     rescue ArgumentError
       # A Term the Case never authored, an Exhibit this Team cannot play, an
       # Offer naming nothing at all — each is a caller with a menu the engine

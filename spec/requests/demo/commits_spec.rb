@@ -131,31 +131,6 @@ RSpec.describe "executing the draft", type: :request do
     end
   end
 
-  # The one way to reach `an_exhibit_has_already_been_played`, and the page
-  # does not offer it: `Offers::Stage` refuses a closed Day and not an
-  # unopened one, so a request naming tomorrow's ordinal leaves a draft
-  # waiting there. Day 3's commit plays the same Exhibit, and when Day 4
-  # opens the draft waiting for it carries an Exhibit that has already been
-  # spent. The block quotes that refusal the moment the page loads, before
-  # anyone presses anything.
-  describe "a draft drawn ahead of its Day, carrying an Exhibit spent since" do
-    it "says so on the block rather than printing a missing translation" do
-      exhibit = side.case_file_documents.detect(&:playable?)
-      post "/demo/#{Demo::Seed::DEMO}/offers",
-        params: {day: Demo::Seed::DEMO_DAY + 1, terms: ["apology"],
-                 exhibits: [exhibit.case_document.identifier]}
-
-      Offers::Stage.call(side: side, day: day, by: player, terms: {"apology" => nil},
-        exhibits: [exhibit])
-      Offers::WaiveSecond.call(side: side, day: day, by: instructor)
-      execute
-
-      get "/demo/#{Demo::Seed::DEMO}"
-      expect(inertia.props[:countersignature][:execution][:refusal])
-        .to eq(I18n.t("reads.refusals.an_exhibit_has_already_been_played"))
-    end
-  end
-
   describe "what the address will not do" do
     it "does not know a Day off the calendar" do
       execute(on: 99)

@@ -114,6 +114,18 @@ RSpec.describe Offers::Stage do
     expect { stage }.to raise_error(Offers::DayClosed)
   end
 
+  # `Day#open?` is only `closed_at IS NULL`, so every unplayed Day passes it.
+  # A draft left waiting there is checked for playability only when it is
+  # drawn, and an Exhibit it carries can be spent on the Day before — so the
+  # draft reaches its own Day holding a card that is already gone.
+  it "refuses a draft on a Day that has not opened yet" do
+    expect {
+      described_class.call(side: side, day: simulation.days.find_by!(ordinal: 2),
+        by: dana, terms: {"money" => 45_000_00})
+    }.to raise_error(Offers::DayNotOpen)
+    expect(side.staged_offers).to be_empty
+  end
+
   # The other end of `an_offer_has_already_been_committed_today`. A Team commits
   # at most one Offer a Day, so a Day whose Offer is executed has no second
   # position to put on the table — and the Day stays open until the other Side
