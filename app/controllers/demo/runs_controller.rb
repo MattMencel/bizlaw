@@ -54,7 +54,20 @@ module Demo
     # There are no paths on it either. Nothing can be bought, drawn, executed or
     # taken, so a surface carrying an endpoint would be a control that cannot
     # exist looking for somewhere to post.
+    #
+    # **It prints no refusal, and it clears every shelf anyway.** A press that
+    # arrives after settlement comes back refused, as `the_simulation_has_settled`,
+    # `the_matter_has_already_settled`, or `the_day_has_closed` when the
+    # Acceptance closed the Day in the middle of a staging. Its redirect lands
+    # here. The executed instrument already answers it, and printing a sentence
+    # over the ending would be the administrative noise this page leaves out of
+    # the Action slip. The entry still has to come off, though: a shelf is named
+    # by act and seat, the run's name survives `demo:seed`, and a sentence left
+    # there would print on the reset run's first working draft.
     def executed(seated)
+      [SPEND_REFUSAL, DRAFT_REFUSAL, COMMIT_REFUSAL, ACCEPTANCE_REFUSAL]
+        .each { |act| refusal_for(act, seated) }
+
       render inertia: "Demo/ExecutedInstrument",
         props: ExecutedFile.for(seated.side, you: seated.user).to_props
     end

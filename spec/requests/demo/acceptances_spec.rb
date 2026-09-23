@@ -173,5 +173,21 @@ RSpec.describe "accepting their offer", type: :request do
 
       expect(inertia.component).to eq("Demo/ExecutedInstrument")
     end
+
+    # The instrument is the answer and prints no refusal, so it has to clear
+    # the shelves itself. A shelf is named by act and seat, not by run, and the
+    # run's name survives the reset. A sentence left there would print on the
+    # fresh run's page the first time it rendered a working draft.
+    it "leaves nothing on a shelf for the next run to read", :aggregate_failures do
+      accept(seat: nil, on: 4, committed_on: Demo::Seed::DEMO_DAY)
+      post "/demo/#{Demo::Seed::DEMO}/offers", params: {day: 4, terms: ["nda"]}
+      follow_redirect!
+
+      Demo::Seed.call
+      get "/demo/#{Demo::Seed::DEMO}"
+
+      expect(inertia.props[:term_sheet][:refusal]).to be_nil
+      expect(inertia.props[:acceptance][:refused]).to be_nil
+    end
   end
 end

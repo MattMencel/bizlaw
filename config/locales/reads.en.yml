@@ -95,16 +95,32 @@ en:
     # one vocabulary from one place instead of the Board owning words it cannot
     # say.
     #
-    # One of `commit_offer`'s reasons has no sentence here, because nothing can
-    # reach it: an Exhibit cannot yet be played at all, so nothing can play one
-    # twice. Copy with no surface is copy nobody has read, and it is owed a
-    # sentence by the ticket that first renders it.
+    # Every symbol the seams can return has a sentence here, including ones no
+    # page offers a control for. The test environment raises on a missing key,
+    # so an uncovered symbol fails a spec instead of printing *Translation
+    # missing* at a student.
+    #
+    # Two of these are reached only past the page, by a request the page never
+    # sends. `the_day_has_not_opened` needs an ordinal after the sitting Day,
+    # because only the sitting Day is both open and budgeted.
+    # `an_exhibit_has_already_been_played` needs a draft staged onto a Day
+    # before that Day opened. `Offers::Stage` refuses a closed Day but not an
+    # unopened one, so the draft can sit there while the same Exhibit is played
+    # on the Day before it.
+    #
+    # Two more are returned and never printed. `the_simulation_has_settled` and
+    # `the_matter_has_already_settled` refuse acts on a settled run, and a
+    # settled run renders the executed instrument, which prints no refusal. See
+    # `Demo::RunsController#executed`.
     #
     # `an_offer_has_already_been_committed_today` is shared by both ends of one
     # rule — `Days::Command` refusing the second commit, and `Offers::Stage`
     # refusing the draft that would be revised under it — which is the argument
     # for this block sitting where it does rather than under either seam.
     refusals:
+      an_exhibit_has_already_been_played: >-
+        An Exhibit riding this draft has already been played. Put the draft
+        back on the table without it.
       an_offer_has_already_been_committed_today: >-
         Your team has already executed an offer today.
       the_budget_cannot_cover_it: >-
