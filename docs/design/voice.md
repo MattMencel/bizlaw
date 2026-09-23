@@ -7,9 +7,9 @@ This covers everything a player reads: interface copy and the demo's fiction. Th
 ## Rules
 
 1. **The move comes first.** Say what to do, or what the reader is looking at, before anything else. After that, add at most one clause of *why*, and only if it changes what the reader does next.
-2. **No aphorism, paradox, or definition by negation.** Say the positive fact. "A blank line means no one has offered on that term", not "Nothing here is zero".
+2. **No aphorism, paradox, or definition by negation.** Say the positive fact. "A blank line means no one has offered on that Term", not "Nothing here is zero".
 3. **Don't lift sentences from `CONTEXT.md`.** The glossary explains design decisions to developers. Take its vocabulary and none of its prose.
-4. **Prose speaks as counsel: "we / our"** for the Team, "the other side", "the Client". **Controls are bare imperatives with no pronoun**: "Share with the team", "Send this offer".
+4. **Prose speaks as counsel: "we / our"** for the Team, "the other Side", "the Client". **Controls are bare imperatives with no pronoun**: "Share with the Team", "Send this Offer".
 5. **Keep the terms of art and gloss each one once, on first contact, in plain words.** A gloss says what the word literally means, never a metaphor: "countersign it — sign off on it as well", not "a second pair of eyes". The gloss goes in the margin: see *Where a gloss sits*.
 6. **Anything that ends a Day or the game states that consequence first**, before the price.
 7. **Every refusal ends with what the reader can still do.**
@@ -35,18 +35,18 @@ The Minute is terse and has no "we". It says what a power does, when to use it, 
 | Rule | Before | After |
 |---|---|---|
 | 1, 3 | You have not asked. Consulting your Client is the only read you get on how far they have actually moved, and it costs a point of preparation — which is why it is an instrument for an occasion rather than a habit. | Check in with the Client when something has changed. It costs 1 preparation point, and it's the only way to see how far they'll move. |
-| 2 | Nothing yet. When the other Side executes an offer, any exhibit riding it is served on you and appears here. It is how you learn you have been argued at — never what the argument was worth. | Nothing's been served on us yet. When the other side sends an offer with Exhibits attached, we get copies here. If one arrives, check in with the Client — it may have moved them. |
-| 1, 2 | No Term is on the table. Nothing here is zero — an offer of nothing is a position somebody took, and nobody has taken one. | Nobody has offered anything yet. Tick the terms we want below and put figures on them. A blank line means no one has offered on that term, not that they offered zero. |
-| 2, 4 | Struck through, their last committed offer. Write ours on the same line. The margin is the Client's. Where there is nothing, nobody has said anything. | Their latest offer is crossed out. Write ours next to it. The margin shows what the Client wants. |
-| 5, 9 | Everything here is the case file — work it in any order. The Day ends when both Sides have committed it, and an Offer commits only over a teammate's countersignature. | Work the file in any order. Before we send an offer, a teammate has to countersign it — sign off on it as well. The Day ends once both teams are done. |
-| 1 | Your team is still reading the last one. | Not shared yet — the team still sees our last version. |
-| 4 | Put this on the table | Share with the team |
+| 2 | Nothing yet. When the other Side executes an offer, any exhibit riding it is served on you and appears here. It is how you learn you have been argued at — never what the argument was worth. | Nothing's been served on us yet. When the other Side sends an Offer with Exhibits attached, we get copies here. If one arrives, check in with the Client — it may have moved them. |
+| 1, 2 | No Term is on the table. Nothing here is zero — an offer of nothing is a position somebody took, and nobody has taken one. | Nobody has offered anything yet. Tick the Terms we want below and put figures on them. A blank line means no one has offered on that Term, not that they offered zero. |
+| 2, 4 | Struck through, their last committed offer. Write ours on the same line. The margin is the Client's. Where there is nothing, nobody has said anything. | Their latest Offer is crossed out. Write ours next to it. The margin shows what the Client wants. |
+| 5, 9 | Everything here is the case file — work it in any order. The Day ends when both Sides have committed it, and an Offer commits only over a teammate's countersignature. | Work the file in any order. Before we send an Offer, a teammate has to countersign it — sign off on it as well. The Day ends once both Teams are done. |
+| 1 | Your team is still reading the last one. | Not shared yet — the Team still sees our last version. |
+| 4 | Put this on the table | Share with the Team |
 | 4 | Countersigned by: Ray Okonkwo *(under a blank line)* | Waiting on a countersignature from: Ray Okonkwo |
 | 6, 8 | 2 exchange · 0 exchange left after · this also commits your Day | Ends our Day. Costs 2 exchange points (0 left after). |
 | 7, 8 | Today's half will not cover it. | We're out of exchange points today. Preparation points can still buy Actions. |
-| Instructor | A team whose other members are absent can draw an offer it cannot execute. Releasing the second lets that team execute alone, for this Day only. It is granted, never exercised — nobody countersigns on a team's behalf — and it cannot be taken back. | Lets a team send its offer without a teammate's countersignature. Today only. Use it when teammates are absent. Cannot be undone. |
+| Instructor | A team whose other members are absent can draw an offer it cannot execute. Releasing the second lets that team execute alone, for this Day only. It is granted, never exercised — nobody countersigns on a team's behalf — and it cannot be taken back. | Lets a Team send its Offer without a teammate's countersignature. Today only. Use it when teammates are absent. Cannot be undone. |
 
-The refusal "There is no draft to execute. Write your terms above and put them on the table first." already follows rule 7 and is its model — once it takes the words below: "There is no draft to send. Write our terms above and share them with the team first."
+The refusal "There is no draft to execute. Write your terms above and put them on the table first." already follows rule 7 and is its model — once it takes the words below: "There is no draft to send. Write our Terms above and share them with the Team first."
 
 ## An Offer's words, stage by stage
 
@@ -54,10 +54,10 @@ Decided in [What does sending an Offer get called, if not "execute"?](https://gi
 
 | Stage | Words | Never |
 |---|---|---|
-| Staged — our team sees it | a **draft**; "Share with the team"; "Not shared yet" | *on the table*, *executed* |
+| Staged — our Team sees it | a **draft**; "Share with the Team"; "Not shared yet" | *on the table*, *executed* |
 | Signing the draft | "Signed by"; "Waiting on a countersignature from: …"; "Countersigned by" once someone has signed | *Executed by* |
-| Sent — the other side has it | **send**: "Send this offer", "Sent an offer", a "Sent · Day n" stamp; their offer is "open on the table" | *execute*, *commit* |
-| Accepted | "Accept their offer" | — |
+| Sent — the other Side has it | **send**: "Send this Offer", "Sent an Offer", a "Sent · Day n" stamp; their Offer is "open on the table" | *execute*, *commit* |
+| Accepted | "Accept their Offer" | — |
 | The agreement | the **executed** instrument: "Executed on Day n", "Executed by" | — |
 
 *Commit* belongs to the Day alone.
@@ -72,7 +72,17 @@ Decided in [Does the paper register need revisiting?](https://github.com/MattMen
 - **Stubs stay stubs.** Rule 6 puts the consequence first, capitalised and at the stub's own weight: "Ends the game: …", "Ends our Day. …". No banners.
 - **Nothing states a rule before it applies** (`CONTEXT.md` § Second, § Morning Briefing). The Briefing's grammar line names the Day. A gloss defines a word. A refusal, or a control that can't be used yet, says what's missing and what to do next. Each empty state says only what to do on its own surface, so no single empty state carries the whole tutorial.
 
+## One name per concept
+
+Decided in [One name for each concept](https://github.com/MattMencel/bizlaw/issues/400). The audit (category 5) found six concepts with two to four names each. Sending an Offer is settled above. The rest:
+
+- **Glossary terms are capitalised whenever they're used in their glossary sense, the way a contract capitalises its defined terms.** That covers Offer, Exhibit, Team, Side, Day, Term, Client, Instructor, Case File, Docket and the rest of `CONTEXT.md`'s headings, in prose and on controls alike ("Send this Offer"). A word that isn't a glossary term stays lowercase: draft, teammate, countersignature, executed instrument. The capital tells a student the word has a defined meaning, and it lets a House Rule set "an Offer here" against "an offer in law". The before-and-after examples above follow this rule.
+- **In-fiction voices write ordinary English.** A Client's dialogue says "offer" and "the other side". A served document may capitalise its own defined terms, as a real one would. The capitalisation rule is for interface copy, the Minute included. Legal accuracy still applies to both.
+- ***On the table* means a sent Offer that can still be accepted**, and nothing else. A draft is never on the table, and "nobody has offered anything yet" replaces it where it meant anything proposed at all.
+- **The Second is a countersignature, for both readers.** Students countersign. The Minute waives "a teammate's countersignature", never "the second". *Second* stays the glossary and code name, as *commit* does for sending.
+- **An Acceptance signs the other Side's Offer. It is never a countersignature.** In contract practice "countersign" often means the other party accepting, and the game already uses the word for the teammate's sign-off.
+- **The Instructor *waives* a countersignature, never *releases* it.** Grades are *released*. The legal release goes in full as "a release of the claim", never the bare noun, so the two don't meet.
+
 ## Not decided here
 
-- **One name per concept, and capitalisation** (audit category 5).
 - **Legal accuracy**, which is judged separately ([Is the game's copy right as contract law?](https://github.com/MattMencel/bizlaw/issues/387)).

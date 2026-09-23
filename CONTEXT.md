@@ -106,6 +106,9 @@ The Second is never explained ahead of the moment it bites. A draft carries a **
 
 A Team whose other members are absent can stage an Offer it cannot send. That is not a mechanic; it is an Instructor **waiver** of the Second, granted to one Team for one Day and recorded in the Docket as an Instructor action. The Instructor never Seconds on a Team's behalf — Attribution would then name someone who did not take the position.
 
+What a player reads calls it a **countersignature**, for students and Instructor alike, and an Acceptance is never one.
+_Avoid_ in copy: second, releasing the second
+
 ## Docket
 
 The Team's chronological record of Actions taken: what was spent, which member spent it, and the Day its result lands. Answers *what have we done and what is coming*. Visible to the whole Team, naming who acted; it carries no per-member totals or contribution scores. Seen forward it is the Team's calendar — there is no separate one.
@@ -156,9 +159,9 @@ The idiom the game is drawn in: **the paper**. The game is the file — letterhe
 
 **Once the matter has settled the front is the executed instrument**, and the back still turns. It is a third state of the front rather than a third face: the same document, no longer a draft. One ruled line per agreed Term in a single column, both parties' signature blocks beneath it, the execution stamp dated in the fiction, and the Client's beat under that. What is gone is everything about a Day — no Morning Briefing, no Action slip, no Consult memo, and **no redline and no margin**. The redline has no position across the table left to mark up, and the Client's aspiration printed beside the agreed figure would be a Settlement Quality read arriving through the layout. The letterhead drops the Day for the same reason it drops nothing else: the clock has stopped, and an ordinal out of a calendar nobody will reach again invites the reader to ask what happens tomorrow. See ADR 0007.
 
-**The other Side's paper is a block of its own on the front.** Their last sent Offer reaches a Team as the redline on its own term sheet and in no other form — it is not in the Case File, which answers *what do we know* — so an Acceptance, which is a countersignature on their instrument, needs something to attach to. What it attaches to names the instrument rather than restating it: the Day it was sent on, the hand that drew it, and their covering note. The terms are the strike on the sheet above; printing them twice would make the reader compare two copies of one position.
+**The other Side's paper is a block of its own on the front.** Their last sent Offer reaches a Team as the redline on its own term sheet and in no other form — it is not in the Case File, which answers *what do we know* — so an Acceptance, which signs their instrument, needs something to attach to. What it attaches to names the instrument rather than restating it: the Day it was sent on, the hand that drew it, and their covering note. The terms are the strike on the sheet above; printing them twice would make the reader compare two copies of one position.
 
-**The Instructor's paper is the minute.** They are not in the dispute, so what they are handed is not a file: the Section in the letterhead rather than the matter, and one ruled line per Side for the Day being played, carrying the one act an Instructor takes inside a running Day. It says of a Team only whether a draft is waiting with nobody's countersignature under it, which is the whole of what a waiver would change; the rest of what they see of a run belongs to their own surfaces and not to this one. It bears **no signature line** — a block modelled on the countersignature it releases would invite the Instructor to sign for a Team, which is the one thing the Second refuses. Once the run has settled it is one line — the Day the matter closed, and that there is nothing left to release. Their powers are over a running Day and a settled run has none.
+**The Instructor's paper is the minute.** They are not in the dispute, so what they are handed is not a file: the Section in the letterhead rather than the matter, and one ruled line per Side for the Day being played, carrying the one act an Instructor takes inside a running Day. It says of a Team only whether a draft is waiting with nobody's countersignature under it, which is the whole of what a waiver would change; the rest of what they see of a run belongs to their own surfaces and not to this one. It bears **no signature line** — a block modelled on the countersignature it waives would invite the Instructor to sign for a Team, which is the one thing the Second refuses. Once the run has settled it is one line — the Day the matter closed, and that there is nothing left to waive. Their powers are over a running Day and a settled run has none.
 
 A Team's own Client is the one thing in the game that is drawn rather than typeset, and the one place a Reaction Band lands.
 
@@ -168,7 +171,7 @@ The portrait is **composed, not drawn per Case**: independent brow and mouth lay
 
 ## House Rule
 
-A rule of play that departs from US law on purpose, said to the player where it takes effect. It gives the game's rule and then the law's in plain words, so a student does not carry the game's version into an exam. An Offer that stays open after a counter is one. So is an instrument that carries no release, and a settlement made without the Client.
+A rule of play that departs from US law on purpose, said to the player where it takes effect. It gives the game's rule and then the law's in plain words, so a student does not carry the game's version into an exam. An Offer that stays open after a counter is one. So is an instrument that carries no release of the claim, and a settlement made without the Client.
 
 It is not a gloss. A gloss says what a word means, once, on first contact. A House Rule says a rule differs from the law, and it sits where the rule bites. Not every departure is said to the player. Serving a document, playing an Exhibit and a deposition that arrives as a surprise belong to the register's metaphor rather than to contract law, so only the Debrief Packet names them.
 
@@ -383,6 +386,9 @@ What the app hands the Instructor to judge from: both Sides' Pars, both Clients'
 The single Instructor action per Simulation that makes outcome, scores and debrief visible to students. Before it, no rubric-derived number and no arbitration result exists for a student. It is what separates the Instructor's live provisional view from the students' silence.
 
 **Release is also what fixes the scores.** Up to that moment a provisional score is recomputed from the record every time it is looked at, so an Instructor's adjustment shows up immediately. At Release each score is written down for good, alongside the weights and the Par it was measured against — a grade queried a year later is answered from what the student was actually shown, not by recomputing it against rules that have since changed.
+
+The word is reserved for grades. The settlement-law sense is always written in full as *a release of the claim*.
+_Avoid_ in copy: release (for a waiver, or bare for a release of the claim)
 
 ## Debrief Packet
 
