@@ -201,19 +201,25 @@ class WorkingDraft
     }
   end
 
-  # Whether a position may still be written on this Day — the three things
+  # Whether a position may still be written on this Day — the four things
   # `Offers::Stage` refuses, asked ahead of the press rather than after it. A
   # sheet that withdraws its inputs and a seam that refuses the write are the
   # same rule at two distances: the affordance is gone before the reader reaches
   # for it, and a page that went stale between the render and the press is still
   # refused rather than landing.
   #
-  # The last of the three is what keeps inputs off an executed instrument, which
+  # A Day with no Budget has not opened, and the page only ever renders the
+  # sitting Day, so that one never withdraws anything a reader sees. It is asked
+  # anyway so this stays exactly the seam's list rather than most of it.
+  #
+  # The committed Offer is what keeps inputs off an executed instrument, which
   # is a record rather than a working surface — and `Offers::Stage` holds it too,
   # because `TermsBoard#ours` prefers the draft to the committed Offer and a
   # revision landing there would print terms over two countersignatures that
   # never signed them.
-  def may_draft? = committed.nil? && !day.closed? && !day.simulation.settled?
+  def may_draft?
+    committed.nil? && !day.closed? && !side.budget_on(day).nil? && !day.simulation.settled?
+  end
 
   # One line signed and one blank naming the teammates who may sign it, per
   # `CONTEXT.md` § Second — permanently, whether or not there is a draft under

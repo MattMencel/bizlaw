@@ -93,6 +93,16 @@ RSpec.describe WorkingDraft do
     end
   end
 
+  # `may_draft?` is exactly what `Offers::Stage` refuses, so a Day nobody has
+  # reached withdraws the inputs the seam would refuse. The page renders only
+  # the sitting Day, so this never shows; it is here so the two lists stay one.
+  it "carries no inputs on a Day that has not opened yet" do
+    later = props(on: simulation.days.find_by!(ordinal: 2))
+
+    expect(later[:term_sheet][:writable]).to be(false)
+    expect(later[:clipped][:writable]).to be(false)
+  end
+
   it "passes the empty states through from the reads that own them" do
     expect(props[:term_sheet][:empty_state]).to include("an offer of nothing is a position")
     expect(props[:back][:docket][:empty_state]).to include("Nothing yet")

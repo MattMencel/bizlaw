@@ -9,11 +9,12 @@ module Offers
   # It costs nothing and writes no Docket row, because nothing has been spent —
   # what the Docket shows is the staging itself, folded in on read.
   #
-  # It refuses three things and only three: a settled run, a closed Day, and a
-  # Day this Team has already committed its Offer on. The first two are the
-  # table being gone; the third is the position already being taken.
+  # It refuses four things and only four: a settled run, a closed Day, a Day
+  # that has not opened, and a Day this Team has already committed its Offer
+  # on. The first two are the table being gone; the third is the table not
+  # being laid yet; the fourth is the position already being taken.
   #
-  # The last two are held twice — once here, for the sentence, and once in the
+  # The closed Day and the committed one are held twice — once here, for the sentence, and once in the
   # database, for the race. Both are read before the transaction that writes, so
   # a Day closing or an Offer committing in that window passes the read and lands
   # on a trigger instead; `RACED_CLOSE` and `RACED_COMMIT` turn that back into
@@ -79,6 +80,18 @@ module Offers
       end
 
       raise DayClosed, "Day #{day.ordinal} has already closed" if day.closed?
+
+      # `Day#open?` is only `closed_at IS NULL`, so every unplayed Day passes
+      # the check above; what marks a Day as reached is its Budget, the same
+      # thing `Days::Command` and `Offers::WaiveSecond` ask. A draft left
+      # waiting on a later Day is read for playability only now, so an Exhibit
+      # riding it could be spent on the Day before and the draft would arrive
+      # holding a card that is already gone.
+      #
+      # No trigger backs this one. The triggers here catch a Day changing
+      # between the read and the write, and a Day's Budget is never taken away
+      # — a Day opening in that window only makes the write legal.
+      raise DayNotOpen, "Day #{day.ordinal} has not opened yet" if side.budget_on(day).nil?
 
       # A Team commits at most one Offer a Day, so a Day whose Offer is committed
       # has no second position to put on the table — and revising the draft it
