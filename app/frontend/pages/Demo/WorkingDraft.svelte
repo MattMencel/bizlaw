@@ -44,6 +44,7 @@
   import ActionSlip from "../../components/WorkingDraft/ActionSlip.svelte"
   import BackOfFile from "../../components/WorkingDraft/BackOfFile.svelte"
   import { rereadOnFocus } from "../../lib/live.svelte.js"
+  import VoiceSwitcher from "../../components/Prototype/VoiceSwitcher.svelte"
 
   let {
     letterhead,
@@ -163,6 +164,8 @@
     {/if}
   </article>
 </main>
+
+<VoiceSwitcher />
 
 <style>
   /* The desk the sheet lies on. It is the page's and not the register's: the

@@ -1,0 +1,41 @@
+# PROTOTYPE — throwaway, branch prototype/voice only. "What voice do we write in?" (#388).
+# Voice B — clerk's note: stays in the paper register. Terse labels, instruction
+# first, terms glossed margin-note style ("Served — delivered to you formally").
+en-b:
+  reads:
+    morning_briefing:
+      served:
+        empty: >-
+          Nothing served. Exhibits on an offer the other side executes are filed
+          here. Served — delivered to you formally. Their effect on your Client
+          shows only in a consultation.
+      grammar: >-
+        Order of business — any order. Execute an offer only over a teammate's
+        countersignature. Countersign — a second teammate's approval. The Day
+        closes when both sides are done.
+    terms_board:
+      empty: >-
+        No terms offered. Tick a term below and enter a figure. A blank line is
+        no offer — not an offer of zero.
+    consult_memo:
+      empty: >-
+        No consultation on file. Consult the Client — 1 preparation point — to
+        learn how far they have moved. Use sparingly.
+    refusals:
+      the_budget_cannot_cover_it: >-
+        Insufficient points today.
+  prototype_voice:
+    name: "B — clerk's note"
+    caption_writable: >-
+      Key — struck through: their last offer · written in: ours · margin: the
+      Client's instructions · blank: no offer yet.
+    caption_read: >-
+      Key — struck through: their last offer · written in: ours · margin: the
+      Client's instructions · blank: no offer yet.
+    share: Share with my team
+    unposted: Unshared changes — your team sees the previous version.
+    countersign_pending: "To be countersigned by"
+    stub: "Ends your Day · costs {cost} {half} points · {remaining} left after"
+    minute_waiver: >-
+      Lets a team execute its draft without a teammate's countersignature. Today
+      only. Use it when teammates are absent. Cannot be undone.

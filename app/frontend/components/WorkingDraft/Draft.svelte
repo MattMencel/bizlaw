@@ -30,6 +30,7 @@
 -->
 <script>
   import { router } from "@inertiajs/svelte"
+  import { voiced } from "../../lib/prototypeVoice.js"
   import { tick, untrack } from "svelte"
   import TermSheet from "./TermSheet.svelte"
   import Clipped from "./Clipped.svelte"
@@ -182,12 +183,12 @@
       aria-describedby={withheld ? "withheld" : undefined}
       onclick={draw}
     >
-      Put this on the table
+      {voiced("share", "Put this on the table")}
     </button>
     {#if withheld}
       <span class="refusal" id="withheld">{withheld}</span>
     {:else if unposted}
-      <span class="tiny muted">Your team is still reading the last one.</span>
+      <span class="tiny muted">{voiced("unposted", "Your team is still reading the last one.")}</span>
     {/if}
   </div>
 {/if}

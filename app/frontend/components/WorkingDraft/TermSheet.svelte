@@ -54,6 +54,7 @@
   cell is blank, which is what a data table means by nothing.
 -->
 <script>
+  import { voiced } from "../../lib/prototypeVoice.js"
   let { term_sheet, letterhead, countersignature, position, unposted } = $props()
 
   // A Position present without an amount is a Team offering the Term itself —
@@ -93,11 +94,9 @@
     <table class="terms">
       <caption class="rubric">
         {#if term_sheet.writable}
-          Struck through, their last committed offer. Write ours on the same line. The
-          margin is the Client's. Where there is nothing, nobody has said anything.
+          {voiced("caption_writable", "Struck through, their last committed offer. Write ours on the same line. The margin is the Client's. Where there is nothing, nobody has said anything.")}
         {:else}
-          Struck through, their last committed offer. Written in, ours. The margin is the
-          Client's. Where there is nothing, nobody has said anything.
+          {voiced("caption_read", "Struck through, their last committed offer. Written in, ours. The margin is the Client's. Where there is nothing, nobody has said anything.")}
         {/if}
       </caption>
       <thead class="sr-only">

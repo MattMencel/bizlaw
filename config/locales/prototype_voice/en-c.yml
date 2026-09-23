@@ -1,0 +1,42 @@
+# PROTOTYPE — throwaway, branch prototype/voice only. "What voice do we write in?" (#388).
+# Voice C — senior associate: counsel briefing a junior, "we / the other side",
+# warm, one short why when it helps the next move, terms glossed in passing.
+en-c:
+  reads:
+    morning_briefing:
+      served:
+        empty: >-
+          Nothing's been served on us yet. When the other side executes an offer
+          with Exhibits attached, we get copies here. If one arrives, check in
+          with the Client — it may have moved them.
+      grammar: >-
+        Work the file in any order. Before we execute an offer, a teammate has to
+        countersign it — a second pair of eyes. The Day ends once both teams are
+        done.
+    terms_board:
+      empty: >-
+        Nobody has offered anything yet. Tick the terms we want below and put
+        figures on them. A blank line means no one has offered on that term, not
+        that they offered zero.
+    consult_memo:
+      empty: >-
+        Check in with the Client when something has changed — it's our only
+        honest read on how far they'll move. It costs 1 preparation point.
+    refusals:
+      the_budget_cannot_cover_it: >-
+        We don't have enough points left today for that.
+  prototype_voice:
+    name: "C — senior associate"
+    caption_writable: >-
+      Their latest offer is crossed out. Write ours next to it. The margin shows
+      what the Client wants.
+    caption_read: >-
+      Their latest offer is crossed out; ours is written in. The margin shows what
+      the Client wants.
+    share: Share with my team
+    unposted: Not shared yet — the team is still looking at our last version.
+    countersign_pending: "Waiting on a countersignature from"
+    stub: "This costs {cost} {half} points (we'd have {remaining} left) and ends our Day."
+    minute_waiver: >-
+      Lets a team execute its draft without a teammate's countersignature. Today
+      only. Use it when teammates are absent. Cannot be undone.

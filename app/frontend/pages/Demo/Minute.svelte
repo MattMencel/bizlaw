@@ -38,6 +38,8 @@
 -->
 <script>
   import { router } from "@inertiajs/svelte"
+  import { voiced } from "../../lib/prototypeVoice.js"
+  import VoiceSwitcher from "../../components/Prototype/VoiceSwitcher.svelte"
   import { rereadOnFocus } from "../../lib/live.svelte.js"
 
   let { letterhead, settled, lines, waiver_path } = $props()
@@ -114,10 +116,7 @@
       <section aria-labelledby="waivers">
         <h3 class="doc-sub" id="waivers">Waiver of the second</h3>
         <p class="small muted rubric">
-          A team whose other members are absent can draw an offer it cannot execute.
-          Releasing the second lets that team execute alone, for this Day only. It is
-          granted, never exercised — nobody countersigns on a team's behalf — and it
-          cannot be taken back.
+          {voiced("minute_waiver", "A team whose other members are absent can draw an offer it cannot execute. Releasing the second lets that team execute alone, for this Day only. It is granted, never exercised — nobody countersigns on a team's behalf — and it cannot be taken back.")}
         </p>
 
         <ul class="plain">
@@ -159,6 +158,8 @@
     {/if}
   </article>
 </main>
+
+<VoiceSwitcher />
 
 <style>
   /* The same desk the file lies on. The Instructor's paper is paper. */

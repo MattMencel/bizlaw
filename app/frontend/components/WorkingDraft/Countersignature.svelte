@@ -48,6 +48,7 @@
 -->
 <script>
   import { router } from "@inertiajs/svelte"
+  import { voiced } from "../../lib/prototypeVoice.js"
   import { tick } from "svelte"
 
   let { countersignature, commit_path, day } = $props()
@@ -101,7 +102,7 @@
           <!-- Each teammate carries a name and the identifier an act posts them
                back by, since #367 gave the Acceptance a hand to name. This line
                only ever reads the names. -->
-          Countersigned by{#if countersignature.may_sign.length}: {countersignature.may_sign
+          {voiced("countersign_pending", "Countersigned by")}{#if countersignature.may_sign.length}: {countersignature.may_sign
               .map((member) => member.name)
               .join(", ")}{/if}
         {/if}
@@ -152,10 +153,11 @@
            another name. -->
       <div class="stub" id="execution-stub">
         <p class="terms">
-          {execution.cost}
-          {execution.half_label} ·
-          {execution.remaining_after}
-          {execution.half_label} left after · this also commits your Day
+          {voiced(
+            "stub",
+            `${execution.cost} ${execution.half_label} · ${execution.remaining_after} ${execution.half_label} left after · this also commits your Day`,
+            { cost: execution.cost, half: execution.half_label, remaining: execution.remaining_after }
+          )}
         </p>
         <button
           type="button"

@@ -1,0 +1,41 @@
+# PROTOTYPE — throwaway, branch prototype/voice only. "What voice do we write in?" (#388).
+# Voice A — plain app voice: second person, instruction first, one reason at most,
+# legal terms glossed in parentheses, the paper register bends where it conflicts.
+en-a:
+  reads:
+    morning_briefing:
+      served:
+        empty: >-
+          Nothing served on you yet. When the other side executes an offer with
+          Exhibits attached, you get copies here. An Exhibit may have moved your
+          Client — consult your Client to find out.
+      grammar: >-
+        How a Day works: do things in any order. Before you execute (send) an
+        offer, a teammate must countersign (approve) it. The Day ends once both
+        teams are done.
+    terms_board:
+      empty: >-
+        No offers yet. Tick the terms you want below and fill in the amounts. A
+        blank line means no one has offered anything on that term — not zero.
+    consult_memo:
+      empty: >-
+        Consult your Client to see how ready they are to settle. It costs 1
+        preparation point, so save it for when something has changed.
+    refusals:
+      the_budget_cannot_cover_it: >-
+        Not enough points left today for this.
+  prototype_voice:
+    name: "A — plain app voice"
+    caption_writable: >-
+      Crossed out: the other side's latest offer. Write your team's terms on the
+      same line. Right margin: what your Client wants.
+    caption_read: >-
+      Crossed out: the other side's latest offer. Written in: your team's terms.
+      Right margin: what your Client wants.
+    share: Share with my team
+    unposted: Not shared yet. Your team still sees your last version.
+    countersign_pending: "Needs a countersignature (approval) from"
+    stub: "Costs {cost} {half} points ({remaining} left after). Sends this offer to the other side and ends your team's Day."
+    minute_waiver: >-
+      Lets a team execute its draft without a teammate's countersignature. Today
+      only. Use it when teammates are absent. Cannot be undone.
