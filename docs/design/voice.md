@@ -10,11 +10,21 @@ This covers everything a player reads: interface copy and the demo's fiction. Th
 2. **No aphorism, paradox, or definition by negation.** Say the positive fact. "A blank line means no one has offered on that term", not "Nothing here is zero".
 3. **Don't lift sentences from `CONTEXT.md`.** The glossary explains design decisions to developers. Take its vocabulary and none of its prose.
 4. **Prose speaks as counsel: "we / our"** for the Team, "the other side", "the Client". **Controls are bare imperatives with no pronoun**: "Share with the team", "Send this offer".
-5. **Keep the terms of art and gloss each one once, on first contact, in plain words.** A gloss says what the word literally means, never a metaphor: "countersign it — sign off on it as well", not "a second pair of eyes". Where on the page the gloss goes is decided separately.
+5. **Keep the terms of art and gloss each one once, on first contact, in plain words.** A gloss says what the word literally means, never a metaphor: "countersign it — sign off on it as well", not "a second pair of eyes". The gloss goes in the margin: see *Where a gloss sits*.
 6. **Anything that ends a Day or the game states that consequence first**, before the price.
 7. **Every refusal ends with what the reader can still do.**
 8. **Every number carries its unit**: "2 exchange points", never "2 exchange".
 9. **One idea per sentence.** Contractions are welcome ("we'd", "it's"). Sentence length was never the fault, so don't cut for length alone. Cut the concepts stacked into one sentence.
+
+### Where a gloss sits
+
+Decided in [Where does a gloss sit on first contact?](https://github.com/MattMencel/bizlaw/issues/399). Four placements were prototyped on the branch [`prototype/gloss-placement`](https://github.com/MattMencel/bizlaw/tree/prototype/gloss-placement): inline, a margin note, a footnote and a definitions list.
+
+- **A note in the left margin, level with the word.** The word itself gets a dotted underline. The note gives the term and its gloss: "countersign — sign off on it as well". A heading, a label or a button can carry one, and that is where students meet most terms. The left margin is used because the term sheet's right margin already shows what the Client wants.
+- **On a narrow screen, a list of the terms at the top of the front matter** ("Words used in this file"). There is no room for a margin, so each glossed word links up to its entry.
+- **Not inline.** A parenthesis can't hang off a label or a button, so a term met only on a control would never be glossed.
+- **First contact is the first place the term appears in reading order on the page**, and every visit glosses it again. Nothing records which student has seen what: the empty states are the tutorial, and there is no progress flag. Two teammates always read the same sheet. The front of the draft and the back of the file each gloss their own first contact.
+- **Footnotes stay open for the Instructor's surface.** A numbered note at the foot of the Minute suits its terser voice. That is decided when the Minute's copy is rewritten.
 
 ### The Instructor
 
@@ -54,6 +64,5 @@ Decided in [What does sending an Offer get called, if not "execute"?](https://gi
 
 ## Not decided here
 
-- **Where a gloss sits** on the page: inline, in the margin, or somewhere else.
 - **One name per concept, and capitalisation** (audit category 5).
 - **Legal accuracy**, which is judged separately ([Is the game's copy right as contract law?](https://github.com/MattMencel/bizlaw/issues/387)).
