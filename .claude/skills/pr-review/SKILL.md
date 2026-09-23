@@ -22,12 +22,14 @@ Run the suites that cover the changed files, not the whole suite:
 | Changed | Run |
 |---|---|
 | `app/models/` | `bundle exec rspec spec/models/` |
-| `app/controllers/api/`, serializers | `bundle exec rspec spec/requests/` |
-| Views, Stimulus controllers, Tailwind | `bundle exec rspec spec/system/` |
+| `app/services/` | `bundle exec rspec spec/services/` |
+| `app/reads/` | `bundle exec rspec spec/reads/` |
+| `app/controllers/demo/`, `lib/demo/` | `bundle exec rspec spec/requests/ spec/demo/` |
+| `app/frontend/`, views, `config/locales/reads.en.yml` | `bundle exec rspec spec/system/` |
+| Migrations, `db/structure.sql` | `bundle exec rspec spec/schema/ spec/schema_format_spec.rb` |
 | Behavior spanning a user story | `bundle exec cucumber` |
-| Policies under `app/policies/` | `bundle exec rspec spec/policies/` |
 
-UI changes additionally need `bundle exec rspec --tag accessibility` — this repo holds itself to WCAG 2.0/2.1 AA via axe-core, and that tag is the only thing that exercises it.
+UI changes are held to WCAG 2.0/2.1 AA through `be_axe_clean` assertions inside the system specs, so `spec/system/` is what exercises it.
 
 Establish which failures are pre-existing on `main` before attributing any to the PR.
 
@@ -35,6 +37,6 @@ Establish which failures are pre-existing on `main` before attributing any to th
 
 ## Dependency updates
 
-A green suite is necessary but not sufficient. Also confirm `bundle install` resolves cleanly, and read the release notes for behavior changes between the old and new version — Rails and Devise minor bumps in particular have changed defaults without changing any API this repo calls.
+A green suite is necessary but not sufficient. Also confirm `bundle install` resolves cleanly, and read the release notes for behavior changes between the old and new version — Rails, `inertia_rails` and Vite Ruby minor bumps in particular have changed defaults without changing any API this repo calls.
 
 Per the repo's standing rule: fix transitive CVEs by bumping the direct dependency, never by pinning or forcing a transitive version.
