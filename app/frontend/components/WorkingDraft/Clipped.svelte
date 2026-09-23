@@ -22,6 +22,8 @@
   play rather than quietly dropping one.
 -->
 <script>
+  import Gloss from "../Prototype/Gloss.svelte"
+  import GlossText from "../Prototype/GlossText.svelte"
   let { clipped, position } = $props()
 </script>
 
@@ -39,15 +41,14 @@
             <span class="title">{doc.title}</span>
           </label>
         {:else}
-          <span class="tab-clip">Exhibit</span>
+          <span class="tab-clip"><Gloss term="exhibit" kind="label">Exhibit</Gloss></span>
           <span class="title">{doc.title}</span>
         {/if}
       </li>
     {/each}
   </ul>
   <p class="tiny muted foot">
-    An exhibit rides the offer it is clipped to, and is served on them when the
-    offer is executed.
+    <GlossText text="An [[exhibit|Exhibit]] goes with the offer it's clipped to. When we [[execute|execute]] the offer, it's [[served|served]] on the other side." />
   </p>
 </aside>
 

@@ -10,6 +10,8 @@
   without saying what would fill it — the two things a Day 1 reader meets first.
 -->
 <script>
+  import Gloss from "../Prototype/Gloss.svelte"
+  import GlossText from "../Prototype/GlossText.svelte"
   let { front_matter, day } = $props()
 </script>
 
@@ -27,13 +29,13 @@
     </ul>
   {/if}
 
-  <h3 class="doc-sub">Served on you</h3>
+  <h3 class="doc-sub"><Gloss term="served" kind="label">Served</Gloss> on you</h3>
   {#if front_matter.served_empty_state}
-    <p class="empty-state">{front_matter.served_empty_state}</p>
+    <p class="empty-state"><GlossText text="Nothing's been [[served|served]] on us yet. When the other side [[execute|executes]] an offer with [[exhibit|Exhibits]] attached, we get copies here. If one arrives, check in with the Client — it may have moved them." /></p>
   {:else}
     <ul class="plain">
       {#each front_matter.served as doc (doc.identifier)}
-        <li>{doc.title} <span class="stamp warn">Served</span></li>
+        <li>{doc.title} <span class="stamp warn"><Gloss term="served" kind="label">Served</Gloss></span></li>
       {/each}
     </ul>
   {/if}
@@ -84,7 +86,7 @@
   <p class="small">{front_matter.rubric.dimensions.join(" · ")}. {front_matter.rubric.bonus}</p>
 
   <hr class="rule" />
-  <p class="small">{front_matter.grammar}</p>
+  <p class="small"><GlossText text="Work the file in any order. Before we [[execute|execute]] an offer, a teammate has to [[countersign|countersign]] it. The Day ends once both teams are done." /></p>
 </section>
 
 <style>

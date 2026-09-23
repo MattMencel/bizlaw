@@ -48,6 +48,7 @@
 -->
 <script>
   import { router } from "@inertiajs/svelte"
+  import Gloss from "../Prototype/Gloss.svelte"
   import { tick } from "svelte"
 
   let { countersignature, commit_path, day } = $props()
@@ -82,7 +83,7 @@
 </script>
 
 <section class="countersign" aria-labelledby="countersign">
-  <h2 class="doc-sub" id="countersign" tabindex="-1">Executed by</h2>
+  <h2 class="doc-sub" id="countersign" tabindex="-1"><Gloss term="execute" kind="label">Executed</Gloss> by</h2>
   <div class="sig-lines">
     <div class="sig">
       <div class="line">
@@ -101,7 +102,7 @@
           <!-- Each teammate carries a name and the identifier an act posts them
                back by, since #367 gave the Acceptance a hand to name. This line
                only ever reads the names. -->
-          Countersigned by{#if countersignature.may_sign.length}: {countersignature.may_sign
+          <Gloss term="countersign" kind="label">Countersigned</Gloss> by{#if countersignature.may_sign.length}: {countersignature.may_sign
               .map((member) => member.name)
               .join(", ")}{/if}
         {/if}
@@ -135,7 +136,7 @@
             : undefined}
         onclick={() => live && (open = !open)}
       >
-        Execute this draft
+        <Gloss term="execute" kind="label">Execute</Gloss> this draft
       </button>
       {#if execution?.cost}
         <span class="price">{execution.cost} {execution.half_label}</span>

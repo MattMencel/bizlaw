@@ -40,6 +40,7 @@
 -->
 <script>
   import { router } from "@inertiajs/svelte"
+  import Gloss from "../Prototype/Gloss.svelte"
   import { tick } from "svelte"
 
   let { acceptance, acceptance_path, day } = $props()
@@ -133,7 +134,7 @@
       <p class="terms">
         {#if acceptance.may_sign.length > 1}
           <label>
-            Countersigned by
+            <Gloss term="countersign" kind="label">Countersigned</Gloss> by
             <select bind:value={signing}>
               {#each acceptance.may_sign as member (member.email)}
                 <option value={member.email}>{member.name}</option>

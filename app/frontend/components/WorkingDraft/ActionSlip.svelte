@@ -25,6 +25,7 @@
 -->
 <script>
   import { router } from "@inertiajs/svelte"
+  import Gloss from "../Prototype/Gloss.svelte"
   import { tick } from "svelte"
 
   let { slip, spend_path, day } = $props()
@@ -78,7 +79,7 @@
     {#each slip.actions as action (action.kind)}
       <li class="slip" class:refused={!action.affordable}>
         <span class="k">
-          {action.label}
+          {#if action.kind === "depose_witness"}<Gloss term="depose" kind="label">Depose</Gloss> a witness{:else}{action.label}{/if}
           {#if action.refused_just_now}<span class="stamp warn">Refused</span>{/if}
         </span>
         <span class="p">

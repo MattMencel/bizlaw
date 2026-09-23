@@ -43,6 +43,8 @@
   import ConsultMemo from "../../components/WorkingDraft/ConsultMemo.svelte"
   import ActionSlip from "../../components/WorkingDraft/ActionSlip.svelte"
   import BackOfFile from "../../components/WorkingDraft/BackOfFile.svelte"
+  import GlossApparatus from "../../components/Prototype/GlossApparatus.svelte"
+  import GlossSwitcher from "../../components/Prototype/GlossSwitcher.svelte"
   import { rereadOnFocus } from "../../lib/live.svelte.js"
 
   let {
@@ -108,6 +110,7 @@
 
 <main class="desk">
   <article class="sheet">
+    <GlossApparatus at="gutter" />
     <header class="masthead">
       <div class="letterhead">
         <h1 class="firm">{role(letterhead.role)} · {letterhead.matter}</h1>
@@ -124,6 +127,7 @@
     </header>
 
     {#if face === "front"}
+      <GlossApparatus at="front" />
       <FrontMatter {front_matter} day={letterhead.day} />
 
       <hr class="rule heavy" />
@@ -158,11 +162,15 @@
       <hr class="rule" />
 
       <ActionSlip {slip} {spend_path} day={letterhead.day} />
+
+      <GlossApparatus at="foot" />
     {:else}
       <BackOfFile {back} />
     {/if}
   </article>
 </main>
+
+<GlossSwitcher />
 
 <style>
   /* The desk the sheet lies on. It is the page's and not the register's: the
