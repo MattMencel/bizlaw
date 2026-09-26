@@ -47,6 +47,7 @@
   execute and not one word about it.
 -->
 <script>
+  import Glossed from "../Gloss/Glossed.svelte"
   import { router } from "@inertiajs/svelte"
   import { tick } from "svelte"
 
@@ -136,7 +137,7 @@
         {copy.execute}
       </button>
       {#if execution?.price}
-        <span class="price">{execution.price}</span>
+        <span class="price"><Glossed at="countersignature.price" text={execution.price} /></span>
       {/if}
       {#if execution?.refusal}
         <span class="refusal" id="execution-refusal">{execution.refusal}</span>

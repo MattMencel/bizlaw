@@ -32,7 +32,7 @@
 
   <h3 class="doc-sub"><Glossed at="front_matter.served" text={copy.served} /></h3>
   {#if front_matter.served_empty_state}
-    <p class="empty-state">{front_matter.served_empty_state}</p>
+    <p class="empty-state"><Glossed at="morning_briefing.served_empty" text={front_matter.served_empty_state} /></p>
   {:else}
     <ul class="plain">
       {#each front_matter.served as doc (doc.identifier)}
@@ -81,7 +81,7 @@
   <p class="small">{front_matter.rubric}</p>
 
   <hr class="rule" />
-  <p class="small">{front_matter.grammar}</p>
+  <p class="small"><Glossed at="morning_briefing.grammar" text={front_matter.grammar} /></p>
 </section>
 
 <style>

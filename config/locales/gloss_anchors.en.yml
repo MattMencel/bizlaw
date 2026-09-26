@@ -24,5 +24,34 @@ en:
         draft:
           served:
             - {at: front_matter.served, word: Served}
+          exhibit:
+            - {at: morning_briefing.served_empty, word: exhibit}
+            - {at: clipped.exhibit, word: Exhibit}
+            - {at: clipped.foot, word: exhibit}
+          offer:
+            - {at: morning_briefing.served_empty, word: offer}
+            - {at: morning_briefing.grammar, word: Offer}
+          case_file:
+            - {at: morning_briefing.grammar, word: case file}
+          countersign:
+            - {at: morning_briefing.grammar, word: countersignature}
+          term:
+            - {at: term_sheet.empty, word: Term}
+            - {at: term_sheet.heading, word: terms}
+          covering_note:
+            - {at: drawing.note, word: Covering note}
+          exchange_points:
+            - {at: countersignature.price, word: exchange}
+            - {at: slip.heading, word: exchange}
+          consult:
+            - {at: consult_memo.empty, word: Consulting}
+            - {at: slip.action, word: Consult}
+          preparation_points:
+            - {at: consult_memo.empty, word: preparation}
+            - {at: slip.heading, word: preparation}
+          firm:
+            - {at: memo.band, word: firm}
+          ready:
+            - {at: memo.band, word: ready}
         back_of_file: {}
         executed_instrument: {}

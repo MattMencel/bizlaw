@@ -62,8 +62,8 @@
     <dl bind:this={list}>
       {#each entries as entry (entry.term)}
         <div class="entry" id={`gloss-${entry.term}`} style:top={tops[entry.term]}>
-          <dt>{entry.label}</dt>
-          <dd id={`gloss-${entry.term}-says`}><span aria-hidden="true">{"— "}</span>{entry.gloss}</dd>
+          <dt>{entry.label}<span aria-hidden="true">{" — "}</span></dt>
+          <dd id={`gloss-${entry.term}-says`}>{entry.gloss}</dd>
         </div>
       {/each}
     </dl>
