@@ -1,0 +1,170 @@
+# The working draft: the whole of a live Day, masthead to Action slip. See
+# `reads.en.yml` for how copy reaches a page and which classes print it in
+# capitals.
+#
+# `reads.draft` is the page's fixed copy and is handed to it as a subtree by
+# `WorkingDraft`. The sentences a read composes on its own — the Morning
+# Briefing's, the term sheet's empty state, the memo's — keep the read's name,
+# and live here because this is the page they print on.
+en:
+  reads:
+    morning_briefing:
+      # The briefing's three sections that can hold nothing. Every empty state
+      # instructs: a heading over white space is the one thing an empty section
+      # must not be.
+      landed:
+        empty: >-
+          Nothing yet. An Action you spend comes back on the Day its lead time
+          names, and lands here that morning. Nothing you have bought is due
+          back today.
+      served:
+        empty: >-
+          Nothing yet. When the other Side executes an offer, any exhibit
+          riding it is served on you and appears here. It is how you learn you
+          have been argued at — never what the argument was worth.
+      # Unreachable in the reference Case, which authors documents at the open
+      # for both Sides, and owed a sentence all the same.
+      what_you_start_with:
+        empty: >-
+          Nothing. Your Team was handed no documents at the open, so everything
+          you come to know is something you bought or something they served on
+          you.
+      grammar: >-
+        Everything here is the case file — work it in any order. The Day ends
+        when both Sides have committed it, and an Offer commits only over a
+        teammate's countersignature.
+      rubric:
+        dimensions:
+          - Settlement quality, 40 points
+          - Legal strategy, 30 points
+          - Collaboration, 20 points
+          - Efficiency, 10 points
+        bonus: >-
+          Creative terms, up to 10 points above the 100. Your grade is released
+          by your instructor; nothing about it is visible before then.
+        # The dimensions, joined, then the bonus.
+        published: "%{dimensions}. %{bonus}"
+    terms_board:
+      empty: >-
+        No Term is on the table. Nothing here is zero — an offer of nothing is
+        a position somebody took, and nobody has taken one.
+    consult_memo:
+      empty: >-
+        You have not asked. Consulting your Client is the only read you get on
+        how far they have actually moved, and it costs a point of preparation —
+        which is why it is an instrument for an occasion rather than a habit.
+    draft:
+      title: "%{matter} — Day %{day}"
+      turn:
+        looking_at_front: You are looking at the draft.
+        looking_at_back: You are looking at the back of the file.
+        to_back: Turn the page over
+        to_front: Turn back to the draft
+      front_matter:
+        heading: Front matter · the morning of Day %{day}
+        landed: Landed today
+        served: Served on you
+        served_stamp: Served
+        started_with: What you started with
+        # Neither a pronoun nor a role: the two Clients are different people and
+        # `case_clients` carries no name.
+        client_said: Your client said, on the day you sat down
+        calendar: The calendar
+        # Read aloud per Day; the page prints only the ordinal.
+        calendar_day:
+          today: Day %{day}, %{date}, today
+          closed: Day %{day}, %{date}, closed
+          ahead: Day %{day}, %{date}
+        calendar_span: >-
+          %{count} Days, %{first} to %{last}. An Action's lead time is only
+          plannable against how many are left.
+        graded: How you are graded
+      term_sheet:
+        heading: Draft terms of settlement
+        marks:
+          pending: Not yet on the table
+          drafted: Draft — not executed
+          executed: Executed
+        byline: "%{matter} · Day %{day}"
+        byline_drawn: "%{matter} · Day %{day} · drawn by %{name}"
+        # The table's reading convention. The first is the sheet a Team can
+        # still write on; the second is a record.
+        caption:
+          writable: >-
+            Struck through, their last committed offer. Write ours on the same
+            line. The margin is the Client's. Where there is nothing, nobody has
+            said anything.
+          record: >-
+            Struck through, their last committed offer. Written in, ours. The
+            margin is the Client's. Where there is nothing, nobody has said
+            anything.
+        # Visually hidden: what each column is, for a reader who cannot see the
+        # strike.
+        columns:
+          term: Term
+          theirs: Their last committed position
+          ours: Our position
+          aspiration: What the Client asked for
+        # A Term on the sheet with no figure. A settlement including an apology
+        # includes an apology.
+        included: Included
+        asked_for: Asked for
+        figure: Our position on %{term}, in dollars
+      drawing:
+        note: Covering note
+        note_placeholder: Without prejudice…
+        draw: Put this on the table
+        # Why the control is dead, before anything is posted.
+        withheld:
+          no_terms: An offer names at least one term.
+          no_amount: An offer of money is worth an amount.
+        unposted: Your team is still reading the last one.
+      clipped:
+        heading: Clipped to this draft
+        played: Played
+        exhibit: Exhibit
+        foot: >-
+          An exhibit rides the offer it is clipped to, and is served on them
+          when the offer is executed.
+      countersignature:
+        heading: Executed by
+        drawn_by: Drawn by
+        waived: Countersignature waived by the instructor
+        countersigned_by: Countersigned by
+        countersigned_by_one_of: "Countersigned by: %{names}"
+        refused: Refused
+        execute: Execute this draft
+        stub: "%{price} · %{left} %{half} left after · this also commits your Day"
+        confirm_label: Confirm executing this draft
+        confirm: Confirm
+        cancel: Cancel
+      acceptance:
+        heading: Their offer, open on the table
+        drawn: >-
+          The terms struck through on the sheet above, drawn by %{name} and
+          committed on Day %{day}.
+        refused: Refused
+        accept: Accept their offer
+        no_cost: no cost
+        countersigned_by: Countersigned by
+        countersigns: "%{name} countersigns"
+        consequence: this closes Day %{day} and settles the matter · there is nothing after it
+        confirm_label: Confirm accepting their offer
+        confirm: Confirm
+        cancel: Cancel
+      memo:
+        heading: Memo — your Client
+        # Followed by the band, in bold.
+        reads: Reads
+      slip:
+        heading: Slip — what this Day will still buy · %{remaining}
+        lands_today: lands today
+        lands_on: lands Day %{day}
+        line: "%{price} · %{landing}"
+        stub: "%{price} · %{left} %{half} left after · %{landing}"
+        spend: Spend
+        spend_label: Spend %{action}
+        confirm_label: Confirm spending %{action}
+        refused: Refused
+        confirm: Confirm
+        cancel: Cancel

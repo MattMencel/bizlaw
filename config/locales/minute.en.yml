@@ -1,0 +1,32 @@
+# The Instructor's minute. Its own terser voice: the Instructor is not in the
+# dispute and reads this for one act. See `reads.en.yml` for how copy reaches a
+# page and which classes print it in capitals.
+en:
+  reads:
+    minute:
+      title:
+        sitting: Minute — Day %{day}
+        settled: Minute — settled
+      settled: Settled
+      heading: Minute of the instructor
+      matter:
+        sitting: "%{matter} · Day %{day} of %{of}"
+        closed: "%{matter} · Day %{day} of %{of} · this Day has closed"
+        settled: "%{matter} · settled on Day %{day}"
+      closed:
+        heading: The matter is closed
+        body: >-
+          The two Sides settled on Day %{day}, %{date}. No further Day opens,
+          and there is nothing left to release.
+      waivers:
+        heading: Waiver of the second
+        rubric: >-
+          A team whose other members are absent can draw an offer it cannot
+          execute. Releasing the second lets that team execute alone, for this
+          Day only. It is granted, never exercised — nobody countersigns on a
+          team's behalf — and it cannot be taken back.
+        drawn: a position is on the table, unexecuted
+        undrawn: nothing drawn on the table
+        granted: The second is waived for this Day. Granted by %{name}, %{at}.
+        waive: Waive the second
+        waive_label: Waive the second for the %{role}

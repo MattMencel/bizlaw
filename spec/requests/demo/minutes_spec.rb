@@ -54,7 +54,7 @@ RSpec.describe "the Instructor's minute", type: :request do
 
     # `errors` is Inertia's own shared prop and is on every page it renders.
     expect(inertia.props.keys.map(&:to_s) - ["errors"])
-      .to match_array(%w[letterhead settled lines waiver_path])
+      .to match_array(%w[copy letterhead settled lines waiver_path])
   end
 
   it "does not know a run it did not lay down" do

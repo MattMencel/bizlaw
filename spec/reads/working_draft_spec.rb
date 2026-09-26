@@ -120,7 +120,7 @@ RSpec.describe WorkingDraft do
     # not exist is a number with nothing under it.
     it "says why it cannot be executed, and prices nothing, before there is a draft" do
       expect(props[:countersignature][:execution]).to eq(
-        cost: nil, half_label: nil, remaining_after: nil,
+        cost: nil, half_label: nil, price: nil, stub: nil, remaining_after: nil,
         refusal: I18n.t("reads.refusals.there_is_no_offer_on_the_table")
       )
     end
@@ -138,6 +138,8 @@ RSpec.describe WorkingDraft do
       expect(props[:countersignature][:execution]).to eq(
         cost: CommittedOffer::EXCHANGE_COST,
         half_label: "exchange",
+        price: "#{CommittedOffer::EXCHANGE_COST} exchange",
+        stub: nil,
         # Nil beside a price, which is the one combination worth naming here: a
         # refused quote carries no remaining-after, because there is no negative
         # Budget to render — and the confirmation that would print it is exactly
@@ -434,7 +436,8 @@ RSpec.describe WorkingDraft do
       # would put one position in two places, which is the defect #373 removed.
       it "restates none of the terms" do
         expect(acceptance.keys)
-          .to contain_exactly(:day, :drawn_by, :note, :committed_on, :may_sign, :refusal, :refused)
+          .to contain_exactly(:day, :drawn_by, :drawn, :note, :committed_on, :may_sign,
+            :countersigns, :consequence, :refusal, :refused)
       end
 
       # The wire names the Offer by the Day it was committed on, which is unique

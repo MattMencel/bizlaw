@@ -39,6 +39,7 @@ class ExecutedFile
 
   def to_props
     {
+      copy: copy("reads.executed_instrument"),
       letterhead: letterhead,
       terms: terms,
       signatures: signatures,
@@ -63,10 +64,14 @@ class ExecutedFile
   # on the Day after — which is the dead end this page exists to not be. The Day
   # it was executed on is the stamp's, which is where that fact belongs.
   def letterhead
+    matter = side.case_version.case.name
+
     {
-      matter: side.case_version.case.name,
+      matter: matter,
+      title: I18n.t("reads.executed_instrument.title", matter: matter),
       role: side.role,
-      in_fiction_date: instrument.executed_on.in_fiction_date.to_s,
+      role_label: role_label(side.role),
+      in_fiction_date: in_fiction(instrument.executed_on.in_fiction_date),
       you: you.name
     }
   end
@@ -96,6 +101,7 @@ class ExecutedFile
     [instrument.offered_by, instrument.accepted_by].map do |line|
       {
         role: line.side_role,
+        for: I18n.t("reads.executed_instrument.signatures.for", role: role_label(line.side_role)),
         signed_by: line.signed_by.name,
         seconded_by: line.seconded_by&.name,
         waived: line.under_waiver?
@@ -108,9 +114,13 @@ class ExecutedFile
   # happened to run — a wall clock on the one document that records what the two
   # Teams agreed. The row keeps it; this page does not read it.
   def stamp
+    executed_on = instrument.executed_on
+
     {
-      day: instrument.executed_on.ordinal,
-      in_fiction_date: instrument.executed_on.in_fiction_date.to_s
+      day: executed_on.ordinal,
+      in_fiction_date: in_fiction(executed_on.in_fiction_date),
+      caption: I18n.t("reads.executed_instrument.terms.caption",
+        day: executed_on.ordinal, date: in_fiction(executed_on.in_fiction_date))
     }
   end
 

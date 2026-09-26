@@ -54,32 +54,29 @@
   cell is blank, which is what a data table means by nothing.
 -->
 <script>
-  let { term_sheet, letterhead, countersignature, position, unposted } = $props()
+  let { copy, term_sheet, countersignature, position, unposted } = $props()
 
   // A Position present without an amount is a Team offering the Term itself —
   // an apology is an apology — so it is a word on the line rather than a zero.
-  const written = (position) => (position.money ? position.amount : "Included")
+  const written = (position) => (position.money ? position.amount : copy.included)
 
-  const asked = (aspiration) => (aspiration.money ? aspiration.amount : "Asked for")
+  const asked = (aspiration) => (aspiration.money ? aspiration.amount : copy.asked_for)
 </script>
 
 <section aria-labelledby="term-sheet">
   <div class="sheet-head">
     <!-- Focusable so an act can return the reader here, which is where its
          result is legible: what he wrote is now what the sheet prints. -->
-    <h2 class="doc-title" id="term-sheet" tabindex="-1">Draft terms of settlement</h2>
+    <h2 class="doc-title" id="term-sheet" tabindex="-1">{copy.heading}</h2>
     {#if unposted}
-      <span class="draft-mark pending">Not yet on the table</span>
+      <span class="draft-mark pending">{copy.marks.pending}</span>
     {:else if term_sheet.ours_staged}
-      <span class="draft-mark">Draft — not executed</span>
+      <span class="draft-mark">{copy.marks.drafted}</span>
     {:else if countersignature.executed}
-      <span class="draft-mark executed">Executed</span>
+      <span class="draft-mark executed">{copy.marks.executed}</span>
     {/if}
   </div>
-  <p class="doc-sub">
-    {letterhead.matter} · Day {letterhead.day}{#if countersignature.drawn_by}{" "}· drawn by
-      {countersignature.drawn_by}{/if}
-  </p>
+  <p class="doc-sub">{term_sheet.byline}</p>
 
   <!-- The empty state and the inputs are not alternatives: one says nobody has
        taken a position and the other is where you take one, and the cold open is
@@ -92,20 +89,14 @@
   {#if term_sheet.writable || !term_sheet.empty_state}
     <table class="terms">
       <caption class="rubric">
-        {#if term_sheet.writable}
-          Struck through, their last committed offer. Write ours on the same line. The
-          margin is the Client's. Where there is nothing, nobody has said anything.
-        {:else}
-          Struck through, their last committed offer. Written in, ours. The margin is the
-          Client's. Where there is nothing, nobody has said anything.
-        {/if}
+        {term_sheet.writable ? copy.caption.writable : copy.caption.record}
       </caption>
       <thead class="sr-only">
         <tr>
-          <th scope="col">Term</th>
-          <th scope="col">Their last committed position</th>
-          <th scope="col">Our position</th>
-          <th scope="col">What the Client asked for</th>
+          <th scope="col">{copy.columns.term}</th>
+          <th scope="col">{copy.columns.theirs}</th>
+          <th scope="col">{copy.columns.ours}</th>
+          <th scope="col">{copy.columns.aspiration}</th>
         </tr>
       </thead>
       <tbody>
@@ -135,11 +126,11 @@
                   inputmode="decimal"
                   bind:value={position.amount}
                   disabled={!position.terms[track.term]}
-                  aria-label={`Our position on ${track.label}, in dollars`}
+                  aria-label={track.figure_label}
                 />
               {:else if term_sheet.writable}
                 <span class="hand-written" aria-hidden="true"
-                  >{position.terms[track.term] ? "Included" : ""}</span
+                  >{position.terms[track.term] ? copy.included : ""}</span
                 >
               {:else if track.ours}
                 {written(track.ours)}

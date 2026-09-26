@@ -50,7 +50,7 @@
   import { router } from "@inertiajs/svelte"
   import { tick } from "svelte"
 
-  let { countersignature, commit_path, day } = $props()
+  let { countersignature, copy, commit_path, day } = $props()
 
   const execution = $derived(countersignature.execution)
   const live = $derived(!!execution && !execution.refusal)
@@ -82,13 +82,13 @@
 </script>
 
 <section class="countersign" aria-labelledby="countersign">
-  <h2 class="doc-sub" id="countersign" tabindex="-1">Executed by</h2>
+  <h2 class="doc-sub" id="countersign" tabindex="-1">{copy.heading}</h2>
   <div class="sig-lines">
     <div class="sig">
       <div class="line">
         {#if countersignature.drawn_by}<span class="hand">{countersignature.drawn_by}</span>{/if}
       </div>
-      <div class="cap">Drawn by</div>
+      <div class="cap">{copy.drawn_by}</div>
     </div>
     <div class="sig">
       <div class="line" class:blank={!countersignature.signed_by}>
@@ -96,14 +96,12 @@
       </div>
       <div class="cap">
         {#if countersignature.waived}
-          Countersignature waived by the instructor
+          {copy.waived}
         {:else}
           <!-- Each teammate carries a name and the identifier an act posts them
                back by, since #367 gave the Acceptance a hand to name. This line
                only ever reads the names. -->
-          Countersigned by{#if countersignature.may_sign.length}: {countersignature.may_sign
-              .map((member) => member.name)
-              .join(", ")}{/if}
+          {countersignature.may_sign_caption || copy.countersigned_by}
         {/if}
       </div>
     </div>
@@ -114,7 +112,7 @@
        exactly the state a refused commit comes back to. -->
   {#if countersignature.refusal}
     <p class="refusal refused-just-now" id="commit-refusal">
-      <span class="stamp warn">Refused</span>
+      <span class="stamp warn">{copy.refused}</span>
       {countersignature.refusal}
     </p>
   {/if}
@@ -135,10 +133,10 @@
             : undefined}
         onclick={() => live && (open = !open)}
       >
-        Execute this draft
+        {copy.execute}
       </button>
-      {#if execution?.cost}
-        <span class="price">{execution.cost} {execution.half_label}</span>
+      {#if execution?.price}
+        <span class="price">{execution.price}</span>
       {/if}
       {#if execution?.refusal}
         <span class="refusal" id="execution-refusal">{execution.refusal}</span>
@@ -151,21 +149,16 @@
            came loose of what it confirms is the dialog #363 rejected, by
            another name. -->
       <div class="stub" id="execution-stub">
-        <p class="terms">
-          {execution.cost}
-          {execution.half_label} ·
-          {execution.remaining_after}
-          {execution.half_label} left after · this also commits your Day
-        </p>
+        <p class="terms">{execution.stub}</p>
         <button
           type="button"
           class="control confirm"
-          aria-label="Confirm executing this draft"
+          aria-label={copy.confirm_label}
           onclick={execute}
         >
-          Confirm
+          {copy.confirm}
         </button>
-        <button type="button" class="control" onclick={() => (open = false)}>Cancel</button>
+        <button type="button" class="control" onclick={() => (open = false)}>{copy.cancel}</button>
       </div>
     {/if}
   {/if}

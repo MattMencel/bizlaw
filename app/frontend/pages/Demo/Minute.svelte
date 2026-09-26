@@ -40,15 +40,13 @@
   import { router } from "@inertiajs/svelte"
   import { rereadOnFocus } from "../../lib/live.svelte.js"
 
-  let { letterhead, settled, lines, waiver_path } = $props()
+  let { copy, letterhead, settled, lines, waiver_path } = $props()
 
   rereadOnFocus()
 
-  const role = (r) => r.charAt(0).toUpperCase() + r.slice(1)
-
   const meta = $derived(
     [
-      settled ? "Settled" : `Day ${letterhead.day}/${letterhead.of}`,
+      settled ? copy.settled : letterhead.day_of,
       settled ? settled.in_fiction_date : letterhead.in_fiction_date,
       letterhead.you
     ]
@@ -63,18 +61,10 @@
   function grant(role) {
     router.post(waiver_path, { role, day: letterhead.day }, { preserveScroll: true })
   }
-
-  const granted = (at) =>
-    new Date(at).toLocaleString(undefined, {
-      hour: "numeric",
-      minute: "2-digit",
-      month: "short",
-      day: "numeric"
-    })
 </script>
 
 <svelte:head>
-  <title>{settled ? "Minute — settled" : `Minute — Day ${letterhead.day}`}</title>
+  <title>{letterhead.title}</title>
 </svelte:head>
 
 <main class="desk">
@@ -86,16 +76,8 @@
       </div>
     </header>
 
-    <h2 class="doc-title">Minute of the instructor</h2>
-    <p class="small muted matter">
-      {#if settled}
-        {letterhead.matter} · settled on Day {settled.day}
-      {:else}
-        {letterhead.matter} · Day {letterhead.day} of {letterhead.of}{letterhead.closed
-          ? " · this Day has closed"
-          : ""}
-      {/if}
-    </p>
+    <h2 class="doc-title">{copy.heading}</h2>
+    <p class="small muted matter">{letterhead.matter_line}</p>
 
     <hr class="rule heavy" />
 
@@ -104,48 +86,33 @@
            waiver releases the gate on executing a draft, and there is no Day
            left for one to be drawn on. -->
       <section aria-labelledby="closed">
-        <h3 class="doc-sub" id="closed">The matter is closed</h3>
-        <p class="small">
-          The two Sides settled on Day {settled.day}, {settled.in_fiction_date}. No
-          further Day opens, and there is nothing left to release.
-        </p>
+        <h3 class="doc-sub" id="closed">{copy.closed.heading}</h3>
+        <p class="small">{settled.closed}</p>
       </section>
     {:else}
       <section aria-labelledby="waivers">
-        <h3 class="doc-sub" id="waivers">Waiver of the second</h3>
-        <p class="small muted rubric">
-          A team whose other members are absent can draw an offer it cannot execute.
-          Releasing the second lets that team execute alone, for this Day only. It is
-          granted, never exercised — nobody countersigns on a team's behalf — and it
-          cannot be taken back.
-        </p>
+        <h3 class="doc-sub" id="waivers">{copy.waivers.heading}</h3>
+        <p class="small muted rubric">{copy.waivers.rubric}</p>
 
         <ul class="plain">
           {#each lines as line (line.role)}
             <li class="minute" class:settled={!!line.granted}>
-              <span class="k">{role(line.role)}</span>
-              <span class="p">
-                {line.drawn
-                  ? "a position is on the table, unexecuted"
-                  : "nothing drawn on the table"}
-              </span>
+              <span class="k">{line.role_label}</span>
+              <span class="p">{line.state}</span>
 
               {#if line.granted}
-                <p class="record">
-                  The second is waived for this Day. Granted by {line.granted.by},
-                  {granted(line.granted.at)}.
-                </p>
+                <p class="record">{line.granted.minuted}</p>
               {:else}
                 <button
                   type="button"
                   class="control"
                   id={`waive-${line.role}`}
-                  aria-label={`Waive the second for the ${line.role}`}
+                  aria-label={line.waive_label}
                   aria-disabled={letterhead.closed}
                   aria-describedby={line.refusal ? `waiver-refusal-${line.role}` : undefined}
                   onclick={() => !letterhead.closed && grant(line.role)}
                 >
-                  Waive the second
+                  {copy.waivers.waive}
                 </button>
               {/if}
 

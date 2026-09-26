@@ -142,7 +142,7 @@ RSpec.describe "accepting their offer", type: :request do
 
       expect(inertia.props[:letterhead]).not_to have_key(:day)
       expect(inertia.props.keys.map(&:to_s) - ["errors"])
-        .to match_array(%w[letterhead terms signatures stamp beat back])
+        .to match_array(%w[copy letterhead terms signatures stamp beat back])
     end
 
     it "prints both parties' signatures, the waiver among them" do
@@ -151,9 +151,9 @@ RSpec.describe "accepting their offer", type: :request do
       # String keys: a prop tree comes back through Inertia as JSON, and only
       # the top level is symbolized.
       expect(inertia.props[:signatures]).to eq([
-        {"role" => Side::PLAINTIFF, "signed_by" => player.name,
+        {"role" => Side::PLAINTIFF, "for" => "For the Plaintiff", "signed_by" => player.name,
          "seconded_by" => nil, "waived" => true},
-        {"role" => Side::DEFENDANT, "signed_by" => dana.name,
+        {"role" => Side::DEFENDANT, "for" => "For the Defendant", "signed_by" => dana.name,
          "seconded_by" => ray.name, "waived" => false}
       ])
     end

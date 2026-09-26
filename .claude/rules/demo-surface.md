@@ -4,7 +4,7 @@ paths:
   - app/controllers/demo/**
   - app/reads/**
   - lib/demo/**
-  - config/locales/reads.en.yml
+  - config/locales/**
   - spec/system/**
 ---
 
@@ -14,7 +14,9 @@ The demo renders a Day as a working draft on paper, the grammar of ADR 0005 and 
 
 **Seats.** `Demo::Seat` resolves a URL segment to the `(user, side)` pair every seam's `by:` needs, against the cast `Demo::Seed` publishes. The bare URL is the plaintiff player; `instructor` sits over no Side and signs nothing, because § Second forbids signing for a Team. A seat is not Attribution: `Side#members` answers who has acted, so `WorkingDraft` takes the reader as an argument. `second_waivers` stays outside the members fold so a waiver cannot make the Instructor a teammate.
 
-**Composers.** `WorkingDraft` and `ExecutedFile` turn domain objects into props — Days into ordinals, Users into names, money into a formatted string, and every engine symbol into its sentence from `reads.*`. `Typeset` holds the marks both print (figures, Term labels, documents, Docket lines, the portrait size), so there is one currency decision.
+**Composers.** `WorkingDraft`, `ExecutedFile` and `Minute` turn domain objects into props — Days into ordinals, Users into names, money into a formatted string, dates through `I18n.l`, and every engine symbol into its sentence from `reads.*`. `Typeset` holds the marks they print (figures, Term labels, roles, dates, documents, Docket lines, the portrait size), so there is one currency decision.
+
+**No English in a `.svelte` file.** A page's fixed labels arrive as its `copy` subtree; any sentence carrying a value is composed in Ruby with interpolation. Copy lives in one locale file per surface under `config/locales/`. `spec/frontend/no_english_in_components_spec.rb` and `spec/reads/refusal_sentences_spec.rb` enforce both halves.
 
 **Writes carry intent, never a price or a row id.** A spend posts the Action's kind and `apply` quotes inside the request that charges. Offers and Acceptances name things by the Case's vocabulary, Case File identifiers and the Day an Offer was committed on, because the seed reset moves row ids. A refusal writes nothing: it rides the flash as the engine's symbol on a shelf keyed by act and seat, and the composer makes it a sentence.
 

@@ -3,20 +3,18 @@
   dialog: #315 settled that it is scrolled past, not dismissed, which is why
   nothing here is collapsible and nothing remembers having been read.
 
-  Its three empty states come down from `MorningBriefing` as sentences, the way
-  the Case File's, the Docket's, the Terms Board's and the memo's already did.
-  They were written here until #368, and being the one copy site outside
-  `reads.en.yml` is why they were also the only two that named an absence
-  without saying what would fill it — the two things a Day 1 reader meets first.
+  Every word on it comes down from `WorkingDraft`: the headings as `copy`, and
+  the empty states, the calendar and the rubric as sentences already composed.
+  The copy lives in `config/locales/draft.en.yml`.
 -->
 <script>
-  let { front_matter, day } = $props()
+  let { front_matter, copy } = $props()
 </script>
 
 <section aria-labelledby="front-matter">
-  <h2 class="doc-sub" id="front-matter">Front matter · the morning of Day {day}</h2>
+  <h2 class="doc-sub" id="front-matter">{front_matter.heading}</h2>
 
-  <h3 class="doc-sub">Landed today</h3>
+  <h3 class="doc-sub">{copy.landed}</h3>
   {#if front_matter.landed_empty_state}
     <p class="empty-state">{front_matter.landed_empty_state}</p>
   {:else}
@@ -27,18 +25,18 @@
     </ul>
   {/if}
 
-  <h3 class="doc-sub">Served on you</h3>
+  <h3 class="doc-sub">{copy.served}</h3>
   {#if front_matter.served_empty_state}
     <p class="empty-state">{front_matter.served_empty_state}</p>
   {:else}
     <ul class="plain">
       {#each front_matter.served as doc (doc.identifier)}
-        <li>{doc.title} <span class="stamp warn">Served</span></li>
+        <li>{doc.title} <span class="stamp warn">{copy.served_stamp}</span></li>
       {/each}
     </ul>
   {/if}
 
-  <h3 class="doc-sub">What you started with</h3>
+  <h3 class="doc-sub">{copy.started_with}</h3>
   {#if front_matter.what_you_start_with_empty_state}
     <p class="empty-state">{front_matter.what_you_start_with_empty_state}</p>
   {:else}
@@ -55,7 +53,7 @@
        would attribute one Client's opening statement to something the Case
        never authored — `case_clients` carries no name, and giving it one is
        authored-content work (#343) this surface does not need. -->
-  <h3 class="doc-sub">Your client said, on the day you sat down</h3>
+  <h3 class="doc-sub">{copy.client_said}</h3>
   <div class="prose">
     {#each front_matter.opening_statement.split("\n\n") as para}
       <p>{para}</p>
@@ -63,25 +61,19 @@
   </div>
 
   <hr class="rule" />
-  <h3 class="doc-sub">The calendar</h3>
+  <h3 class="doc-sub">{copy.calendar}</h3>
   <ol class="calendar">
     {#each front_matter.calendar as d (d.ordinal)}
       <li class:closed={d.closed} class:today={d.today}>
-        <span class="sr-only">
-          Day {d.ordinal}, {d.in_fiction_date}{d.today ? ", today" : d.closed ? ", closed" : ""}
-        </span>
+        <span class="sr-only">{d.label}</span>
         <span aria-hidden="true">{d.ordinal}</span>
       </li>
     {/each}
   </ol>
-  <p class="tiny muted">
-    {front_matter.calendar.length} Days, {front_matter.calendar[0].in_fiction_date} to
-    {front_matter.calendar[front_matter.calendar.length - 1].in_fiction_date}. An Action's lead time
-    is only plannable against how many are left.
-  </p>
+  <p class="tiny muted">{front_matter.calendar_span}</p>
 
-  <h3 class="doc-sub">How you are graded</h3>
-  <p class="small">{front_matter.rubric.dimensions.join(" · ")}. {front_matter.rubric.bonus}</p>
+  <h3 class="doc-sub">{copy.graded}</h3>
+  <p class="small">{front_matter.rubric}</p>
 
   <hr class="rule" />
   <p class="small">{front_matter.grammar}</p>

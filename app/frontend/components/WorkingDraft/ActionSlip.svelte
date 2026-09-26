@@ -27,7 +27,7 @@
   import { router } from "@inertiajs/svelte"
   import { tick } from "svelte"
 
-  let { slip, spend_path, day } = $props()
+  let { slip, copy, spend_path, day } = $props()
 
   // Which Action's stub is open, and one at a time: the whole argument for
   // confirming in place was keeping the other five prices in view, and two open
@@ -70,22 +70,15 @@
 </script>
 
 <section aria-labelledby="slip">
-  <h2 class="doc-sub" id="slip">
-    Slip — what this Day will still buy ·
-    {#each Object.entries(slip.remaining) as [half, r], i}{i ? " · " : ""}{r.left ?? "—"} {r.label}{/each}
-  </h2>
+  <h2 class="doc-sub" id="slip">{slip.heading}</h2>
   <ul class="plain">
     {#each slip.actions as action (action.kind)}
       <li class="slip" class:refused={!action.affordable}>
         <span class="k">
           {action.label}
-          {#if action.refused_just_now}<span class="stamp warn">Refused</span>{/if}
+          {#if action.refused_just_now}<span class="stamp warn">{copy.refused}</span>{/if}
         </span>
-        <span class="p">
-          {action.cost}
-          {action.half_label} ·
-          {action.lands_today ? "lands today" : `lands Day ${action.landing_day ?? "—"}`}
-        </span>
+        <span class="p">{action.line}</span>
 
         <!-- Present and dead rather than absent, and `aria-disabled` rather
              than `disabled`: a disabled button leaves the tab order, and the
@@ -95,14 +88,14 @@
           type="button"
           class="control"
           id={`spend-${action.kind}`}
-          aria-label={`Spend ${action.label}`}
+          aria-label={action.spend_label}
           aria-expanded={open === action.kind}
           aria-controls={open === action.kind ? `stub-${action.kind}` : undefined}
           aria-disabled={!action.affordable}
           aria-describedby={action.refusal ? `refusal-${action.kind}` : undefined}
           onclick={() => action.affordable && toggle(action.kind)}
         >
-          Spend
+          {copy.spend}
         </button>
 
         {#if action.refusal}
@@ -111,22 +104,16 @@
 
         {#if open === action.kind}
           <div class="stub" id={`stub-${action.kind}`}>
-            <p class="terms">
-              {action.cost}
-              {action.half_label} ·
-              {action.remaining_after}
-              {action.half_label} left after ·
-              {action.lands_today ? "lands today" : `lands Day ${action.landing_day}`}
-            </p>
+            <p class="terms">{action.stub}</p>
             <button
               type="button"
               class="control confirm"
-              aria-label={`Confirm spending ${action.label}`}
+              aria-label={action.confirm_label}
               onclick={() => spend(action.kind)}
             >
-              Confirm
+              {copy.confirm}
             </button>
-            <button type="button" class="control" onclick={() => (open = null)}>Cancel</button>
+            <button type="button" class="control" onclick={() => (open = null)}>{copy.cancel}</button>
           </div>
         {/if}
       </li>

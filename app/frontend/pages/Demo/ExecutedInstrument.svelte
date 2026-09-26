@@ -33,38 +33,34 @@
   // rather than a second copy of it.
   import BackOfFile from "../../components/WorkingDraft/BackOfFile.svelte"
 
-  let { letterhead, terms, signatures, stamp, beat, back } = $props()
+  let { copy, letterhead, terms, signatures, stamp, beat, back } = $props()
 
   let face = $state("front")
-
-  const role = (r) => r.charAt(0).toUpperCase() + r.slice(1)
 
   // No Day and no *of ten*. The clock has stopped, and an ordinal out of a
   // calendar nobody will reach again invites the reader to ask what happens
   // tomorrow — which is the dead end this page exists to not be. What dates the
   // instrument is the execution stamp on the sheet.
-  const meta = $derived(["Settled", letterhead.in_fiction_date, letterhead.you].join(" · "))
+  const meta = $derived([copy.settled, letterhead.in_fiction_date, letterhead.you].join(" · "))
 </script>
 
 <svelte:head>
-  <title>{letterhead.matter} — settled</title>
+  <title>{letterhead.title}</title>
 </svelte:head>
 
 <main class="desk">
   <article class="sheet">
     <header class="masthead">
       <div class="letterhead">
-        <h1 class="firm">{role(letterhead.role)} · {letterhead.matter}</h1>
+        <h1 class="firm">{letterhead.role_label} · {letterhead.matter}</h1>
         <span class="meta">{meta}</span>
       </div>
       <div class="turn">
         <span class="tiny muted">
-          {face === "back"
-            ? "You are looking at the back of the file."
-            : "You are looking at the executed agreement."}
+          {face === "back" ? copy.turn.looking_at_back : copy.turn.looking_at_front}
         </span>
         <button type="button" onclick={() => (face = face === "back" ? "front" : "back")}>
-          {face === "back" ? "Turn back to the agreement" : "Turn the page over"}
+          {face === "back" ? copy.turn.to_front : copy.turn.to_back}
         </button>
       </div>
     </header>
@@ -72,15 +68,15 @@
     {#if face === "front"}
       <hr class="rule heavy" />
 
-      <ExecutedTerms {terms} {stamp} />
+      <ExecutedTerms copy={copy.terms} {terms} {stamp} />
 
       <hr class="rule" />
 
-      <Signatures {signatures} />
+      <Signatures copy={copy.signatures} {signatures} />
 
       <hr class="rule" />
 
-      <ClientBeat {beat} />
+      <ClientBeat copy={copy.beat} {beat} />
     {:else}
       <BackOfFile {back} />
     {/if}

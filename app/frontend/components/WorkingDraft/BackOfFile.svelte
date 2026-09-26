@@ -10,13 +10,15 @@
 -->
 <script>
   let { back } = $props()
+
+  const copy = $derived(back.copy)
 </script>
 
 <section aria-labelledby="back-of-file">
-  <h2 class="doc-title" id="back-of-file">Back of the file</h2>
-  <p class="doc-sub">What we know, and what we have done</p>
+  <h2 class="doc-title" id="back-of-file">{copy.heading}</h2>
+  <p class="doc-sub">{copy.subheading}</p>
 
-  <h3 class="doc-sub">The papers</h3>
+  <h3 class="doc-sub">{copy.papers}</h3>
   {#if back.case_file.empty_state}
     <p class="empty-state">{back.case_file.empty_state}</p>
   {:else}
@@ -24,11 +26,11 @@
       <div class="paper">
         <div class="paper-head">
           <strong>{doc.title}</strong>
-          {#if doc.served}<span class="stamp warn">Served</span>{/if}
-          {#if doc.playable}<span class="tab-clip">Exhibit</span>{/if}
-          {#if doc.spent}<span class="tab-clip spent">Exhibit played</span>{/if}
-          {#if doc.at_the_open}<span class="tiny muted">In hand at the open</span>{/if}
-          <span class="tiny muted">Day {doc.day}</span>
+          {#if doc.served}<span class="stamp warn">{copy.served}</span>{/if}
+          {#if doc.playable}<span class="tab-clip">{copy.exhibit}</span>{/if}
+          {#if doc.spent}<span class="tab-clip spent">{copy.played}</span>{/if}
+          {#if doc.at_the_open}<span class="tiny muted">{copy.at_the_open}</span>{/if}
+          <span class="tiny muted">{doc.day_label}</span>
         </div>
         <div class="prose small">
           {#each doc.body.split("\n\n") as para}
@@ -40,25 +42,19 @@
   {/if}
 
   <hr class="rule" />
-  <h3 class="doc-sub">The docket</h3>
+  <h3 class="doc-sub">{copy.docket}</h3>
   {#if back.docket.empty_state}
     <p class="empty-state">{back.docket.empty_state}</p>
   {:else}
     <ul class="plain">
       {#each back.docket.entries as entry, i (entry.at + i)}
         <li class="docket-line">
-          <span class="d">Day {entry.day ?? "—"}</span>
+          <span class="d">{entry.day_label}</span>
           <span>
             {entry.act_label}{#if entry.by}{" "}<span class="by">— {entry.by}</span>{/if}
-            {#if entry.band}{" "}<span class="band">· the Client reads {entry.band}</span>{/if}
+            {#if entry.reads_as}{" "}<span class="band">· {entry.reads_as}</span>{/if}
           </span>
-          <span class="c">
-            {#if entry.spend}
-              {entry.cost} {entry.half_label} · lands Day {entry.lands_on_day}
-            {:else}
-              no cost
-            {/if}
-          </span>
+          <span class="c">{entry.price}</span>
         </li>
       {/each}
     </ul>

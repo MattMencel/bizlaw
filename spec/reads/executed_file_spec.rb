@@ -55,11 +55,12 @@ RSpec.describe ExecutedFile do
     # again invites the reader to ask what happens tomorrow, which is the dead
     # end this page exists to not be.
     it "carries no Day and no calendar length" do
-      expect(props[:letterhead].keys).to contain_exactly(:matter, :role, :in_fiction_date, :you)
+      expect(props[:letterhead].keys)
+        .to contain_exactly(:matter, :title, :role, :role_label, :in_fiction_date, :you)
     end
 
     it "is dated by the Day the instrument was executed on" do
-      expect(props[:letterhead][:in_fiction_date]).to eq(day.in_fiction_date.to_s)
+      expect(props[:letterhead][:in_fiction_date]).to eq(day.in_fiction_date.strftime("%B %-d, %Y"))
     end
   end
 
@@ -103,8 +104,10 @@ RSpec.describe ExecutedFile do
   describe "the signatures" do
     it "names both parties, drawer and seconder" do
       expect(props[:signatures]).to eq([
-        {role: Side::PLAINTIFF, signed_by: sam.name, seconded_by: priya.name, waived: false},
-        {role: Side::DEFENDANT, signed_by: priya.name, seconded_by: ray.name, waived: false}
+        {role: Side::PLAINTIFF, for: "For the Plaintiff", signed_by: sam.name,
+         seconded_by: priya.name, waived: false},
+        {role: Side::DEFENDANT, for: "For the Defendant", signed_by: priya.name,
+         seconded_by: ray.name, waived: false}
       ])
     end
 
@@ -139,7 +142,12 @@ RSpec.describe ExecutedFile do
     # Every other date on the instrument is the Case's calendar, and
     # `offer_acceptances.created_at` is the afternoon the demo happened to run.
     it "is dated in the fiction rather than by the wall clock" do
-      expect(props[:stamp]).to eq(day: day.ordinal, in_fiction_date: day.in_fiction_date.to_s)
+      written = day.in_fiction_date.strftime("%B %-d, %Y")
+
+      expect(props[:stamp]).to eq(
+        day: day.ordinal, in_fiction_date: written,
+        caption: I18n.t("reads.executed_instrument.terms.caption", day: day.ordinal, date: written)
+      )
     end
   end
 
@@ -172,7 +180,7 @@ RSpec.describe ExecutedFile do
 
   describe "the back of the file" do
     it "still turns to the Case File and the Docket" do
-      expect(props[:back].keys).to contain_exactly(:case_file, :docket)
+      expect(props[:back].keys).to contain_exactly(:copy, :case_file, :docket)
     end
 
     # The Docket is a record of what *this* Team did, so the Acceptance appears
@@ -198,7 +206,7 @@ RSpec.describe ExecutedFile do
 
   it "hands the page nothing it has to compute" do
     expect(props.keys).to contain_exactly(
-      :letterhead, :terms, :signatures, :stamp, :beat, :back
+      :copy, :letterhead, :terms, :signatures, :stamp, :beat, :back
     )
   end
 end

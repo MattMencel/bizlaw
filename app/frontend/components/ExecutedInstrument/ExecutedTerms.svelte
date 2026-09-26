@@ -23,24 +23,21 @@
   sentence this instrument means — it is executed, and these are its terms.
 -->
 <script>
-  let { terms, stamp } = $props()
+  let { copy, terms, stamp } = $props()
 </script>
 
 <section aria-labelledby="executed-terms">
   <div class="sheet-head">
-    <h2 class="doc-title" id="executed-terms" tabindex="-1">Terms of settlement</h2>
-    <span class="draft-mark executed">Executed</span>
+    <h2 class="doc-title" id="executed-terms" tabindex="-1">{copy.heading}</h2>
+    <span class="draft-mark executed">{copy.mark}</span>
   </div>
 
   <table class="terms">
-    <caption class="rubric">
-      Executed on Day {stamp.day}, {stamp.in_fiction_date}. These are the terms both
-      Sides signed; there is nothing else on this instrument.
-    </caption>
+    <caption class="rubric">{stamp.caption}</caption>
     <thead class="sr-only">
       <tr>
-        <th scope="col">Term</th>
-        <th scope="col">As agreed</th>
+        <th scope="col">{copy.columns.term}</th>
+        <th scope="col">{copy.columns.agreed}</th>
       </tr>
     </thead>
     <tbody>
@@ -50,7 +47,7 @@
           <td class="line">
             <!-- A Term agreed without a figure is the Term itself: a settlement
                  including an apology includes an apology. -->
-            {term.money ? term.amount : "Included"}
+            {term.money ? term.amount : copy.included}
           </td>
         </tr>
       {/each}
