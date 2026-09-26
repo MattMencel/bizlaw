@@ -80,3 +80,4 @@ en:
             - {at: executed_instrument.terms.mark, word: Executed}
           countersign:
             - {at: executed_instrument.signatures.countersigned_by, word: Countersigned}
+            - {at: executed_instrument.signatures.waived, word: Countersignature}

@@ -210,6 +210,8 @@ RSpec.describe "the glosses", type: :system do
   # defendant with a countersignature. Driven through the seams, as
   # `executed_instrument_spec.rb` does, because the seed stops short of it.
   describe "the executed agreement" do
+    let(:defendant_waived) { false }
+
     before do
       simulation = Demo::Seed.simulation(Demo::Seed::DEMO)
       side = simulation.plaintiff_side
@@ -219,12 +221,17 @@ RSpec.describe "the glosses", type: :system do
       Offers::WaiveSecond.call(side: side, day: day,
         by: User.find_by!(email: Demo::Seed::INSTRUCTOR_EMAIL))
       Days::Command.apply(act: :commit_offer, side: side, day: day, by: player, seconded_by: nil)
+      day4 = simulation.days.find_by!(ordinal: 4)
+      if defendant_waived
+        Offers::WaiveSecond.call(side: simulation.defendant_side, day: day4,
+          by: User.find_by!(email: Demo::Seed::INSTRUCTOR_EMAIL))
+      end
       Offers::Accept.call(
         offer: side.committed_offer_on(day),
         side: simulation.defendant_side,
-        day: simulation.days.find_by!(ordinal: 4),
+        day: day4,
         by: User.find_by!(email: Demo::Seed::DEFENDANT_LEAD_EMAIL),
-        seconded_by: User.find_by!(email: Demo::Seed::DEFENDANT_SECOND_EMAIL)
+        seconded_by: defendant_waived ? nil : User.find_by!(email: Demo::Seed::DEFENDANT_SECOND_EMAIL)
       )
       visit "/demo/#{Demo::Seed::DEMO}"
       expect(page).to have_css("#executed-terms")
@@ -241,6 +248,20 @@ RSpec.describe "the glosses", type: :system do
 
     it "leaves the caption's later execution alone" do
       expect(find("table.terms caption")).to have_no_css("a.glossed")
+    end
+
+    # With both Seconds waived there is no "Countersigned by" line at all, and
+    # the waiver is where the agreement first says countersignature.
+    context "when neither Side countersigned" do
+      let(:defendant_waived) { true }
+
+      include_examples "one note per term"
+
+      it "glosses countersign on the first waiver" do
+        expect(page).to have_no_css(".parties .cap:not(.waived)", text: /countersigned by/i)
+        expect(page).to have_css(".cap.waived a.glossed", text: /countersignature/i, count: 1)
+        expect(entries).to include("countersign")
+      end
     end
 
     it "lists the words above the terms when there is no margin" do

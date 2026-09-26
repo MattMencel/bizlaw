@@ -42,7 +42,7 @@
             <!-- No line at all where nobody signed. A ruled line under a
                  waiver would be an empty signature block on an executed
                  instrument, which is the one thing this page cannot say. -->
-            <div class="cap waived">{copy.waived}</div>
+            <div class="cap waived"><Glossed at="executed_instrument.signatures.waived" text={copy.waived} /></div>
           {:else}
             <div class="line"><span class="hand">{party.seconded_by}</span></div>
             <div class="cap"><Glossed at="executed_instrument.signatures.countersigned_by" text={copy.countersigned_by} /></div>
