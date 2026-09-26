@@ -108,7 +108,7 @@ en:
           term: Term
           theirs: Their latest Offer
           ours: Ours
-          aspiration: What the Client asked for
+          aspiration: What the Client wants
         # A Term on the sheet with no figure. A settlement including an apology
         # includes an apology.
         included: Included

@@ -43,6 +43,7 @@ RSpec.describe "the working draft", type: :system do
     it "says whose each figure is for a reader who cannot see the strike" do
       expect(page).to have_css("thead th", exact_text: "Their latest Offer", visible: :all)
       expect(page).to have_css("thead th", exact_text: "Ours", visible: :all)
+      expect(page).to have_css("thead th", exact_text: "What the Client wants", visible: :all)
       expect(page).to have_css("table.terms caption", text: "Write ours on the same line as theirs")
     end
 
