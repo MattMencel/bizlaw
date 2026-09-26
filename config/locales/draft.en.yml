@@ -61,7 +61,7 @@ en:
       front_matter:
         heading: Morning Briefing · Day %{day}
         landed: Arrived this morning
-        served: Served on you
+        served: Served on us
         served_stamp: Served
         started_with: What you started with
         # Neither a pronoun nor a role: the two Clients are different people and
