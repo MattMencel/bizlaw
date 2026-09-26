@@ -160,7 +160,9 @@ en:
         heading: "Actions · left today: %{remaining}"
         lands_today: lands today
         lands_on: lands Day %{day}
-        line: "%{price} · %{landing}"
+        arrives_today: arrives today
+        arrives_on: arrives Day %{day}
+        line: "%{points} · %{arriving}"
         stub: "%{price} · %{left} %{half} left after · %{landing}"
         spend: Spend
         spend_label: Spend %{action}

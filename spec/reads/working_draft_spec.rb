@@ -270,6 +270,11 @@ RSpec.describe WorkingDraft do
       )
     end
 
+    it "prices each line in counted points, and says when its result arrives" do
+      expect(action(CaseAction::DEPOSE_WITNESS)[:line]).to eq("3 preparation points · arrives Day 3")
+      expect(action(CaseAction::CONSULT_CLIENT)[:line]).to eq("1 preparation point · arrives today")
+    end
+
     # A refusal is a symbol the engine names a rule by; the page needs the
     # sentence, and it comes from the one file that holds machine copy.
     it "renders a refusal as its sentence, with the Action still priced" do

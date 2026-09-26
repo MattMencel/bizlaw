@@ -527,7 +527,7 @@ class WorkingDraft
         {
           kind: entry.kind,
           label: kind_label(entry.kind),
-          line: I18n.t("reads.draft.slip.line", price: price(entry.cost, entry.half), landing: landing),
+          line: I18n.t("reads.draft.slip.line", points: points(entry.cost, entry.half), arriving: arriving(entry)),
           stub: I18n.t("reads.draft.slip.stub",
             price: price(entry.cost, entry.half), left: entry.remaining_after,
             half: half_label(entry.half), landing: landing),
@@ -552,6 +552,12 @@ class WorkingDraft
     return I18n.t("reads.draft.slip.lands_today") if entry.lands_today?
 
     I18n.t("reads.draft.slip.lands_on", day: entry.landing_day&.ordinal || "—")
+  end
+
+  def arriving(entry)
+    return I18n.t("reads.draft.slip.arrives_today") if entry.lands_today?
+
+    I18n.t("reads.draft.slip.arrives_on", day: entry.landing_day&.ordinal || "—")
   end
 
   def refused_kind = refused && refused["kind"]

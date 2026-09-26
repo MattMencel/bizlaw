@@ -54,6 +54,7 @@ RSpec.describe "the working draft", type: :system do
       expect(page).to have_text("Consult the Client")
       expect(page).to have_text("Retain an expert")
       expect(page).to have_css("h2#slip", text: /Actions · left today: 8 preparation points · 2 exchange points/i)
+      expect(find("li.slip", text: "Consult the Client")).to have_text("1 preparation point · arrives today")
     end
 
     # The cost #315 accepted for this grammar: the record surfaces live behind a
