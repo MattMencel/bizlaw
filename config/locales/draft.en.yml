@@ -140,7 +140,8 @@ en:
         price:
           one: "%{count} %{half} point"
           other: "%{count} %{half} points"
-        stub: "%{price} · %{left} %{half} left after · this also commits your Day"
+        # The consequence first, then the price (voice rules 6 and 8).
+        stub: "Ends our Day. Costs %{points} (%{left} left after)."
         confirm_label: Confirm executing this draft
         confirm: Confirm
         cancel: Cancel

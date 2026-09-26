@@ -346,8 +346,7 @@ class WorkingDraft
       half_label: staged && half_label(quote.half),
       price: staged && points(quote.cost, quote.half),
       stub: quote.remaining_after && I18n.t("reads.draft.countersignature.stub",
-        price: price(quote.cost, quote.half), left: quote.remaining_after,
-        half: half_label(quote.half)),
+        points: points(quote.cost, quote.half), left: quote.remaining_after),
       # What the half has left afterwards, for the confirmation the block opens
       # before it charges — the same three facts a spend's stub carries. It is
       # nil on a refused quote because there is no negative Budget to render,
