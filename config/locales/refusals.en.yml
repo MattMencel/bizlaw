@@ -39,8 +39,8 @@ en:
   reads:
     refusals:
       an_exhibit_has_already_been_played: >-
-        An Exhibit riding this draft has already been played. Put the draft
-        back on the table without it.
+        An Exhibit on this draft has already been played. Untick it and share
+        the draft again.
       an_offer_has_already_been_committed_today: >-
         We've already sent an Offer today. The next one can go tomorrow.
       the_budget_cannot_cover_it: >-
