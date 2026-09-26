@@ -28,7 +28,7 @@ en:
       exhibit: Exhibit
       played: Exhibit played
       at_the_open: Had from the start
-      docket: The docket
+      docket: Docket
       band: the Client reads %{band}
       lands: "%{price} · lands Day %{day}"
       no_cost: no cost

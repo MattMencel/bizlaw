@@ -182,6 +182,7 @@ RSpec.describe "the executed instrument", type: :system do
       expect(page).to have_text(/back of the file/i)
       expect(page).to have_no_text(/what we know, and what we have done/i)
       expect(page).to have_text(/case file · the papers/i)
+      expect(page).to have_css("h3", text: /\Adocket\z/i)
       expect(page).to have_text("Executed the draft")
     end
 
