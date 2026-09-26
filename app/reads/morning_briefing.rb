@@ -61,8 +61,16 @@ class MorningBriefing
   # What the other Side put in front of this Team. Playing an Exhibit is serving
   # it, so this is where a Team learns it has been argued at — and never what
   # the argument was worth, which is a Reaction Band bought with an Action.
+  #
+  # Read off the other Side's `played_exhibits` rather than off this Team's Case
+  # File row, for the reason `landed` reads the Docket. Found outranks served,
+  # so the row's `served_at` is cleared by a later find and never set on a
+  # document the Team already held — either would leave a morning it was argued
+  # at saying it was not. The ledger is append-only and names the Day. Each
+  # entry is the document as the Team holds it now, so one it has since found
+  # reads as found.
   def served
-    @served ||= in_range.select(&:served?)
+    @served ||= served_identifiers.filter_map { |identifier| held[identifier] }
   end
 
   # The documents in hand at the open, drawn from Provenance. Always present,
@@ -135,10 +143,6 @@ class MorningBriefing
 
   def case_file = @case_file ||= CaseFile.for(side)
 
-  def in_range
-    @in_range ||= case_file.entries.select { |entry| days.cover?(entry.day.ordinal) }
-  end
-
   # The documents the Actions landing in this range yield, in the order those
   # Actions were bought. An Offer commit names no Action and yields nothing.
   def landed_identifiers
@@ -146,6 +150,17 @@ class MorningBriefing
       .joins(:lands_on_day).where(days: {ordinal: days})
       .includes(case_action: :documents)
       .flat_map { |entry| entry.case_action&.documents&.map(&:identifier) || [] }
+      .uniq
+  end
+
+  # The documents the other Side played in this range, in the order it played
+  # them. Its Case File row names the document; this Team's row for it always
+  # exists, because service files one where the Team held none.
+  def served_identifiers
+    side.opponent.played_exhibits
+      .joins(:day).where(days: {ordinal: days})
+      .includes(case_file_document: :case_document)
+      .map { |played| played.case_file_document.case_document.identifier }
       .uniq
   end
 
