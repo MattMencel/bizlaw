@@ -54,12 +54,21 @@ RSpec.describe Demo::Seed do
     end
 
     it "carries the Days 1–2 spends on his Docket" do
-      docket = Docket.for(plaintiff)
+      spends = Docket.for(plaintiff).entries.select(&:spend?)
 
-      expect(docket.entries.map(&:kind)).to eq(
+      expect(spends.map(&:kind)).to eq(
         [CaseAction::REQUEST_DOCUMENTS, CaseAction::RESEARCH_PRECEDENT, CaseAction::MANAGE_PRESS]
       )
-      expect(docket.entries.map { |entry| entry.day.ordinal }).to eq([1, 1, 2])
+      expect(spends.map { |entry| entry.day.ordinal }).to eq([1, 1, 2])
+    end
+
+    # He sent no Offer on either Day, so each closed on a Day commit of his own
+    # and the record names him (#396).
+    it "carries his Days 1–2 commits on his Docket" do
+      commits = Docket.for(plaintiff).entries.select { |entry| entry.act == Docket::DAY_COMMITTED }
+
+      expect(commits.map { |entry| [entry.day.ordinal, entry.by.email] })
+        .to eq([[1, described_class::PLAYER_EMAIL], [2, described_class::PLAYER_EMAIL]])
     end
 
     # A phantom teammate on Days 1–2 would make this Side two members, and the

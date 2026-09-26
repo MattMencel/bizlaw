@@ -27,7 +27,8 @@
   than merely priced, and the one that can end the Day. Under it, once there is
   something across the table, is the other Side's own paper and the act that
   takes it — the only act on this instrument that ends the whole run, and the
-  only one with no price at all.
+  only one with no price at all. At the foot, after the slip, the Day commit
+  block: the one control that ends the Day without sending an Offer.
 
   It also re-reads itself when you come back to it. The demo is three tabs on one
   laptop and the acts cross between them — see `lib/live.svelte.js` for why that
@@ -42,6 +43,7 @@
   import Acceptance from "../../components/WorkingDraft/Acceptance.svelte"
   import ConsultMemo from "../../components/WorkingDraft/ConsultMemo.svelte"
   import ActionSlip from "../../components/WorkingDraft/ActionSlip.svelte"
+  import DayCommit from "../../components/WorkingDraft/DayCommit.svelte"
   import BackOfFile from "../../components/WorkingDraft/BackOfFile.svelte"
   import { rereadOnFocus } from "../../lib/live.svelte.js"
 
@@ -55,11 +57,13 @@
     acceptance,
     memo,
     slip,
+    day_commit,
     back,
     spend_path,
     offer_path,
     commit_path,
-    acceptance_path
+    acceptance_path,
+    day_commitment_path
   } = $props()
 
   rereadOnFocus()
@@ -162,6 +166,12 @@
       <hr class="rule" />
 
       <ActionSlip {slip} copy={copy.slip} {spend_path} day={letterhead.day} />
+
+      <hr class="rule" />
+
+      <!-- Committing the Day without an Offer, last on the front: the move a
+           Team makes once it is done with everything above it. -->
+      <DayCommit {day_commit} copy={copy.day_commit} {day_commitment_path} day={letterhead.day} />
     {:else}
       <BackOfFile {back} />
     {/if}

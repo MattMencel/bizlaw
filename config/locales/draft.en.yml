@@ -168,3 +168,22 @@ en:
         refused: Refused
         confirm: Confirm
         cancel: Cancel
+      # Committing the Day without sending an Offer (#396). One player's call:
+      # no countersignature, and no cost. Written under `docs/design/voice.md`,
+      # where *commit* belongs to the Day alone.
+      day_commit:
+        heading: Done for the Day
+        commit: Commit this Day
+        # Rule 6: the consequence comes first. `closes` is shown when the other
+        # Side has already committed, so this commit ends the Day.
+        stub:
+          closes: >-
+            Ends the Day. No cost. Any points we haven't spent today expire.
+          waits: >-
+            No cost. The Day ends once the other Side commits too. Until then
+            we can still spend points and send an Offer.
+        confirm_label: Confirm committing this Day
+        confirm: Confirm
+        cancel: Cancel
+        refused: Refused
+        committed_by: Committed by %{name}

@@ -27,12 +27,14 @@ module Demo
           refused: refusal_for(SPEND_REFUSAL, seated),
           draft_refused: refusal_for(DRAFT_REFUSAL, seated)&.fetch("reason"),
           commit_refused: refusal_for(COMMIT_REFUSAL, seated)&.fetch("reason"),
-          acceptance_refused: refusal_for(ACCEPTANCE_REFUSAL, seated)&.fetch("reason")
+          acceptance_refused: refusal_for(ACCEPTANCE_REFUSAL, seated)&.fetch("reason"),
+          day_commit_refused: refusal_for(DAY_COMMIT_REFUSAL, seated)&.fetch("reason")
         ).to_props.merge(
           spend_path: spend_path(seated),
           offer_path: offer_path(seated),
           commit_path: commit_path(seated),
-          acceptance_path: acceptance_path(seated)
+          acceptance_path: acceptance_path(seated),
+          day_commitment_path: day_commitment_path(seated)
         )
     end
 
@@ -65,7 +67,7 @@ module Demo
     # by act and seat, the run's name survives `demo:seed`, and a sentence left
     # there would print on the reset run's first working draft.
     def executed(seated)
-      [SPEND_REFUSAL, DRAFT_REFUSAL, COMMIT_REFUSAL, ACCEPTANCE_REFUSAL]
+      [SPEND_REFUSAL, DRAFT_REFUSAL, COMMIT_REFUSAL, ACCEPTANCE_REFUSAL, DAY_COMMIT_REFUSAL]
         .each { |act| refusal_for(act, seated) }
 
       render inertia: "Demo/ExecutedInstrument",

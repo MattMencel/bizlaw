@@ -18,6 +18,7 @@ RSpec.describe "the sentence for every refusal" do
   let(:seams) do
     [
       Rails.root.join("app/services/days/command.rb"),
+      Rails.root.join("app/services/days/commit.rb"),
       *Rails.root.glob("app/services/offers/*.rb"),
       *Rails.root.glob("app/controllers/demo/*.rb")
     ]

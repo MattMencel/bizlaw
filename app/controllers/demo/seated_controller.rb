@@ -43,6 +43,10 @@ module Demo
     # a Day that closed under the minute from writing a sentence onto a
     # student's page.
     WAIVER_REFUSAL = "waiver_refusal"
+    # The Day commit's. Its own because it lands in a block of its own at the
+    # foot of the front, and the Offer commit's shelf belongs to the
+    # countersignature block.
+    DAY_COMMIT_REFUSAL = "day_commit_refusal"
 
     private
 
@@ -149,6 +153,12 @@ module Demo
     # names countersigns rather than presses.
     def acceptance_path(seated)
       demo_run_acceptances_path(run: params[:run], seat: canonical(seated))
+    end
+
+    # Where committing the Day posts. The seat's own: it is attributed to the
+    # member who presses it.
+    def day_commitment_path(seated)
+      demo_run_day_commitments_path(run: params[:run], seat: canonical(seated))
     end
 
     # A spend redirects rather than rendering, so the whole instrument is

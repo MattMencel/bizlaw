@@ -22,6 +22,9 @@ en:
         offer_committed: Executed the draft
         offer_accepted: Accepted their offer
         second_waived: Countersignature waived by the instructor
+        # Only on a Day the Team sent no Offer: sending one commits the Day and
+        # is already a line of its own.
+        day_committed: Committed the Day
     back_of_file:
       heading: Back of the file
       subheading: What we know, and what we have done
