@@ -43,8 +43,17 @@ en:
         back on the table without it.
       an_offer_has_already_been_committed_today: >-
         Your team has already executed an offer today.
-      the_budget_cannot_cover_it: >-
-        Today's half will not cover it.
+      # Split by the half that refused, because the next move differs: the
+      # preparation half buys Actions, and the exchange half pays for the Offer
+      # and the Exhibits riding it. The composer picks by the refused quote's
+      # half.
+      the_budget_cannot_cover_it:
+        preparation: >-
+          Not enough preparation points left today. Pick a cheaper Action, or
+          wait for tomorrow's points.
+        exchange: >-
+          Not enough exchange points left today. Drop an Exhibit from the draft,
+          or send it tomorrow.
       the_day_has_closed: >-
         This Day has closed.
       the_day_has_not_opened: >-

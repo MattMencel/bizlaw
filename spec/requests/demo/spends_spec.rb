@@ -87,7 +87,7 @@ RSpec.describe "spending an Action", type: :request do
       follow_redirect!
       line = inertia.props[:slip][:actions].find { |a| a[:kind] == CaseAction::CONSULT_CLIENT }
       expect(line).to include(refused_just_now: true)
-      expect(line[:refusal]).to eq("Today's half will not cover it.")
+      expect(line[:refusal]).to eq("Not enough preparation points left today. Pick a cheaper Action, or wait for tomorrow's points.")
     end
 
     # The refusal has no row anywhere. It survives exactly one read.

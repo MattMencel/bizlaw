@@ -294,7 +294,7 @@ RSpec.describe WorkingDraft do
         kind: CaseAction::RETAIN_EXPERT)
 
       expect(action(CaseAction::RETAIN_EXPERT)).to include(
-        cost: 5, affordable: false, refusal: "Today's half will not cover it."
+        cost: 5, affordable: false, refusal: "Not enough preparation points left today. Pick a cheaper Action, or wait for tomorrow's points."
       )
     end
 
@@ -337,7 +337,18 @@ RSpec.describe WorkingDraft do
           reason: "the_budget_cannot_cover_it")
         line = props[:slip][:actions].find { |row| row[:kind] == CaseAction::RETAIN_EXPERT }
 
-        expect(line).to include(affordable: true, refusal: "Today's half will not cover it.")
+        expect(line).to include(affordable: true, refusal: "Not enough preparation points left today. Pick a cheaper Action, or wait for tomorrow's points.")
+      end
+
+      # The refusal splits by half, because the next move does: preparation
+      # buys Actions, and exchange pays for the Offer and what rides it.
+      it "words a commit the exchange half refused by what exchange points buy" do
+        props = described_class.for(side, day: day, you: dana,
+          commit_refused: "the_budget_cannot_cover_it").to_props
+
+        expect(props[:countersignature][:refusal]).to eq(
+          "Not enough exchange points left today. Drop an Exhibit from the draft, or send it tomorrow."
+        )
       end
 
       it "marks nothing when no spend was refused" do

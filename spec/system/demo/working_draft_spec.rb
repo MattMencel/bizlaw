@@ -239,7 +239,7 @@ RSpec.describe "the working draft", type: :system do
     # the sentence saying why is the thing the Board exists to teach, so it
     # cannot be the part a keyboard skips over.
     it "keeps every control on the slip, refused and reachable" do
-      expect(page).to have_text("Today's half will not cover it.", count: 6)
+      expect(page).to have_text("Not enough preparation points left today. Pick a cheaper Action, or wait for tomorrow's points.", count: 6)
 
       control = find("#spend-consult_client")
       expect(control["aria-disabled"]).to eq("true")
