@@ -105,6 +105,23 @@ RSpec.describe Days::Commit do
       .to raise_error(Simulation::AlreadySettled)
   end
 
+  # A Day nobody has reached reads as open to `closed?`; what marks it opened is
+  # its Budget. Committing it would let two Sides close a Day never played.
+  it "refuses a Day that has not opened, writes nothing, and never closes it" do
+    [[simulation.defendant_side, teammate], [simulation.plaintiff_side, student]].each do |side, by|
+      expect { described_class.call(side: side, day: following, by: by) }
+        .to raise_error(Days::Commit::DayNotOpen)
+    end
+
+    expect(DayCommitment.where(day: following)).to be_empty
+    expect(following.reload).to be_open
+  end
+
+  it "names a Day that has not opened" do
+    expect(described_class.refusal_for(side: simulation.plaintiff_side, day: following, by: student))
+      .to eq(:the_day_has_not_opened)
+  end
+
   # The block prints its obstacle from the list `call` raises from, so the
   # control and the write are one rule.
   describe ".refusal_for" do

@@ -26,6 +26,11 @@ module Days
     # be a record saying both Sides finished a Day that was taken from them.
     DayClosed = Class.new(StandardError)
 
+    # Raised when a Side reaches for a Day nobody has reached yet. The page only
+    # ever posts the sitting Day, so this is a hand-built request; written, it
+    # would let the two Sides close a Day that was never played.
+    DayNotOpen = Class.new(StandardError)
+
     # The trigger underneath. The closed Day is read before the transaction
     # that writes, so a close landing in that window passes the read and lands
     # here instead — the other Side committing from its own tab is the ordinary
@@ -72,13 +77,16 @@ module Days
       raise
     end
 
-    # The two things this seam refuses, in the order it asks them. A settled run
+    # The three things this seam refuses, in the order it asks them. A settled run
     # first, because it outlives the other: an Acceptance closes the Day it
     # landed on, and a reader of a stale page should be told the matter ended
     # rather than that the Day did.
     def refusal
       return :the_simulation_has_settled if day.simulation.settled?
       return :the_day_has_closed if day.closed?
+      # `closed?` reads a Day nobody has reached as open; what marks it reached
+      # is its Budget, as `Days::Command` and `Offers::Stage` ask.
+      return :the_day_has_not_opened if side.budget_on(day).nil?
 
       nil
     end
@@ -102,6 +110,8 @@ module Days
         raise Simulation::AlreadySettled, "this Simulation has already settled"
       when :the_day_has_closed
         raise DayClosed, "Day #{day.ordinal} has already closed"
+      when :the_day_has_not_opened
+        raise DayNotOpen, "Day #{day.ordinal} has not opened yet"
       end
     end
 

@@ -125,6 +125,15 @@ RSpec.describe "committing the Day", type: :request do
       expect(closed).to be_closed
     end
 
+    # The page only ever posts the sitting Day, so this is a hand-built request
+    # naming one nobody has reached. It is refused rather than written.
+    it "refuses a Day that has not opened, and writes nothing" do
+      expect { commit_the_day(on: Demo::Seed::DEMO_DAY + 1) }.not_to change(DayCommitment, :count)
+
+      follow_redirect!
+      expect(block[:refused]).to eq(I18n.t("reads.refusals.the_day_has_not_opened"))
+    end
+
     it "reads the refusal once" do
       commit_the_day(on: 1)
       follow_redirect!

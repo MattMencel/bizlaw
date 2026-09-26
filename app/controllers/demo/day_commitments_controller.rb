@@ -25,7 +25,7 @@ module Demo
       Days::Commit.call(side: seated.side, day: day, by: seated.user)
 
       redirect_to draft_path(seated)
-    rescue Days::Commit::DayClosed, Simulation::AlreadySettled
+    rescue Days::Commit::DayClosed, Days::Commit::DayNotOpen, Simulation::AlreadySettled
       # The seam's own list names the reason. A close that raced the insert has
       # already been reloaded underneath it, so asking again answers truly.
       reason = Days::Commit.refusal_for(side: seated.side, day: day, by: seated.user)
