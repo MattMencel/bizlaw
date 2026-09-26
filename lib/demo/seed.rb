@@ -26,9 +26,9 @@ module Demo
 
     # The Day the player sits down on. Forced rather than preferred:
     # `depose_witness` carries a lead time of two Days, so Day 3 is the earliest
-    # a served Exhibit can exist, and `MorningBriefing#served` filters on the
-    # Case File row's own ordinal, so a Day 3 service falls out of a narrower
-    # Day 4 briefing entirely.
+    # a served Exhibit can exist, and `MorningBriefing#served` reads the Day the
+    # Exhibit was played on, so a Day 3 service falls out of a narrower Day 4
+    # briefing entirely.
     DEMO_DAY = 3
 
     # The stable identifiers, and they are not primary keys. A reserved id
