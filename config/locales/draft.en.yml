@@ -56,7 +56,7 @@ en:
     draft:
       title: "%{matter} — Day %{day}"
       turn:
-        to_back: Turn the page over
+        to_back: "Turn over: Case File & Docket"
         to_front: Turn back to the draft
       front_matter:
         heading: Front matter · the morning of Day %{day}

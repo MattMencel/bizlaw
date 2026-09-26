@@ -7,7 +7,7 @@ en:
       title: "%{matter} — settled"
       settled: Settled
       turn:
-        to_back: Turn the page over
+        to_back: "Turn over: Case File & Docket"
         to_front: Turn back to the agreement
       terms:
         heading: Terms of settlement
