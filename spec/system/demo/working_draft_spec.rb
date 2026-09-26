@@ -66,6 +66,7 @@ RSpec.describe "the working draft", type: :system do
 
       expect(page).to have_text(/back of the file/i)
       expect(page).to have_no_text(/what we know, and what we have done/i)
+      expect(page).to have_text(/case file · the papers/i)
       expect(page).to have_text("The claimant's personnel file")
       expect(page).to have_text("Request documents")
     end
