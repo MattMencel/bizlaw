@@ -22,6 +22,7 @@
   authored seed, and no student prose reaches it.
 -->
 <script>
+  import Glossed from "../Gloss/Glossed.svelte"
   let { memo, copy } = $props()
 </script>
 
@@ -33,7 +34,7 @@
   <h2 class="doc-sub" id="memo" tabindex="-1">{copy.heading}</h2>
 
   {#if memo.empty_state}
-    <p class="empty-state">{memo.empty_state}</p>
+    <p class="empty-state"><Glossed at="consult_memo.empty" text={memo.empty_state} /></p>
   {:else}
     {#each memo.entries as entry, i}
       <div class="beat">
@@ -41,7 +42,7 @@
           <div class="face">{@html memo.portrait}</div>
         {/if}
         <div class="said">
-          <p class="tiny muted reads">{copy.reads} <strong>{entry.band}</strong></p>
+          <p class="tiny muted reads">{copy.reads} <strong><Glossed at="memo.band" text={entry.band} /></strong></p>
           <div class="prose small">
             {#each entry.line.split("\n\n") as para}
               <p>{para}</p>

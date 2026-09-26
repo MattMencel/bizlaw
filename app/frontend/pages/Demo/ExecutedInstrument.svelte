@@ -32,10 +32,15 @@
   // settling does not unknow anything — so this is the draft's own component
   // rather than a second copy of it.
   import BackOfFile from "../../components/WorkingDraft/BackOfFile.svelte"
+  import GlossList from "../../components/Gloss/GlossList.svelte"
+  import { provideGlossary } from "../../lib/gloss.svelte.js"
 
-  let { copy, letterhead, terms, signatures, stamp, beat, back } = $props()
+  let { copy, glossary, letterhead, terms, signatures, stamp, beat, back } = $props()
 
   let face = $state("front")
+
+  // Each face glosses its own first contact.
+  provideGlossary(() => (face === "front" ? glossary : back.glossary))
 
   // No Day and no *of ten*. The clock has stopped, and an ordinal out of a
   // calendar nobody will reach again invites the reader to ask what happens
@@ -67,6 +72,8 @@
 
     {#if face === "front"}
       <hr class="rule heavy" />
+
+      <GlossList level={2} />
 
       <ExecutedTerms copy={copy.terms} {terms} {stamp} />
 

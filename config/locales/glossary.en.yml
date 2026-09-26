@@ -1,0 +1,58 @@
+# The glosses: what a term of art literally means, in plain words and never a
+# metaphor (`docs/design/voice.md`, rule 5 and § Where a gloss sits). See
+# `reads.en.yml` for how copy reaches a page.
+#
+# A gloss is given once per page, at the term's first contact, as a note in the
+# left margin; on a narrow screen the notes become the list headed below. Where
+# each term is first met is `gloss_anchors.en.yml`, kept apart so that moving an
+# anchor when a surface's wording changes never touches a gloss.
+#
+# `label` is the term as the note names it — its name in `CONTEXT.md` — rather
+# than the inflection the anchor happens to sit on.
+en:
+  reads:
+    glossary:
+      heading: Words used in this file
+      terms:
+        served:
+          label: served
+          gloss: formally handed to us
+        exhibit:
+          label: Exhibit
+          gloss: a document attached to an Offer to back it up
+        offer:
+          label: Offer
+          gloss: a proposal the other Side can accept to settle
+        countersign:
+          label: countersign
+          gloss: sign off on it as well
+        term:
+          label: Term
+          gloss: one thing the settlement covers, like money or an apology
+        covering_note:
+          label: covering note
+          gloss: a short letter sent with the Offer
+        exchange_points:
+          label: exchange points
+          gloss: today's budget for sending an Offer and its Exhibits
+        preparation_points:
+          label: preparation points
+          gloss: today's budget for Actions like research
+        consult:
+          label: Consult
+          gloss: ask the Client how they feel about the deal
+        firm:
+          label: firm
+          gloss: not ready to move
+        ready:
+          label: ready
+          gloss: open to a deal
+        case_file:
+          label: Case File
+          gloss: every document our Team holds
+        docket:
+          label: Docket
+          gloss: the log of everything our Team has done
+        executed:
+          label: executed
+          gloss: signed by both Sides and binding

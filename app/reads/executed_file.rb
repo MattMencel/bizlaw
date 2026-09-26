@@ -40,6 +40,7 @@ class ExecutedFile
   def to_props
     {
       copy: copy("reads.executed_instrument"),
+      glossary: glossary(:executed_instrument),
       letterhead: letterhead,
       terms: terms,
       signatures: signatures,

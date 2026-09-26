@@ -1,0 +1,83 @@
+# Where each term of art is first met, per page: the one place its gloss sits.
+# The glosses themselves are `glossary.en.yml`.
+#
+# A page here is one face of one instrument: the front of the working draft
+# (`draft`), the back of the file on either run (`back_of_file`) and the front
+# of the executed agreement (`executed_instrument`). Each glosses its own first
+# contact, and every visit glosses it again, because nothing records who has
+# read what.
+#
+# Under each term are the sites that can carry its note, in order of preference.
+# `at` names a site a component marks with `<Glossed at=…>`, and `word` is the
+# word in that site's text that takes the note, spelt exactly as the text spells
+# it. The first listed site the page renders carries the note, and where that
+# site repeats (a Docket line, a memo) the first in reading order does. A later
+# site is only the fallback for a page that does not print an earlier one, such
+# as an empty state that has filled up. It is never a second note.
+#
+# A `word` missing from its site's text glosses nothing, and
+# `spec/system/demo/glosses_spec.rb` fails. Move the anchor with the wording.
+en:
+  reads:
+    glossary:
+      anchors:
+        draft:
+          served:
+            - {at: front_matter.served, word: Served}
+          exhibit:
+            - {at: morning_briefing.served_empty, word: exhibit}
+            - {at: clipped.exhibit, word: Exhibit}
+            - {at: clipped.foot, word: exhibit}
+          offer:
+            - {at: morning_briefing.served_empty, word: offer}
+            - {at: morning_briefing.grammar, word: Offer}
+          case_file:
+            - {at: morning_briefing.grammar, word: case file}
+          countersign:
+            - {at: morning_briefing.grammar, word: countersignature}
+          term:
+            - {at: term_sheet.empty, word: Term}
+            - {at: term_sheet.heading, word: terms}
+          covering_note:
+            - {at: drawing.note, word: Covering note}
+          exchange_points:
+            - {at: countersignature.price, word: exchange}
+            - {at: slip.heading, word: exchange}
+          consult:
+            - {at: consult_memo.empty, word: Consulting}
+            - {at: slip.action, word: Consult}
+          preparation_points:
+            - {at: consult_memo.empty, word: preparation}
+            - {at: slip.heading, word: preparation}
+          firm:
+            - {at: memo.band, word: firm}
+          ready:
+            - {at: memo.band, word: ready}
+        back_of_file:
+          # The Case File's heading prints "The papers" until the back's
+          # rewrite names it.
+          case_file:
+            - {at: back_of_file.papers, word: papers}
+          served:
+            - {at: back_of_file.served, word: Served}
+          exhibit:
+            - {at: back_of_file.exhibit, word: Exhibit}
+            - {at: back_of_file.played, word: Exhibit}
+          docket:
+            - {at: back_of_file.docket, word: docket}
+          consult:
+            - {at: docket.act, word: Consult}
+          firm:
+            - {at: docket.band, word: firm}
+          ready:
+            - {at: docket.band, word: ready}
+          preparation_points:
+            - {at: docket.price, word: preparation}
+        executed_instrument:
+          term:
+            - {at: executed_instrument.terms.heading, word: Terms}
+          executed:
+            - {at: executed_instrument.terms.mark, word: Executed}
+          countersign:
+            - {at: executed_instrument.signatures.countersigned_by, word: Countersigned}
+            - {at: executed_instrument.signatures.waived, word: Countersignature}

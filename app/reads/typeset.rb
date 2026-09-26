@@ -50,6 +50,21 @@ module Typeset
     end
   end
 
+  # The terms of art one face of an instrument glosses, each with its gloss and
+  # the sites its note may sit at (`gloss_anchors.en.yml`). Which site actually
+  # carries it is decided on the page, because only the page knows which of
+  # them it printed.
+  def glossary(page)
+    terms = I18n.t("reads.glossary.terms")
+
+    {
+      heading: I18n.t("reads.glossary.heading"),
+      entries: I18n.t("reads.glossary.anchors.#{page}").map do |term, sites|
+        terms.fetch(term).merge(term: term.to_s, sites: sites)
+      end
+    }
+  end
+
   # Every date in the fiction reads the same way, on every surface.
   def in_fiction(date) = I18n.l(date, format: :in_fiction)
 
@@ -147,6 +162,7 @@ module Typeset
   def back_of_file(case_file, docket)
     {
       copy: copy("reads.back_of_file"),
+      glossary: glossary(:back_of_file),
       case_file: {
         empty_state: case_file.empty_state,
         documents: case_file.entries.map { |entry| document(entry) }

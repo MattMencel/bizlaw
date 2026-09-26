@@ -44,9 +44,11 @@
   import ActionSlip from "../../components/WorkingDraft/ActionSlip.svelte"
   import BackOfFile from "../../components/WorkingDraft/BackOfFile.svelte"
   import { rereadOnFocus } from "../../lib/live.svelte.js"
+  import { provideGlossary } from "../../lib/gloss.svelte.js"
 
   let {
     copy,
+    glossary,
     letterhead,
     front_matter,
     term_sheet,
@@ -65,6 +67,9 @@
   rereadOnFocus()
 
   let face = $state("front")
+
+  // Each face glosses its own first contact.
+  provideGlossary(() => (face === "front" ? glossary : back.glossary))
 
   // What the server says is on the table, and which Day's table it is. `Draft`
   // seeds its pending position from these props and then holds edits locally, so
