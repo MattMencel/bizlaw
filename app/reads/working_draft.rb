@@ -53,8 +53,11 @@ class WorkingDraft
   # third was a third: it lands somewhere else. The acceptance block is the
   # other Side's paper on this page, and it is the only part of the instrument
   # that can say what happened to an act taken on it.
+  #
+  # `day_commit_refused` is the fifth, for the Day commit block at the foot of
+  # the front.
   def initialize(side, day:, you:, refused: nil, draft_refused: nil, commit_refused: nil,
-    acceptance_refused: nil)
+    acceptance_refused: nil, day_commit_refused: nil)
     @side = side
     @day = day
     @you = you
@@ -62,6 +65,7 @@ class WorkingDraft
     @draft_refused = draft_refused
     @commit_refused = commit_refused
     @acceptance_refused = acceptance_refused
+    @day_commit_refused = day_commit_refused
   end
 
   def to_props
@@ -76,6 +80,7 @@ class WorkingDraft
       acceptance: acceptance,
       memo: memo,
       slip: slip,
+      day_commit: day_commit,
       back: back
     }
   end
@@ -90,7 +95,7 @@ class WorkingDraft
   # ledgers are empty and the player is sitting there all the same, and again
   # the moment a second act is attributed.
   attr_reader :side, :day, :you, :refused, :draft_refused, :commit_refused,
-    :acceptance_refused
+    :acceptance_refused, :day_commit_refused
 
   def briefing = @briefing ||= MorningBriefing.for(side, day: day)
 
@@ -187,6 +192,9 @@ class WorkingDraft
     {
       empty_state: terms.empty_state,
       byline: byline,
+      sent_mark: committed && I18n.t("reads.draft.term_sheet.marks.sent", day: committed.day.ordinal),
+      # Said only where it can bite: a sheet we can counter on, with their Offer on it.
+      house_rule: (may_draft? && terms.their_offer) ? I18n.t("reads.draft.term_sheet.house_rule") : nil,
       note: staged&.note,
       ours_staged: open_draft?,
       writable: may_draft?,
@@ -306,7 +314,7 @@ class WorkingDraft
       # refusal a two-tab race actually produces is a teammate's commit landing
       # first, which makes this block a record and `execution` nil on the very
       # read that has to say so.
-      refusal: refusal_sentence(commit_refused)
+      refusal: refusal_sentence(commit_refused, half: DayBudget::EXCHANGE)
     }
   end
 
@@ -345,17 +353,22 @@ class WorkingDraft
     {
       cost: staged && quote.cost,
       half_label: staged && half_label(quote.half),
-      price: staged && price(quote.cost, quote.half),
+      price: staged && points(quote.cost, quote.half),
       stub: quote.remaining_after && I18n.t("reads.draft.countersignature.stub",
-        price: price(quote.cost, quote.half), left: quote.remaining_after,
-        half: half_label(quote.half)),
+        points: points(quote.cost, quote.half), left: quote.remaining_after),
       # What the half has left afterwards, for the confirmation the block opens
       # before it charges — the same three facts a spend's stub carries. It is
       # nil on a refused quote because there is no negative Budget to render,
       # which is also every state in which no confirmation can be opened.
       remaining_after: quote.remaining_after,
-      refusal: refusal_sentence(quote.refusal)
+      refusal: refusal_sentence(quote.refusal, half: quote.half)
     }
+  end
+
+  # The block's price carries its unit (voice rule 8), which the slip's shared
+  # `reads.price` does not yet.
+  def points(cost, half)
+    I18n.t("reads.draft.countersignature.price", count: cost, half: half_label(half))
   end
 
   # **The other Side's paper, and the one act taken on it.** An Acceptance is a
@@ -373,10 +386,7 @@ class WorkingDraft
   # the two cannot name different Offers.
   #
   # It also prints their covering note, which until now nothing did. The
-  # defendant's reads *Without prejudice. Open for acceptance today.* and the
-  # Day it says that of is over by the time it can be taken, which is the
-  # register telling the reader a deadline passed rather than a line of copy
-  # about one.
+  # defendant's reads *Our best figure. We'd like this closed.*
   #
   # **Nil where there is nothing across the table.** Unlike the countersignature
   # block this is not a permanent fixture: that block is about a draft the Team
@@ -490,12 +500,21 @@ class WorkingDraft
     beats = side.consults(day: day).reverse.map(&:beat)
 
     {
-      empty_state: beats.empty? ? I18n.t("reads.consult_memo.empty") : nil,
+      empty_state: beats.empty? ? memo_empty_state : nil,
       portrait: beats.first && portrait(beats.first),
       entries: beats.map do |beat|
         {band: band_label(beat.band), line: beat.line}
       end
     }
+  end
+
+  # Priced off the menu, because a Consult's cost and half are the Case's. A
+  # Case that authors no Consult has nothing to invite, so it says nothing.
+  def memo_empty_state
+    consult = board.entries.find { |entry| entry.kind == CaseAction::CONSULT_CLIENT }
+    return if consult.nil?
+
+    I18n.t("reads.consult_memo.empty", count: consult.cost, half: half_label(consult.half))
   end
 
   # Every Action, priced, whether or not the half will cover it — with the
@@ -519,19 +538,18 @@ class WorkingDraft
 
     {
       heading: I18n.t("reads.draft.slip.heading",
-        remaining: remaining.map { |_half, left| "#{left[:left] || "—"} #{left[:label]}" }.join(" · ")),
+        remaining: remaining.map { |half, left| points(left[:left], half) }.join(" · ")),
       remaining: remaining,
       actions: board.entries.map do |entry|
         just_now = refused_kind == entry.kind
-        landing = landing(entry)
 
         {
           kind: entry.kind,
           label: kind_label(entry.kind),
-          line: I18n.t("reads.draft.slip.line", price: price(entry.cost, entry.half), landing: landing),
+          line: I18n.t("reads.draft.slip.line", points: points(entry.cost, entry.half), arriving: arriving(entry)),
           stub: I18n.t("reads.draft.slip.stub",
-            price: price(entry.cost, entry.half), left: entry.remaining_after,
-            half: half_label(entry.half), landing: landing),
+            points: points(entry.cost, entry.half), left: entry.remaining_after,
+            arriving: arriving(entry, stub: true)),
           spend_label: I18n.t("reads.draft.slip.spend_label", action: kind_label(entry.kind)),
           confirm_label: I18n.t("reads.draft.slip.confirm_label", action: kind_label(entry.kind)),
           cost: entry.cost,
@@ -543,16 +561,42 @@ class WorkingDraft
           remaining_after: entry.remaining_after,
           affordable: entry.affordable?,
           refused_just_now: just_now,
-          refusal: refusal_sentence(entry.refusal || (just_now ? refused_reason : nil))
+          refusal: refusal_sentence(entry.refusal || (just_now ? refused_reason : nil), half: entry.half)
         }
       end
     }
   end
 
-  def landing(entry)
-    return I18n.t("reads.draft.slip.lands_today") if entry.lands_today?
+  # Committing the Day without an Offer, at the foot of the front (#396). One
+  # player's call, so there is no signature line — only the control, or once
+  # the Side has committed, the record naming who did. Sending an Offer commits
+  # the Day with it, so on that Day this is the record from the start.
+  #
+  # The stub states the consequence first. Where the other Side has already
+  # committed, that consequence is the end of the Day, which tells the Team the
+  # other Side is done — the close would say so a moment later anyway.
+  def day_commit
+    commitment = side.day_commitments.find_by(day: day)
+    seam = Days::Commit.new(side: side, day: day, by: you)
+    closes = commitment.nil? && seam.closes_the_day?
+    consequence = closes ? "closes" : "waits"
 
-    I18n.t("reads.draft.slip.lands_on", day: entry.landing_day&.ordinal || "—")
+    {
+      committed: !commitment.nil?,
+      record: commitment &&
+        I18n.t("reads.draft.day_commit.committed_by", name: commitment.committed_by.name),
+      closes_the_day: closes,
+      stub: commitment.nil? ? I18n.t("reads.draft.day_commit.stub.#{consequence}") : nil,
+      refusal: commitment.nil? ? refusal_sentence(seam.refusal) : nil,
+      refused: refusal_sentence(day_commit_refused)
+    }
+  end
+
+  def arriving(entry, stub: false)
+    prefix = stub ? "stub_" : ""
+    return I18n.t("reads.draft.slip.#{prefix}arrives_today") if entry.lands_today?
+
+    I18n.t("reads.draft.slip.#{prefix}arrives_on", day: entry.landing_day&.ordinal || "—")
   end
 
   def refused_kind = refused && refused["kind"]
@@ -573,7 +617,13 @@ class WorkingDraft
   # `Days::Command` or `Offers::Stage` turned an act down by. The key sits at
   # `reads.refusals` rather than under the Board for that reason — see
   # `config/locales/refusals.en.yml`.
-  def refusal_sentence(refusal)
-    refusal.presence && I18n.t("reads.refusals.#{refusal}")
+  #
+  # A refusal worded per half is a Hash there, and `half` picks the sentence —
+  # the half of the quote that was refused, since the next move depends on it.
+  def refusal_sentence(refusal, half: nil)
+    return nil if refusal.blank?
+
+    sentence = I18n.t("reads.refusals.#{refusal}")
+    sentence.is_a?(Hash) ? sentence.fetch(half.to_sym) : sentence
   end
 end

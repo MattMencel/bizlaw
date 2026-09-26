@@ -128,7 +128,7 @@ RSpec.describe CaseFile do
       read = described_class.for(empty_handed)
 
       expect(read).to be_empty
-      expect(read.empty_state).to include("what your Team knows")
+      expect(read.empty_state).to include("Nothing here yet.", "papers the other Side serves on us")
     end
 
     it "says nothing once there is something to read" do

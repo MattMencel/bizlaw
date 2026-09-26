@@ -54,6 +54,8 @@
       {/each}
     </tbody>
   </table>
+
+  <p class="small leaves-out">{copy.leaves_out}</p>
 </section>
 
 <style>
@@ -112,5 +114,9 @@
     padding: 9px 0;
     font-family: var(--mono);
     font-size: 13px;
+  }
+  .leaves-out {
+    margin: 10px 0 0;
+    color: var(--muted);
   }
 </style>

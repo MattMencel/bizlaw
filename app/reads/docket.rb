@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 # The Team's chronological record: what was spent, which member spent it, the
-# Day its result lands, and the three things that happen on a Day without a
+# Day its result lands, and the four things that happen on a Day without a
 # cost.
 #
-# It is a fold over four ledgers rather than one table, because only one of
+# It is a fold over five ledgers rather than one table, because only one of
 # them is a spend. `docket_entries` carries `CHECK (cost >= 1)` and points at an
 # authored Action, so a staging — which costs nothing, because nothing has been
 # spent — could not be one of its rows even if the design wanted it to be, and
@@ -12,7 +12,9 @@
 # Simulation. What the Docket owes them is that they are *visible*: a staging
 # surfaces in a teammate's next Morning Briefing, a waiver is on the record as
 # an Instructor action rather than as a silent change in what a control will do,
-# and an Acceptance is the largest thing a Team ever does for nothing.
+# and an Acceptance is the largest thing a Team ever does for nothing. A Day
+# commit is one player's call, and it can close a Day with points still
+# unspent, so the record names who made it.
 #
 # It carries no per-member totals and no contribution scores. A shared record
 # that ranks the people in it is a leaderboard, which is not what a Docket is.
@@ -21,9 +23,10 @@ class Docket
   OFFER_STAGED = :offer_staged
   OFFER_ACCEPTED = :offer_accepted
   SECOND_WAIVED = :second_waived
+  DAY_COMMITTED = :day_committed
 
   # One line of the record. `kind`, `cost`, `half`, `band` and `lands_on_day`
-  # are the spend's and are nil on the three acts that have none — which is the
+  # are the spend's and are nil on the four acts that have none — which is the
   # distinction the Docket is making, so it is left visible rather than filled
   # with zeroes.
   #
@@ -68,7 +71,7 @@ class Docket
   # order they were written rather than whatever the database felt like
   # returning.
   def entries
-    @entries ||= (spends + stagings + acceptances + waivers)
+    @entries ||= (spends + stagings + acceptances + waivers + day_commitments)
       .each_with_index
       .sort_by { |entry, position| [entry.at, position] }
       .map(&:first)
@@ -128,6 +131,21 @@ class Docket
   def waivers
     scoped(side.second_waivers).map do |waiver|
       line(at: waiver.created_at, act: SECOND_WAIVED, by: waiver.granted_by, day: waiver.day)
+    end
+  end
+
+  # Committing the Day, on a Day the Team sent no Offer. Sending one commits the
+  # Day with it and is already a line, so a second would write one act twice.
+  def day_commitments
+    sent_on = side.committed_offers.select(:day_id)
+
+    scoped(side.day_commitments.where.not(day_id: sent_on).order(:id)).map do |commitment|
+      line(
+        at: commitment.created_at,
+        act: DAY_COMMITTED,
+        by: commitment.committed_by,
+        day: commitment.day
+      )
     end
   end
 

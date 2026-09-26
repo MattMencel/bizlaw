@@ -19,7 +19,6 @@
 
 <section aria-labelledby="back-of-file">
   <h2 class="doc-title" id="back-of-file">{copy.heading}</h2>
-  <p class="doc-sub">{copy.subheading}</p>
 
   <GlossList />
 

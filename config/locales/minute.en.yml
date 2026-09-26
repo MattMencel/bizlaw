@@ -8,25 +8,23 @@ en:
         sitting: Minute — Day %{day}
         settled: Minute — settled
       settled: Settled
-      heading: Minute of the instructor
+      heading: Minute of the Instructor
       matter:
         sitting: "%{matter} · Day %{day} of %{of}"
         closed: "%{matter} · Day %{day} of %{of} · this Day has closed"
         settled: "%{matter} · settled on Day %{day}"
       closed:
-        heading: The matter is closed
+        heading: Settled
         body: >-
-          The two Sides settled on Day %{day}, %{date}. No further Day opens,
-          and there is nothing left to release.
+          The Sides settled on Day %{day}, %{date}. No more Days open, and
+          there's nothing left to waive.
       waivers:
-        heading: Waiver of the second
+        heading: Waive a countersignature
         rubric: >-
-          A team whose other members are absent can draw an offer it cannot
-          execute. Releasing the second lets that team execute alone, for this
-          Day only. It is granted, never exercised — nobody countersigns on a
-          team's behalf — and it cannot be taken back.
-        drawn: a position is on the table, unexecuted
-        undrawn: nothing drawn on the table
-        granted: The second is waived for this Day. Granted by %{name}, %{at}.
-        waive: Waive the second
-        waive_label: Waive the second for the %{role}
+          Lets a Team send its Offer without a teammate's countersignature.
+          Today only. Use it when teammates are absent. Cannot be undone.
+        drawn: Draft waiting for a countersignature
+        undrawn: No draft waiting
+        granted: Countersignature waived for this Day by %{name}, %{at}.
+        waive: Waive the countersignature
+        waive_label: Waive the countersignature for the %{role}
