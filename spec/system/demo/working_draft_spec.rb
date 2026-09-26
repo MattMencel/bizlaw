@@ -22,6 +22,12 @@ RSpec.describe "the working draft", type: :system do
       expect(page).to have_css("h2#front-matter", text: /Morning Briefing · Day 3/i)
     end
 
+    # The move comes first (voice.md, rule 1): the grammar sits under the
+    # heading, not at the foot under the Rubric.
+    it "puts the Day's grammar directly under the heading" do
+      expect(page).to have_css("h2#front-matter + p", text: "Work the Case File in any order")
+    end
+
     it "carries the morning: what landed, what was served, what he started with" do
       expect(page).to have_text("The statement given to the trade press")
       expect(page).to have_text("Deposition of the plant supervisor")
