@@ -49,10 +49,15 @@ en:
         No Term is on the table. Nothing here is zero — an offer of nothing is
         a position somebody took, and nobody has taken one.
     consult_memo:
-      empty: >-
-        You have not asked. Consulting your Client is the only read you get on
-        how far they have actually moved, and it costs a point of preparation —
-        which is why it is an instrument for an occasion rather than a habit.
+      # The price is the Case's own, so the count and the half are the
+      # Consult's as authored rather than a 1 written in.
+      empty:
+        one: >-
+          Consult the Client when something has changed. It costs %{count}
+          %{half} point, and it's the only way to see how far they'll move.
+        other: >-
+          Consult the Client when something has changed. It costs %{count}
+          %{half} points, and it's the only way to see how far they'll move.
     draft:
       title: "%{matter} — Day %{day}"
       turn:
@@ -153,9 +158,9 @@ en:
         confirm: Confirm
         cancel: Cancel
       memo:
-        heading: Memo — your Client
+        heading: Consult memo · the Client
         # Followed by the band, in bold.
-        reads: Reads
+        band: The Client is
       slip:
         heading: Slip — what this Day will still buy · %{remaining}
         lands_today: lands today

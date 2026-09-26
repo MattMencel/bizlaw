@@ -160,7 +160,8 @@ RSpec.describe "the working draft", type: :system do
     # The empty state is the tutorial: the memo says what it would hold before
     # anything has been bought, rather than being absent until it is.
     it "says what has not been asked, before he asks" do
-      expect(page).to have_text("You have not asked.")
+      expect(page).to have_css("h2#memo", text: /consult memo · the client/i)
+      expect(page).to have_text("Consult the Client when something has changed.")
       expect(page).to have_no_css("section .portrait")
     end
 
@@ -177,7 +178,7 @@ RSpec.describe "the working draft", type: :system do
 
       said = Demo::Seed.simulation(Demo::Seed::DEMO).plaintiff_side.consults.last.beat.line
 
-      expect(page).to have_text(/reads\s+firm/i)
+      expect(page).to have_text(/the client is\s+firm/i)
       expect(page).to have_text(said.squish)
     end
 
@@ -207,7 +208,7 @@ RSpec.describe "the working draft", type: :system do
     it "leaves a keyboard reader on the words he just bought" do
       consult
 
-      expect(page).to have_text(/reads\s+firm/i)
+      expect(page).to have_text(/the client is\s+firm/i)
       expect(page.evaluate_script("document.activeElement.id")).to eq("memo")
     end
 
@@ -342,8 +343,8 @@ RSpec.describe "the working draft", type: :system do
       click_button "Confirm spending Consult the Client"
 
       expect(page).to have_text(/7 preparation/i)
-      expect(page).to have_text(/reads firm/i)
-      expect(page).to have_no_text("You have not asked.")
+      expect(page).to have_text(/the client is\s+firm/i)
+      expect(page).to have_no_text("Consult the Client when something has changed.")
 
       click_button "Turn the page over"
 
