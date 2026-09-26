@@ -127,15 +127,22 @@ en:
           An exhibit rides the offer it is clipped to, and is served on them
           when the offer is executed.
       countersignature:
-        heading: Executed by
-        drawn_by: Drawn by
-        waived: Countersignature waived by the instructor
+        heading: Signatures
+        drawn_by: Signed by
+        waived: Countersignature waived by the Instructor
         countersigned_by: Countersigned by
-        countersigned_by_one_of: "Countersigned by: %{names}"
+        # A blank line with nobody named who may sign it: a Side of one, or no
+        # draft yet.
+        waiting: Waiting on a countersignature
+        countersigned_by_one_of: "Waiting on a countersignature from: %{names}"
         refused: Refused
-        execute: Execute this draft
-        stub: "%{price} · %{left} %{half} left after · this also commits your Day"
-        confirm_label: Confirm executing this draft
+        execute: Send this Offer
+        price:
+          one: "%{count} %{half} point"
+          other: "%{count} %{half} points"
+        # The consequence first, then the price (voice rules 6 and 8).
+        stub: "Ends our Day. Costs %{points} (%{left} left after)."
+        confirm_label: "Confirm: send this Offer"
         confirm: Confirm
         cancel: Cancel
       acceptance:

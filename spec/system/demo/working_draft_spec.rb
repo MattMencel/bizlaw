@@ -45,9 +45,11 @@ RSpec.describe "the working draft", type: :system do
     # the sentence saying why it cannot be pressed stays reachable with it, which
     # is the rule #363 set for an Action the half will not cover.
     it "shows the countersignature block, with the execute control dead" do
-      expect(page).to have_text(/countersigned by/i)
-      expect(page).to have_css("button#execute-the-draft[aria-disabled='true']")
-      expect(page).to have_text("There is no draft to execute")
+      expect(page).to have_css("h2#countersign", text: /\Asignatures\z/i)
+      expect(page).to have_css(".sig .cap", text: /\Awaiting on a countersignature\z/i)
+      expect(page).to have_no_text(/countersigned by/i)
+      expect(page).to have_css("button#execute-the-draft[aria-disabled='true']", text: /\Asend this offer\z/i)
+      expect(page).to have_text("There is no draft to send. Write our Terms above and share them with the Team first.")
     end
 
     it "prices every Action on the slip, whether or not today will cover it" do
@@ -286,15 +288,16 @@ RSpec.describe "the working draft", type: :system do
     # control is present and dead, which is how the Docket teaches the Second.
     it "signs the first line and leaves the second one open to nobody" do
       expect(page).to have_text("Sam Ortega")
+      expect(page).to have_css(".sig .cap", text: /\Asigned by\z/i)
       expect(page).to have_css("button#execute-the-draft[aria-disabled='true']")
-      expect(page).to have_text("A teammate has to countersign the draft")
+      expect(page).to have_text("A teammate has to countersign the draft before we can send it.")
     end
 
     # The price and the refusal together are the beat. An Offer costs one point
     # of the exchange half and this Case prices an Exhibit at one more, so a
     # draft with nothing clipped to it is one.
     it "prices executing it beside the reason he cannot" do
-      expect(page).to have_text("1 exchange")
+      expect(page).to have_css(".price", text: "1 exchange point")
     end
 
     it "is accessible" do
@@ -502,12 +505,12 @@ RSpec.describe "the working draft", type: :system do
       check "Money"
       fill_in "Our position on Money, in dollars", with: "$120,000"
       click_button "Put this on the table"
-      expect(page).to have_text("1 exchange")
+      expect(page).to have_css(".price", text: "1 exchange point")
 
       check "The claimant's personnel file"
       click_button "Put this on the table"
 
-      expect(page).to have_text("2 exchange")
+      expect(page).to have_css(".price", text: "2 exchange points")
     end
   end
 
@@ -529,6 +532,7 @@ RSpec.describe "the working draft", type: :system do
     it "reads as a record, with no control and no price" do
       expect(page).to have_text("Dana Whitfield")
       expect(page).to have_text("Ray Okonkwo")
+      expect(page).to have_css(".sig .cap", text: /\Acountersigned by\z/i)
       expect(page).to have_no_css("button#execute-the-draft")
     end
 
@@ -586,6 +590,9 @@ RSpec.describe "the working draft", type: :system do
       # Case-insensitive: the caption is small-caps by `text-transform`, so what
       # the DOM holds and what the eye reads differ in case alone.
       expect(page).to have_text(/countersignature waived by the instructor/i)
+      expect(page).to have_css(".sig .cap", visible: :all) { |cap|
+        cap.native.attribute("textContent").strip == "Countersignature waived by the Instructor"
+      }
     end
 
     # The same grammar the slip taught, for the same reason: this is
@@ -599,8 +606,8 @@ RSpec.describe "the working draft", type: :system do
 
       find("#execute-the-draft").click
 
-      expect(page).to have_text("1 exchange · 1 exchange left after · this also commits your Day")
-      expect(page).to have_button("Confirm")
+      expect(page).to have_text("Ends our Day. Costs 1 exchange point (1 left after).")
+      expect(page).to have_button("Confirm: send this Offer")
     end
 
     it "charges nothing on Cancel" do

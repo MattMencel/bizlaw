@@ -39,10 +39,10 @@ en:
   reads:
     refusals:
       an_exhibit_has_already_been_played: >-
-        An Exhibit riding this draft has already been played. Put the draft
-        back on the table without it.
+        An Exhibit on this draft has already been played. Untick it and share
+        the draft again.
       an_offer_has_already_been_committed_today: >-
-        Your team has already executed an offer today.
+        We've already sent an Offer today. The next one can go tomorrow.
       the_budget_cannot_cover_it: >-
         Today's half will not cover it.
       the_day_has_closed: >-
@@ -50,7 +50,7 @@ en:
       the_day_has_not_opened: >-
         This Day has not opened yet.
       the_offer_has_not_been_seconded: >-
-        A teammate has to countersign the draft before it can be executed.
+        A teammate has to countersign the draft before we can send it.
       # The Acceptance's own, and not the draft's. The gate is the same rule and
       # the sentence is not: one is about a position this Team is putting on the
       # table, and this one is about taking the other Side's — a reader told to
@@ -64,8 +64,8 @@ en:
       the_matter_has_already_settled: >-
         The matter has already settled. There is nothing left to accept.
       there_is_no_offer_on_the_table: >-
-        There is no draft to execute. Write your terms above and put them on the
-        table first.
+        There is no draft to send. Write our Terms above and share them with the
+        Team first.
       the_result_would_land_past_the_last_day: >-
         Its result would arrive after the last Day of the calendar.
       the_simulation_has_settled: >-

@@ -97,11 +97,14 @@
       <div class="cap">
         {#if countersignature.waived}
           {copy.waived}
+        {:else if countersignature.signed_by}
+          {copy.countersigned_by}
         {:else}
           <!-- Each teammate carries a name and the identifier an act posts them
                back by, since #367 gave the Acceptance a hand to name. This line
-               only ever reads the names. -->
-          {countersignature.may_sign_caption || copy.countersigned_by}
+               only ever reads the names. A blank line never says *countersigned
+               by*: under nobody's hand that reads as done. -->
+          {countersignature.may_sign_caption || copy.waiting}
         {/if}
       </div>
     </div>
