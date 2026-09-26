@@ -507,6 +507,7 @@ RSpec.describe "the working draft", type: :system do
       within("aside", text: /exhibits · clipped to this draft/i) do
         expect(page).to have_field("The claimant's personnel file")
         expect(page).not_to have_text("Deposition of the plant supervisor")
+        expect(page).to have_text("Tick a document to attach it as an Exhibit.")
       end
     end
 

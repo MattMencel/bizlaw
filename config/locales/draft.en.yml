@@ -128,8 +128,8 @@ en:
         played: Played
         exhibit: Exhibit
         foot: >-
-          An exhibit rides the offer it is clipped to, and is served on them
-          when the offer is executed.
+          Tick a document to attach it as an Exhibit. When we send the Offer,
+          the other Side is served with a copy, and it may move their Client.
       countersignature:
         heading: Executed by
         drawn_by: Drawn by
