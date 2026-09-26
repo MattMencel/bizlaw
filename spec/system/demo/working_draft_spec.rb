@@ -648,7 +648,7 @@ RSpec.describe "the working draft", type: :system do
       click_button "Confirm"
 
       click_button "Turn over: Case File & Docket"
-      expect(page).to have_text(/waived.*Professor Adeyemi|Professor Adeyemi/)
+      expect(page).to have_text("Countersignature waived by the Instructor — Professor Adeyemi")
       expect(side.committed_offer_on(day).seconded_by).to be_nil
     end
 
