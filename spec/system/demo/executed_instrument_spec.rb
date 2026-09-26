@@ -98,7 +98,7 @@ RSpec.describe "the executed instrument", type: :system do
       click_button "Accept their offer"
       click_button "Confirm accepting their offer"
 
-      expect(page).to have_text("You are looking at the executed agreement.")
+      expect(page).to have_text("Terms of settlement")
       expect(simulation.reload).to be_settled
     end
 

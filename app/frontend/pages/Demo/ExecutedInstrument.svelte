@@ -56,9 +56,6 @@
         <span class="meta">{meta}</span>
       </div>
       <div class="turn">
-        <span class="tiny muted">
-          {face === "back" ? copy.turn.looking_at_back : copy.turn.looking_at_front}
-        </span>
         <button type="button" onclick={() => (face = face === "back" ? "front" : "back")}>
           {face === "back" ? copy.turn.to_front : copy.turn.to_back}
         </button>
@@ -133,7 +130,7 @@
   }
   .turn {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     gap: 12px;
     padding: 10px 0;

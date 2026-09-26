@@ -56,8 +56,6 @@ en:
     draft:
       title: "%{matter} — Day %{day}"
       turn:
-        looking_at_front: You are looking at the draft.
-        looking_at_back: You are looking at the back of the file.
         to_back: Turn the page over
         to_front: Turn back to the draft
       front_matter:

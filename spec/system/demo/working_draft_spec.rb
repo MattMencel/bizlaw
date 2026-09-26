@@ -12,7 +12,7 @@ RSpec.describe "the working draft", type: :system do
     before { visit "/demo/#{Demo::Seed::DEMO}" }
 
     it "opens on the draft, with the Day's grammar named once" do
-      expect(page).to have_text("You are looking at the draft.")
+      expect(page).to have_no_text("You are looking at")
       expect(page).to have_text("Everything here is the case file")
     end
 
