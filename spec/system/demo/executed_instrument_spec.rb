@@ -38,7 +38,9 @@ RSpec.describe "the executed instrument", type: :system do
       # The heading is set in capitals by `text-transform`, so the glossary
       # capital is read off the DOM rather than off what the eye sees.
       expect(find("h2#acceptance")["textContent"]).to eq("Their Offer, open on the table")
-      expect(page).to have_text(/drawn by Dana Whitfield and committed on Day 3/)
+      expect(page).to have_text(
+        "Sent on Day 3, signed by Dana Whitfield. Their Terms are the ones struck through above."
+      )
     end
 
     # The covering line nothing on any surface read before #367. On Day 3 it is

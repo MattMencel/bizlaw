@@ -141,8 +141,8 @@ en:
       acceptance:
         heading: Their Offer, open on the table
         drawn: >-
-          The terms struck through on the sheet above, drawn by %{name} and
-          committed on Day %{day}.
+          Sent on Day %{day}, signed by %{name}. Their Terms are the ones struck
+          through above.
         refused: Refused
         accept: Accept their offer
         no_cost: no cost
