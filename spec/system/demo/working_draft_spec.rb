@@ -28,6 +28,14 @@ RSpec.describe "the working draft", type: :system do
       expect(page).to have_text("Struck through: their latest Offer")
     end
 
+    # A House Rule is said where it bites: their Offer is struck on the line he
+    # is about to counter on.
+    it "says their Offer stays open after a counter, and what the law says" do
+      expect(page).to have_css("table.terms caption",
+        text: "their Offer stays open until we accept it or the game ends, even after we counter. " \
+          "At law, a counteroffer rejects it.")
+    end
+
     # The register #373 settled carries whose a position is in a strike and a
     # margin rather than in column headings, so the headings are still there and
     # only the eye is spared them. Nothing on the sheet depends on seeing the
@@ -523,6 +531,7 @@ RSpec.describe "the working draft", type: :system do
       expect(page).to have_css(".draft-mark", text: /sent · day 3/i)
       expect(page).to have_css("table.terms caption", exact_text:
         "Struck through: their latest Offer · Written in: ours · Margin: what the Client wants.")
+      expect(page).to have_no_text("At law, a counteroffer rejects it.")
       expect(page).to have_text("$40,000")
       expect(page).to have_no_field("Our position on Money, in dollars")
       expect(page).to have_no_button("Put this on the table")

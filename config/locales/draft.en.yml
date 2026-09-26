@@ -97,6 +97,11 @@ en:
           record: >-
             Struck through: their latest Offer · Written in: ours · Margin: what
             the Client wants.
+        # A House Rule, said under the caption where it bites: only on a sheet
+        # we can still write on, with their Offer struck across it.
+        house_rule: >-
+          In this game, their Offer stays open until we accept it or the game
+          ends, even after we counter. At law, a counteroffer rejects it.
         # Visually hidden: what each column is, for a reader who cannot see the
         # strike.
         columns:

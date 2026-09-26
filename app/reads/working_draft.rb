@@ -187,6 +187,8 @@ class WorkingDraft
       empty_state: terms.empty_state,
       byline: byline,
       sent_mark: committed && I18n.t("reads.draft.term_sheet.marks.sent", day: committed.day.ordinal),
+      # Said only where it can bite: a sheet we can counter on, with their Offer on it.
+      house_rule: (may_draft? && terms.their_offer) ? I18n.t("reads.draft.term_sheet.house_rule") : nil,
       note: staged&.note,
       ours_staged: open_draft?,
       writable: may_draft?,
