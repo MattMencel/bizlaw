@@ -468,7 +468,7 @@ RSpec.describe "the working draft", type: :system do
       check "Money"
 
       expect(page).to have_css("button#draw-the-position[aria-disabled='true']")
-      expect(page).to have_text("An offer of money is worth an amount.")
+      expect(page).to have_text("Enter a dollar figure first.")
     end
 
     # `params[:note].presence` turns a note of nothing but spaces into no note at

@@ -121,7 +121,7 @@ en:
         # Why the control is dead, before anything is posted.
         withheld:
           no_terms: Tick at least one Term first.
-          no_amount: An offer of money is worth an amount.
+          no_amount: Enter a dollar figure first.
         unposted: Not shared yet — the Team still sees our last version.
       clipped:
         heading: Clipped to this draft
