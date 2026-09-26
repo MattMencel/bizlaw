@@ -240,7 +240,7 @@ RSpec.describe MorningBriefing do
 
         expect(read.what_you_start_with).to be_empty
         expect(read.what_you_start_with_empty_state)
-          .to include("handed no documents at the open")
+          .to include("No documents came with the file")
       end
     end
   end
