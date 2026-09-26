@@ -279,6 +279,7 @@ RSpec.describe "the working draft", type: :system do
 
     it "marks the sheet a draft, and puts his position in our column" do
       expect(page).to have_text(/draft — not sent/i)
+      expect(page).to have_css(".doc-sub", text: /· Day 3 · drafted by Sam Ortega/i)
       expect(page).to have_field(type: "text", with: "$180,000")
     end
 
