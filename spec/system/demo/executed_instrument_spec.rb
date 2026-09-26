@@ -141,7 +141,7 @@ RSpec.describe "the executed instrument", type: :system do
     it "carries neither the redline nor the Client's aspiration" do
       expect(page).to have_no_css("table.terms s")
       expect(page).to have_no_text("$250,000")
-      expect(page).to have_no_text("Struck through, their last committed offer")
+      expect(page).to have_no_text("Struck through: their latest Offer")
     end
 
     it "records both parties' hands, the waiver among them" do

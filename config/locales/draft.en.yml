@@ -46,8 +46,9 @@ en:
         published: "%{dimensions}. %{bonus}"
     terms_board:
       empty: >-
-        No Term is on the table. Nothing here is zero — an offer of nothing is
-        a position somebody took, and nobody has taken one.
+        Nobody has offered anything yet. Tick the Terms we want below and fill
+        in any figures. A blank line means no one has offered on that Term, not
+        that they offered zero.
     consult_memo:
       empty: >-
         You have not asked. Consulting your Client is the only read you get on
@@ -82,50 +83,53 @@ en:
       term_sheet:
         heading: Draft terms of settlement
         marks:
-          pending: Not yet on the table
-          drafted: Draft — not executed
-          executed: Executed
+          pending: Not shared yet
+          drafted: Draft — not sent
+          sent: Sent · Day %{day}
         byline: "%{matter} · Day %{day}"
-        byline_drawn: "%{matter} · Day %{day} · drawn by %{name}"
+        byline_drawn: "%{matter} · Day %{day} · drafted by %{name}"
         # The table's reading convention. The first is the sheet a Team can
         # still write on; the second is a record.
         caption:
           writable: >-
-            Struck through, their last committed offer. Write ours on the same
-            line. The margin is the Client's. Where there is nothing, nobody has
-            said anything.
+            Struck through: their latest Offer · Written in: ours · Margin: what
+            the Client wants. Write ours on the same line as theirs.
           record: >-
-            Struck through, their last committed offer. Written in, ours. The
-            margin is the Client's. Where there is nothing, nobody has said
-            anything.
+            Struck through: their latest Offer · Written in: ours · Margin: what
+            the Client wants.
+        # A House Rule, said under the caption where it bites: only on a sheet
+        # we can still write on, with their Offer struck across it.
+        house_rule: >-
+          In this game, their Offer stays open until we accept it or the game
+          ends, even after we counter. At law, a counteroffer rejects it.
         # Visually hidden: what each column is, for a reader who cannot see the
         # strike.
         columns:
           term: Term
-          theirs: Their last committed position
-          ours: Our position
-          aspiration: What the Client asked for
+          theirs: Their latest Offer
+          ours: Ours
+          aspiration: What the Client wants
         # A Term on the sheet with no figure. A settlement including an apology
         # includes an apology.
         included: Included
         asked_for: Asked for
-        figure: Our position on %{term}, in dollars
+        figure: Our figure for %{term}, in dollars
       drawing:
         note: Covering note
-        note_placeholder: Without prejudice…
-        draw: Put this on the table
+        note_placeholder: A line to the other Side (optional)
+        draw: Share with the Team
         # Why the control is dead, before anything is posted.
         withheld:
-          no_terms: An offer names at least one term.
-          no_amount: An offer of money is worth an amount.
-        unposted: Your team is still reading the last one.
+          no_terms: Tick at least one Term first.
+          no_amount: Enter a dollar figure first.
+        unposted: Not shared yet — the Team still sees our last version.
       clipped:
-        heading: Clipped to this draft
+        heading: Exhibits · clipped to this draft
         played: Played
         exhibit: Exhibit
         foot: >-
-          An exhibit rides the offer it is clipped to, and is served on them
-          when the offer is executed.
+          Tick a document to attach it as an Exhibit. When we send the Offer,
+          the other Side is served with a copy, and it may move their Client.
       countersignature:
         heading: Executed by
         drawn_by: Drawn by
