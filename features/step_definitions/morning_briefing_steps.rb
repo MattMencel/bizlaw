@@ -84,7 +84,7 @@ end
 
 Then("the plaintiff Docket says what a Docket would hold") do
   expect(@side.docket).to be_empty
-  expect(@side.docket.empty_state).to include("Every Action your Team spends on lands here")
+  expect(@side.docket.empty_state).to include("Each Action we buy is logged here")
 end
 
 Then("the plaintiff Docket has stopped explaining itself") do

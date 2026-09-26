@@ -98,7 +98,7 @@ RSpec.describe "the executed instrument", type: :system do
       click_button "Accept their offer"
       click_button "Confirm accepting their offer"
 
-      expect(page).to have_text("You are looking at the executed agreement.")
+      expect(page).to have_text("Terms of settlement")
       expect(simulation.reload).to be_settled
     end
 
@@ -175,10 +175,15 @@ RSpec.describe "the executed instrument", type: :system do
     end
 
     it "still turns over to the Case File and the Docket" do
-      click_button "Turn the page over"
+      click_button "Turn over: Case File & Docket"
 
-      expect(page).to have_text(/what we know, and what we have done/i)
-      expect(page).to have_text("Executed the draft")
+      expect(page).to have_button("Turn back: the executed agreement")
+
+      expect(page).to have_text(/back of the file/i)
+      expect(page).to have_no_text(/what we know, and what we have done/i)
+      expect(page).to have_text(/case file · the papers/i)
+      expect(page).to have_css("h3", text: /\Adocket\z/i)
+      expect(page).to have_text("Sent an Offer")
     end
 
     it "is accessible" do
@@ -186,7 +191,7 @@ RSpec.describe "the executed instrument", type: :system do
     end
 
     it "is accessible on the back" do
-      click_button "Turn the page over"
+      click_button "Turn over: Case File & Docket"
 
       expect(page).to be_axe_clean
     end
