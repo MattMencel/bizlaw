@@ -166,7 +166,7 @@ en:
         stub_arrives_on: Arrives Day %{day}.
         stub: "Costs %{points} (%{left} left after). %{arriving}"
         spend: Buy
-        spend_label: Spend %{action}
+        spend_label: "Buy: %{action}"
         confirm_label: Confirm spending %{action}
         refused: Refused
         confirm: Confirm

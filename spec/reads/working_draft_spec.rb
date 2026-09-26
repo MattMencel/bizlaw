@@ -275,6 +275,10 @@ RSpec.describe WorkingDraft do
       expect(action(CaseAction::CONSULT_CLIENT)[:line]).to eq("1 preparation point · arrives today")
     end
 
+    it "names the Action it buys on the control, for a reader who hears the button" do
+      expect(action(CaseAction::CONSULT_CLIENT)[:spend_label]).to eq("Buy: Consult the Client")
+    end
+
     it "writes the confirmation stub as the cost, what is left after, and when it arrives" do
       expect(action(CaseAction::DEPOSE_WITNESS)[:stub])
         .to eq("Costs 3 preparation points (5 left after). Arrives Day 3.")

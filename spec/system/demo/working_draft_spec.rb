@@ -89,7 +89,7 @@ RSpec.describe "the working draft", type: :system do
     def slip_line(label) = find("li.slip", text: label)
 
     it "opens the price in place, against what the half has left" do
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
 
       expect(page).to have_text("Costs 1 preparation point (7 left after). Arrives today.")
       expect(page).to have_button("Confirm")
@@ -98,21 +98,21 @@ RSpec.describe "the working draft", type: :system do
     # The argument for confirming on the line rather than over the sheet: the
     # other five prices are what makes this one a trade-off.
     it "leaves the rest of the menu on the page while he decides" do
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
 
       expect(page).to have_text("Retain an expert")
       expect(page).to have_text("Depose a witness")
     end
 
     it "opens one stub at a time" do
-      slip_line("Consult the Client").click_button("Spend")
-      slip_line("Retain an expert").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
+      slip_line("Retain an expert").click_button("Buy")
 
       expect(page).to have_css("button", text: /confirm/i, count: 1)
     end
 
     it "charges nothing on Cancel" do
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
       click_button "Cancel"
 
       expect(page).to have_no_button("Confirm")
@@ -120,7 +120,7 @@ RSpec.describe "the working draft", type: :system do
     end
 
     it "charges the half and writes the Docket when he confirms" do
-      slip_line("Request documents").click_button("Spend")
+      slip_line("Request documents").click_button("Buy")
       click_button "Confirm"
 
       expect(page).to have_text(/6 preparation/i)
@@ -133,7 +133,7 @@ RSpec.describe "the working draft", type: :system do
     # a Client who has been read. The words are the memo's; the line is what
     # survives the Day.
     it "lands a Consult as a Docket line and a Band, with no paper behind it" do
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
       click_button "Confirm"
       click_button "Turn the page over"
 
@@ -141,7 +141,7 @@ RSpec.describe "the working draft", type: :system do
     end
 
     it "is accessible with a confirmation open" do
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
 
       expect(page).to be_axe_clean
     end
@@ -155,7 +155,7 @@ RSpec.describe "the working draft", type: :system do
     def slip_line(label) = find("li.slip", text: label)
 
     def consult
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
       click_button "Confirm"
     end
 
@@ -340,7 +340,7 @@ RSpec.describe "the working draft", type: :system do
     it "plays from the empty states alone" do
       expect(page).to have_text(/8 preparation/i)
 
-      click_button "Spend Consult the Client"
+      click_button "Buy: Consult the Client"
       click_button "Confirm spending Consult the Client"
 
       expect(page).to have_text(/7 preparation/i)
