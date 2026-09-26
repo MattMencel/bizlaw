@@ -118,7 +118,7 @@ module Typeset
     }
   end
 
-  # A spend is named by the Action it bought; the three acts with no cost are
+  # A spend is named by the Action it bought; the four acts with no cost are
   # named by the act, because there is no Action behind them to name.
   #
   # And so is the fourth, which *does* have a cost: executing a draft is a spend

@@ -103,7 +103,7 @@ class Side < ApplicationRecord
   # Acceptance asks the same question of the accepting Team.
   def seconders_other_than(member) = members.where.not(id: member.id)
 
-  # What this Team has done and what is coming — a fold over four ledgers rather
+  # What this Team has done and what is coming — a fold over five ledgers rather
   # than one table. See `Docket`.
   def docket(day: nil) = Docket.for(self, day: day)
 
