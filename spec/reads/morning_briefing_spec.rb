@@ -122,6 +122,35 @@ RSpec.describe MorningBriefing do
         filed.title == "Deposition of the plant supervisor"
       }).not_to be_served
     end
+
+    # Service is read off the other Side's `played_exhibits`, which is
+    # append-only, so a later find cannot rewrite the morning it was served on.
+    it "stays served on the Day it was served, after the Team finds it" do
+      spend(CaseAction::DEPOSE_WITNESS, on: day(1), by: opponent)
+      open_day(2)
+      open_day(3)
+      serve_the_deposition
+      spend(CaseAction::DEPOSE_WITNESS, on: day(3))
+      open_day(4)
+      open_day(5)
+
+      expect(briefing(on: day(3)).served.map(&:title))
+        .to eq(["Deposition of the plant supervisor"])
+      expect(briefing(on: day(5)).served).to be_empty
+    end
+
+    # Found outranks served, so the row is never marked served — but the other
+    # Side still argued at this Team with it, and the briefing says so.
+    it "is served on a Team that already found it" do
+      spend(CaseAction::DEPOSE_WITNESS, on: day(1))
+      spend(CaseAction::DEPOSE_WITNESS, on: day(1), by: opponent)
+      open_day(2)
+      open_day(3)
+      serve_the_deposition
+
+      expect(briefing(on: day(3)).served.map(&:title))
+        .to eq(["Deposition of the plant supervisor"])
+    end
   end
 
   describe "after the other Side served an Exhibit" do
