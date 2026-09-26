@@ -56,10 +56,8 @@ en:
     draft:
       title: "%{matter} — Day %{day}"
       turn:
-        looking_at_front: You are looking at the draft.
-        looking_at_back: You are looking at the back of the file.
-        to_back: Turn the page over
-        to_front: Turn back to the draft
+        to_back: "Turn over: Case File & Docket"
+        to_front: "Turn back: the draft"
       front_matter:
         heading: Front matter · the morning of Day %{day}
         landed: Landed today

@@ -12,7 +12,8 @@ RSpec.describe "the working draft", type: :system do
     before { visit "/demo/#{Demo::Seed::DEMO}" }
 
     it "opens on the draft, with the Day's grammar named once" do
-      expect(page).to have_text("You are looking at the draft.")
+      expect(page).to have_no_text("You are looking at")
+      expect(page).to have_button("Turn over: Case File & Docket")
       expect(page).to have_text("Everything here is the case file")
     end
 
@@ -59,11 +60,18 @@ RSpec.describe "the working draft", type: :system do
     # The cost #315 accepted for this grammar: the record surfaces live behind a
     # gesture. That the gesture reaches them is the least this can prove.
     it "turns over to the Case File and the Docket" do
-      click_button "Turn the page over"
+      click_button "Turn over: Case File & Docket"
 
-      expect(page).to have_text(/what we know, and what we have done/i)
+      expect(page).to have_button("Turn back: the draft")
+
+      expect(page).to have_text(/back of the file/i)
+      expect(page).to have_no_text(/what we know, and what we have done/i)
+      expect(page).to have_text(/case file · the papers/i)
+      expect(page).to have_css("h3", text: /\Adocket\z/i)
       expect(page).to have_text("The claimant's personnel file")
+      expect(page).to have_text(/had from the start/i)
       expect(page).to have_text("Request documents")
+      expect(page).to have_text(/\d+ preparation points · arrives Day \d+/i)
     end
 
     it "is accessible" do
@@ -71,7 +79,7 @@ RSpec.describe "the working draft", type: :system do
     end
 
     it "is accessible on the back of the file too" do
-      click_button "Turn the page over"
+      click_button "Turn over: Case File & Docket"
 
       expect(page).to be_axe_clean
     end
@@ -123,7 +131,7 @@ RSpec.describe "the working draft", type: :system do
 
       expect(page).to have_text(/6 preparation/i)
 
-      click_button "Turn the page over"
+      click_button "Turn over: Case File & Docket"
       expect(page).to have_text("Request documents")
     end
 
@@ -133,9 +141,9 @@ RSpec.describe "the working draft", type: :system do
     it "lands a Consult as a Docket line and a Band, with no paper behind it" do
       slip_line("Consult the Client").click_button("Spend")
       click_button "Confirm"
-      click_button "Turn the page over"
+      click_button "Turn over: Case File & Docket"
 
-      expect(page).to have_text(/Consult the Client — Sam Ortega · the Client reads \w+/)
+      expect(page).to have_text(/Consult the Client — Sam Ortega · the Client is \w+/)
     end
 
     it "is accessible with a confirmation open" do
@@ -323,9 +331,9 @@ RSpec.describe "the working draft", type: :system do
     end
 
     it "says what a Docket would hold" do
-      click_button "Turn the page over"
+      click_button "Turn over: Case File & Docket"
 
-      expect(page).to have_text("Nothing yet.")
+      expect(page).to have_text("Nothing yet. Each Action we buy is logged here")
     end
 
     # The claim under test is not that the sentences are written but that they
@@ -345,10 +353,10 @@ RSpec.describe "the working draft", type: :system do
       expect(page).to have_text(/reads firm/i)
       expect(page).to have_no_text("You have not asked.")
 
-      click_button "Turn the page over"
+      click_button "Turn over: Case File & Docket"
 
       expect(page).to have_text("Consult the Client")
-      expect(page).to have_no_text("Nothing yet. Every Action your Team spends on lands here")
+      expect(page).to have_no_text("Nothing yet. Each Action we buy is logged here")
     end
 
     it "is accessible" do
@@ -640,8 +648,8 @@ RSpec.describe "the working draft", type: :system do
       find("#execute-the-draft").click
       click_button "Confirm"
 
-      click_button "Turn the page over"
-      expect(page).to have_text(/waived.*Professor Adeyemi|Professor Adeyemi/)
+      click_button "Turn over: Case File & Docket"
+      expect(page).to have_text("Countersignature waived by the Instructor — Professor Adeyemi")
       expect(side.committed_offer_on(day).seconded_by).to be_nil
     end
 

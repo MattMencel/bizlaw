@@ -482,7 +482,8 @@ RSpec.describe WorkingDraft do
 
       expect(props[:back][:docket][:entries].sole).to include(
         act_label: "Request documents", by: dana.name, day: 1, cost: 2,
-        half_label: "preparation", lands_on_day: 2, spend: true
+        half_label: "preparation", lands_on_day: 2, spend: true,
+        price: "2 preparation points · arrives Day 2"
       )
     end
 
@@ -492,7 +493,7 @@ RSpec.describe WorkingDraft do
       Offers::Stage.call(side: side, day: day, by: dana, terms: {"apology" => nil})
 
       expect(props[:back][:docket][:entries].sole).to include(
-        act_label: "Drew a draft", by: dana.name, cost: nil, spend: false
+        act_label: "Shared a draft", by: dana.name, cost: nil, spend: false
       )
     end
 
@@ -510,9 +511,10 @@ RSpec.describe WorkingDraft do
       committed = props[:back][:docket][:entries].find { |line| line[:cost] == 1 }
 
       expect(committed).to include(
-        act_label: "Executed the draft", by: dana.name,
+        act_label: "Sent an Offer", by: dana.name,
         half_label: "exchange", kind: nil, spend: true
       )
+      expect(committed[:price]).to match(/\A1 exchange point · arrives Day \d+\z/)
     end
 
     it "reduces a document to what a page can render" do

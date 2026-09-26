@@ -16,7 +16,6 @@
 
 <section aria-labelledby="back-of-file">
   <h2 class="doc-title" id="back-of-file">{copy.heading}</h2>
-  <p class="doc-sub">{copy.subheading}</p>
 
   <h3 class="doc-sub">{copy.papers}</h3>
   {#if back.case_file.empty_state}
