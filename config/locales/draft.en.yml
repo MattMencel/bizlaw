@@ -143,6 +143,10 @@ en:
         drawn: >-
           Sent on Day %{day}, signed by %{name}. Their Terms are the ones struck
           through above.
+        # A House Rule (#393), placed where it bites: accepting.
+        house_rule: >-
+          In this game, their Offer stays open until we accept it or the game
+          ends, even after we counter. At law, a counteroffer rejects it.
         refused: Refused
         accept: Accept their offer
         no_cost: no cost

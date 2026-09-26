@@ -43,6 +43,14 @@ RSpec.describe "the executed instrument", type: :system do
       )
     end
 
+    # The House Rule, where it bites: a counteroffer here leaves theirs standing.
+    it "says their Offer outlives our counter, and that the law differs" do
+      expect(page).to have_text(
+        "In this game, their Offer stays open until we accept it or the game ends, " \
+        "even after we counter. At law, a counteroffer rejects it."
+      )
+    end
+
     # The covering line nothing on any surface read before #367. On Day 3 it is
     # still true; on Day 4 the same sentence is the register saying a deadline
     # has passed.
