@@ -106,7 +106,9 @@ RSpec.describe "the working draft", type: :system do
     it "prices every Action on the slip, whether or not today will cover it" do
       expect(page).to have_text("Consult the Client")
       expect(page).to have_text("Retain an expert")
-      expect(page).to have_text(/8 preparation/i)
+      expect(page).to have_css("h2#slip", text: /Actions · left today: 8 preparation points · 2 exchange points/i)
+      expect(find("li.slip", text: "Consult the Client")).to have_text("1 preparation point · arrives today")
+      expect(page).to have_css("button#spend-consult_client", text: /\Abuy\z/i)
     end
 
     # The cost #315 accepted for this grammar: the record surfaces live behind a
@@ -140,30 +142,30 @@ RSpec.describe "the working draft", type: :system do
     def slip_line(label) = find("li.slip", text: label)
 
     it "opens the price in place, against what the half has left" do
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
 
-      expect(page).to have_text("1 preparation · 7 preparation left after · lands today")
+      expect(page).to have_text("Costs 1 preparation point (7 left after). Arrives today.")
       expect(page).to have_button("Confirm")
     end
 
     # The argument for confirming on the line rather than over the sheet: the
     # other five prices are what makes this one a trade-off.
     it "leaves the rest of the menu on the page while he decides" do
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
 
       expect(page).to have_text("Retain an expert")
       expect(page).to have_text("Depose a witness")
     end
 
     it "opens one stub at a time" do
-      slip_line("Consult the Client").click_button("Spend")
-      slip_line("Retain an expert").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
+      slip_line("Retain an expert").click_button("Buy")
 
       expect(page).to have_css("button", text: /confirm/i, count: 1)
     end
 
     it "charges nothing on Cancel" do
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
       click_button "Cancel"
 
       expect(page).to have_no_button("Confirm")
@@ -171,7 +173,7 @@ RSpec.describe "the working draft", type: :system do
     end
 
     it "charges the half and writes the Docket when he confirms" do
-      slip_line("Request documents").click_button("Spend")
+      slip_line("Request documents").click_button("Buy")
       click_button "Confirm"
 
       expect(page).to have_text(/6 preparation/i)
@@ -184,7 +186,7 @@ RSpec.describe "the working draft", type: :system do
     # a Client who has been read. The words are the memo's; the line is what
     # survives the Day.
     it "lands a Consult as a Docket line and a Band, with no paper behind it" do
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
       click_button "Confirm"
       click_button "Turn the page over"
 
@@ -192,7 +194,7 @@ RSpec.describe "the working draft", type: :system do
     end
 
     it "is accessible with a confirmation open" do
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
 
       expect(page).to be_axe_clean
     end
@@ -206,7 +208,7 @@ RSpec.describe "the working draft", type: :system do
     def slip_line(label) = find("li.slip", text: label)
 
     def consult
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
       click_button "Confirm"
     end
 
@@ -291,7 +293,7 @@ RSpec.describe "the working draft", type: :system do
     # the sentence saying why is the thing the Board exists to teach, so it
     # cannot be the part a keyboard skips over.
     it "keeps every control on the slip, refused and reachable" do
-      expect(page).to have_text("Today's half will not cover it.", count: 6)
+      expect(page).to have_text("Not enough preparation points left today. Pick a cheaper Action, or wait for tomorrow's points.", count: 6)
 
       control = find("#spend-consult_client")
       expect(control["aria-disabled"]).to eq("true")
@@ -394,8 +396,8 @@ RSpec.describe "the working draft", type: :system do
     it "plays from the empty states alone" do
       expect(page).to have_text(/8 preparation/i)
 
-      click_button "Spend Consult the Client"
-      click_button "Confirm spending Consult the Client"
+      click_button "Buy: Consult the Client"
+      click_button "Confirm: Consult the Client"
 
       expect(page).to have_text(/7 preparation/i)
       expect(page).to have_text(/the client is\s+firm/i)

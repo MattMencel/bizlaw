@@ -49,6 +49,12 @@ en:
     day_of: Day %{day}/%{of}
     # What an act costs, out of which half.
     price: "%{cost} %{half}"
+    # A count of Budget points out of one half, with its unit: "1 preparation
+    # point", "2 exchange points". `figure` is the count as printed, which is a
+    # dash where a half has no Budget to count.
+    points:
+      one: "%{figure} %{half} point"
+      other: "%{figure} %{half} points"
     # What a Reaction Band reads as. Two surfaces name one — the memo a Consult
     # bought and the Docket line beside it — so there is one key rather than
     # two: a band spelled differently on the two faces of one instrument would
