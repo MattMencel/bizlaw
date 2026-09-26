@@ -122,7 +122,7 @@ en:
         withheld:
           no_terms: An offer names at least one term.
           no_amount: An offer of money is worth an amount.
-        unposted: Your team is still reading the last one.
+        unposted: Not shared yet — the Team still sees our last version.
       clipped:
         heading: Clipped to this draft
         played: Played

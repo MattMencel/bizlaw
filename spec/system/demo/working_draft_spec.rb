@@ -431,7 +431,7 @@ RSpec.describe "the working draft", type: :system do
       write(money: "$120,000")
 
       expect(page).to have_css(".draft-mark.pending", text: /not shared yet/i)
-      expect(page).to have_text(/still reading the last one/i)
+      expect(page).to have_text("Not shared yet — the Team still sees our last version.")
     end
 
     it "puts the position on the table and marks it a draft" do
