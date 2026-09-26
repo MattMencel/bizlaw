@@ -18,7 +18,7 @@ en:
         # Action behind it to take a name from. ADR 0009: an Offer is sent, not
         # executed.
         offer_committed: Sent an Offer
-        offer_accepted: Accepted their offer
+        offer_accepted: Accepted their Offer
         second_waived: Countersignature waived by the instructor
     back_of_file:
       heading: Back of the file
