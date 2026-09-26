@@ -35,15 +35,25 @@ RSpec.describe "the executed instrument", type: :system do
     before { visit "/demo/#{Demo::Seed::DEMO}" }
 
     it "names their instrument without restating its terms" do
-      expect(page).to have_text(/their offer, open on the table/i)
-      expect(page).to have_text(/drawn by Dana Whitfield and committed on Day 3/)
+      # The heading is set in capitals by `text-transform`, so the glossary
+      # capital is read off the DOM rather than off what the eye sees.
+      expect(find("h2#acceptance")["textContent"]).to eq("Their Offer, open on the table")
+      expect(page).to have_text(
+        "Sent on Day 3, signed by Dana Whitfield. Their Terms are the ones struck through above."
+      )
     end
 
-    # The covering line nothing on any surface read before #367. On Day 3 it is
-    # still true; on Day 4 the same sentence is the register saying a deadline
-    # has passed.
+    # The House Rule, where it bites: a counteroffer here leaves theirs standing.
+    it "says their Offer outlives our counter, and that the law differs" do
+      expect(page).to have_text(
+        "In this game, their Offer stays open until we accept it or the game ends, " \
+        "even after we counter. At law, a counteroffer rejects it."
+      )
+    end
+
+    # The covering line nothing on any surface read before #367.
     it "prints their covering note" do
-      expect(page).to have_text("Without prejudice. Open for acceptance today.")
+      expect(page).to have_text("Our best figure. We'd like this closed.")
     end
 
     # Dead for exactly the reason his commit is dead, and saying so — the rule
@@ -52,7 +62,7 @@ RSpec.describe "the executed instrument", type: :system do
     it "holds the control dead while his Second stands, and says why" do
       expect(page).to have_css("button#accept-their-offer[aria-disabled='true']")
       expect(page)
-        .to have_text("A teammate has to countersign before their offer can be accepted")
+        .to have_text("A teammate has to countersign before we can accept their Offer.")
     end
 
     it "prints no price, because there is none" do
@@ -76,29 +86,28 @@ RSpec.describe "the executed instrument", type: :system do
     it "offers a live control and names the teammate who countersigns" do
       expect(page).to have_css("button#accept-their-offer:not([aria-disabled='true'])")
 
-      click_button "Accept their offer"
+      click_button "Accept their Offer"
 
-      expect(page).to have_text("Ray Okonkwo countersigns")
-      expect(page).to have_text("this closes Day 4 and settles the matter")
-      expect(page).to have_text("there is nothing after it")
+      expect(page).to have_css("#acceptance-stub", text:
+        "Ends the game: we settle on these Terms, and Day 4 closes. Countersigned by: Ray Okonkwo")
     end
 
     # Irreversible and free, which is the reason it confirms rather than in
     # spite of it: a single press would make the ending cost less than a
     # Consult.
     it "can be abandoned without settling anything" do
-      click_button "Accept their offer"
+      click_button "Accept their Offer"
       click_button "Cancel"
 
-      expect(page).to have_no_text("this closes Day 4")
+      expect(page).to have_no_text("Ends the game")
       expect(simulation.reload).not_to be_settled
     end
 
     it "settles the matter and becomes the executed instrument" do
-      click_button "Accept their offer"
-      click_button "Confirm accepting their offer"
+      click_button "Accept their Offer"
+      click_button "Confirm: accept their Offer"
 
-      expect(page).to have_text("You are looking at the executed agreement.")
+      expect(page).to have_text("Terms of settlement")
       expect(simulation.reload).to be_settled
     end
 
@@ -107,8 +116,8 @@ RSpec.describe "the executed instrument", type: :system do
     # It is also what puts a sighted reader at the top of a page that got much
     # shorter under a preserved scroll position.
     it "lands the reader on the executed sheet rather than where the block was" do
-      click_button "Accept their offer"
-      click_button "Confirm accepting their offer"
+      click_button "Accept their Offer"
+      click_button "Confirm: accept their Offer"
 
       expect(page).to have_css("h2#executed-terms")
       expect(page.evaluate_script("document.activeElement.id")).to eq("executed-terms")
@@ -132,7 +141,19 @@ RSpec.describe "the executed instrument", type: :system do
       expect(page).to have_text("Terms of settlement")
       expect(page).to have_text("$150,000")
       expect(page).to have_css(".draft-mark.executed", text: /executed/i)
-      expect(page).to have_css("table.terms caption", text: /Executed on Day 4/)
+      expect(page).to have_css("table.terms caption",
+        text: /\AExecuted on Day 4, .+\. Both Sides signed these Terms\.\z/)
+    end
+
+    # Two House Rules at once: the instrument is only the Terms, and nobody
+    # asked the Client. The same words on every settlement, so they say nothing
+    # about how the deal landed (ADR 0007).
+    it "says what this agreement leaves out, and what the law would add" do
+      expect(page).to have_text(
+        "In this game, the agreement carries only these Terms, and we settled without " \
+        "asking the Client. At law, it would also carry a release of the claim and a " \
+        "dismissal of the suit, and it would need the Client's consent."
+      )
     end
 
     # The whole difference between this sheet and the working one. The redline
@@ -141,7 +162,7 @@ RSpec.describe "the executed instrument", type: :system do
     it "carries neither the redline nor the Client's aspiration" do
       expect(page).to have_no_css("table.terms s")
       expect(page).to have_no_text("$250,000")
-      expect(page).to have_no_text("Struck through, their last committed offer")
+      expect(page).to have_no_text("Struck through: their latest Offer")
     end
 
     it "records both parties' hands, the waiver among them" do
@@ -149,12 +170,14 @@ RSpec.describe "the executed instrument", type: :system do
       expect(page).to have_text(/for the defendant/i)
       expect(page).to have_text("Sam Ortega")
       expect(page).to have_text("Ray Okonkwo")
-      expect(page).to have_text(/countersignature waived by the instructor/i)
+      # Set in capitals by `text-transform`; the glossary capital is in the DOM.
+      expect(find(".cap.waived")["textContent"]).to eq("Countersignature waived by the Instructor")
     end
 
     # A Team whose Offer was taken has no Morning Briefing to learn it from: no
     # Day opens after a settlement, so this page is how he finds out.
     it "gives the Client the last word, with no Reaction Band" do
+      expect(find("h2#client-beat")["textContent"]).to eq("The Client")
       expect(page).to have_css("section .face svg")
       expect(page).to have_no_text(/reads firm/i)
       expect(page).to have_no_text(/reads ready/i)
@@ -163,7 +186,7 @@ RSpec.describe "the executed instrument", type: :system do
     # Nothing about a Day survives. There is no today to have a briefing, a
     # slip or a Consult on.
     it "has no briefing, no slip and nothing to write on" do
-      expect(page).to have_no_text("Everything here is the case file")
+      expect(page).to have_no_text("Work the Case File in any order")
       expect(page).to have_no_text("Consult the Client")
       expect(page).to have_no_css("input[type='checkbox']")
       expect(page).to have_no_css("button#execute-the-draft")
@@ -175,10 +198,15 @@ RSpec.describe "the executed instrument", type: :system do
     end
 
     it "still turns over to the Case File and the Docket" do
-      click_button "Turn the page over"
+      click_button "Turn over: Case File & Docket"
 
-      expect(page).to have_text(/what we know, and what we have done/i)
-      expect(page).to have_text("Executed the draft")
+      expect(page).to have_button("Turn back: the executed agreement")
+
+      expect(page).to have_text(/back of the file/i)
+      expect(page).to have_no_text(/what we know, and what we have done/i)
+      expect(page).to have_text(/case file · the papers/i)
+      expect(page).to have_css("h3", text: /\Adocket\z/i)
+      expect(page).to have_text("Sent an Offer")
     end
 
     it "is accessible" do
@@ -186,7 +214,7 @@ RSpec.describe "the executed instrument", type: :system do
     end
 
     it "is accessible on the back" do
-      click_button "Turn the page over"
+      click_button "Turn over: Case File & Docket"
 
       expect(page).to be_axe_clean
     end
@@ -194,11 +222,12 @@ RSpec.describe "the executed instrument", type: :system do
     # `CONTEXT.md` § Instructor keeps their powers over a running Day, and there
     # is no running Day. Without this branch the minute renders the first
     # unclosed Day — one that never opened — asserting the game is still going.
-    it "leaves the Instructor's minute saying the matter is closed" do
+    it "leaves the Instructor's minute saying the Sides settled" do
       visit "/demo/#{Demo::Seed::DEMO}/#{Demo::Seat::INSTRUCTOR}"
 
-      expect(page).to have_text(/the matter is closed/i)
+      expect(page).to have_css("h3#closed", text: /\Asettled\z/i)
       expect(page).to have_text(/settled on Day 4/)
+      expect(page).to have_text("No more Days open, and there's nothing left to waive.")
       expect(page).to have_no_css("button#waive-plaintiff")
       expect(page).to be_axe_clean
     end
