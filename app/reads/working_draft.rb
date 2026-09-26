@@ -186,6 +186,9 @@ class WorkingDraft
     {
       empty_state: terms.empty_state,
       byline: byline,
+      sent_mark: committed && I18n.t("reads.draft.term_sheet.marks.sent", day: committed.day.ordinal),
+      # Said only where it can bite: a sheet we can counter on, with their Offer on it.
+      house_rule: (may_draft? && terms.their_offer) ? I18n.t("reads.draft.term_sheet.house_rule") : nil,
       note: staged&.note,
       ours_staged: open_draft?,
       writable: may_draft?,
@@ -489,12 +492,21 @@ class WorkingDraft
     beats = side.consults(day: day).reverse.map(&:beat)
 
     {
-      empty_state: beats.empty? ? I18n.t("reads.consult_memo.empty") : nil,
+      empty_state: beats.empty? ? memo_empty_state : nil,
       portrait: beats.first && portrait(beats.first),
       entries: beats.map do |beat|
         {band: band_label(beat.band), line: beat.line}
       end
     }
+  end
+
+  # Priced off the menu, because a Consult's cost and half are the Case's. A
+  # Case that authors no Consult has nothing to invite, so it says nothing.
+  def memo_empty_state
+    consult = board.entries.find { |entry| entry.kind == CaseAction::CONSULT_CLIENT }
+    return if consult.nil?
+
+    I18n.t("reads.consult_memo.empty", count: consult.cost, half: half_label(consult.half))
   end
 
   # Every Action, priced, whether or not the half will cover it — with the

@@ -104,7 +104,7 @@ RSpec.describe WorkingDraft do
   end
 
   it "passes the empty states through from the reads that own them" do
-    expect(props[:term_sheet][:empty_state]).to include("an offer of nothing is a position")
+    expect(props[:term_sheet][:empty_state]).to include("A blank line means no one has offered on that Term")
     expect(props[:back][:docket][:empty_state]).to include("Nothing yet")
   end
 
@@ -377,7 +377,18 @@ RSpec.describe WorkingDraft do
     it "says what a Team that has not asked is missing, and draws nobody" do
       expect(props[:memo][:entries]).to be_empty
       expect(props[:memo][:portrait]).to be_nil
-      expect(props[:memo][:empty_state]).to include("You have not asked")
+      expect(props[:memo][:empty_state]).to eq(
+        "Consult the Client when something has changed. It costs 1 preparation point, " \
+        "and it's the only way to see how far they'll move."
+      )
+    end
+
+    # The Consult's price is authored per Case, so the sentence is composed
+    # from the menu rather than written with a 1 in it.
+    it "prices the empty state at what this Case charges for a Consult" do
+      simulation.case_version.actions.find_by!(kind: CaseAction::CONSULT_CLIENT).update!(cost: 2)
+
+      expect(props[:memo][:empty_state]).to include("It costs 2 preparation points,")
     end
 
     it "carries what the Client said, under the band they said it in" do
