@@ -41,7 +41,7 @@ RSpec.describe "the working draft", type: :system do
     # only the eye is spared them. Nothing on the sheet depends on seeing the
     # strike or the redline colour.
     it "says whose each figure is for a reader who cannot see the strike" do
-      expect(page).to have_css("thead th", text: "Their last committed position", visible: :all)
+      expect(page).to have_css("thead th", exact_text: "Their latest Offer", visible: :all)
       expect(page).to have_css("thead th", text: "Our position", visible: :all)
       expect(page).to have_css("table.terms caption", text: "Write ours on the same line as theirs")
     end

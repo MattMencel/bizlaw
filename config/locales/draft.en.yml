@@ -106,7 +106,7 @@ en:
         # strike.
         columns:
           term: Term
-          theirs: Their last committed position
+          theirs: Their latest Offer
           ours: Our position
           aspiration: What the Client asked for
         # A Term on the sheet with no figure. A settlement including an apology
