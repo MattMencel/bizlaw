@@ -53,5 +53,24 @@ en:
             - {at: memo.band, word: firm}
           ready:
             - {at: memo.band, word: ready}
-        back_of_file: {}
+        back_of_file:
+          # The Case File's heading prints "The papers" until the back's
+          # rewrite names it.
+          case_file:
+            - {at: back_of_file.papers, word: papers}
+          served:
+            - {at: back_of_file.served, word: Served}
+          exhibit:
+            - {at: back_of_file.exhibit, word: Exhibit}
+            - {at: back_of_file.played, word: Exhibit}
+          docket:
+            - {at: back_of_file.docket, word: docket}
+          consult:
+            - {at: docket.act, word: Consult}
+          firm:
+            - {at: docket.band, word: firm}
+          ready:
+            - {at: docket.band, word: ready}
+          preparation_points:
+            - {at: docket.price, word: preparation}
         executed_instrument: {}

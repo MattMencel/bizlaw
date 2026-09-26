@@ -169,6 +169,43 @@ RSpec.describe "the glosses", type: :system do
     end
   end
 
+  # The back of the file glosses its own first contact, not the front's.
+  describe "the back of the file" do
+    before do
+      visit "/demo/#{Demo::Seed::DEMO}"
+      find("li.slip", text: "Consult the Client").click_button("Spend")
+      click_button "Confirm"
+      expect(page).to have_css(".beat")
+      click_button "Turn the page over"
+    end
+
+    include_examples "one note per term"
+
+    it "glosses the back's terms where the back first meets them" do
+      expect(glossed.keys).to match_array(
+        %w[case_file served exhibit docket consult preparation_points] << glossed.slice("firm", "ready").keys.sole
+      )
+      expect(page).to have_css("h3 a.glossed", text: /papers/i)
+      expect(page).to have_css(".stamp a.glossed", text: /served/i)
+      expect(page).to have_css(".tab-clip a.glossed", text: /exhibit/i)
+      expect(page).to have_css("h3 a.glossed", text: /docket/i)
+      expect(page).to have_css(".docket-line .band a.glossed", text: /\A(firm|ready)\z/)
+    end
+
+    it "glosses a repeated Docket mark on its first line only" do
+      expect(all(".docket-line .c a.glossed").size).to eq(1)
+      expect(first(".docket-line .c", text: /preparation/)).to have_css("a.glossed")
+    end
+
+    it "glosses the front again when the page is turned back" do
+      click_button "Turn back to the draft"
+
+      expect(page).to have_css("h3 a.glossed", text: /served/i)
+      expect(entries).to include("countersign")
+      expect(entries).not_to include("docket")
+    end
+  end
+
   # No margin to put a note in, so the notes are a list at the top of the face,
   # and each glossed word links up to its entry.
   describe "on a narrow sheet" do
