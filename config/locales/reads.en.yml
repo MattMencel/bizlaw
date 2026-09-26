@@ -23,7 +23,7 @@
 # interpolation, so the page never assembles a sentence.
 #
 # **Capitals are typography.** These classes set `text-transform: uppercase`, so
-# what reads *Landed today* here prints *LANDED TODAY*: `.doc-sub`, `.stamp`,
+# what reads *Arrived this morning* here prints *ARRIVED THIS MORNING*: `.doc-sub`, `.stamp`,
 # `.control`, `.tab-clip`, `.draft-mark`, `.cap`, `.reads` and the masthead's
 # `.turn button`. Write sentence case and let the stylesheet shout.
 #
