@@ -332,7 +332,8 @@ RSpec.describe "the working draft", type: :system do
     # they are the first two things a Day 1 reader meets.
     it "is not a blank page" do
       expect(page).to have_text("Actions we buy below come back here on the morning they're due.")
-      expect(page).to have_text("any exhibit riding it is served on you")
+      expect(page).to have_text("Nothing's been served on us yet.")
+      expect(page).to have_text("If one arrives, Consult the Client")
       expect(page).to have_text("an offer of nothing is a position somebody took")
       expect(page).to have_text("The termination letter")
     end

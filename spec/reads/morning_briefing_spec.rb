@@ -205,7 +205,7 @@ RSpec.describe MorningBriefing do
       read = briefing(on: day(1))
 
       expect(read.landed_empty_state).to include("due back today", "morning they're due")
-      expect(read.served_empty_state).to include("exhibit riding it", "argued at")
+      expect(read.served_empty_state).to include("Exhibits attached", "Consult the Client")
     end
 
     it "goes silent on the section that has something in it" do
