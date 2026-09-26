@@ -53,7 +53,7 @@ RSpec.describe "the working draft", type: :system do
     it "prices every Action on the slip, whether or not today will cover it" do
       expect(page).to have_text("Consult the Client")
       expect(page).to have_text("Retain an expert")
-      expect(page).to have_text(/8 preparation/i)
+      expect(page).to have_css("h2#slip", text: /Actions · left today: 8 preparation points · 2 exchange points/i)
     end
 
     # The cost #315 accepted for this grammar: the record surfaces live behind a

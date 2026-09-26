@@ -518,7 +518,7 @@ class WorkingDraft
 
     {
       heading: I18n.t("reads.draft.slip.heading",
-        remaining: remaining.map { |_half, left| "#{left[:left] || "—"} #{left[:label]}" }.join(" · ")),
+        remaining: remaining.map { |half, left| points(left[:left], half) }.join(" · ")),
       remaining: remaining,
       actions: board.entries.map do |entry|
         just_now = refused_kind == entry.kind

@@ -157,7 +157,7 @@ en:
         # Followed by the band, in bold.
         reads: Reads
       slip:
-        heading: Slip — what this Day will still buy · %{remaining}
+        heading: "Actions · left today: %{remaining}"
         lands_today: lands today
         lands_on: lands Day %{day}
         line: "%{price} · %{landing}"

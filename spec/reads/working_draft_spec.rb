@@ -258,6 +258,11 @@ RSpec.describe WorkingDraft do
       )
     end
 
+    it "heads the slip with the glossary name and what each half has left, in points" do
+      expect(props[:slip][:heading])
+        .to eq("Actions · left today: 8 preparation points · 2 exchange points")
+    end
+
     it "gives every Action its sentence, its price and the Day it lands on" do
       expect(action(CaseAction::DEPOSE_WITNESS)).to include(
         label: "Depose a witness", cost: 3, half_label: "preparation",
