@@ -66,6 +66,7 @@ class WorkingDraft
 
   def to_props
     {
+      copy: copy("reads.draft"),
       letterhead: letterhead,
       front_matter: front_matter,
       term_sheet: term_sheet,
@@ -105,18 +106,24 @@ class WorkingDraft
   def committed = @committed ||= side.committed_offer_on(day)
 
   def letterhead
+    matter = side.case_version.case.name
+
     {
-      matter: side.case_version.case.name,
+      matter: matter,
+      title: I18n.t("reads.draft.title", matter: matter, day: day.ordinal),
       role: side.role,
+      role_label: role_label(side.role),
       day: day.ordinal,
       of: side.simulation.days.count,
-      in_fiction_date: day.in_fiction_date.to_s,
+      day_of: day_of(day.ordinal, side.simulation.days.count),
+      in_fiction_date: in_fiction(day.in_fiction_date),
       you: you.name
     }
   end
 
   def front_matter
     {
+      heading: I18n.t("reads.draft.front_matter.heading", day: day.ordinal),
       landed: briefing.landed.map { |entry| document(entry) },
       landed_empty_state: briefing.landed_empty_state,
       served: briefing.served.map { |entry| document(entry) },
@@ -124,15 +131,38 @@ class WorkingDraft
       what_you_start_with: briefing.what_you_start_with.map { |entry| document(entry) },
       what_you_start_with_empty_state: briefing.what_you_start_with_empty_state,
       opening_statement: briefing.opening_statement,
-      calendar: briefing.calendar.map do |calendar_day|
-        {ordinal: calendar_day.ordinal,
-         in_fiction_date: calendar_day.in_fiction_date.to_s,
-         closed: calendar_day.closed?,
-         today: calendar_day.ordinal == day.ordinal}
-      end,
-      rubric: {dimensions: briefing.rubric.dimensions, bonus: briefing.rubric.bonus},
+      calendar: briefing.calendar.map { |calendar_day| calendar_entry(calendar_day) },
+      calendar_span: calendar_span,
+      rubric: I18n.t("reads.morning_briefing.rubric.published",
+        dimensions: briefing.rubric.dimensions.join(" · "), bonus: briefing.rubric.bonus),
       grammar: briefing.grammar_line
     }
+  end
+
+  # One Day of the calendar, and what it reads as aloud. The page prints the
+  # ordinal alone; the sentence is for a reader who cannot see which is today.
+  def calendar_entry(calendar_day)
+    today = calendar_day.ordinal == day.ordinal
+    state = if today then :today
+    elsif calendar_day.closed? then :closed
+    else :ahead
+    end
+
+    {ordinal: calendar_day.ordinal,
+     in_fiction_date: in_fiction(calendar_day.in_fiction_date),
+     closed: calendar_day.closed?,
+     today: today,
+     label: I18n.t("reads.draft.front_matter.calendar_day.#{state}",
+       day: calendar_day.ordinal, date: in_fiction(calendar_day.in_fiction_date))}
+  end
+
+  def calendar_span
+    days = briefing.calendar
+
+    I18n.t("reads.draft.front_matter.calendar_span",
+      count: days.size,
+      first: in_fiction(days.first.in_fiction_date),
+      last: in_fiction(days.last.in_fiction_date))
   end
 
   # Our column, theirs, and the Client's aspiration in the margin.
@@ -155,6 +185,7 @@ class WorkingDraft
   def term_sheet
     {
       empty_state: terms.empty_state,
+      byline: byline,
       note: staged&.note,
       ours_staged: open_draft?,
       writable: may_draft?,
@@ -162,6 +193,8 @@ class WorkingDraft
         {
           term: track.term,
           label: label_for(track.term),
+          figure_label: track.money? &&
+            I18n.t("reads.draft.term_sheet.figure", term: label_for(track.term)),
           money: track.money?,
           ours: position(track.ours),
           theirs: position(track.theirs),
@@ -172,6 +205,15 @@ class WorkingDraft
       end,
       refusal: refusal_sentence(draft_refused)
     }
+  end
+
+  # Whose sheet, which Day, and who drew what is on it.
+  def byline
+    matter = side.case_version.case.name
+    drawn_by = (committed || staged)&.staged_by&.name
+    return I18n.t("reads.draft.term_sheet.byline", matter: matter, day: day.ordinal) if drawn_by.nil?
+
+    I18n.t("reads.draft.term_sheet.byline_drawn", matter: matter, day: day.ordinal, name: drawn_by)
   end
 
   # What the inputs open holding: the position `TermsBoard` already prints in the
@@ -234,11 +276,16 @@ class WorkingDraft
   # from rendering as though it were still blank.
   def countersignature
     offer = committed || staged
+    may_sign = open_draft? ? signatories(staged.staged_by) : []
 
     {
       drawn_by: offer&.staged_by&.name,
       signed_by: committed&.seconded_by&.name,
-      may_sign: open_draft? ? signatories(staged.staged_by) : [],
+      may_sign: may_sign,
+      # The caption under the blank line: who may sign it, where anyone may.
+      may_sign_caption: may_sign.any? &&
+        I18n.t("reads.draft.countersignature.countersigned_by_one_of",
+          names: may_sign.pluck(:name).join(", ")),
       executed: !committed.nil?,
       # How this instrument landed, or — before it has — whether the gate is
       # open. The two are one question asked at two moments, and the *committed*
@@ -297,6 +344,10 @@ class WorkingDraft
     {
       cost: staged && quote.cost,
       half_label: staged && half_label(quote.half),
+      price: staged && price(quote.cost, quote.half),
+      stub: quote.remaining_after && I18n.t("reads.draft.countersignature.stub",
+        price: price(quote.cost, quote.half), left: quote.remaining_after,
+        half: half_label(quote.half)),
       # What the half has left afterwards, for the confirmation the block opens
       # before it charges — the same three facts a spend's stub carries. It is
       # nil on a refused quote because there is no negative Budget to render,
@@ -335,9 +386,13 @@ class WorkingDraft
     offer = terms.their_offer
     return nil if offer.nil?
 
+    may_sign = signatories(you)
+
     {
       day: offer.day.ordinal,
       drawn_by: offer.staged_by.name,
+      drawn: I18n.t("reads.draft.acceptance.drawn",
+        name: offer.staged_by.name, day: offer.day.ordinal),
       note: offer.note,
       # Named by the Day it was committed on rather than by its row id: one
       # Offer per Side per Day by unique index, and the ordinal survives the
@@ -346,7 +401,12 @@ class WorkingDraft
       # a newer one has since landed, which is legal play rather than a race:
       # an Offer stands on the table until it is taken or the run ends.
       committed_on: offer.day.ordinal,
-      may_sign: signatories(you),
+      may_sign: may_sign,
+      # The one teammate who would countersign, named in the confirmation where
+      # there is nobody to choose between.
+      countersigns: may_sign.one? ?
+        I18n.t("reads.draft.acceptance.countersigns", name: may_sign.sole[:name]) : nil,
+      consequence: I18n.t("reads.draft.acceptance.consequence", day: day.ordinal),
       refusal: refusal_sentence(acceptance_refusal),
       refused: refusal_sentence(acceptance_refused)
     }
@@ -452,16 +512,27 @@ class WorkingDraft
   # ceiling between the failed charge and this read — where the line would
   # otherwise carry a stamp with nothing under it.
   def slip
+    remaining = DayBudget::HALVES.to_h do |half|
+      [half, {left: board.remaining_in(half), label: half_label(half)}]
+    end
+
     {
-      remaining: DayBudget::HALVES.to_h do |half|
-        [half, {left: board.remaining_in(half), label: half_label(half)}]
-      end,
+      heading: I18n.t("reads.draft.slip.heading",
+        remaining: remaining.map { |_half, left| "#{left[:left] || "—"} #{left[:label]}" }.join(" · ")),
+      remaining: remaining,
       actions: board.entries.map do |entry|
         just_now = refused_kind == entry.kind
+        landing = landing(entry)
 
         {
           kind: entry.kind,
           label: kind_label(entry.kind),
+          line: I18n.t("reads.draft.slip.line", price: price(entry.cost, entry.half), landing: landing),
+          stub: I18n.t("reads.draft.slip.stub",
+            price: price(entry.cost, entry.half), left: entry.remaining_after,
+            half: half_label(entry.half), landing: landing),
+          spend_label: I18n.t("reads.draft.slip.spend_label", action: kind_label(entry.kind)),
+          confirm_label: I18n.t("reads.draft.slip.confirm_label", action: kind_label(entry.kind)),
           cost: entry.cost,
           half: entry.half,
           half_label: half_label(entry.half),
@@ -475,6 +546,12 @@ class WorkingDraft
         }
       end
     }
+  end
+
+  def landing(entry)
+    return I18n.t("reads.draft.slip.lands_today") if entry.lands_today?
+
+    I18n.t("reads.draft.slip.lands_on", day: entry.landing_day&.ordinal || "—")
   end
 
   def refused_kind = refused && refused["kind"]
@@ -493,8 +570,8 @@ class WorkingDraft
   # One vocabulary, two surfaces: the slip's Action lines, the countersignature
   # block's price and the term sheet's own staging refusal all name a rule
   # `Days::Command` or `Offers::Stage` turned an act down by. The key sits at
-  # `reads.refusals` rather than under the Board for that reason — see the
-  # locale file.
+  # `reads.refusals` rather than under the Board for that reason — see
+  # `config/locales/refusals.en.yml`.
   def refusal_sentence(refusal)
     refusal.presence && I18n.t("reads.refusals.#{refusal}")
   end

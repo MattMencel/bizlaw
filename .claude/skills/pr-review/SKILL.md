@@ -25,7 +25,7 @@ Run the suites that cover the changed files, not the whole suite:
 | `app/services/` | `bundle exec rspec spec/services/` |
 | `app/reads/` | `bundle exec rspec spec/reads/` |
 | `app/controllers/demo/`, `lib/demo/` | `bundle exec rspec spec/requests/ spec/demo/` |
-| `app/frontend/`, views, `config/locales/reads.en.yml` | `bundle exec rspec spec/system/` |
+| `app/frontend/`, views, `config/locales/` | `bundle exec rspec spec/system/` |
 | Migrations, `db/structure.sql` | `bundle exec rspec spec/schema/ spec/schema_format_spec.rb` |
 | Behavior spanning a user story | `bundle exec cucumber` |
 

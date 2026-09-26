@@ -53,13 +53,6 @@ FOREIGN KEY ("case_version_id")
 , CONSTRAINT case_actions_cost_is_a_spend CHECK (cost >= 1), CONSTRAINT case_actions_lead_time_not_negative CHECK (lead_time_days >= 0), CONSTRAINT case_actions_half_known CHECK (half IN ('preparation', 'exchange')));
 CREATE INDEX "index_case_actions_on_case_version_id" ON "case_actions" ("case_version_id") /*application='Bizlaw'*/;
 CREATE UNIQUE INDEX "index_case_actions_on_case_version_id_and_kind" ON "case_actions" ("case_version_id", "kind") /*application='Bizlaw'*/;
-CREATE TABLE IF NOT EXISTS "case_terms" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "case_version_id" integer NOT NULL, "key" varchar NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_52eee3c7cb"
-FOREIGN KEY ("case_version_id")
-  REFERENCES "case_versions" ("id")
-);
-CREATE INDEX "index_case_terms_on_case_version_id" ON "case_terms" ("case_version_id") /*application='Bizlaw'*/;
-CREATE UNIQUE INDEX "index_case_terms_on_case_version_id_and_key" ON "case_terms" ("case_version_id", "key") /*application='Bizlaw'*/;
-CREATE UNIQUE INDEX "index_case_terms_on_id_and_case_version_id" ON "case_terms" ("id", "case_version_id") /*application='Bizlaw'*/;
 CREATE UNIQUE INDEX "index_case_actions_on_id_and_case_version_id" ON "case_actions" ("id", "case_version_id") /*application='Bizlaw'*/;
 CREATE TABLE IF NOT EXISTS "case_document_terms" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "case_version_id" bigint NOT NULL, "case_document_id" bigint NOT NULL, "case_term_id" bigint NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_2095294cd9"
 FOREIGN KEY ("case_document_id", "case_version_id")
@@ -454,7 +447,15 @@ WHERE staged_offers.id = NEW.staged_offer_id
 BEGIN
   SELECT RAISE(ABORT, 'staged_offer_terms_stay_on_an_unexecuted_day');
 END;
+CREATE TABLE IF NOT EXISTS "case_terms" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "case_version_id" integer NOT NULL, "key" varchar NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, "label" varchar NOT NULL, CONSTRAINT "fk_rails_52eee3c7cb"
+FOREIGN KEY ("case_version_id")
+  REFERENCES "case_versions" ("id")
+);
+CREATE INDEX "index_case_terms_on_case_version_id" ON "case_terms" ("case_version_id") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_case_terms_on_case_version_id_and_key" ON "case_terms" ("case_version_id", "key") /*application='Bizlaw'*/;
+CREATE UNIQUE INDEX "index_case_terms_on_id_and_case_version_id" ON "case_terms" ("id", "case_version_id") /*application='Bizlaw'*/;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260925090000'),
 ('20260914090000'),
 ('20260908140000'),
 ('20260908120000'),

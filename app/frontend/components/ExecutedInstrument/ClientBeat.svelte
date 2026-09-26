@@ -23,11 +23,11 @@
   this.
 -->
 <script>
-  let { beat } = $props()
+  let { copy, beat } = $props()
 </script>
 
 <section aria-labelledby="client-beat">
-  <h2 class="doc-sub" id="client-beat">Your Client</h2>
+  <h2 class="doc-sub" id="client-beat">{copy.heading}</h2>
 
   <div class="beat">
     <div class="face">{@html beat.portrait}</div>

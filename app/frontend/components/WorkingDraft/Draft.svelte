@@ -34,7 +34,7 @@
   import TermSheet from "./TermSheet.svelte"
   import Clipped from "./Clipped.svelte"
 
-  let { term_sheet, clipped, letterhead, countersignature, offer_path, day } = $props()
+  let { copy, term_sheet, clipped, countersignature, offer_path, day } = $props()
 
   const moneyTrack = term_sheet.tracks.find((track) => track.money)
 
@@ -99,9 +99,9 @@
   // dead control that will not say why is the thing #363 ruled out.
   const withheld = $derived(
     drawn.length === 0
-      ? "An offer names at least one term."
+      ? copy.drawing.withheld.no_terms
       : owesAnAmount && !wellFormed
-        ? "An offer of money is worth an amount."
+        ? copy.drawing.withheld.no_amount
         : null
   )
 
@@ -152,20 +152,26 @@
 </script>
 
 <div class="drafting" class:railed={clipped.available}>
-  <TermSheet {term_sheet} {letterhead} {countersignature} {position} {unposted} />
+  <TermSheet
+    copy={copy.term_sheet}
+    {term_sheet}
+    {countersignature}
+    {position}
+    {unposted}
+  />
   {#if clipped.available}
-    <Clipped {clipped} {position} />
+    <Clipped copy={copy.clipped} {clipped} {position} />
   {/if}
 </div>
 
 {#if term_sheet.writable}
   <div class="drawing">
     <label class="note-field">
-      <span class="cap">Covering note</span>
+      <span class="cap">{copy.drawing.note}</span>
       <input
         type="text"
         bind:value={position.note}
-        placeholder="Without prejudice…"
+        placeholder={copy.drawing.note_placeholder}
         maxlength="200"
       />
     </label>
@@ -182,12 +188,12 @@
       aria-describedby={withheld ? "withheld" : undefined}
       onclick={draw}
     >
-      Put this on the table
+      {copy.drawing.draw}
     </button>
     {#if withheld}
       <span class="refusal" id="withheld">{withheld}</span>
     {:else if unposted}
-      <span class="tiny muted">Your team is still reading the last one.</span>
+      <span class="tiny muted">{copy.drawing.unposted}</span>
     {/if}
   </div>
 {/if}

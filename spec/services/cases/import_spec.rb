@@ -26,6 +26,10 @@ RSpec.describe Cases::Import do
     }
   end
 
+  # A Term as a Case authors it: the key the rest of the file names it by, and
+  # the label a student reads.
+  def a_term(key, label = key.capitalize) = {"key" => key, "label" => label}
+
   def authored(**overrides)
     data = {
       "identifier" => "bizlaw/reference",
@@ -60,7 +64,7 @@ RSpec.describe Cases::Import do
           "settlement" => a_settlement("We take their paper today.", "They signed ours. File it.")
         }
       },
-      "terms" => %w[money reinstatement],
+      "terms" => [a_term("money"), a_term("reinstatement")],
       "documents" => {
         "deposition_of_the_supervisor" => {
           "action" => "depose_witness",
@@ -721,12 +725,25 @@ RSpec.describe Cases::Import do
     end
 
     it "refuses a Terms list that is not a list of Terms" do
-      expect { described_class.call(authored(terms: [{"key" => "money"}])) }
+      expect { described_class.call(authored(terms: %w[money reinstatement])) }
         .to raise_error(described_class::InvalidCase, /no terms for an Offer/)
     end
 
+    it "loads what each Term reads as, as authored" do
+      version = described_class.call(Rails.root.join("db/cases/reference.yml"))
+
+      expect(version.terms.find_by!(key: "nda").label).to eq("NDA")
+    end
+
+    it "refuses a Term with no label rather than making one up from its key" do
+      unlabelled = [a_term("money"), {"key" => "reinstatement"}]
+
+      expect { described_class.call(authored(terms: unlabelled)) }
+        .to raise_error(described_class::InvalidCase, /reinstatement with no label/)
+    end
+
     it "refuses a Term authored twice, because Terms are atomic" do
-      expect { described_class.call(authored(terms: %w[money money])) }
+      expect { described_class.call(authored(terms: [a_term("money"), a_term("money")])) }
         .to raise_error(described_class::InvalidCase, /Terms are atomic/)
     end
   end

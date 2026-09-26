@@ -31,6 +31,10 @@
 # one — what a waiver line says is a row's existence and the two facts hanging
 # off it.
 class Minute
+  # The register's marks — an in-fiction date, a role, a surface's copy. The
+  # Minute prints no Term and no figure, so it reaches for few of them.
+  include Typeset
+
   def self.for(...) = new(...)
 
   # `you` is who is reading, handed in for the reason `WorkingDraft` takes it:
@@ -51,6 +55,7 @@ class Minute
 
   def to_props
     {
+      copy: copy("reads.minute"),
       letterhead: letterhead,
       settled: settled,
       lines: settled ? [] : sides.map { |side| line(side) }
@@ -83,7 +88,10 @@ class Minute
 
     @settled = if simulation.settled?
       struck = simulation.settlement.day
-      {day: struck.ordinal, in_fiction_date: struck.in_fiction_date.to_s}
+      {day: struck.ordinal,
+       in_fiction_date: in_fiction(struck.in_fiction_date),
+       closed: I18n.t("reads.minute.closed.body",
+         day: struck.ordinal, date: in_fiction(struck.in_fiction_date))}
     end
   end
 
@@ -105,12 +113,30 @@ class Minute
     {
       section: simulation.section.name,
       matter: simulation.case_version.case.name,
+      title: title,
       day: settled ? nil : day.ordinal,
       of: simulation.days.count,
-      in_fiction_date: settled ? nil : day.in_fiction_date.to_s,
+      day_of: settled ? nil : day_of(day.ordinal, simulation.days.count),
+      in_fiction_date: settled ? nil : in_fiction(day.in_fiction_date),
       closed: day.closed?,
+      matter_line: matter_line,
       you: you.name
     }
+  end
+
+  def title
+    return I18n.t("reads.minute.title.settled") if settled
+
+    I18n.t("reads.minute.title.sitting", day: day.ordinal)
+  end
+
+  # The matter, and where this run stands in it.
+  def matter_line
+    matter = simulation.case_version.case.name
+    return I18n.t("reads.minute.matter.settled", matter: matter, day: settled[:day]) if settled
+
+    I18n.t("reads.minute.matter.#{day.closed? ? :closed : :sitting}",
+      matter: matter, day: day.ordinal, of: simulation.days.count)
   end
 
   # One Side's line. `drawn` is the one fact about a Team this page carries and
@@ -130,10 +156,17 @@ class Minute
 
     {
       role: side.role,
+      role_label: role_label(side.role),
       drawn: drawn?(side),
+      state: I18n.t("reads.minute.waivers.#{drawn?(side) ? :drawn : :undrawn}"),
+      waive_label: I18n.t("reads.minute.waivers.waive_label", role: role_label(side.role)),
+      # Formatted here rather than by the browser, so the minute reads the same
+      # to everyone who opens it. There is no Instructor's time zone yet, so it
+      # is the app's.
       granted: waiver && {
         by: waiver.granted_by.name,
-        at: waiver.created_at.iso8601
+        minuted: I18n.t("reads.minute.waivers.granted",
+          name: waiver.granted_by.name, at: I18n.l(waiver.created_at, format: :minuted))
       },
       refusal: refusal_sentence(refused_reason_for(side))
     }

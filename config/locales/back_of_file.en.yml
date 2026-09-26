@@ -1,0 +1,36 @@
+# The back of the file: the Case File and the Docket, on both faces of the game
+# — a live Day and a settled run turn over to the same back. See `reads.en.yml`
+# for how copy reaches a page and which classes print it in capitals.
+en:
+  reads:
+    case_file:
+      empty: >-
+        Nothing yet. What your Actions turn up lands here, along with anything
+        the other Side puts in front of you. This is what your Team knows, as
+        against the Docket's what your Team has done.
+    docket:
+      empty: >-
+        Nothing yet. Every Action your Team spends on lands here — what it was,
+        which of you spent it, what it cost, and the Day its result arrives.
+        Read forward, this is your Team's calendar.
+      acts:
+        offer_staged: Drew a draft
+        # The commit is a spend and has a price, so it sits among these rather
+        # than with the costless three for one reason only: there is no authored
+        # Action behind it to take a name from. § Register: an Offer commits by
+        # executing a draft.
+        offer_committed: Executed the draft
+        offer_accepted: Accepted their offer
+        second_waived: Countersignature waived by the instructor
+    back_of_file:
+      heading: Back of the file
+      subheading: What we know, and what we have done
+      papers: The papers
+      served: Served
+      exhibit: Exhibit
+      played: Exhibit played
+      at_the_open: In hand at the open
+      docket: The docket
+      band: the Client reads %{band}
+      lands: "%{price} · lands Day %{day}"
+      no_cost: no cost

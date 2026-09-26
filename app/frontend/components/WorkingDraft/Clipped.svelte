@@ -22,16 +22,16 @@
   play rather than quietly dropping one.
 -->
 <script>
-  let { clipped, position } = $props()
+  let { copy, clipped, position } = $props()
 </script>
 
 <aside class="rail" aria-labelledby="clipped">
-  <h2 class="doc-sub" id="clipped">Clipped to this draft</h2>
+  <h2 class="doc-sub" id="clipped">{copy.heading}</h2>
   <ul class="plain">
     {#each clipped.documents as doc (doc.identifier)}
       <li class="clip" class:spent={doc.spent}>
         {#if doc.spent}
-          <span class="tab-clip spent">Played</span>
+          <span class="tab-clip spent">{copy.played}</span>
           <span class="title struck">{doc.title}</span>
         {:else if clipped.writable}
           <label>
@@ -39,16 +39,13 @@
             <span class="title">{doc.title}</span>
           </label>
         {:else}
-          <span class="tab-clip">Exhibit</span>
+          <span class="tab-clip">{copy.exhibit}</span>
           <span class="title">{doc.title}</span>
         {/if}
       </li>
     {/each}
   </ul>
-  <p class="tiny muted foot">
-    An exhibit rides the offer it is clipped to, and is served on them when the
-    offer is executed.
-  </p>
+  <p class="tiny muted foot">{copy.foot}</p>
 </aside>
 
 <style>

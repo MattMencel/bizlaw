@@ -21,31 +21,30 @@
   on this instrument is waiting for a hand.
 -->
 <script>
-  let { signatures } = $props()
+  let { copy, signatures } = $props()
 
-  const role = (r) => r.charAt(0).toUpperCase() + r.slice(1)
 </script>
 
 <section aria-labelledby="signatures">
-  <h2 class="doc-sub" id="signatures" tabindex="-1">Executed by</h2>
+  <h2 class="doc-sub" id="signatures" tabindex="-1">{copy.heading}</h2>
 
   <div class="parties">
     {#each signatures as party (party.role)}
       <div class="party">
-        <div class="cap for">For the {role(party.role)}</div>
+        <div class="cap for">{party.for}</div>
         <div class="sig">
           <div class="line"><span class="hand">{party.signed_by}</span></div>
-          <div class="cap">Signed by</div>
+          <div class="cap">{copy.signed_by}</div>
         </div>
         <div class="sig">
           {#if party.waived}
             <!-- No line at all where nobody signed. A ruled line under a
                  waiver would be an empty signature block on an executed
                  instrument, which is the one thing this page cannot say. -->
-            <div class="cap waived">Countersignature waived by the instructor</div>
+            <div class="cap waived">{copy.waived}</div>
           {:else}
             <div class="line"><span class="hand">{party.seconded_by}</span></div>
-            <div class="cap">Countersigned by</div>
+            <div class="cap">{copy.countersigned_by}</div>
           {/if}
         </div>
       </div>

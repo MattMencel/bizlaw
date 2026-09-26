@@ -42,7 +42,7 @@
   import { router } from "@inertiajs/svelte"
   import { tick } from "svelte"
 
-  let { acceptance, acceptance_path, day } = $props()
+  let { acceptance, copy, acceptance_path, day } = $props()
 
   const live = $derived(!acceptance.refusal)
 
@@ -83,12 +83,9 @@
 </script>
 
 <section class="acceptance" aria-labelledby="acceptance">
-  <h2 class="doc-sub" id="acceptance" tabindex="-1">Their offer, open on the table</h2>
+  <h2 class="doc-sub" id="acceptance" tabindex="-1">{copy.heading}</h2>
 
-  <p class="small">
-    The terms struck through on the sheet above, drawn by {acceptance.drawn_by} and
-    committed on Day {acceptance.day}.
-  </p>
+  <p class="small">{acceptance.drawn}</p>
 
   {#if acceptance.note}
     <!-- Their covering line, in their hand and not ours. Indented as quoted
@@ -98,7 +95,7 @@
 
   {#if acceptance.refused}
     <p class="refusal refused-just-now" id="acceptance-refused">
-      <span class="stamp warn">Refused</span>
+      <span class="stamp warn">{copy.refused}</span>
       {acceptance.refused}
     </p>
   {/if}
@@ -118,11 +115,11 @@
           : undefined}
       onclick={() => live && (open = !open)}
     >
-      Accept their offer
+      {copy.accept}
     </button>
     <!-- No price beside it. The commit prints one here and this has none to
          print: the largest thing a Team ever does for nothing. -->
-    <span class="price">no cost</span>
+    <span class="price">{copy.no_cost}</span>
     {#if acceptance.refusal}
       <span class="refusal" id="acceptance-refusal">{acceptance.refusal}</span>
     {/if}
@@ -133,27 +130,27 @@
       <p class="terms">
         {#if acceptance.may_sign.length > 1}
           <label>
-            Countersigned by
+            {copy.countersigned_by}
             <select bind:value={signing}>
               {#each acceptance.may_sign as member (member.email)}
                 <option value={member.email}>{member.name}</option>
               {/each}
             </select>
           </label> ·
-        {:else if acceptance.may_sign.length === 1}
-          {acceptance.may_sign[0].name} countersigns ·
+        {:else if acceptance.countersigns}
+          {acceptance.countersigns} ·
         {/if}
-        this closes Day {day} and settles the matter · there is nothing after it
+        {acceptance.consequence}
       </p>
       <button
         type="button"
         class="control confirm"
-        aria-label="Confirm accepting their offer"
+        aria-label={copy.confirm_label}
         onclick={accept}
       >
-        Confirm
+        {copy.confirm}
       </button>
-      <button type="button" class="control" onclick={() => (open = false)}>Cancel</button>
+      <button type="button" class="control" onclick={() => (open = false)}>{copy.cancel}</button>
     </div>
   {/if}
 </section>

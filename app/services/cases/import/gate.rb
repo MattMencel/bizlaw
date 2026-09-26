@@ -30,6 +30,11 @@ module Cases
 
       def terms = data["terms"]
 
+      # The keys the rest of a Case names its Terms by. Read leniently, because
+      # the gates that name Terms run before `TermsGate` has said whether the
+      # list is well formed, and a malformed one is that gate's refusal.
+      def term_keys = Array(terms).filter_map { |term| term["key"] if term.is_a?(Hash) }
+
       def documents = data["documents"]
     end
   end

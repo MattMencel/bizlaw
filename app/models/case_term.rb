@@ -25,6 +25,7 @@ class CaseTerm < ApplicationRecord
   has_many :committed_offer_terms, inverse_of: :case_term, dependent: :restrict_with_error
 
   validates :key, presence: true, uniqueness: {scope: :case_version_id}
+  validates :label, presence: true
 
   def money? = key == MONEY
 end

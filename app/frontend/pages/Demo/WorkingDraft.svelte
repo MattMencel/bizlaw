@@ -46,6 +46,7 @@
   import { rereadOnFocus } from "../../lib/live.svelte.js"
 
   let {
+    copy,
     letterhead,
     front_matter,
     term_sheet,
@@ -91,48 +92,46 @@
     ])
   )
 
-  const role = (r) => r.charAt(0).toUpperCase() + r.slice(1)
-
   // Joined here rather than in the markup: a `{#if}` around the separator loses
   // the space in front of it, and the cold open has no member to name.
   const meta = $derived(
-    [`Day ${letterhead.day}/${letterhead.of}`, letterhead.in_fiction_date, letterhead.you]
+    [letterhead.day_of, letterhead.in_fiction_date, letterhead.you]
       .filter(Boolean)
       .join(" · ")
   )
 </script>
 
 <svelte:head>
-  <title>{letterhead.matter} — Day {letterhead.day}</title>
+  <title>{letterhead.title}</title>
 </svelte:head>
 
 <main class="desk">
   <article class="sheet">
     <header class="masthead">
       <div class="letterhead">
-        <h1 class="firm">{role(letterhead.role)} · {letterhead.matter}</h1>
+        <h1 class="firm">{letterhead.role_label} · {letterhead.matter}</h1>
         <span class="meta">{meta}</span>
       </div>
       <div class="turn">
         <span class="tiny muted">
-          {face === "back" ? "You are looking at the back of the file." : "You are looking at the draft."}
+          {face === "back" ? copy.turn.looking_at_back : copy.turn.looking_at_front}
         </span>
         <button type="button" onclick={() => (face = face === "back" ? "front" : "back")}>
-          {face === "back" ? "Turn back to the draft" : "Turn the page over"}
+          {face === "back" ? copy.turn.to_front : copy.turn.to_back}
         </button>
       </div>
     </header>
 
     {#if face === "front"}
-      <FrontMatter {front_matter} day={letterhead.day} />
+      <FrontMatter {front_matter} copy={copy.front_matter} />
 
       <hr class="rule heavy" />
 
       {#key onTheTable}
         <Draft
+          {copy}
           {term_sheet}
           {clipped}
-          {letterhead}
           {countersignature}
           {offer_path}
           day={letterhead.day}
@@ -141,23 +140,28 @@
 
       <hr class="rule" />
 
-      <Countersignature {countersignature} {commit_path} day={letterhead.day} />
+      <Countersignature
+        {countersignature}
+        copy={copy.countersignature}
+        {commit_path}
+        day={letterhead.day}
+      />
 
       <!-- Their paper, under ours. It is absent until there is something across
            the table, which the cold open never has — see `Acceptance.svelte`. -->
       {#if acceptance}
         <hr class="rule" />
 
-        <Acceptance {acceptance} {acceptance_path} day={letterhead.day} />
+        <Acceptance {acceptance} copy={copy.acceptance} {acceptance_path} day={letterhead.day} />
       {/if}
 
       <hr class="rule" />
 
-      <ConsultMemo {memo} />
+      <ConsultMemo {memo} copy={copy.memo} />
 
       <hr class="rule" />
 
-      <ActionSlip {slip} {spend_path} day={letterhead.day} />
+      <ActionSlip {slip} copy={copy.slip} {spend_path} day={letterhead.day} />
     {:else}
       <BackOfFile {back} />
     {/if}

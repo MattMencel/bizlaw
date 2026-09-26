@@ -22,7 +22,7 @@
   authored seed, and no student prose reaches it.
 -->
 <script>
-  let { memo } = $props()
+  let { memo, copy } = $props()
 </script>
 
 <section aria-labelledby="memo">
@@ -30,7 +30,7 @@
        just bought rather than back on the button that bought them. #363 put
        focus on the control because a refusal is wired to it; a Consult is the
        first act whose whole product is further up the page. -->
-  <h2 class="doc-sub" id="memo" tabindex="-1">Memo — your Client</h2>
+  <h2 class="doc-sub" id="memo" tabindex="-1">{copy.heading}</h2>
 
   {#if memo.empty_state}
     <p class="empty-state">{memo.empty_state}</p>
@@ -41,7 +41,7 @@
           <div class="face">{@html memo.portrait}</div>
         {/if}
         <div class="said">
-          <p class="tiny muted reads">Reads <strong>{entry.band}</strong></p>
+          <p class="tiny muted reads">{copy.reads} <strong>{entry.band}</strong></p>
           <div class="prose small">
             {#each entry.line.split("\n\n") as para}
               <p>{para}</p>

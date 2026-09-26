@@ -6,6 +6,8 @@ require "rails_helper"
 # it is allowed to say and nothing else — a page that grew a Team's papers would
 # be the console #312 ruled out, arriving by increment.
 RSpec.describe Minute do
+  include ActiveSupport::Testing::TimeHelpers
+
   before { Demo::Seed.call }
 
   let(:simulation) { Demo::Seed.simulation(Demo::Seed::DEMO) }
@@ -64,13 +66,19 @@ RSpec.describe Minute do
     # A record rather than a state. There is no revoking a waiver, so once this
     # is filled the line stops being a control and becomes the minute of
     # something that happened — which is why it names who and when.
-    it "becomes a record naming who granted it" do
-      Offers::WaiveSecond.call(side: simulation.plaintiff_side, day: day, by: instructor)
+    #
+    # When is written on the server, so the minute reads the same to everyone
+    # who opens it rather than in each browser's own clock.
+    it "becomes a record naming who granted it, and when" do
+      travel_to Time.zone.local(2026, 9, 25, 15, 4) do
+        Offers::WaiveSecond.call(side: simulation.plaintiff_side, day: day, by: instructor)
+      end
 
       granted = props[:lines].find { |line| line[:role] == Side::PLAINTIFF }[:granted]
 
       expect(granted[:by]).to eq(instructor.name)
-      expect(granted[:at]).to be_present
+      expect(granted[:minuted])
+        .to eq("The second is waived for this Day. Granted by #{instructor.name}, Sep 25, 3:04 PM.")
     end
 
     # Granted to one Team, not to the Day. The other line is untouched, which is
