@@ -21,6 +21,7 @@
   on this instrument is waiting for a hand.
 -->
 <script>
+  import Glossed from "../Gloss/Glossed.svelte"
   let { copy, signatures } = $props()
 
 </script>
@@ -44,7 +45,7 @@
             <div class="cap waived">{copy.waived}</div>
           {:else}
             <div class="line"><span class="hand">{party.seconded_by}</span></div>
-            <div class="cap">{copy.countersigned_by}</div>
+            <div class="cap"><Glossed at="executed_instrument.signatures.countersigned_by" text={copy.countersigned_by} /></div>
           {/if}
         </div>
       </div>

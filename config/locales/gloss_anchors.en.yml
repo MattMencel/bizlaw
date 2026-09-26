@@ -73,4 +73,10 @@ en:
             - {at: docket.band, word: ready}
           preparation_points:
             - {at: docket.price, word: preparation}
-        executed_instrument: {}
+        executed_instrument:
+          term:
+            - {at: executed_instrument.terms.heading, word: Terms}
+          executed:
+            - {at: executed_instrument.terms.mark, word: Executed}
+          countersign:
+            - {at: executed_instrument.signatures.countersigned_by, word: Countersigned}

@@ -206,6 +206,54 @@ RSpec.describe "the glosses", type: :system do
     end
   end
 
+  # A settled run: his draft executed under a waiver, then taken by the
+  # defendant with a countersignature. Driven through the seams, as
+  # `executed_instrument_spec.rb` does, because the seed stops short of it.
+  describe "the executed agreement" do
+    before do
+      simulation = Demo::Seed.simulation(Demo::Seed::DEMO)
+      side = simulation.plaintiff_side
+      player = side.members.sole
+      day = simulation.days.find_by!(ordinal: Demo::Seed::DEMO_DAY)
+      Offers::Stage.call(side: side, day: day, by: player, terms: {"money" => 150_000_00, "apology" => nil})
+      Offers::WaiveSecond.call(side: side, day: day,
+        by: User.find_by!(email: Demo::Seed::INSTRUCTOR_EMAIL))
+      Days::Command.apply(act: :commit_offer, side: side, day: day, by: player, seconded_by: nil)
+      Offers::Accept.call(
+        offer: side.committed_offer_on(day),
+        side: simulation.defendant_side,
+        day: simulation.days.find_by!(ordinal: 4),
+        by: User.find_by!(email: Demo::Seed::DEFENDANT_LEAD_EMAIL),
+        seconded_by: User.find_by!(email: Demo::Seed::DEFENDANT_SECOND_EMAIL)
+      )
+      visit "/demo/#{Demo::Seed::DEMO}"
+      expect(page).to have_css("#executed-terms")
+    end
+
+    include_examples "one note per term"
+
+    it "glosses the Term, the execution and the countersignature where the agreement meets them" do
+      expect(glossed_words).to eq("term" => "terms", "executed" => "executed", "countersign" => "countersigned")
+      expect(page).to have_css("h2#executed-terms a.glossed", text: "Terms")
+      expect(page).to have_css(".draft-mark a.glossed", text: /executed/i)
+      expect(page).to have_css("#signatures ~ .parties a.glossed", text: /countersigned/i)
+    end
+
+    it "leaves the caption's later execution alone" do
+      expect(find("table.terms caption")).to have_no_css("a.glossed")
+    end
+
+    it "lists the words above the terms when there is no margin" do
+      page.driver.browser.manage.window.resize_to(760, 1200)
+      heading = find("h2", text: /words used in this file/i)
+
+      expect(top(heading)).to be < top(find("h2#executed-terms"))
+      expect(page).to be_axe_clean
+    ensure
+      page.driver.browser.manage.window.resize_to(1400, 1400)
+    end
+  end
+
   # No margin to put a note in, so the notes are a list at the top of the face,
   # and each glossed word links up to its entry.
   describe "on a narrow sheet" do
