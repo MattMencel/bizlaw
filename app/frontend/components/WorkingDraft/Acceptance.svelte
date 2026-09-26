@@ -16,9 +16,7 @@
   than the one struck through up there.
 
   It prints their covering note, which until now nothing did. The defendant's
-  reads *Without prejudice. Open for acceptance today.* — and the Day it says
-  that of has closed by the time it can be taken, which is the register telling
-  the reader a deadline passed rather than a line of copy about one.
+  reads *Our best figure. We'd like this closed.*
 
   **It is not a permanent fixture, and the countersignature block is.** That
   block is about a draft this Team could always draw, and its empty signature
