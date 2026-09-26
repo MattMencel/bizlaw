@@ -163,7 +163,7 @@ RSpec.describe "the executed instrument", type: :system do
     # Nothing about a Day survives. There is no today to have a briefing, a
     # slip or a Consult on.
     it "has no briefing, no slip and nothing to write on" do
-      expect(page).to have_no_text("Everything here is the case file")
+      expect(page).to have_no_text("Work the Case File in any order")
       expect(page).to have_no_text("Consult the Client")
       expect(page).to have_no_css("input[type='checkbox']")
       expect(page).to have_no_css("button#execute-the-draft")
