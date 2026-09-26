@@ -26,28 +26,30 @@ RSpec.describe "the Instructor's minute", type: :system do
     # Side rather than a file.
     it "is headed by the Section they run" do
       expect(page).to have_text(Demo::Seed::SECTION)
-      expect(page).to have_text("Minute of the instructor")
+      expect(page).to have_text("Minute of the Instructor")
     end
 
     it "says what a waiver is before it offers one" do
-      expect(page).to have_text("granted, never exercised")
-      expect(page).to have_text("cannot be taken back")
+      expect(page).to have_css("h3#waivers", text: /\Awaive a countersignature\z/i)
+      expect(page).to have_text("without a teammate's countersignature")
+      expect(page).to have_text("Cannot be undone.")
     end
 
     it "carries one line per Side" do
-      expect(page).to have_button("Waive the second", count: 2)
+      expect(page).to have_css("button[aria-label='Waive the countersignature for the Plaintiff']")
+      expect(page).to have_button("Waive the countersignature", count: 2)
     end
 
     # The obvious drawing and the wrong one. `CONTEXT.md` § Second: the
     # Instructor never Seconds on a Team's behalf, so there is nothing on this
     # instrument for them to sign.
-    # The rubric says the word, because saying *nobody countersigns on a team's
-    # behalf* is the point — what is ruled out is the mark, not the noun: no
-    # ruled line, no hand, and no control that invites one.
+    # What is ruled out is the mark, not the noun: no ruled line, no hand, and
+    # no control that invites one. The control *waives* a countersignature, so
+    # it names the noun; it never asks the Instructor to sign.
     it "has no signature line anywhere on it" do
       expect(page).to have_no_css(".sig")
       expect(page).to have_no_css(".hand")
-      expect(page).to have_no_css("button", text: /sign/i)
+      expect(page).to have_no_css("button", text: /\bsign\b/i)
     end
 
     it "is accessible" do
@@ -61,14 +63,14 @@ RSpec.describe "the Instructor's minute", type: :system do
     it "says nothing is drawn before anyone has drawn one" do
       minute
 
-      expect(page).to have_text("nothing drawn on the table", count: 2)
+      expect(page).to have_text("No draft waiting", count: 2)
     end
 
     it "says a position is waiting once one is" do
       draw
       minute
 
-      expect(page).to have_text("a position is on the table, unexecuted")
+      expect(page).to have_text("Draft waiting for a countersignature")
     end
   end
 
@@ -83,8 +85,8 @@ RSpec.describe "the Instructor's minute", type: :system do
     it "records who granted it and when, in place of the control" do
       find("#waive-#{Side::PLAINTIFF}").click
 
-      expect(page).to have_text("The second is waived for this Day.")
-      expect(page).to have_text("Granted by Professor Adeyemi")
+      expect(page).to have_text("Countersignature waived for this Day")
+      expect(page).to have_text("by Professor Adeyemi")
       expect(page).to have_no_css("#waive-#{Side::PLAINTIFF}")
     end
 
@@ -93,14 +95,14 @@ RSpec.describe "the Instructor's minute", type: :system do
     it "leaves the other Side's line alone" do
       find("#waive-#{Side::PLAINTIFF}").click
 
-      expect(page).to have_text("The second is waived for this Day.", count: 1)
+      expect(page).to have_text("Countersignature waived for this Day", count: 1)
       expect(page).to have_css("#waive-#{Side::DEFENDANT}")
     end
 
     it "is accessible once one is granted" do
       find("#waive-#{Side::PLAINTIFF}").click
 
-      expect(page).to have_text("Granted by Professor Adeyemi")
+      expect(page).to have_text("by Professor Adeyemi")
       expect(page).to be_axe_clean
     end
   end
