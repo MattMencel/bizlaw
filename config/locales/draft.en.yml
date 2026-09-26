@@ -129,7 +129,7 @@ en:
       countersignature:
         heading: Signatures
         drawn_by: Signed by
-        waived: Countersignature waived by the instructor
+        waived: Countersignature waived by the Instructor
         countersigned_by: Countersigned by
         # A blank line with nobody named who may sign it: a Side of one, or no
         # draft yet.

@@ -590,6 +590,9 @@ RSpec.describe "the working draft", type: :system do
       # Case-insensitive: the caption is small-caps by `text-transform`, so what
       # the DOM holds and what the eye reads differ in case alone.
       expect(page).to have_text(/countersignature waived by the instructor/i)
+      expect(page).to have_css(".sig .cap", visible: :all) { |cap|
+        cap.native.attribute("textContent").strip == "Countersignature waived by the Instructor"
+      }
     end
 
     # The same grammar the slip taught, for the same reason: this is
