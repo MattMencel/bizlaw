@@ -55,7 +55,7 @@ en:
           Not enough exchange points left today. Drop an Exhibit from the draft,
           or send it tomorrow.
       the_day_has_closed: >-
-        This Day has closed.
+        This Day has closed. The next one opens on the Instructor's schedule.
       the_day_has_not_opened: >-
         This Day has not opened yet.
       the_offer_has_not_been_seconded: >-
