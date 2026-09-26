@@ -36,6 +36,7 @@ RSpec.describe "the Instructor's minute", type: :system do
     end
 
     it "carries one line per Side" do
+      expect(page).to have_css("button[aria-label='Waive the countersignature for the Plaintiff']")
       expect(page).to have_button("Waive the countersignature", count: 2)
     end
 
