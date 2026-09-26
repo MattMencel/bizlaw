@@ -194,10 +194,10 @@ RSpec.describe "the executed instrument", type: :system do
     # `CONTEXT.md` § Instructor keeps their powers over a running Day, and there
     # is no running Day. Without this branch the minute renders the first
     # unclosed Day — one that never opened — asserting the game is still going.
-    it "leaves the Instructor's minute saying the matter is closed" do
+    it "leaves the Instructor's minute saying the Sides settled" do
       visit "/demo/#{Demo::Seed::DEMO}/#{Demo::Seat::INSTRUCTOR}"
 
-      expect(page).to have_text(/the matter is closed/i)
+      expect(page).to have_css("h3#closed", text: /\Asettled\z/i)
       expect(page).to have_text(/settled on Day 4/)
       expect(page).to have_no_css("button#waive-plaintiff")
       expect(page).to be_axe_clean

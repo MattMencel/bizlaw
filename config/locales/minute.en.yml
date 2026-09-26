@@ -14,7 +14,7 @@ en:
         closed: "%{matter} · Day %{day} of %{of} · this Day has closed"
         settled: "%{matter} · settled on Day %{day}"
       closed:
-        heading: The matter is closed
+        heading: Settled
         body: >-
           The two Sides settled on Day %{day}, %{date}. No further Day opens,
           and there is nothing left to release.
