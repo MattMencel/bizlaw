@@ -139,17 +139,24 @@ en:
         confirm: Confirm
         cancel: Cancel
       acceptance:
-        heading: Their offer, open on the table
+        heading: Their Offer, open on the table
         drawn: >-
-          The terms struck through on the sheet above, drawn by %{name} and
-          committed on Day %{day}.
+          Sent on Day %{day}, signed by %{name}. Their Terms are the ones struck
+          through above.
+        # A House Rule (#393), placed where it bites: accepting.
+        house_rule: >-
+          In this game, their Offer stays open until we accept it or the game
+          ends, even after we counter. At law, a counteroffer rejects it.
         refused: Refused
-        accept: Accept their offer
+        accept: Accept their Offer
         no_cost: no cost
-        countersigned_by: Countersigned by
-        countersigns: "%{name} countersigns"
-        consequence: this closes Day %{day} and settles the matter · there is nothing after it
-        confirm_label: Confirm accepting their offer
+        # The stub prints the consequence first, then the teammate's hand: a
+        # picker labelled `countersigned_by`, or `countersigns` where there is
+        # one teammate to name.
+        consequence: "Ends the game: we settle on these Terms, and Day %{day} closes."
+        countersigned_by: "Countersigned by:"
+        countersigns: "Countersigned by: %{name}"
+        confirm_label: "Confirm: accept their Offer"
         confirm: Confirm
         cancel: Cancel
       memo:

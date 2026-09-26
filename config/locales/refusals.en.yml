@@ -56,13 +56,14 @@ en:
       # table, and this one is about taking the other Side's — a reader told to
       # countersign *the draft* would look at the wrong instrument.
       the_acceptance_has_not_been_seconded: >-
-        A teammate has to countersign before their offer can be accepted.
+        A teammate has to countersign before we can accept their Offer.
       # Distinct from `the_simulation_has_settled`, which is what a *spend* is
       # refused for and says there is nothing left to buy. An Acceptance beaten
       # across the table was not refused for having nothing to buy; it was
       # refused because the thing it was reaching for has already happened.
       the_matter_has_already_settled: >-
-        The matter has already settled. There is nothing left to accept.
+        The matter has already settled. The executed agreement is on the front
+        of the file.
       there_is_no_offer_on_the_table: >-
         There is no draft to execute. Write your terms above and put them on the
         table first.

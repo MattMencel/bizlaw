@@ -14,19 +14,25 @@ en:
       terms:
         heading: Terms of settlement
         mark: Executed
-        caption: >-
-          Executed on Day %{day}, %{date}. These are the terms both Sides
-          signed; there is nothing else on this instrument.
+        caption: Executed on Day %{day}, %{date}. Both Sides signed these Terms.
         columns:
           term: Term
           agreed: As agreed
         # A Term agreed without a figure is the Term itself.
         included: Included
+        # Two House Rules (#393) in one pair: what this instrument leaves out.
+        # The same words on every settlement, so they say nothing about how the
+        # deal landed (ADR 0007).
+        leaves_out: >-
+          In this game, the agreement carries only these Terms, and we settled
+          without asking the Client. At law, it would also carry a release of the
+          claim and a dismissal of the suit, and it would need the Client's
+          consent.
       signatures:
         heading: Executed by
         for: For the %{role}
         signed_by: Signed by
         countersigned_by: Countersigned by
-        waived: Countersignature waived by the instructor
+        waived: Countersignature waived by the Instructor
       beat:
-        heading: Your Client
+        heading: The Client
