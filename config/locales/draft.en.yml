@@ -158,12 +158,13 @@ en:
         reads: Reads
       slip:
         heading: "Actions · left today: %{remaining}"
-        lands_today: lands today
-        lands_on: lands Day %{day}
         arrives_today: arrives today
         arrives_on: arrives Day %{day}
         line: "%{points} · %{arriving}"
-        stub: "%{price} · %{left} %{half} left after · %{landing}"
+        # The stub's own, because there the arrival is a sentence of its own.
+        stub_arrives_today: Arrives today.
+        stub_arrives_on: Arrives Day %{day}.
+        stub: "Costs %{points} (%{left} left after). %{arriving}"
         spend: Spend
         spend_label: Spend %{action}
         confirm_label: Confirm spending %{action}

@@ -275,6 +275,13 @@ RSpec.describe WorkingDraft do
       expect(action(CaseAction::CONSULT_CLIENT)[:line]).to eq("1 preparation point · arrives today")
     end
 
+    it "writes the confirmation stub as the cost, what is left after, and when it arrives" do
+      expect(action(CaseAction::DEPOSE_WITNESS)[:stub])
+        .to eq("Costs 3 preparation points (5 left after). Arrives Day 3.")
+      expect(action(CaseAction::CONSULT_CLIENT)[:stub])
+        .to eq("Costs 1 preparation point (7 left after). Arrives today.")
+    end
+
     # A refusal is a symbol the engine names a rule by; the page needs the
     # sentence, and it comes from the one file that holds machine copy.
     it "renders a refusal as its sentence, with the Action still priced" do

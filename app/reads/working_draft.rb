@@ -522,15 +522,14 @@ class WorkingDraft
       remaining: remaining,
       actions: board.entries.map do |entry|
         just_now = refused_kind == entry.kind
-        landing = landing(entry)
 
         {
           kind: entry.kind,
           label: kind_label(entry.kind),
           line: I18n.t("reads.draft.slip.line", points: points(entry.cost, entry.half), arriving: arriving(entry)),
           stub: I18n.t("reads.draft.slip.stub",
-            price: price(entry.cost, entry.half), left: entry.remaining_after,
-            half: half_label(entry.half), landing: landing),
+            points: points(entry.cost, entry.half), left: entry.remaining_after,
+            arriving: arriving(entry, stub: true)),
           spend_label: I18n.t("reads.draft.slip.spend_label", action: kind_label(entry.kind)),
           confirm_label: I18n.t("reads.draft.slip.confirm_label", action: kind_label(entry.kind)),
           cost: entry.cost,
@@ -548,16 +547,11 @@ class WorkingDraft
     }
   end
 
-  def landing(entry)
-    return I18n.t("reads.draft.slip.lands_today") if entry.lands_today?
+  def arriving(entry, stub: false)
+    prefix = stub ? "stub_" : ""
+    return I18n.t("reads.draft.slip.#{prefix}arrives_today") if entry.lands_today?
 
-    I18n.t("reads.draft.slip.lands_on", day: entry.landing_day&.ordinal || "—")
-  end
-
-  def arriving(entry)
-    return I18n.t("reads.draft.slip.arrives_today") if entry.lands_today?
-
-    I18n.t("reads.draft.slip.arrives_on", day: entry.landing_day&.ordinal || "—")
+    I18n.t("reads.draft.slip.#{prefix}arrives_on", day: entry.landing_day&.ordinal || "—")
   end
 
   def refused_kind = refused && refused["kind"]

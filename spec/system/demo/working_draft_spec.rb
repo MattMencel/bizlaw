@@ -90,7 +90,7 @@ RSpec.describe "the working draft", type: :system do
     it "opens the price in place, against what the half has left" do
       slip_line("Consult the Client").click_button("Spend")
 
-      expect(page).to have_text("1 preparation · 7 preparation left after · lands today")
+      expect(page).to have_text("Costs 1 preparation point (7 left after). Arrives today.")
       expect(page).to have_button("Confirm")
     end
 
