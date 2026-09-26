@@ -126,7 +126,7 @@ RSpec.describe Docket do
   describe "the empty state" do
     it "describes what a Docket would hold" do
       expect(side.docket).to be_empty
-      expect(side.docket.empty_state).to include("what it cost", "the Day its result arrives")
+      expect(side.docket.empty_state).to include("Each Action we buy is logged here", "what it cost", "the Day it arrives")
     end
 
     it "says nothing once there is something to read" do

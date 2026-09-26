@@ -9,9 +9,8 @@ en:
         Side serves on us, are filed here.
     docket:
       empty: >-
-        Nothing yet. Every Action your Team spends on lands here — what it was,
-        which of you spent it, what it cost, and the Day its result arrives.
-        Read forward, this is your Team's calendar.
+        Nothing yet. Each Action we buy is logged here with who bought it, what
+        it cost and the Day it arrives.
       acts:
         offer_staged: Drew a draft
         # The commit is a spend and has a price, so it sits among these rather

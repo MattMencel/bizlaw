@@ -332,7 +332,7 @@ RSpec.describe "the working draft", type: :system do
     it "says what a Docket would hold" do
       click_button "Turn over: Case File & Docket"
 
-      expect(page).to have_text("Nothing yet.")
+      expect(page).to have_text("Nothing yet. Each Action we buy is logged here")
     end
 
     # The claim under test is not that the sentences are written but that they
@@ -355,7 +355,7 @@ RSpec.describe "the working draft", type: :system do
       click_button "Turn over: Case File & Docket"
 
       expect(page).to have_text("Consult the Client")
-      expect(page).to have_no_text("Nothing yet. Every Action your Team spends on lands here")
+      expect(page).to have_no_text("Nothing yet. Each Action we buy is logged here")
     end
 
     it "is accessible" do
