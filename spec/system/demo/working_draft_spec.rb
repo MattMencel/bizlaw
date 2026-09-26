@@ -504,7 +504,7 @@ RSpec.describe "the working draft", type: :system do
     before { visit "/demo/#{Demo::Seed::DEMO}" }
 
     it "offers this Team's own playable Exhibit and nothing it was served" do
-      within("aside", text: /clipped to this draft/i) do
+      within("aside", text: /exhibits · clipped to this draft/i) do
         expect(page).to have_field("The claimant's personnel file")
         expect(page).not_to have_text("Deposition of the plant supervisor")
       end
