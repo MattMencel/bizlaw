@@ -278,7 +278,7 @@ RSpec.describe "the working draft", type: :system do
     end
 
     it "marks the sheet a draft, and puts his position in our column" do
-      expect(page).to have_text(/draft — not executed/i)
+      expect(page).to have_text(/draft — not sent/i)
       expect(page).to have_field(type: "text", with: "$180,000")
     end
 
@@ -428,7 +428,7 @@ RSpec.describe "the working draft", type: :system do
       write(money: "$120,000", terms: ["Apology"])
       click_button "Put this on the table"
 
-      expect(page).to have_text(/draft — not executed/i)
+      expect(page).to have_text(/draft — not sent/i)
       expect(page).not_to have_css(".draft-mark.pending")
       expect(line_for("Apology")).to have_text("Included")
       expect(line_for("Money")).to have_field(type: "text", with: "$120,000")
@@ -441,7 +441,7 @@ RSpec.describe "the working draft", type: :system do
       write(money: "$120,000")
       click_button "Put this on the table"
 
-      expect(page).to have_text(/draft — not executed/i)
+      expect(page).to have_text(/draft — not sent/i)
       expect(page.evaluate_script("document.activeElement.id")).to eq("term-sheet")
     end
 
@@ -469,7 +469,7 @@ RSpec.describe "the working draft", type: :system do
     it "clears the unposted mark when the note it sent was only spaces" do
       write(money: "$120,000")
       click_button "Put this on the table"
-      expect(page).to have_text(/draft — not executed/i)
+      expect(page).to have_text(/draft — not sent/i)
 
       fill_in "Covering note", with: "   "
 
@@ -554,7 +554,7 @@ RSpec.describe "the working draft", type: :system do
       check "Money"
       fill_in "Our position on Money, in dollars", with: "$150,000"
       click_button "Put this on the table"
-      expect(page).to have_text(/draft — not executed/i)
+      expect(page).to have_text(/draft — not sent/i)
     end
 
     def waive_it

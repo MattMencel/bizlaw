@@ -83,7 +83,7 @@ en:
         heading: Draft terms of settlement
         marks:
           pending: Not shared yet
-          drafted: Draft — not executed
+          drafted: Draft — not sent
           executed: Executed
         byline: "%{matter} · Day %{day}"
         byline_drawn: "%{matter} · Day %{day} · drawn by %{name}"
