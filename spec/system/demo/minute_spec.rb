@@ -26,7 +26,7 @@ RSpec.describe "the Instructor's minute", type: :system do
     # Side rather than a file.
     it "is headed by the Section they run" do
       expect(page).to have_text(Demo::Seed::SECTION)
-      expect(page).to have_text("Minute of the instructor")
+      expect(page).to have_text("Minute of the Instructor")
     end
 
     it "says what a waiver is before it offers one" do

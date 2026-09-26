@@ -8,7 +8,7 @@ en:
         sitting: Minute — Day %{day}
         settled: Minute — settled
       settled: Settled
-      heading: Minute of the instructor
+      heading: Minute of the Instructor
       matter:
         sitting: "%{matter} · Day %{day} of %{of}"
         closed: "%{matter} · Day %{day} of %{of} · this Day has closed"
