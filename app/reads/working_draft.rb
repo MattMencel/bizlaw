@@ -67,6 +67,7 @@ class WorkingDraft
   def to_props
     {
       copy: copy("reads.draft"),
+      glossary: glossary(:draft),
       letterhead: letterhead,
       front_matter: front_matter,
       term_sheet: term_sheet,

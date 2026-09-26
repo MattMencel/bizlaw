@@ -8,11 +8,16 @@
   The copy lives in `config/locales/draft.en.yml`.
 -->
 <script>
+  import GlossList from "../Gloss/GlossList.svelte"
+  import Glossed from "../Gloss/Glossed.svelte"
+
   let { front_matter, copy } = $props()
 </script>
 
 <section aria-labelledby="front-matter">
   <h2 class="doc-sub" id="front-matter">{front_matter.heading}</h2>
+
+  <GlossList />
 
   <h3 class="doc-sub">{copy.landed}</h3>
   {#if front_matter.landed_empty_state}
@@ -25,7 +30,7 @@
     </ul>
   {/if}
 
-  <h3 class="doc-sub">{copy.served}</h3>
+  <h3 class="doc-sub"><Glossed at="front_matter.served" text={copy.served} /></h3>
   {#if front_matter.served_empty_state}
     <p class="empty-state">{front_matter.served_empty_state}</p>
   {:else}
