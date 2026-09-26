@@ -14,9 +14,8 @@ en:
       # must not be.
       landed:
         empty: >-
-          Nothing yet. An Action you spend comes back on the Day its lead time
-          names, and lands here that morning. Nothing you have bought is due
-          back today.
+          Nothing's due back today. Actions we buy below come back here on the
+          morning they're due.
       served:
         empty: >-
           Nothing yet. When the other Side executes an offer, any exhibit

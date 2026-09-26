@@ -204,7 +204,7 @@ RSpec.describe MorningBriefing do
     it "says what would land, and what being served means" do
       read = briefing(on: day(1))
 
-      expect(read.landed_empty_state).to include("lead time", "due back today")
+      expect(read.landed_empty_state).to include("due back today", "morning they're due")
       expect(read.served_empty_state).to include("exhibit riding it", "argued at")
     end
 
