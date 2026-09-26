@@ -136,7 +136,7 @@ en:
         waiting: Waiting on a countersignature
         countersigned_by_one_of: "Waiting on a countersignature from: %{names}"
         refused: Refused
-        execute: Execute this draft
+        execute: Send this Offer
         stub: "%{price} · %{left} %{half} left after · this also commits your Day"
         confirm_label: Confirm executing this draft
         confirm: Confirm
