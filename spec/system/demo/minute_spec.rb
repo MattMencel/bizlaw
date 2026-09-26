@@ -62,7 +62,7 @@ RSpec.describe "the Instructor's minute", type: :system do
     it "says nothing is drawn before anyone has drawn one" do
       minute
 
-      expect(page).to have_text("nothing drawn on the table", count: 2)
+      expect(page).to have_text("No draft waiting", count: 2)
     end
 
     it "says a position is waiting once one is" do

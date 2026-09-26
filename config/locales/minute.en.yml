@@ -24,7 +24,7 @@ en:
           Lets a Team send its Offer without a teammate's countersignature.
           Today only. Use it when teammates are absent. Cannot be undone.
         drawn: Draft waiting for a countersignature
-        undrawn: nothing drawn on the table
+        undrawn: No draft waiting
         granted: The second is waived for this Day. Granted by %{name}, %{at}.
         waive: Waive the second
         waive_label: Waive the second for the %{role}
