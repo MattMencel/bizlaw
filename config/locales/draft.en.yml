@@ -116,7 +116,7 @@ en:
         figure: Our figure for %{term}, in dollars
       drawing:
         note: Covering note
-        note_placeholder: Without prejudice…
+        note_placeholder: A line to the other Side (optional)
         draw: Put this on the table
         # Why the control is dead, before anything is posted.
         withheld:

@@ -486,6 +486,10 @@ RSpec.describe "the working draft", type: :system do
       expect(page).to have_no_css(".draft-mark.pending")
     end
 
+    it "offers the covering note as an optional line to the other Side" do
+      expect(page).to have_field("Covering note", placeholder: "A line to the other Side (optional)")
+    end
+
     it "is accessible while it is being written on" do
       write(money: "$120,000", terms: ["Apology"])
 
