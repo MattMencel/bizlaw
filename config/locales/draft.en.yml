@@ -73,7 +73,7 @@ en:
           closed: Day %{day}, %{date}, closed
           ahead: Day %{day}, %{date}
         calendar_span: "%{count} Days, %{first} to %{last}."
-        graded: How you are graded
+        graded: How you're graded
       term_sheet:
         heading: Draft terms of settlement
         marks:
