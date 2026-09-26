@@ -131,10 +131,20 @@ RSpec.describe "the glosses", type: :system do
       expect(find("li", text: "Deposition of the plant supervisor")).to have_no_css(".glossed")
     end
 
-    it "notes nothing in the reading order out of place" do
-      notes = entries.map { |term| top(find("#gloss-#{term}")) }
+    # Reading order is not height order: the term sheet and the clip rail are
+    # two columns, and either heading can sit a pixel higher. What holds is that
+    # a note is never above its word and never on top of another note.
+    it "sets no note above its word or over another note" do
+      notes = entries.map do |term|
+        note = find("#gloss-#{term}")
+        word = find(".glossed[data-gloss='#{term}']")
+        expect(top(note)).to be >= top(word) - 1
+        [top(note), note.evaluate_script("this.getBoundingClientRect().height")]
+      end
 
-      expect(notes).to eq(notes.sort)
+      notes.sort.each_cons(2) do |(above, height), (below, _)|
+        expect(below).to be >= above + height
+      end
     end
   end
 
