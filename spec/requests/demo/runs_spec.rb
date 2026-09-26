@@ -17,6 +17,12 @@ RSpec.describe "the demo run", type: :request do
       expect(inertia.component).to eq("Demo/WorkingDraft")
     end
 
+    # What the tab reads on first paint, before the page's own head sets its
+    # title: the product's name, not the scaffold's.
+    it "names the product in the title the page opens under" do
+      expect(response.body).to include("<title>BizLaw</title>")
+    end
+
     # #332: the player is the plaintiff, alone, and Day 3 is the earliest a
     # served Exhibit can exist. Neither is in the URL.
     it "sits him on the plaintiff's Side, on the first Day still open" do
@@ -38,7 +44,7 @@ RSpec.describe "the demo run", type: :request do
         "executed" => false, "waived" => false
       )
       expect(inertia.props[:countersignature][:execution])
-        .to include("cost" => nil, "refusal" => a_string_including("no draft to execute"))
+        .to include("cost" => nil, "refusal" => a_string_including("no draft to send"))
       expect(inertia.props[:term_sheet][:ours_staged]).to be(false)
     end
   end

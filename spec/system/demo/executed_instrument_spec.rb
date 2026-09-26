@@ -109,7 +109,7 @@ RSpec.describe "the executed instrument", type: :system do
       click_button "Accept their Offer"
       click_button "Confirm: accept their Offer"
 
-      expect(page).to have_text("You are looking at the executed agreement.")
+      expect(page).to have_text("Terms of settlement")
       expect(simulation.reload).to be_settled
     end
 
@@ -164,7 +164,7 @@ RSpec.describe "the executed instrument", type: :system do
     it "carries neither the redline nor the Client's aspiration" do
       expect(page).to have_no_css("table.terms s")
       expect(page).to have_no_text("$250,000")
-      expect(page).to have_no_text("Struck through, their last committed offer")
+      expect(page).to have_no_text("Struck through: their latest Offer")
     end
 
     it "records both parties' hands, the waiver among them" do
@@ -188,7 +188,7 @@ RSpec.describe "the executed instrument", type: :system do
     # Nothing about a Day survives. There is no today to have a briefing, a
     # slip or a Consult on.
     it "has no briefing, no slip and nothing to write on" do
-      expect(page).to have_no_text("Everything here is the case file")
+      expect(page).to have_no_text("Work the Case File in any order")
       expect(page).to have_no_text("Consult the Client")
       expect(page).to have_no_css("input[type='checkbox']")
       expect(page).to have_no_css("button#execute-the-draft")
@@ -200,10 +200,15 @@ RSpec.describe "the executed instrument", type: :system do
     end
 
     it "still turns over to the Case File and the Docket" do
-      click_button "Turn the page over"
+      click_button "Turn over: Case File & Docket"
 
-      expect(page).to have_text(/what we know, and what we have done/i)
-      expect(page).to have_text("Executed the draft")
+      expect(page).to have_button("Turn back: the executed agreement")
+
+      expect(page).to have_text(/back of the file/i)
+      expect(page).to have_no_text(/what we know, and what we have done/i)
+      expect(page).to have_text(/case file · the papers/i)
+      expect(page).to have_css("h3", text: /\Adocket\z/i)
+      expect(page).to have_text("Sent an Offer")
     end
 
     it "is accessible" do
@@ -211,7 +216,7 @@ RSpec.describe "the executed instrument", type: :system do
     end
 
     it "is accessible on the back" do
-      click_button "Turn the page over"
+      click_button "Turn over: Case File & Docket"
 
       expect(page).to be_axe_clean
     end

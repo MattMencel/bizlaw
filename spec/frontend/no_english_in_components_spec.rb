@@ -50,7 +50,7 @@ RSpec.describe "the words in a component" do
     def words(source) = SvelteCopy.words_in(source)
 
     it "finds a word between tags" do
-      expect(words("<p>Landed today</p>")).to eq(["Landed today"])
+      expect(words("<p>Arrived this morning</p>")).to eq(["Arrived this morning"])
     end
 
     it "finds a word in each attribute a reader is shown" do
