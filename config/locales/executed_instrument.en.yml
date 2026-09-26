@@ -14,9 +14,7 @@ en:
       terms:
         heading: Terms of settlement
         mark: Executed
-        caption: >-
-          Executed on Day %{day}, %{date}. These are the terms both Sides
-          signed; there is nothing else on this instrument.
+        caption: Executed on Day %{day}, %{date}. Both Sides signed these Terms.
         columns:
           term: Term
           agreed: As agreed

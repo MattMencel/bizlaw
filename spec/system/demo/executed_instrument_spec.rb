@@ -143,7 +143,8 @@ RSpec.describe "the executed instrument", type: :system do
       expect(page).to have_text("Terms of settlement")
       expect(page).to have_text("$150,000")
       expect(page).to have_css(".draft-mark.executed", text: /executed/i)
-      expect(page).to have_css("table.terms caption", text: /Executed on Day 4/)
+      expect(page).to have_css("table.terms caption",
+        text: /\AExecuted on Day 4, .+\. Both Sides signed these Terms\.\z/)
     end
 
     # The whole difference between this sheet and the working one. The redline
