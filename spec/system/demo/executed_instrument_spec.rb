@@ -147,6 +147,17 @@ RSpec.describe "the executed instrument", type: :system do
         text: /\AExecuted on Day 4, .+\. Both Sides signed these Terms\.\z/)
     end
 
+    # Two House Rules at once: the instrument is only the Terms, and nobody
+    # asked the Client. The same words on every settlement, so they say nothing
+    # about how the deal landed (ADR 0007).
+    it "says what this agreement leaves out, and what the law would add" do
+      expect(page).to have_text(
+        "In this game, the agreement carries only these Terms, and we settled without " \
+        "asking the Client. At law, it would also carry a release of the claim and a " \
+        "dismissal of the suit, and it would need the Client's consent."
+      )
+    end
+
     # The whole difference between this sheet and the working one. The redline
     # has nothing left to mark up, and the Client's aspiration beside the agreed
     # figure would be a Settlement Quality read arriving through the layout.
