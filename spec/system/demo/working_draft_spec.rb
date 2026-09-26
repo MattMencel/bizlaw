@@ -420,7 +420,7 @@ RSpec.describe "the working draft", type: :system do
     it "marks the sheet unposted while the edits are only his" do
       write(money: "$120,000")
 
-      expect(page).to have_text(/not yet on the table/i)
+      expect(page).to have_css(".draft-mark.pending", text: /not shared yet/i)
       expect(page).to have_text(/still reading the last one/i)
     end
 
@@ -429,7 +429,7 @@ RSpec.describe "the working draft", type: :system do
       click_button "Put this on the table"
 
       expect(page).to have_text(/draft — not executed/i)
-      expect(page).not_to have_text(/not yet on the table/i)
+      expect(page).not_to have_css(".draft-mark.pending")
       expect(line_for("Apology")).to have_text("Included")
       expect(line_for("Money")).to have_field(type: "text", with: "$120,000")
     end
@@ -463,8 +463,8 @@ RSpec.describe "the working draft", type: :system do
 
     # `params[:note].presence` turns a note of nothing but spaces into no note at
     # all, so a client comparing what was typed would see a difference the server
-    # had already discarded — and the sheet would go on saying *Not yet on the
-    # table* about a position that is on it. The mark exists to be true about
+    # had already discarded — and the sheet would go on saying *Not shared
+    # yet* about a position that is on it. The mark exists to be true about
     # that one thing.
     it "clears the unposted mark when the note it sent was only spaces" do
       write(money: "$120,000")
@@ -473,7 +473,7 @@ RSpec.describe "the working draft", type: :system do
 
       fill_in "Covering note", with: "   "
 
-      expect(page).to have_no_text(/not yet on the table/i)
+      expect(page).to have_no_css(".draft-mark.pending")
     end
 
     it "is accessible while it is being written on" do
@@ -706,7 +706,7 @@ RSpec.describe "the working draft", type: :system do
       expect(page).to have_field(
         "Our position on Money, in dollars", with: "", disabled: :all
       )
-      expect(page).to have_no_text(/not yet on the table/i)
+      expect(page).to have_no_css(".draft-mark.pending")
     end
 
     # It must not cost him the position he is typing. The draft is keyed on what
@@ -716,12 +716,12 @@ RSpec.describe "the working draft", type: :system do
       visit "/demo/#{Demo::Seed::DEMO}"
       check "Money"
       fill_in "Our position on Money, in dollars", with: "$99,000"
-      expect(page).to have_text(/not yet on the table/i)
+      expect(page).to have_css(".draft-mark.pending", text: /not shared yet/i)
 
       page.execute_script("window.dispatchEvent(new Event('focus'))")
 
       expect(page).to have_field("Our position on Money, in dollars", with: "$99,000")
-      expect(page).to have_text(/not yet on the table/i)
+      expect(page).to have_css(".draft-mark.pending", text: /not shared yet/i)
     end
   end
 end

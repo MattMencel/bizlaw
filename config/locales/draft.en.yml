@@ -82,7 +82,7 @@ en:
       term_sheet:
         heading: Draft terms of settlement
         marks:
-          pending: Not yet on the table
+          pending: Not shared yet
           drafted: Draft — not executed
           executed: Executed
         byline: "%{matter} · Day %{day}"
