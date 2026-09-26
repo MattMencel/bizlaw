@@ -72,9 +72,7 @@ en:
           today: Day %{day}, %{date}, today
           closed: Day %{day}, %{date}, closed
           ahead: Day %{day}, %{date}
-        calendar_span: >-
-          %{count} Days, %{first} to %{last}. An Action's lead time is only
-          plannable against how many are left.
+        calendar_span: "%{count} Days, %{first} to %{last}."
         graded: How you are graded
       term_sheet:
         heading: Draft terms of settlement
