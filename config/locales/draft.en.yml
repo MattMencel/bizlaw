@@ -107,7 +107,7 @@ en:
         columns:
           term: Term
           theirs: Their latest Offer
-          ours: Our position
+          ours: Ours
           aspiration: What the Client asked for
         # A Term on the sheet with no figure. A settlement including an apology
         # includes an apology.
