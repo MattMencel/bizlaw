@@ -153,7 +153,7 @@ en:
         confirm: Confirm
         cancel: Cancel
       memo:
-        heading: Memo — your Client
+        heading: Consult memo · the Client
         # Followed by the band, in bold.
         reads: Reads
       slip:

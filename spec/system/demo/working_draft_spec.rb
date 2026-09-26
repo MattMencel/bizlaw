@@ -160,6 +160,7 @@ RSpec.describe "the working draft", type: :system do
     # The empty state is the tutorial: the memo says what it would hold before
     # anything has been bought, rather than being absent until it is.
     it "says what has not been asked, before he asks" do
+      expect(page).to have_css("h2#memo", text: /consult memo · the client/i)
       expect(page).to have_text("You have not asked.")
       expect(page).to have_no_css("section .portrait")
     end
