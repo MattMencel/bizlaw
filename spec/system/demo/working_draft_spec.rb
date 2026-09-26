@@ -62,6 +62,8 @@ RSpec.describe "the working draft", type: :system do
     it "turns over to the Case File and the Docket" do
       click_button "Turn over: Case File & Docket"
 
+      expect(page).to have_button("Turn back: the draft")
+
       expect(page).to have_text(/what we know, and what we have done/i)
       expect(page).to have_text("The claimant's personnel file")
       expect(page).to have_text("Request documents")

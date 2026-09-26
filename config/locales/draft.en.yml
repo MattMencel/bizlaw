@@ -57,7 +57,7 @@ en:
       title: "%{matter} — Day %{day}"
       turn:
         to_back: "Turn over: Case File & Docket"
-        to_front: Turn back to the draft
+        to_front: "Turn back: the draft"
       front_matter:
         heading: Front matter · the morning of Day %{day}
         landed: Landed today
