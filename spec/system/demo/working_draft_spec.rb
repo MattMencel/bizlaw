@@ -13,7 +13,51 @@ RSpec.describe "the working draft", type: :system do
 
     it "opens on the draft, with the Day's grammar named once" do
       expect(page).to have_text("You are looking at the draft.")
-      expect(page).to have_text("Everything here is the case file")
+      expect(page).to have_text("Work the Case File in any order")
+    end
+
+    # The heading is the glossary name (voice.md, *Inside the register*).
+    # `.doc-sub` prints in capitals, hence /i.
+    it "heads the morning with the glossary name" do
+      expect(page).to have_css("h2#front-matter", text: /Morning Briefing · Day 3/i)
+    end
+
+    # The move comes first (voice.md, rule 1): the grammar sits under the
+    # heading, not at the foot under the Rubric.
+    it "puts the Day's grammar directly under the heading" do
+      expect(page).to have_css("h2#front-matter + p", text: "Work the Case File in any order")
+    end
+
+    it "says what arrived this morning" do
+      expect(page).to have_css("h3", text: /Arrived this morning/i)
+    end
+
+    it "says what was served on us" do
+      expect(page).to have_css("h3", text: /Served on us/i)
+    end
+
+    it "says what we started with" do
+      expect(page).to have_css("h3", text: /What we started with/i)
+    end
+
+    it "says what the Client told us on Day 1" do
+      expect(page).to have_css("h3", text: /What the Client told us on Day 1/i)
+    end
+
+    # The slip's refusal says it when a result would arrive too late, so the
+    # calendar does not state the rule before it applies.
+    it "states the calendar without a rule" do
+      expect(page).to have_text(/\d+ Days, .+ to .+\./)
+      expect(page).to have_no_text("lead time is only plannable")
+    end
+
+    it "says how you're graded" do
+      expect(page).to have_css("h3", text: /How you're graded/i)
+    end
+
+    it "says when grades appear" do
+      expect(page).to have_text("up to 10 bonus points on top of the 100")
+      expect(page).to have_text("Grades appear when the Instructor releases them.")
     end
 
     it "carries the morning: what landed, what was served, what he started with" do
@@ -25,7 +69,15 @@ RSpec.describe "the working draft", type: :system do
     it "puts their offer on the term sheet beside what his Client asked for" do
       expect(page).to have_text("$40,000")
       expect(page).to have_text("$250,000")
-      expect(page).to have_text("Struck through, their last committed offer")
+      expect(page).to have_text("Struck through: their latest Offer")
+    end
+
+    # A House Rule is said where it bites: their Offer is struck on the line he
+    # is about to counter on.
+    it "says their Offer stays open after a counter, and what the law says" do
+      expect(page).to have_css("table.terms caption",
+        text: "their Offer stays open until we accept it or the game ends, even after we counter. " \
+          "At law, a counteroffer rejects it.")
     end
 
     # The register #373 settled carries whose a position is in a strike and a
@@ -33,9 +85,10 @@ RSpec.describe "the working draft", type: :system do
     # only the eye is spared them. Nothing on the sheet depends on seeing the
     # strike or the redline colour.
     it "says whose each figure is for a reader who cannot see the strike" do
-      expect(page).to have_css("thead th", text: "Their last committed position", visible: :all)
-      expect(page).to have_css("thead th", text: "Our position", visible: :all)
-      expect(page).to have_css("table.terms caption", text: "Where there is nothing")
+      expect(page).to have_css("thead th", exact_text: "Their latest Offer", visible: :all)
+      expect(page).to have_css("thead th", exact_text: "Ours", visible: :all)
+      expect(page).to have_css("thead th", exact_text: "What the Client wants", visible: :all)
+      expect(page).to have_css("table.terms caption", text: "Write ours on the same line as theirs")
     end
 
     # The block is on the page before there is a draft to sign, because an empty
@@ -55,7 +108,9 @@ RSpec.describe "the working draft", type: :system do
     it "prices every Action on the slip, whether or not today will cover it" do
       expect(page).to have_text("Consult the Client")
       expect(page).to have_text("Retain an expert")
-      expect(page).to have_text(/8 preparation/i)
+      expect(page).to have_css("h2#slip", text: /Actions · left today: 8 preparation points · 2 exchange points/i)
+      expect(find("li.slip", text: "Consult the Client")).to have_text("1 preparation point · arrives today")
+      expect(page).to have_css("button#spend-consult_client", text: /\Abuy\z/i)
     end
 
     # The cost #315 accepted for this grammar: the record surfaces live behind a
@@ -89,30 +144,30 @@ RSpec.describe "the working draft", type: :system do
     def slip_line(label) = find("li.slip", text: label)
 
     it "opens the price in place, against what the half has left" do
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
 
-      expect(page).to have_text("1 preparation · 7 preparation left after · lands today")
+      expect(page).to have_text("Costs 1 preparation point (7 left after). Arrives today.")
       expect(page).to have_button("Confirm")
     end
 
     # The argument for confirming on the line rather than over the sheet: the
     # other five prices are what makes this one a trade-off.
     it "leaves the rest of the menu on the page while he decides" do
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
 
       expect(page).to have_text("Retain an expert")
       expect(page).to have_text("Depose a witness")
     end
 
     it "opens one stub at a time" do
-      slip_line("Consult the Client").click_button("Spend")
-      slip_line("Retain an expert").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
+      slip_line("Retain an expert").click_button("Buy")
 
       expect(page).to have_css("button", text: /confirm/i, count: 1)
     end
 
     it "charges nothing on Cancel" do
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
       click_button "Cancel"
 
       expect(page).to have_no_button("Confirm")
@@ -120,7 +175,7 @@ RSpec.describe "the working draft", type: :system do
     end
 
     it "charges the half and writes the Docket when he confirms" do
-      slip_line("Request documents").click_button("Spend")
+      slip_line("Request documents").click_button("Buy")
       click_button "Confirm"
 
       expect(page).to have_text(/6 preparation/i)
@@ -133,7 +188,7 @@ RSpec.describe "the working draft", type: :system do
     # a Client who has been read. The words are the memo's; the line is what
     # survives the Day.
     it "lands a Consult as a Docket line and a Band, with no paper behind it" do
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
       click_button "Confirm"
       click_button "Turn the page over"
 
@@ -141,7 +196,7 @@ RSpec.describe "the working draft", type: :system do
     end
 
     it "is accessible with a confirmation open" do
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
 
       expect(page).to be_axe_clean
     end
@@ -155,14 +210,15 @@ RSpec.describe "the working draft", type: :system do
     def slip_line(label) = find("li.slip", text: label)
 
     def consult
-      slip_line("Consult the Client").click_button("Spend")
+      slip_line("Consult the Client").click_button("Buy")
       click_button "Confirm"
     end
 
     # The empty state is the tutorial: the memo says what it would hold before
     # anything has been bought, rather than being absent until it is.
     it "says what has not been asked, before he asks" do
-      expect(page).to have_text("You have not asked.")
+      expect(page).to have_css("h2#memo", text: /consult memo · the client/i)
+      expect(page).to have_text("Consult the Client when something has changed.")
       expect(page).to have_no_css("section .portrait")
     end
 
@@ -179,7 +235,7 @@ RSpec.describe "the working draft", type: :system do
 
       said = Demo::Seed.simulation(Demo::Seed::DEMO).plaintiff_side.consults.last.beat.line
 
-      expect(page).to have_text(/reads\s+firm/i)
+      expect(page).to have_text(/the client is\s+firm/i)
       expect(page).to have_text(said.squish)
     end
 
@@ -209,7 +265,7 @@ RSpec.describe "the working draft", type: :system do
     it "leaves a keyboard reader on the words he just bought" do
       consult
 
-      expect(page).to have_text(/reads\s+firm/i)
+      expect(page).to have_text(/the client is\s+firm/i)
       expect(page.evaluate_script("document.activeElement.id")).to eq("memo")
     end
 
@@ -239,7 +295,7 @@ RSpec.describe "the working draft", type: :system do
     # the sentence saying why is the thing the Board exists to teach, so it
     # cannot be the part a keyboard skips over.
     it "keeps every control on the slip, refused and reachable" do
-      expect(page).to have_text("Today's half will not cover it.", count: 6)
+      expect(page).to have_text("Not enough preparation points left today. Pick a cheaper Action, or wait for tomorrow's points.", count: 6)
 
       control = find("#spend-consult_client")
       expect(control["aria-disabled"]).to eq("true")
@@ -280,7 +336,8 @@ RSpec.describe "the working draft", type: :system do
     end
 
     it "marks the sheet a draft, and puts his position in our column" do
-      expect(page).to have_text(/draft — not executed/i)
+      expect(page).to have_text(/draft — not sent/i)
+      expect(page).to have_css(".doc-sub", text: /· Day 3 · drafted by Sam Ortega/i)
       expect(page).to have_field(type: "text", with: "$180,000")
     end
 
@@ -314,9 +371,10 @@ RSpec.describe "the working draft", type: :system do
     # in the front matter said only that there was nothing, until #368 — and
     # they are the first two things a Day 1 reader meets.
     it "is not a blank page" do
-      expect(page).to have_text("An Action you spend comes back on the Day its lead time names")
-      expect(page).to have_text("any exhibit riding it is served on you")
-      expect(page).to have_text("an offer of nothing is a position somebody took")
+      expect(page).to have_text("Actions we buy below come back here on the morning they're due.")
+      expect(page).to have_text("Nothing's been served on us yet.")
+      expect(page).to have_text("If one arrives, Consult the Client")
+      expect(page).to have_text("A blank line means no one has offered on that Term")
       expect(page).to have_text("The termination letter")
     end
 
@@ -341,12 +399,12 @@ RSpec.describe "the working draft", type: :system do
     it "plays from the empty states alone" do
       expect(page).to have_text(/8 preparation/i)
 
-      click_button "Spend Consult the Client"
-      click_button "Confirm spending Consult the Client"
+      click_button "Buy: Consult the Client"
+      click_button "Confirm: Consult the Client"
 
       expect(page).to have_text(/7 preparation/i)
-      expect(page).to have_text(/reads firm/i)
-      expect(page).to have_no_text("You have not asked.")
+      expect(page).to have_text(/the client is\s+firm/i)
+      expect(page).to have_no_text("Consult the Client when something has changed.")
 
       click_button "Turn the page over"
 
@@ -411,7 +469,7 @@ RSpec.describe "the working draft", type: :system do
 
     def write(money:, terms: [], clip: nil)
       check "Money"
-      fill_in "Our position on Money, in dollars", with: money
+      fill_in "Our figure for Money, in dollars", with: money
       terms.each { |term| check term }
       check clip if clip
     end
@@ -423,16 +481,16 @@ RSpec.describe "the working draft", type: :system do
     it "marks the sheet unposted while the edits are only his" do
       write(money: "$120,000")
 
-      expect(page).to have_text(/not yet on the table/i)
-      expect(page).to have_text(/still reading the last one/i)
+      expect(page).to have_css(".draft-mark.pending", text: /not shared yet/i)
+      expect(page).to have_text("Not shared yet — the Team still sees our last version.")
     end
 
     it "puts the position on the table and marks it a draft" do
       write(money: "$120,000", terms: ["Apology"])
-      click_button "Put this on the table"
+      click_button "Share with the Team"
 
-      expect(page).to have_text(/draft — not executed/i)
-      expect(page).not_to have_text(/not yet on the table/i)
+      expect(page).to have_text(/draft — not sent/i)
+      expect(page).not_to have_css(".draft-mark.pending")
       expect(line_for("Apology")).to have_text("Included")
       expect(line_for("Money")).to have_field(type: "text", with: "$120,000")
     end
@@ -442,9 +500,9 @@ RSpec.describe "the working draft", type: :system do
     # legible rather than the control that was pressed.
     it "returns him to the sheet, which is where the result reads" do
       write(money: "$120,000")
-      click_button "Put this on the table"
+      click_button "Share with the Team"
 
-      expect(page).to have_text(/draft — not executed/i)
+      expect(page).to have_text(/draft — not sent/i)
       expect(page.evaluate_script("document.activeElement.id")).to eq("term-sheet")
     end
 
@@ -454,29 +512,33 @@ RSpec.describe "the working draft", type: :system do
     # the tab order to do it.
     it "holds the control dead with its reason while there is no position" do
       expect(page).to have_css("button#draw-the-position[aria-disabled='true']")
-      expect(page).to have_text("An offer names at least one term.")
+      expect(page).to have_text("Tick at least one Term first.")
     end
 
     it "holds it dead while money is on the table without a figure" do
       check "Money"
 
       expect(page).to have_css("button#draw-the-position[aria-disabled='true']")
-      expect(page).to have_text("An offer of money is worth an amount.")
+      expect(page).to have_text("Enter a dollar figure first.")
     end
 
     # `params[:note].presence` turns a note of nothing but spaces into no note at
     # all, so a client comparing what was typed would see a difference the server
-    # had already discarded — and the sheet would go on saying *Not yet on the
-    # table* about a position that is on it. The mark exists to be true about
+    # had already discarded — and the sheet would go on saying *Not shared
+    # yet* about a position that is on it. The mark exists to be true about
     # that one thing.
     it "clears the unposted mark when the note it sent was only spaces" do
       write(money: "$120,000")
-      click_button "Put this on the table"
-      expect(page).to have_text(/draft — not executed/i)
+      click_button "Share with the Team"
+      expect(page).to have_text(/draft — not sent/i)
 
       fill_in "Covering note", with: "   "
 
-      expect(page).to have_no_text(/not yet on the table/i)
+      expect(page).to have_no_css(".draft-mark.pending")
+    end
+
+    it "offers the covering note as an optional line to the other Side" do
+      expect(page).to have_field("Covering note", placeholder: "A line to the other Side (optional)")
     end
 
     it "is accessible while it is being written on" do
@@ -493,9 +555,10 @@ RSpec.describe "the working draft", type: :system do
     before { visit "/demo/#{Demo::Seed::DEMO}" }
 
     it "offers this Team's own playable Exhibit and nothing it was served" do
-      within("aside", text: /clipped to this draft/i) do
+      within("aside", text: /exhibits · clipped to this draft/i) do
         expect(page).to have_field("The claimant's personnel file")
         expect(page).not_to have_text("Deposition of the plant supervisor")
+        expect(page).to have_text("Tick a document to attach it as an Exhibit.")
       end
     end
 
@@ -503,12 +566,12 @@ RSpec.describe "the working draft", type: :system do
     # Team's exchange half, which is what makes clipping it a decision.
     it "prices the Exhibit into executing the draft as one figure" do
       check "Money"
-      fill_in "Our position on Money, in dollars", with: "$120,000"
-      click_button "Put this on the table"
+      fill_in "Our figure for Money, in dollars", with: "$120,000"
+      click_button "Share with the Team"
       expect(page).to have_css(".price", text: "1 exchange point")
 
       check "The claimant's personnel file"
-      click_button "Put this on the table"
+      click_button "Share with the Team"
 
       expect(page).to have_css(".price", text: "2 exchange points")
     end
@@ -522,9 +585,13 @@ RSpec.describe "the working draft", type: :system do
     before { visit "/demo/#{Demo::Seed::DEMO}/#{Side::DEFENDANT}" }
 
     it "prints the executed position rather than offering inputs" do
+      expect(page).to have_css(".draft-mark", text: /sent · day 3/i)
+      expect(page).to have_css("table.terms caption", exact_text:
+        "Struck through: their latest Offer · Written in: ours · Margin: what the Client wants.")
+      expect(page).to have_no_text("At law, a counteroffer rejects it.")
       expect(page).to have_text("$40,000")
-      expect(page).to have_no_field("Our position on Money, in dollars")
-      expect(page).to have_no_button("Put this on the table")
+      expect(page).to have_no_field("Our figure for Money, in dollars")
+      expect(page).to have_no_button("Share with the Team")
     end
 
     # Both lines filled, nobody left to sign, and no price for an act that has
@@ -556,9 +623,9 @@ RSpec.describe "the working draft", type: :system do
     def draw_a_position
       visit "/demo/#{Demo::Seed::DEMO}"
       check "Money"
-      fill_in "Our position on Money, in dollars", with: "$150,000"
-      click_button "Put this on the table"
-      expect(page).to have_text(/draft — not executed/i)
+      fill_in "Our figure for Money, in dollars", with: "$150,000"
+      click_button "Share with the Team"
+      expect(page).to have_text(/draft — not sent/i)
     end
 
     def waive_it
@@ -699,7 +766,7 @@ RSpec.describe "the working draft", type: :system do
 
       visit "/demo/#{Demo::Seed::DEMO}"
       check "Money"
-      fill_in "Our position on Money, in dollars", with: "$99,000"
+      fill_in "Our figure for Money, in dollars", with: "$99,000"
 
       # The Day ends under him: the defendant committed Day 3 in the seed, so a
       # teammate filing his is the second commitment and closes it.
@@ -711,9 +778,9 @@ RSpec.describe "the working draft", type: :system do
       # checked, and clearing his typing unchecks it — which is the sheet
       # re-seeded from Day 4's position rather than holding Day 3's.
       expect(page).to have_field(
-        "Our position on Money, in dollars", with: "", disabled: :all
+        "Our figure for Money, in dollars", with: "", disabled: :all
       )
-      expect(page).to have_no_text(/not yet on the table/i)
+      expect(page).to have_no_css(".draft-mark.pending")
     end
 
     # It must not cost him the position he is typing. The draft is keyed on what
@@ -722,13 +789,13 @@ RSpec.describe "the working draft", type: :system do
     it "does not take away what he has not put on the table yet" do
       visit "/demo/#{Demo::Seed::DEMO}"
       check "Money"
-      fill_in "Our position on Money, in dollars", with: "$99,000"
-      expect(page).to have_text(/not yet on the table/i)
+      fill_in "Our figure for Money, in dollars", with: "$99,000"
+      expect(page).to have_css(".draft-mark.pending", text: /not shared yet/i)
 
       page.execute_script("window.dispatchEvent(new Event('focus'))")
 
-      expect(page).to have_field("Our position on Money, in dollars", with: "$99,000")
-      expect(page).to have_text(/not yet on the table/i)
+      expect(page).to have_field("Our figure for Money, in dollars", with: "$99,000")
+      expect(page).to have_css(".draft-mark.pending", text: /not shared yet/i)
     end
   end
 end

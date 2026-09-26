@@ -141,7 +141,7 @@ RSpec.describe "the executed instrument", type: :system do
     it "carries neither the redline nor the Client's aspiration" do
       expect(page).to have_no_css("table.terms s")
       expect(page).to have_no_text("$250,000")
-      expect(page).to have_no_text("Struck through, their last committed offer")
+      expect(page).to have_no_text("Struck through: their latest Offer")
     end
 
     it "records both parties' hands, the waiver among them" do
@@ -163,7 +163,7 @@ RSpec.describe "the executed instrument", type: :system do
     # Nothing about a Day survives. There is no today to have a briefing, a
     # slip or a Consult on.
     it "has no briefing, no slip and nothing to write on" do
-      expect(page).to have_no_text("Everything here is the case file")
+      expect(page).to have_no_text("Work the Case File in any order")
       expect(page).to have_no_text("Consult the Client")
       expect(page).to have_no_css("input[type='checkbox']")
       expect(page).to have_no_css("button#execute-the-draft")

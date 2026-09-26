@@ -210,7 +210,7 @@ RSpec.describe "drawing the Offer", type: :request do
       expect { draw }.not_to change(StagedOffer, :count)
 
       follow_redirect!
-      expect(inertia.props[:term_sheet][:refusal]).to eq("This Day has closed.")
+      expect(inertia.props[:term_sheet][:refusal]).to eq("This Day has closed. The next one opens on the Instructor's schedule.")
     end
 
     # The refusal has no row anywhere. It survives exactly one read.
@@ -318,10 +318,10 @@ RSpec.describe "drawing the Offer", type: :request do
 
     it "keeps each seat's sentence for the seat that earned it" do
       get "/demo/#{Demo::Seed::DEMO}"
-      expect(inertia.props[:term_sheet][:refusal]).to eq("This Day has closed.")
+      expect(inertia.props[:term_sheet][:refusal]).to eq("This Day has closed. The next one opens on the Instructor's schedule.")
 
       get "/demo/#{Demo::Seed::DEMO}/#{Side::DEFENDANT}"
-      expect(inertia.props[:term_sheet][:refusal]).to eq("This Day has closed.")
+      expect(inertia.props[:term_sheet][:refusal]).to eq("This Day has closed. The next one opens on the Instructor's schedule.")
     end
 
     it "does not know a Day off the Simulation's calendar" do

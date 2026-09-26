@@ -104,7 +104,7 @@ RSpec.describe WorkingDraft do
   end
 
   it "passes the empty states through from the reads that own them" do
-    expect(props[:term_sheet][:empty_state]).to include("an offer of nothing is a position")
+    expect(props[:term_sheet][:empty_state]).to include("A blank line means no one has offered on that Term")
     expect(props[:back][:docket][:empty_state]).to include("Nothing yet")
   end
 
@@ -259,11 +259,33 @@ RSpec.describe WorkingDraft do
       )
     end
 
+    it "heads the slip with the glossary name and what each half has left, in points" do
+      expect(props[:slip][:heading])
+        .to eq("Actions · left today: 8 preparation points · 2 exchange points")
+    end
+
     it "gives every Action its sentence, its price and the Day it lands on" do
       expect(action(CaseAction::DEPOSE_WITNESS)).to include(
         label: "Depose a witness", cost: 3, half_label: "preparation",
         landing_day: 3, lands_today: false, affordable: true, refusal: nil
       )
+    end
+
+    it "prices each line in counted points, and says when its result arrives" do
+      expect(action(CaseAction::DEPOSE_WITNESS)[:line]).to eq("3 preparation points · arrives Day 3")
+      expect(action(CaseAction::CONSULT_CLIENT)[:line]).to eq("1 preparation point · arrives today")
+    end
+
+    it "names the Action it buys on the control, for a reader who hears the button" do
+      expect(action(CaseAction::CONSULT_CLIENT)[:spend_label]).to eq("Buy: Consult the Client")
+      expect(action(CaseAction::CONSULT_CLIENT)[:confirm_label]).to eq("Confirm: Consult the Client")
+    end
+
+    it "writes the confirmation stub as the cost, what is left after, and when it arrives" do
+      expect(action(CaseAction::DEPOSE_WITNESS)[:stub])
+        .to eq("Costs 3 preparation points (5 left after). Arrives Day 3.")
+      expect(action(CaseAction::CONSULT_CLIENT)[:stub])
+        .to eq("Costs 1 preparation point (7 left after). Arrives today.")
     end
 
     # A refusal is a symbol the engine names a rule by; the page needs the
@@ -273,7 +295,16 @@ RSpec.describe WorkingDraft do
         kind: CaseAction::RETAIN_EXPERT)
 
       expect(action(CaseAction::RETAIN_EXPERT)).to include(
-        cost: 5, affordable: false, refusal: "Today's half will not cover it."
+        cost: 5, affordable: false, refusal: "Not enough preparation points left today. Pick a cheaper Action, or wait for tomorrow's points."
+      )
+    end
+
+    it "says an Action arriving after the last Day is too late, and what to pick instead" do
+      last = simulation.days.find_by!(ordinal: 10)
+      line = props(on: last)[:slip][:actions].find { |row| row[:kind] == CaseAction::DEPOSE_WITNESS }
+
+      expect(line[:refusal]).to eq(
+        "Too late: this would arrive after the last Day. Pick an Action that arrives sooner."
       )
     end
 
@@ -316,7 +347,18 @@ RSpec.describe WorkingDraft do
           reason: "the_budget_cannot_cover_it")
         line = props[:slip][:actions].find { |row| row[:kind] == CaseAction::RETAIN_EXPERT }
 
-        expect(line).to include(affordable: true, refusal: "Today's half will not cover it.")
+        expect(line).to include(affordable: true, refusal: "Not enough preparation points left today. Pick a cheaper Action, or wait for tomorrow's points.")
+      end
+
+      # The refusal splits by half, because the next move does: preparation
+      # buys Actions, and exchange pays for the Offer and what rides it.
+      it "words a commit the exchange half refused by what exchange points buy" do
+        props = described_class.for(side, day: day, you: dana,
+          commit_refused: "the_budget_cannot_cover_it").to_props
+
+        expect(props[:countersignature][:refusal]).to eq(
+          "Not enough exchange points left today. Drop an Exhibit from the draft, or send it tomorrow."
+        )
       end
 
       it "marks nothing when no spend was refused" do
@@ -336,7 +378,18 @@ RSpec.describe WorkingDraft do
     it "says what a Team that has not asked is missing, and draws nobody" do
       expect(props[:memo][:entries]).to be_empty
       expect(props[:memo][:portrait]).to be_nil
-      expect(props[:memo][:empty_state]).to include("You have not asked")
+      expect(props[:memo][:empty_state]).to eq(
+        "Consult the Client when something has changed. It costs 1 preparation point, " \
+        "and it's the only way to see how far they'll move."
+      )
+    end
+
+    # The Consult's price is authored per Case, so the sentence is composed
+    # from the menu rather than written with a 1 in it.
+    it "prices the empty state at what this Case charges for a Consult" do
+      simulation.case_version.actions.find_by!(kind: CaseAction::CONSULT_CLIENT).update!(cost: 2)
+
+      expect(props[:memo][:empty_state]).to include("It costs 2 preparation points,")
     end
 
     it "carries what the Client said, under the band they said it in" do
