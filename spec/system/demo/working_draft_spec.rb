@@ -49,7 +49,7 @@ RSpec.describe "the working draft", type: :system do
       expect(page).to have_css(".sig .cap", text: /\Awaiting on a countersignature\z/i)
       expect(page).to have_no_text(/countersigned by/i)
       expect(page).to have_css("button#execute-the-draft[aria-disabled='true']", text: /\Asend this offer\z/i)
-      expect(page).to have_text("There is no draft to execute")
+      expect(page).to have_text("There is no draft to send. Write our Terms above and share them with the Team first.")
     end
 
     it "prices every Action on the slip, whether or not today will cover it" do

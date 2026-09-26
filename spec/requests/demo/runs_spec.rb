@@ -38,7 +38,7 @@ RSpec.describe "the demo run", type: :request do
         "executed" => false, "waived" => false
       )
       expect(inertia.props[:countersignature][:execution])
-        .to include("cost" => nil, "refusal" => a_string_including("no draft to execute"))
+        .to include("cost" => nil, "refusal" => a_string_including("no draft to send"))
       expect(inertia.props[:term_sheet][:ours_staged]).to be(false)
     end
   end
