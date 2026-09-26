@@ -160,6 +160,7 @@ RSpec.describe WorkingDraft do
       expect(props[:countersignature]).to include(
         drawn_by: dana.name,
         may_sign: [{name: priya.name, email: priya.email}],
+        may_sign_caption: "Waiting on a countersignature from: #{priya.name}",
         executed: false
       )
     end
