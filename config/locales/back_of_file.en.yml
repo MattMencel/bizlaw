@@ -5,9 +5,8 @@ en:
   reads:
     case_file:
       empty: >-
-        Nothing yet. What your Actions turn up lands here, along with anything
-        the other Side puts in front of you. This is what your Team knows, as
-        against the Docket's what your Team has done.
+        Nothing here yet. Documents our Actions turn up, and papers the other
+        Side serves on us, are filed here.
     docket:
       empty: >-
         Nothing yet. Every Action your Team spends on lands here — what it was,
