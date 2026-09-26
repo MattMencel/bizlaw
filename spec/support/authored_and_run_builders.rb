@@ -17,9 +17,11 @@ module AuthoredAndRunBuilders
   }.freeze
 
   # The Terms vocabulary an Offer is built from and an Exhibit bears on.
-  REFERENCE_TERMS = %w[
-    money apology nda reinstatement training reference_letter policy_change
-  ].freeze
+  REFERENCE_TERMS = {
+    "money" => "Money", "apology" => "Apology", "nda" => "NDA",
+    "reinstatement" => "Reinstatement", "training" => "Training",
+    "reference_letter" => "Reference letter", "policy_change" => "Policy change"
+  }.freeze
 
   # The reference Case's documents in hand at the open, waiting behind nothing.
   # Neither carries an Exhibit, so the Exhibit affordances stay unavailable on
@@ -163,7 +165,7 @@ module AuthoredAndRunBuilders
   # The Clients an Exhibit targets, the Terms it bears on, and the documents
   # waiting behind the Action menu above.
   def an_authored_dispute(pinned)
-    vocabulary = REFERENCE_TERMS.index_with { |key| pinned.terms.create!(key: key) }
+    vocabulary = REFERENCE_TERMS.to_h { |key, label| [key, pinned.terms.create!(key: key, label: label)] }
     {
       Side::PLAINTIFF => [40_000_00, "Eleven years, and they walked me out like a thief."],
       Side::DEFENDANT => [60_000_00, "We followed the policy. I want this closed quietly."]

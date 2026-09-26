@@ -60,7 +60,7 @@ module Cases
             half: authored_action["half"]
           )
         end
-        terms.each { |key| version.terms.create!(key: key) }
+        terms.each { |term| version.terms.create!(key: term["key"], label: term["label"]) }
         clients.each do |role, authored_client|
           client = version.clients.create!(
             role: role,

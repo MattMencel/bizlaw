@@ -195,7 +195,7 @@ module Cases
             "#{authored_aspirations.inspect}, which is not a set of Terms they want"
         end
 
-        unknown = authored_aspirations.keys - terms
+        unknown = authored_aspirations.keys - term_keys
         if unknown.any?
           raise InvalidCase,
             "#{path} has the #{role} Client wanting #{unknown.join(", ")}, " \

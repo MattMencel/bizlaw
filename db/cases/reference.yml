@@ -206,15 +206,23 @@ clients:
             flinching and we are done.
 # The vocabulary an Offer is built from and an Exhibit bears on. Terms are
 # atomic: a public apology and a private one would be two Terms, never one Term
-# with a setting.
+# with a setting. The key is what the rest of this file names a Term by; the
+# label is what a student reads.
 terms:
-  - money
-  - apology
-  - nda
-  - reinstatement
-  - training
-  - reference_letter
-  - policy_change
+  - key: money
+    label: Money
+  - key: apology
+    label: Apology
+  - key: nda
+    label: NDA
+  - key: reinstatement
+    label: Reinstatement
+  - key: training
+    label: Training
+  - key: reference_letter
+    label: Reference letter
+  - key: policy_change
+    label: Policy change
 # Every document names the Action it waits behind or the **hand** it sits in at
 # the open, and never both. That xor is what makes *doors visible, contents
 # hidden* checkable: nothing a Team starts with can also be something it finds.

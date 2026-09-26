@@ -85,10 +85,10 @@ RSpec.describe WorkingDraft do
       expect(track("money")[:aspiration]).to eq(amount: "$250,000", money: true)
     end
 
-    # A Term's key is authored per Case, so the engine has no sentence for it.
-    # The authored label is #343; until it lands this is what the page shows.
-    it "humanizes a Term's key for want of an authored label" do
-      expect(track("money")[:label]).to eq("Money")
+    # What a Term reads as is authored beside its key. Humanizing the key would
+    # print *Nda*.
+    it "labels each Term as the Case authored it" do
+      expect(track("nda")[:label]).to eq("NDA")
       expect(track("reference_letter")[:label]).to eq("Reference letter")
     end
   end

@@ -77,8 +77,13 @@ RSpec.describe ExecutedFile do
       )
     end
 
-    it "humanizes a Term's key for want of an authored label" do
-      expect(props[:terms].pluck(:label)).to include("Money")
+    # Authored beside the key, so the page never prints one made up from it.
+    it "labels each Term as the Case authored it" do
+      CaseTerm.find_by!(case_version: side.case_version, key: "apology")
+        .update!(label: "A written apology")
+      side.reload
+
+      expect(props[:terms].pluck(:term, :label)).to include(["apology", "A written apology"])
     end
 
     # The whole of what separates this sheet from the working one. The redline

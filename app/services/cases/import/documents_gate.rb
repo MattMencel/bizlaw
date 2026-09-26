@@ -125,7 +125,7 @@ module Cases
             "which is not a list of the Terms it bears on"
         end
 
-        unknown = bears_on - terms
+        unknown = bears_on - term_keys
         return if unknown.empty?
 
         raise InvalidCase,

@@ -43,9 +43,13 @@ module Typeset
     )
   end
 
-  # A Term's key is authored per Case, so the engine has no sentence for it and
-  # humanizes instead. The label belongs on the authored table — #343.
-  def label_for(key) = key.humanize
+  # What a Term reads as is authored beside its key, so the engine never makes
+  # one up. `fetch` rather than a fallback: a key with no label is a Term this
+  # Case never authored, and printing the key instead would put an identifier in
+  # front of a student.
+  def label_for(key) = term_labels.fetch(key)
+
+  def term_labels = @term_labels ||= side.case_version.terms.pluck(:key, :label).to_h
 
   # One paper, wherever it is printed: the front matter's arrivals, the Case
   # File on the back, and the Exhibit rail all read the same row.
