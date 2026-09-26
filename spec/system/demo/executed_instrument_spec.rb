@@ -179,7 +179,8 @@ RSpec.describe "the executed instrument", type: :system do
 
       expect(page).to have_button("Turn back: the executed agreement")
 
-      expect(page).to have_text(/what we know, and what we have done/i)
+      expect(page).to have_text(/back of the file/i)
+      expect(page).to have_no_text(/what we know, and what we have done/i)
       expect(page).to have_text("Executed the draft")
     end
 
