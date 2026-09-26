@@ -16,7 +16,7 @@
   prevent. It also keeps the Docket's `offer_staged` line meaning one drawing
   rather than one keystroke.
 
-  Which is why the sheet says so while they are pending: *Not yet on the table*
+  Which is why the sheet says so while they are pending: *Not shared yet*
   replaces the draft mark, because *what you are reading is not what your
   teammate is reading* is the one thing the register must not leave to an
   input's internal state. Only the mark — the changed lines are not marked. The
@@ -83,7 +83,7 @@
   // of nothing but spaces into no note at all, so a client that compared what
   // was typed would see a difference the server had already thrown away: the
   // post lands, `term_sheet.note` does not move, the page is not remounted, and
-  // the sheet goes on saying *Not yet on the table* about a position that is on
+  // the sheet goes on saying *Not shared yet* about a position that is on
   // it. Trimmed here, posted trimmed, and compared trimmed, so all three agree
   // on what the note is.
   const tidy = (written) => String(written ?? "").trim()
