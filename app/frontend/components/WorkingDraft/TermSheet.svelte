@@ -73,7 +73,7 @@
     {:else if term_sheet.ours_staged}
       <span class="draft-mark">{copy.marks.drafted}</span>
     {:else if countersignature.executed}
-      <span class="draft-mark executed">{copy.marks.executed}</span>
+      <span class="draft-mark executed">{term_sheet.sent_mark}</span>
     {/if}
   </div>
   <p class="doc-sub">{term_sheet.byline}</p>
@@ -90,6 +90,9 @@
     <table class="terms">
       <caption class="rubric">
         {term_sheet.writable ? copy.caption.writable : copy.caption.record}
+        {#if term_sheet.house_rule}
+          <span class="house-rule">{term_sheet.house_rule}</span>
+        {/if}
       </caption>
       <thead class="sr-only">
         <tr>
@@ -190,6 +193,13 @@
     font-style: italic;
     color: var(--muted);
     padding: 0 0 14px;
+  }
+  /* A rule of play rather than a reading convention, so it sits on its own line
+     under the key and in the upright hand. */
+  .house-rule {
+    display: block;
+    font-style: normal;
+    margin-top: 6px;
   }
 
   table.terms {
