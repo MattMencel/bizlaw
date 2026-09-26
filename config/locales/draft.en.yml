@@ -127,7 +127,7 @@ en:
           An exhibit rides the offer it is clipped to, and is served on them
           when the offer is executed.
       countersignature:
-        heading: Executed by
+        heading: Signatures
         drawn_by: Drawn by
         waived: Countersignature waived by the instructor
         countersigned_by: Countersigned by

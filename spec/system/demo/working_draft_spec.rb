@@ -45,6 +45,7 @@ RSpec.describe "the working draft", type: :system do
     # the sentence saying why it cannot be pressed stays reachable with it, which
     # is the rule #363 set for an Action the half will not cover.
     it "shows the countersignature block, with the execute control dead" do
+      expect(page).to have_css("h2#countersign", text: /\Asignatures\z/i)
       expect(page).to have_text(/countersigned by/i)
       expect(page).to have_css("button#execute-the-draft[aria-disabled='true']")
       expect(page).to have_text("There is no draft to execute")
