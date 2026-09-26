@@ -19,7 +19,7 @@ en:
           The two Sides settled on Day %{day}, %{date}. No further Day opens,
           and there is nothing left to release.
       waivers:
-        heading: Waiver of the second
+        heading: Waive a countersignature
         rubric: >-
           A team whose other members are absent can draw an offer it cannot
           execute. Releasing the second lets that team execute alone, for this
