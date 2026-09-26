@@ -24,7 +24,7 @@ Decided in [Where does a gloss sit on first contact?](https://github.com/MattMen
 - **On a narrow screen, a list of the terms at the top of the front matter** ("Words used in this file"). There is no room for a margin, so each glossed word links up to its entry.
 - **Not inline.** A parenthesis can't hang off a label or a button, so a term met only on a control would never be glossed.
 - **First contact is the first place the term appears in reading order on the page**, and every visit glosses it again. Nothing records which student has seen what: the empty states are the tutorial, and there is no progress flag. Two teammates always read the same sheet. The front of the draft and the back of the file each gloss their own first contact.
-- **Footnotes stay open for the Instructor's surface.** A numbered note at the foot of the Minute suits its terser voice. That is decided when the Minute's copy is rewritten.
+- **The Minute carries no footnotes.** Its paragraph says what the power does in four short sentences, and nothing on it is a term of art the Instructor needs defined.
 
 ### The Instructor
 
@@ -34,11 +34,11 @@ The Minute is terse and has no "we". It says what a power does, when to use it, 
 
 | Rule | Before | After |
 |---|---|---|
-| 1, 3 | You have not asked. Consulting your Client is the only read you get on how far they have actually moved, and it costs a point of preparation — which is why it is an instrument for an occasion rather than a habit. | Check in with the Client when something has changed. It costs 1 preparation point, and it's the only way to see how far they'll move. |
-| 2 | Nothing yet. When the other Side executes an offer, any exhibit riding it is served on you and appears here. It is how you learn you have been argued at — never what the argument was worth. | Nothing's been served on us yet. When the other Side sends an Offer with Exhibits attached, we get copies here. If one arrives, check in with the Client — it may have moved them. |
-| 1, 2 | No Term is on the table. Nothing here is zero — an offer of nothing is a position somebody took, and nobody has taken one. | Nobody has offered anything yet. Tick the Terms we want below and put figures on them. A blank line means no one has offered on that Term, not that they offered zero. |
-| 2, 4 | Struck through, their last committed offer. Write ours on the same line. The margin is the Client's. Where there is nothing, nobody has said anything. | Their latest Offer is crossed out. Write ours next to it. The margin shows what the Client wants. |
-| 5, 9 | Everything here is the case file — work it in any order. The Day ends when both Sides have committed it, and an Offer commits only over a teammate's countersignature. | Work the file in any order. Before we send an Offer, a teammate has to countersign it — sign off on it as well. The Day ends once both Teams are done. |
+| 1, 3 | You have not asked. Consulting your Client is the only read you get on how far they have actually moved, and it costs a point of preparation — which is why it is an instrument for an occasion rather than a habit. | Consult the Client when something has changed. It costs 1 preparation point, and it's the only way to see how far they'll move. |
+| 2 | Nothing yet. When the other Side executes an offer, any exhibit riding it is served on you and appears here. It is how you learn you have been argued at — never what the argument was worth. | Nothing's been served on us yet. When the other Side sends an Offer with Exhibits attached, we get copies here. If one arrives, Consult the Client — it may have moved them. |
+| 1, 2 | No Term is on the table. Nothing here is zero — an offer of nothing is a position somebody took, and nobody has taken one. | Nobody has offered anything yet. Tick the Terms we want below and fill in any figures. A blank line means no one has offered on that Term, not that they offered zero. |
+| 2, 4 | Struck through, their last committed offer. Write ours on the same line. The margin is the Client's. Where there is nothing, nobody has said anything. | Struck through: their latest Offer · Written in: ours · Margin: what the Client wants. Write ours on the same line as theirs. |
+| 5, 9 | Everything here is the case file — work it in any order. The Day ends when both Sides have committed it, and an Offer commits only over a teammate's countersignature. | Work the Case File in any order. Before we send an Offer, a teammate has to countersign it. The Day ends once both Teams are done. |
 | 1 | Your team is still reading the last one. | Not shared yet — the Team still sees our last version. |
 | 4 | Put this on the table | Share with the Team |
 | 4 | Countersigned by: Ray Okonkwo *(under a blank line)* | Waiting on a countersignature from: Ray Okonkwo |
@@ -66,7 +66,7 @@ Decided in [What does sending an Offer get called, if not "execute"?](https://gi
 
 Decided in [Does the paper register need revisiting?](https://github.com/MattMencel/bizlaw/issues/394). The audit found seven places where the paper itself caused the reading problem. [ADR 0005](../adr/0005-the-register-is-the-paper.md) stands: each one is fixed in the copy. The two signature-block findings are settled by [ADR 0009](../adr/0009-an-offer-is-sent-not-executed.md).
 
-- **Headings use the glossary name.** A student should see the words the professor uses in class: "Morning Briefing · Day n", "Actions", "Case File", "Docket". The paper name can stay as a small subtitle where it helps the look ("Case File · the papers"). "Front matter" and "slip" never appear as the heading. The Minute's heading is settled when the Minute is rewritten.
+- **Headings use the glossary name.** A student should see the words the professor uses in class: "Morning Briefing · Day n", "Actions", "Case File", "Docket". The paper name can stay as a small subtitle where it helps the look ("Case File · the papers"). "Front matter" and "slip" never appear as the heading. The Minute keeps its paper name as its heading: "Minute of the Instructor". No glossary name competes with it.
 - **The page-turn control says what is on the back**: "Turn over: Case File & Docket". It doesn't describe what you're looking at now. The gesture stays.
 - **The term sheet gets a plain key**: struck through = theirs · written in = ours · margin = the Client. Real redlines carry a key, so it fits the register. ADR 0005's "needed no legend" argued for the paper, and it doesn't bar a key.
 - **Stubs stay stubs.** Rule 6 puts the consequence first, capitalised and at the stub's own weight: "Ends the game: …", "Ends our Day. …". No banners.

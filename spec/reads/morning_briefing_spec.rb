@@ -51,7 +51,7 @@ RSpec.describe MorningBriefing do
 
     # Nothing else in the game states the rules of the machine.
     it "names the Day's grammar in one line of fixed copy" do
-      expect(read.grammar_line).to include("case file", "any order", "countersignature")
+      expect(read.grammar_line).to include("Case File", "any order", "countersign")
     end
 
     it "covers one Day" do
@@ -121,6 +121,35 @@ RSpec.describe MorningBriefing do
       expect(side.case_file_documents.find { |filed|
         filed.title == "Deposition of the plant supervisor"
       }).not_to be_served
+    end
+
+    # Service is read off the other Side's `played_exhibits`, which is
+    # append-only, so a later find cannot rewrite the morning it was served on.
+    it "stays served on the Day it was served, after the Team finds it" do
+      spend(CaseAction::DEPOSE_WITNESS, on: day(1), by: opponent)
+      open_day(2)
+      open_day(3)
+      serve_the_deposition
+      spend(CaseAction::DEPOSE_WITNESS, on: day(3))
+      open_day(4)
+      open_day(5)
+
+      expect(briefing(on: day(3)).served.map(&:title))
+        .to eq(["Deposition of the plant supervisor"])
+      expect(briefing(on: day(5)).served).to be_empty
+    end
+
+    # Found outranks served, so the row is never marked served — but the other
+    # Side still argued at this Team with it, and the briefing says so.
+    it "is served on a Team that already found it" do
+      spend(CaseAction::DEPOSE_WITNESS, on: day(1))
+      spend(CaseAction::DEPOSE_WITNESS, on: day(1), by: opponent)
+      open_day(2)
+      open_day(3)
+      serve_the_deposition
+
+      expect(briefing(on: day(3)).served.map(&:title))
+        .to eq(["Deposition of the plant supervisor"])
     end
   end
 
@@ -204,8 +233,8 @@ RSpec.describe MorningBriefing do
     it "says what would land, and what being served means" do
       read = briefing(on: day(1))
 
-      expect(read.landed_empty_state).to include("lead time", "due back today")
-      expect(read.served_empty_state).to include("exhibit riding it", "argued at")
+      expect(read.landed_empty_state).to include("due back today", "morning they're due")
+      expect(read.served_empty_state).to include("Exhibits attached", "Consult the Client")
     end
 
     it "goes silent on the section that has something in it" do
@@ -240,7 +269,7 @@ RSpec.describe MorningBriefing do
 
         expect(read.what_you_start_with).to be_empty
         expect(read.what_you_start_with_empty_state)
-          .to include("handed no documents at the open")
+          .to include("No documents came with the file")
       end
     end
   end

@@ -56,7 +56,7 @@ Then("Dana's Morning Briefing on Day {int} reports nothing landed") do |ordinal|
 end
 
 Then("Dana's Morning Briefing on Day {int} names the Day's grammar") do |ordinal|
-  expect(a_briefing(ordinal).grammar_line).to include("case file", "any order", "countersignature")
+  expect(a_briefing(ordinal).grammar_line).to include("Case File", "any order", "countersign")
 end
 
 Then("Dana's Morning Briefing on Day {int} carries the published Rubric") do |ordinal, table|
@@ -84,7 +84,7 @@ end
 
 Then("the plaintiff Docket says what a Docket would hold") do
   expect(@side.docket).to be_empty
-  expect(@side.docket.empty_state).to include("Every Action your Team spends on lands here")
+  expect(@side.docket.empty_state).to include("Each Action we buy is logged here")
 end
 
 Then("the plaintiff Docket has stopped explaining itself") do

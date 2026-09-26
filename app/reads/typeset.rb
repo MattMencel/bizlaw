@@ -61,6 +61,11 @@ module Typeset
 
   def price(cost, half) = I18n.t("reads.price", cost: cost, half: half_label(half))
 
+  # A number of points with its unit, counted: "1 preparation point".
+  def points(count, half)
+    I18n.t("reads.points", count: count || 0, figure: count || "—", half: half_label(half))
+  end
+
   # Whole dollars where the amount is whole, which every authored figure so far
   # is. One currency decision for the whole register, and nothing on any page
   # has an amount to compute.
@@ -137,7 +142,7 @@ module Typeset
     return I18n.t("reads.back_of_file.no_cost") unless entry.spend?
 
     I18n.t("reads.back_of_file.lands",
-      price: price(entry.cost, entry.half), day: entry.lands_on_day&.ordinal)
+      count: entry.cost, half: half_label(entry.half), day: entry.lands_on_day&.ordinal)
   end
 
   # What we know, and what we have done — under one heading, because the back of
