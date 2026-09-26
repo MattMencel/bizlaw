@@ -33,6 +33,6 @@ en:
         for: For the %{role}
         signed_by: Signed by
         countersigned_by: Countersigned by
-        waived: Countersignature waived by the instructor
+        waived: Countersignature waived by the Instructor
       beat:
         heading: Your Client

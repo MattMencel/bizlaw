@@ -172,7 +172,8 @@ RSpec.describe "the executed instrument", type: :system do
       expect(page).to have_text(/for the defendant/i)
       expect(page).to have_text("Sam Ortega")
       expect(page).to have_text("Ray Okonkwo")
-      expect(page).to have_text(/countersignature waived by the instructor/i)
+      # Set in capitals by `text-transform`; the glossary capital is in the DOM.
+      expect(find(".cap.waived")["textContent"]).to eq("Countersignature waived by the Instructor")
     end
 
     # A Team whose Offer was taken has no Morning Briefing to learn it from: no
