@@ -28,7 +28,7 @@ en:
       played: Exhibit played
       at_the_open: Had from the start
       docket: Docket
-      band: the Client reads %{band}
+      band: the Client is %{band}
       # Rule 8: every number carries its unit, so the Docket counts points
       # itself rather than reusing the bare `reads.price`.
       lands:

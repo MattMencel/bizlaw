@@ -143,7 +143,7 @@ RSpec.describe "the working draft", type: :system do
       click_button "Confirm"
       click_button "Turn over: Case File & Docket"
 
-      expect(page).to have_text(/Consult the Client — Sam Ortega · the Client reads \w+/)
+      expect(page).to have_text(/Consult the Client — Sam Ortega · the Client is \w+/)
     end
 
     it "is accessible with a confirmation open" do
