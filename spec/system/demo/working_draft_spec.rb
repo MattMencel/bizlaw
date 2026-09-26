@@ -287,6 +287,7 @@ RSpec.describe "the working draft", type: :system do
     # control is present and dead, which is how the Docket teaches the Second.
     it "signs the first line and leaves the second one open to nobody" do
       expect(page).to have_text("Sam Ortega")
+      expect(page).to have_css(".sig .cap", text: /\Asigned by\z/i)
       expect(page).to have_css("button#execute-the-draft[aria-disabled='true']")
       expect(page).to have_text("A teammate has to countersign the draft")
     end

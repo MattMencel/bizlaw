@@ -128,7 +128,7 @@ en:
           when the offer is executed.
       countersignature:
         heading: Signatures
-        drawn_by: Drawn by
+        drawn_by: Signed by
         waived: Countersignature waived by the instructor
         countersigned_by: Countersigned by
         countersigned_by_one_of: "Countersigned by: %{names}"
