@@ -51,7 +51,7 @@ RSpec.describe MorningBriefing do
 
     # Nothing else in the game states the rules of the machine.
     it "names the Day's grammar in one line of fixed copy" do
-      expect(read.grammar_line).to include("case file", "any order", "countersignature")
+      expect(read.grammar_line).to include("Case File", "any order", "countersign")
     end
 
     it "covers one Day" do
@@ -204,8 +204,8 @@ RSpec.describe MorningBriefing do
     it "says what would land, and what being served means" do
       read = briefing(on: day(1))
 
-      expect(read.landed_empty_state).to include("lead time", "due back today")
-      expect(read.served_empty_state).to include("exhibit riding it", "argued at")
+      expect(read.landed_empty_state).to include("due back today", "morning they're due")
+      expect(read.served_empty_state).to include("Exhibits attached", "Consult the Client")
     end
 
     it "goes silent on the section that has something in it" do
@@ -240,7 +240,7 @@ RSpec.describe MorningBriefing do
 
         expect(read.what_you_start_with).to be_empty
         expect(read.what_you_start_with_empty_state)
-          .to include("handed no documents at the open")
+          .to include("No documents came with the file")
       end
     end
   end

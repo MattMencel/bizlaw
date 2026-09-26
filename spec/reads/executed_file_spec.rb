@@ -188,8 +188,8 @@ RSpec.describe ExecutedFile do
     # this page, which is the whole of ADR 0007's point about there being no
     # Morning Briefing after a settlement.
     it "names the Acceptance on the accepting Team's Docket" do
-      expect(props(of: opponent, you: priya)[:back][:docket][:entries].pluck(:act))
-        .to include(Docket::OFFER_ACCEPTED.to_s)
+      expect(props(of: opponent, you: priya)[:back][:docket][:entries].pluck(:act_label))
+        .to include("Accepted their Offer")
     end
 
     # The bug #380 fixed on the commit, which this page renders too: executing
