@@ -21,10 +21,8 @@ en:
       waivers:
         heading: Waive a countersignature
         rubric: >-
-          A team whose other members are absent can draw an offer it cannot
-          execute. Releasing the second lets that team execute alone, for this
-          Day only. It is granted, never exercised — nobody countersigns on a
-          team's behalf — and it cannot be taken back.
+          Lets a Team send its Offer without a teammate's countersignature.
+          Today only. Use it when teammates are absent. Cannot be undone.
         drawn: a position is on the table, unexecuted
         undrawn: nothing drawn on the table
         granted: The second is waived for this Day. Granted by %{name}, %{at}.

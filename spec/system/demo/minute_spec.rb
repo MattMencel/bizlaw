@@ -31,8 +31,8 @@ RSpec.describe "the Instructor's minute", type: :system do
 
     it "says what a waiver is before it offers one" do
       expect(page).to have_css("h3#waivers", text: /\Awaive a countersignature\z/i)
-      expect(page).to have_text("granted, never exercised")
-      expect(page).to have_text("cannot be taken back")
+      expect(page).to have_text("without a teammate's countersignature")
+      expect(page).to have_text("Cannot be undone.")
     end
 
     it "carries one line per Side" do
