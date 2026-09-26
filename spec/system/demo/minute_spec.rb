@@ -69,7 +69,7 @@ RSpec.describe "the Instructor's minute", type: :system do
       draw
       minute
 
-      expect(page).to have_text("a position is on the table, unexecuted")
+      expect(page).to have_text("Draft waiting for a countersignature")
     end
   end
 

@@ -23,7 +23,7 @@ en:
         rubric: >-
           Lets a Team send its Offer without a teammate's countersignature.
           Today only. Use it when teammates are absent. Cannot be undone.
-        drawn: a position is on the table, unexecuted
+        drawn: Draft waiting for a countersignature
         undrawn: nothing drawn on the table
         granted: The second is waived for this Day. Granted by %{name}, %{at}.
         waive: Waive the second
