@@ -19,7 +19,7 @@ RSpec.describe "committing the Day", type: :system do
       headings = all("main h2").map(&:text)
 
       expect(headings.last).to match(/done for the day/i)
-      expect(headings[-2]).to match(/slip/i)
+      expect(headings[-2]).to match(/\AActions\b/i)
     end
 
     it "states the consequence first when it opens in place" do
