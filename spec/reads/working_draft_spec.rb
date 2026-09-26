@@ -492,7 +492,7 @@ RSpec.describe WorkingDraft do
       Offers::Stage.call(side: side, day: day, by: dana, terms: {"apology" => nil})
 
       expect(props[:back][:docket][:entries].sole).to include(
-        act_label: "Drew a draft", by: dana.name, cost: nil, spend: false
+        act_label: "Shared a draft", by: dana.name, cost: nil, spend: false
       )
     end
 
