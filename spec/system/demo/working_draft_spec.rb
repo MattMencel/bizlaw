@@ -25,7 +25,7 @@ RSpec.describe "the working draft", type: :system do
     it "puts their offer on the term sheet beside what his Client asked for" do
       expect(page).to have_text("$40,000")
       expect(page).to have_text("$250,000")
-      expect(page).to have_text("Struck through, their last committed offer")
+      expect(page).to have_text("Struck through: their latest Offer")
     end
 
     # The register #373 settled carries whose a position is in a strike and a
@@ -35,7 +35,7 @@ RSpec.describe "the working draft", type: :system do
     it "says whose each figure is for a reader who cannot see the strike" do
       expect(page).to have_css("thead th", text: "Their last committed position", visible: :all)
       expect(page).to have_css("thead th", text: "Our position", visible: :all)
-      expect(page).to have_css("table.terms caption", text: "Where there is nothing")
+      expect(page).to have_css("table.terms caption", text: "Write ours on the same line as theirs")
     end
 
     # The block is on the page before there is a draft to sign, because an empty
