@@ -65,7 +65,7 @@ en:
         started_with: What we started with
         # Neither a pronoun nor a role: the two Clients are different people and
         # `case_clients` carries no name.
-        client_said: Your client said, on the day you sat down
+        client_said: What the Client told us on Day 1
         calendar: The calendar
         # Read aloud per Day; the page prints only the ordinal.
         calendar_day:

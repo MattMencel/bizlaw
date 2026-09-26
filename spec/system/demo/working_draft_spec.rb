@@ -40,6 +40,10 @@ RSpec.describe "the working draft", type: :system do
       expect(page).to have_css("h3", text: /What we started with/i)
     end
 
+    it "says what the Client told us on Day 1" do
+      expect(page).to have_css("h3", text: /What the Client told us on Day 1/i)
+    end
+
     it "carries the morning: what landed, what was served, what he started with" do
       expect(page).to have_text("The statement given to the trade press")
       expect(page).to have_text("Deposition of the plant supervisor")
