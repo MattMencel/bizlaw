@@ -78,7 +78,7 @@ RSpec.describe Minute do
 
       expect(granted[:by]).to eq(instructor.name)
       expect(granted[:minuted])
-        .to eq("The second is waived for this Day. Granted by #{instructor.name}, Sep 25, 3:04 PM.")
+        .to eq("Countersignature waived for this Day by #{instructor.name}, Sep 25, 3:04 PM.")
     end
 
     # Granted to one Team, not to the Day. The other line is untouched, which is
