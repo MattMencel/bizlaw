@@ -138,7 +138,7 @@ RSpec.describe WorkingDraft do
       expect(props[:countersignature][:execution]).to eq(
         cost: CommittedOffer::EXCHANGE_COST,
         half_label: "exchange",
-        price: "#{CommittedOffer::EXCHANGE_COST} exchange",
+        price: "#{CommittedOffer::EXCHANGE_COST} exchange point",
         stub: nil,
         # Nil beside a price, which is the one combination worth naming here: a
         # refused quote carries no remaining-after, because there is no negative
@@ -160,6 +160,7 @@ RSpec.describe WorkingDraft do
       expect(props[:countersignature]).to include(
         drawn_by: dana.name,
         may_sign: [{name: priya.name, email: priya.email}],
+        may_sign_caption: "Waiting on a countersignature from: #{priya.name}",
         executed: false
       )
     end

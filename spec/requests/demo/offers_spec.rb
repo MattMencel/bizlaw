@@ -176,7 +176,7 @@ RSpec.describe "drawing the Offer", type: :request do
 
       follow_redirect!
       expect(inertia.props[:term_sheet][:refusal])
-        .to eq("Your team has already executed an offer today.")
+        .to eq("We've already sent an Offer today. The next one can go tomorrow.")
     end
 
     # The whole window this closes: the Day stays open until the other Side
