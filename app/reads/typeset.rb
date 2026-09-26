@@ -60,7 +60,7 @@ module Typeset
     {
       heading: I18n.t("reads.glossary.heading"),
       entries: I18n.t("reads.glossary.anchors.#{page}").map do |term, sites|
-        terms.fetch(term).merge(term: term, sites: sites)
+        terms.fetch(term).merge(term: term.to_s, sites: sites)
       end
     }
   end

@@ -142,7 +142,7 @@ RSpec.describe "accepting their offer", type: :request do
 
       expect(inertia.props[:letterhead]).not_to have_key(:day)
       expect(inertia.props.keys.map(&:to_s) - ["errors"])
-        .to match_array(%w[copy letterhead terms signatures stamp beat back])
+        .to match_array(%w[copy glossary letterhead terms signatures stamp beat back])
     end
 
     it "prints both parties' signatures, the waiver among them" do

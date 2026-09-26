@@ -206,7 +206,7 @@ RSpec.describe ExecutedFile do
 
   it "hands the page nothing it has to compute" do
     expect(props.keys).to contain_exactly(
-      :copy, :letterhead, :terms, :signatures, :stamp, :beat, :back
+      :copy, :glossary, :letterhead, :terms, :signatures, :stamp, :beat, :back
     )
   end
 end
