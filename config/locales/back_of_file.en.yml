@@ -20,6 +20,9 @@ en:
         offer_committed: Sent an Offer
         offer_accepted: Accepted their Offer
         second_waived: Countersignature waived by the Instructor
+        # Only on a Day the Team sent no Offer: sending one commits the Day and
+        # is already a line of its own.
+        day_committed: Committed the Day
     back_of_file:
       heading: Back of the file
       papers: Case File · the papers

@@ -267,8 +267,10 @@ RSpec.describe Offers::Stage do
       expect(offer).not_to be_secondable
     end
 
+    # Committing the open Day is what makes Ravi a member here: it is an act
+    # with Attribution that neither spends nor closes the Day on its own.
     it "never names the member who wrote the position" do
-      Days::Commit.call(side: side, day: simulation.days.second, by: ravi)
+      Days::Commit.call(side: side, day: day, by: ravi)
       offer = stage(by: ravi)
 
       expect(offer.eligible_seconders).not_to include(ravi)

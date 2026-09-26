@@ -80,6 +80,10 @@ Rails.application.routes.draw do
     # Second can be satisfied rather than waived.
     post "demo/:run(/:seat)/acceptances",
       to: "demo/acceptances#create", as: :demo_run_acceptances
+    # Committing the Day without an Offer (#396). It carries the Day it was read
+    # against and nothing else: one player's call, no seconder, no cost.
+    post "demo/:run(/:seat)/day_commitments",
+      to: "demo/day_commitments#create", as: :demo_run_day_commitments
   end
 
   # Defines the root path route ("/")

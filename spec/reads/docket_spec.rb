@@ -97,6 +97,30 @@ RSpec.describe Docket do
     expect(side.docket.entries.sole).to be_instructor_action
   end
 
+  # Without it nobody can see who closed a Day with points still unspent (#396).
+  it "shows a Day commit with Attribution, and no cost against it" do
+    Days::Commit.call(side: side, day: day, by: dana)
+
+    entry = side.docket.entries.sole
+
+    expect(entry).to have_attributes(
+      act: Docket::DAY_COMMITTED, by: dana, day: day, kind: nil, cost: nil, half: nil
+    )
+    expect(entry).not_to be_spend
+  end
+
+  # Sending an Offer commits the Day with it, and the send is already a line.
+  # A second line for the commit it implies would be one act written twice.
+  it "adds no Day commit line on a Day the Team sent an Offer" do
+    ravi = a_user(organization: organization, name: "Ravi", email: "ravi@wiu.edu")
+    Offers::Stage.call(side: side, day: day, by: dana, terms: {"money" => 45_000_00})
+    Offers::WaiveSecond.call(side: side, day: day, by: instructor)
+    Days::Command.apply(act: :commit_offer, side: side, day: day, by: dana, seconded_by: nil)
+    Days::Commit.call(side: side, day: day, by: ravi)
+
+    expect(side.docket.entries.map(&:act)).not_to include(Docket::DAY_COMMITTED)
+  end
+
   it "reads in the order it was written" do
     Days::Command.apply(
       act: :spend, side: side, day: day, by: dana, kind: CaseAction::CONSULT_CLIENT
