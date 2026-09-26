@@ -290,7 +290,7 @@ RSpec.describe "the working draft", type: :system do
       expect(page).to have_text("Sam Ortega")
       expect(page).to have_css(".sig .cap", text: /\Asigned by\z/i)
       expect(page).to have_css("button#execute-the-draft[aria-disabled='true']")
-      expect(page).to have_text("A teammate has to countersign the draft")
+      expect(page).to have_text("A teammate has to countersign the draft before we can send it.")
     end
 
     # The price and the refusal together are the beat. An Offer costs one point
