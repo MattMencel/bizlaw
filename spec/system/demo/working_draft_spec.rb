@@ -436,7 +436,7 @@ RSpec.describe "the working draft", type: :system do
 
     it "puts the position on the table and marks it a draft" do
       write(money: "$120,000", terms: ["Apology"])
-      click_button "Put this on the table"
+      click_button "Share with the Team"
 
       expect(page).to have_text(/draft — not sent/i)
       expect(page).not_to have_css(".draft-mark.pending")
@@ -449,7 +449,7 @@ RSpec.describe "the working draft", type: :system do
     # legible rather than the control that was pressed.
     it "returns him to the sheet, which is where the result reads" do
       write(money: "$120,000")
-      click_button "Put this on the table"
+      click_button "Share with the Team"
 
       expect(page).to have_text(/draft — not sent/i)
       expect(page.evaluate_script("document.activeElement.id")).to eq("term-sheet")
@@ -478,7 +478,7 @@ RSpec.describe "the working draft", type: :system do
     # that one thing.
     it "clears the unposted mark when the note it sent was only spaces" do
       write(money: "$120,000")
-      click_button "Put this on the table"
+      click_button "Share with the Team"
       expect(page).to have_text(/draft — not sent/i)
 
       fill_in "Covering note", with: "   "
@@ -515,11 +515,11 @@ RSpec.describe "the working draft", type: :system do
     it "prices the Exhibit into executing the draft as one figure" do
       check "Money"
       fill_in "Our figure for Money, in dollars", with: "$120,000"
-      click_button "Put this on the table"
+      click_button "Share with the Team"
       expect(page).to have_text("1 exchange")
 
       check "The claimant's personnel file"
-      click_button "Put this on the table"
+      click_button "Share with the Team"
 
       expect(page).to have_text("2 exchange")
     end
@@ -539,7 +539,7 @@ RSpec.describe "the working draft", type: :system do
       expect(page).to have_no_text("At law, a counteroffer rejects it.")
       expect(page).to have_text("$40,000")
       expect(page).to have_no_field("Our figure for Money, in dollars")
-      expect(page).to have_no_button("Put this on the table")
+      expect(page).to have_no_button("Share with the Team")
     end
 
     # Both lines filled, nobody left to sign, and no price for an act that has
@@ -571,7 +571,7 @@ RSpec.describe "the working draft", type: :system do
       visit "/demo/#{Demo::Seed::DEMO}"
       check "Money"
       fill_in "Our figure for Money, in dollars", with: "$150,000"
-      click_button "Put this on the table"
+      click_button "Share with the Team"
       expect(page).to have_text(/draft — not sent/i)
     end
 

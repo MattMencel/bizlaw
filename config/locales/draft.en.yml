@@ -117,7 +117,7 @@ en:
       drawing:
         note: Covering note
         note_placeholder: A line to the other Side (optional)
-        draw: Put this on the table
+        draw: Share with the Team
         # Why the control is dead, before anything is posted.
         withheld:
           no_terms: An offer names at least one term.
