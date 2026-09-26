@@ -16,8 +16,8 @@ en:
       closed:
         heading: Settled
         body: >-
-          The two Sides settled on Day %{day}, %{date}. No further Day opens,
-          and there is nothing left to release.
+          The Sides settled on Day %{day}, %{date}. No more Days open, and
+          there's nothing left to waive.
       waivers:
         heading: Waive a countersignature
         rubric: >-

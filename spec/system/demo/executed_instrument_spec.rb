@@ -199,6 +199,7 @@ RSpec.describe "the executed instrument", type: :system do
 
       expect(page).to have_css("h3#closed", text: /\Asettled\z/i)
       expect(page).to have_text(/settled on Day 4/)
+      expect(page).to have_text("No more Days open, and there's nothing left to waive.")
       expect(page).to have_no_css("button#waive-plaintiff")
       expect(page).to be_axe_clean
     end
