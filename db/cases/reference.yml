@@ -281,9 +281,8 @@ documents:
     action: research_precedent
     title: Memorandum on comparable settlements
     body: |
-      Fourteen settlements in this circuit over six years, with the terms each
-      one turned on. Useful to argue from; not a document to put in front of
-      anyone.
+      Fourteen settlements in this circuit over six years, and the terms each
+      one turned on. Good for knowing what a case like ours settles for.
   statement_to_the_trade_press:
     action: manage_press
     title: The statement given to the trade press
