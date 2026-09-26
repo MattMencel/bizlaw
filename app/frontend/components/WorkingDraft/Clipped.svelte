@@ -22,11 +22,12 @@
   play rather than quietly dropping one.
 -->
 <script>
+  import Glossed from "../Gloss/Glossed.svelte"
   let { copy, clipped, position } = $props()
 </script>
 
 <aside class="rail" aria-labelledby="clipped">
-  <h2 class="doc-sub" id="clipped">{copy.heading}</h2>
+  <h2 class="doc-sub" id="clipped"><Glossed at="clipped.heading" text={copy.heading} /></h2>
   <ul class="plain">
     {#each clipped.documents as doc (doc.identifier)}
       <li class="clip" class:spent={doc.spent}>
@@ -39,13 +40,13 @@
             <span class="title">{doc.title}</span>
           </label>
         {:else}
-          <span class="tab-clip">{copy.exhibit}</span>
+          <span class="tab-clip"><Glossed at="clipped.exhibit" text={copy.exhibit} /></span>
           <span class="title">{doc.title}</span>
         {/if}
       </li>
     {/each}
   </ul>
-  <p class="tiny muted foot">{copy.foot}</p>
+  <p class="tiny muted foot"><Glossed at="clipped.foot" text={copy.foot} /></p>
 </aside>
 
 <style>

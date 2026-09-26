@@ -23,13 +23,14 @@
   sentence this instrument means — it is executed, and these are its terms.
 -->
 <script>
+  import Glossed from "../Gloss/Glossed.svelte"
   let { copy, terms, stamp } = $props()
 </script>
 
 <section aria-labelledby="executed-terms">
   <div class="sheet-head">
-    <h2 class="doc-title" id="executed-terms" tabindex="-1">{copy.heading}</h2>
-    <span class="draft-mark executed">{copy.mark}</span>
+    <h2 class="doc-title" id="executed-terms" tabindex="-1"><Glossed at="executed_instrument.terms.heading" text={copy.heading} /></h2>
+    <span class="draft-mark executed"><Glossed at="executed_instrument.terms.mark" text={copy.mark} /></span>
   </div>
 
   <table class="terms">

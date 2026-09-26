@@ -24,6 +24,7 @@
   has a Budget of its own.
 -->
 <script>
+  import Glossed from "../Gloss/Glossed.svelte"
   import { router } from "@inertiajs/svelte"
   import { tick } from "svelte"
 
@@ -70,12 +71,12 @@
 </script>
 
 <section aria-labelledby="slip">
-  <h2 class="doc-sub" id="slip">{slip.heading}</h2>
+  <h2 class="doc-sub" id="slip"><Glossed at="slip.heading" text={slip.heading} /></h2>
   <ul class="plain">
     {#each slip.actions as action (action.kind)}
       <li class="slip" class:refused={!action.affordable}>
         <span class="k">
-          {action.label}
+          <Glossed at="slip.action" text={action.label} />
           {#if action.refused_just_now}<span class="stamp warn">{copy.refused}</span>{/if}
         </span>
         <span class="p">{action.line}</span>

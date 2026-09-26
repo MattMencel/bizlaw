@@ -180,7 +180,7 @@ RSpec.describe ExecutedFile do
 
   describe "the back of the file" do
     it "still turns to the Case File and the Docket" do
-      expect(props[:back].keys).to contain_exactly(:copy, :case_file, :docket)
+      expect(props[:back].keys).to contain_exactly(:copy, :glossary, :case_file, :docket)
     end
 
     # The Docket is a record of what *this* Team did, so the Acceptance appears
@@ -206,7 +206,7 @@ RSpec.describe ExecutedFile do
 
   it "hands the page nothing it has to compute" do
     expect(props.keys).to contain_exactly(
-      :copy, :letterhead, :terms, :signatures, :stamp, :beat, :back
+      :copy, :glossary, :letterhead, :terms, :signatures, :stamp, :beat, :back
     )
   end
 end

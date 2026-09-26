@@ -33,6 +33,7 @@
   import { tick, untrack } from "svelte"
   import TermSheet from "./TermSheet.svelte"
   import Clipped from "./Clipped.svelte"
+  import Glossed from "../Gloss/Glossed.svelte"
 
   let { copy, term_sheet, clipped, countersignature, offer_path, day } = $props()
 
@@ -167,7 +168,7 @@
 {#if term_sheet.writable}
   <div class="drawing">
     <label class="note-field">
-      <span class="cap">{copy.drawing.note}</span>
+      <span class="cap"><Glossed at="drawing.note" text={copy.drawing.note} /></span>
       <input
         type="text"
         bind:value={position.note}

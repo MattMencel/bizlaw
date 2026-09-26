@@ -54,6 +54,7 @@
   cell is blank, which is what a data table means by nothing.
 -->
 <script>
+  import Glossed from "../Gloss/Glossed.svelte"
   let { copy, term_sheet, countersignature, position, unposted } = $props()
 
   // A Position present without an amount is a Team offering the Term itself —
@@ -67,7 +68,7 @@
   <div class="sheet-head">
     <!-- Focusable so an act can return the reader here, which is where its
          result is legible: what he wrote is now what the sheet prints. -->
-    <h2 class="doc-title" id="term-sheet" tabindex="-1">{copy.heading}</h2>
+    <h2 class="doc-title" id="term-sheet" tabindex="-1"><Glossed at="term_sheet.heading" text={copy.heading} /></h2>
     {#if unposted}
       <span class="draft-mark pending">{copy.marks.pending}</span>
     {:else if term_sheet.ours_staged}
@@ -84,7 +85,7 @@
        because it is the tutorial (#368) and a sheet nobody can write on is not
        what Day 1 is. -->
   {#if term_sheet.empty_state}
-    <p class="empty-state">{term_sheet.empty_state}</p>
+    <p class="empty-state"><Glossed at="term_sheet.empty" text={term_sheet.empty_state} /></p>
   {/if}
   {#if term_sheet.writable || !term_sheet.empty_state}
     <table class="terms">

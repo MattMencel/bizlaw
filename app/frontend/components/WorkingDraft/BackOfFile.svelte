@@ -9,6 +9,9 @@
   shown is knowledge and never ammunition.
 -->
 <script>
+  import GlossList from "../Gloss/GlossList.svelte"
+  import Glossed from "../Gloss/Glossed.svelte"
+
   let { back } = $props()
 
   const copy = $derived(back.copy)
@@ -17,7 +20,9 @@
 <section aria-labelledby="back-of-file">
   <h2 class="doc-title" id="back-of-file">{copy.heading}</h2>
 
-  <h3 class="doc-sub">{copy.papers}</h3>
+  <GlossList />
+
+  <h3 class="doc-sub"><Glossed at="back_of_file.papers" text={copy.papers} /></h3>
   {#if back.case_file.empty_state}
     <p class="empty-state">{back.case_file.empty_state}</p>
   {:else}
@@ -25,9 +30,9 @@
       <div class="paper">
         <div class="paper-head">
           <strong>{doc.title}</strong>
-          {#if doc.served}<span class="stamp warn">{copy.served}</span>{/if}
-          {#if doc.playable}<span class="tab-clip">{copy.exhibit}</span>{/if}
-          {#if doc.spent}<span class="tab-clip spent">{copy.played}</span>{/if}
+          {#if doc.served}<span class="stamp warn"><Glossed at="back_of_file.served" text={copy.served} /></span>{/if}
+          {#if doc.playable}<span class="tab-clip"><Glossed at="back_of_file.exhibit" text={copy.exhibit} /></span>{/if}
+          {#if doc.spent}<span class="tab-clip spent"><Glossed at="back_of_file.played" text={copy.played} /></span>{/if}
           {#if doc.at_the_open}<span class="tiny muted">{copy.at_the_open}</span>{/if}
           <span class="tiny muted">{doc.day_label}</span>
         </div>
@@ -41,7 +46,7 @@
   {/if}
 
   <hr class="rule" />
-  <h3 class="doc-sub">{copy.docket}</h3>
+  <h3 class="doc-sub"><Glossed at="back_of_file.docket" text={copy.docket} /></h3>
   {#if back.docket.empty_state}
     <p class="empty-state">{back.docket.empty_state}</p>
   {:else}
@@ -50,10 +55,10 @@
         <li class="docket-line">
           <span class="d">{entry.day_label}</span>
           <span>
-            {entry.act_label}{#if entry.by}{" "}<span class="by">— {entry.by}</span>{/if}
-            {#if entry.reads_as}{" "}<span class="band">· {entry.reads_as}</span>{/if}
+            <Glossed at="docket.act" text={entry.act_label} />{#if entry.by}{" "}<span class="by">— {entry.by}</span>{/if}
+            {#if entry.reads_as}{" "}<span class="band">· <Glossed at="docket.band" text={entry.reads_as} /></span>{/if}
           </span>
-          <span class="c">{entry.price}</span>
+          <span class="c"><Glossed at="docket.price" text={entry.price} /></span>
         </li>
       {/each}
     </ul>
