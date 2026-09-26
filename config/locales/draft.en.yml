@@ -131,6 +131,9 @@ en:
         drawn_by: Signed by
         waived: Countersignature waived by the instructor
         countersigned_by: Countersigned by
+        # A blank line with nobody named who may sign it: a Side of one, or no
+        # draft yet.
+        waiting: Waiting on a countersignature
         countersigned_by_one_of: "Waiting on a countersignature from: %{names}"
         refused: Refused
         execute: Execute this draft
