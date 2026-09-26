@@ -57,7 +57,7 @@ en:
       the_day_has_closed: >-
         This Day has closed. The next one opens on the Instructor's schedule.
       the_day_has_not_opened: >-
-        This Day has not opened yet.
+        This Day hasn't opened yet. Work from today's page until it does.
       the_offer_has_not_been_seconded: >-
         A teammate has to countersign the draft before it can be executed.
       # The Acceptance's own, and not the draft's. The gate is the same rule and

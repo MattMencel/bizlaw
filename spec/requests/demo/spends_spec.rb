@@ -150,7 +150,7 @@ RSpec.describe "spending an Action", type: :request do
     follow_redirect!
     line = inertia.props[:slip][:actions].find { |a| a[:kind] == CaseAction::REQUEST_DOCUMENTS }
     expect(line).to include(refused_just_now: true)
-    expect(line[:refusal]).to eq("This Day has not opened yet.")
+    expect(line[:refusal]).to eq("This Day hasn't opened yet. Work from today's page until it does.")
   end
 
   it "does not know a Day off the Simulation's calendar" do
