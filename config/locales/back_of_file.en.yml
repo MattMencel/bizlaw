@@ -15,9 +15,9 @@ en:
         offer_staged: Shared a draft
         # The commit is a spend and has a price, so it sits among these rather
         # than with the costless three for one reason only: there is no authored
-        # Action behind it to take a name from. § Register: an Offer commits by
-        # executing a draft.
-        offer_committed: Executed the draft
+        # Action behind it to take a name from. ADR 0009: an Offer is sent, not
+        # executed.
+        offer_committed: Sent an Offer
         offer_accepted: Accepted their offer
         second_waived: Countersignature waived by the instructor
     back_of_file:

@@ -510,7 +510,7 @@ RSpec.describe WorkingDraft do
       committed = props[:back][:docket][:entries].find { |line| line[:cost] == 1 }
 
       expect(committed).to include(
-        act_label: "Executed the draft", by: dana.name,
+        act_label: "Sent an Offer", by: dana.name,
         half_label: "exchange", kind: nil, spend: true
       )
     end
