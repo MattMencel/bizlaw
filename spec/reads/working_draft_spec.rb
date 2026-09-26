@@ -138,7 +138,7 @@ RSpec.describe WorkingDraft do
       expect(props[:countersignature][:execution]).to eq(
         cost: CommittedOffer::EXCHANGE_COST,
         half_label: "exchange",
-        price: "#{CommittedOffer::EXCHANGE_COST} exchange",
+        price: "#{CommittedOffer::EXCHANGE_COST} exchange point",
         stub: nil,
         # Nil beside a price, which is the one combination worth naming here: a
         # refused quote carries no remaining-after, because there is no negative

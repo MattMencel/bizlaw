@@ -344,7 +344,7 @@ class WorkingDraft
     {
       cost: staged && quote.cost,
       half_label: staged && half_label(quote.half),
-      price: staged && price(quote.cost, quote.half),
+      price: staged && points(quote.cost, quote.half),
       stub: quote.remaining_after && I18n.t("reads.draft.countersignature.stub",
         price: price(quote.cost, quote.half), left: quote.remaining_after,
         half: half_label(quote.half)),
@@ -355,6 +355,12 @@ class WorkingDraft
       remaining_after: quote.remaining_after,
       refusal: refusal_sentence(quote.refusal)
     }
+  end
+
+  # The block's price carries its unit (voice rule 8), which the slip's shared
+  # `reads.price` does not yet.
+  def points(cost, half)
+    I18n.t("reads.draft.countersignature.price", count: cost, half: half_label(half))
   end
 
   # **The other Side's paper, and the one act taken on it.** An Acceptance is a

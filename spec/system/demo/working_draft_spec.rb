@@ -297,7 +297,7 @@ RSpec.describe "the working draft", type: :system do
     # of the exchange half and this Case prices an Exhibit at one more, so a
     # draft with nothing clipped to it is one.
     it "prices executing it beside the reason he cannot" do
-      expect(page).to have_text("1 exchange")
+      expect(page).to have_css(".price", text: "1 exchange point")
     end
 
     it "is accessible" do
@@ -505,12 +505,12 @@ RSpec.describe "the working draft", type: :system do
       check "Money"
       fill_in "Our position on Money, in dollars", with: "$120,000"
       click_button "Put this on the table"
-      expect(page).to have_text("1 exchange")
+      expect(page).to have_css(".price", text: "1 exchange point")
 
       check "The claimant's personnel file"
       click_button "Put this on the table"
 
-      expect(page).to have_text("2 exchange")
+      expect(page).to have_css(".price", text: "2 exchange points")
     end
   end
 
