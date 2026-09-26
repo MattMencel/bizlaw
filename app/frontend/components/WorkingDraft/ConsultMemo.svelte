@@ -41,7 +41,7 @@
           <div class="face">{@html memo.portrait}</div>
         {/if}
         <div class="said">
-          <p class="tiny muted reads">{copy.reads} <strong>{entry.band}</strong></p>
+          <p class="tiny muted reads">{copy.band} <strong>{entry.band}</strong></p>
           <div class="prose small">
             {#each entry.line.split("\n\n") as para}
               <p>{para}</p>
