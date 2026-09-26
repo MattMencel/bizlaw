@@ -179,6 +179,7 @@ RSpec.describe "the executed instrument", type: :system do
     # A Team whose Offer was taken has no Morning Briefing to learn it from: no
     # Day opens after a settlement, so this page is how he finds out.
     it "gives the Client the last word, with no Reaction Band" do
+      expect(find("h2#client-beat")["textContent"]).to eq("The Client")
       expect(page).to have_css("section .face svg")
       expect(page).to have_no_text(/reads firm/i)
       expect(page).to have_no_text(/reads ready/i)
