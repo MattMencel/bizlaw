@@ -13,6 +13,7 @@
 
 <section aria-labelledby="front-matter">
   <h2 class="doc-sub" id="front-matter">{front_matter.heading}</h2>
+  <p class="small">{front_matter.grammar}</p>
 
   <h3 class="doc-sub">{copy.landed}</h3>
   {#if front_matter.landed_empty_state}
@@ -74,9 +75,6 @@
 
   <h3 class="doc-sub">{copy.graded}</h3>
   <p class="small">{front_matter.rubric}</p>
-
-  <hr class="rule" />
-  <p class="small">{front_matter.grammar}</p>
 </section>
 
 <style>

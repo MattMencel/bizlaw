@@ -13,7 +13,51 @@ RSpec.describe "the working draft", type: :system do
 
     it "opens on the draft, with the Day's grammar named once" do
       expect(page).to have_text("You are looking at the draft.")
-      expect(page).to have_text("Everything here is the case file")
+      expect(page).to have_text("Work the Case File in any order")
+    end
+
+    # The heading is the glossary name (voice.md, *Inside the register*).
+    # `.doc-sub` prints in capitals, hence /i.
+    it "heads the morning with the glossary name" do
+      expect(page).to have_css("h2#front-matter", text: /Morning Briefing · Day 3/i)
+    end
+
+    # The move comes first (voice.md, rule 1): the grammar sits under the
+    # heading, not at the foot under the Rubric.
+    it "puts the Day's grammar directly under the heading" do
+      expect(page).to have_css("h2#front-matter + p", text: "Work the Case File in any order")
+    end
+
+    it "says what arrived this morning" do
+      expect(page).to have_css("h3", text: /Arrived this morning/i)
+    end
+
+    it "says what was served on us" do
+      expect(page).to have_css("h3", text: /Served on us/i)
+    end
+
+    it "says what we started with" do
+      expect(page).to have_css("h3", text: /What we started with/i)
+    end
+
+    it "says what the Client told us on Day 1" do
+      expect(page).to have_css("h3", text: /What the Client told us on Day 1/i)
+    end
+
+    # The slip's refusal says it when a result would arrive too late, so the
+    # calendar does not state the rule before it applies.
+    it "states the calendar without a rule" do
+      expect(page).to have_text(/\d+ Days, .+ to .+\./)
+      expect(page).to have_no_text("lead time is only plannable")
+    end
+
+    it "says how you're graded" do
+      expect(page).to have_css("h3", text: /How you're graded/i)
+    end
+
+    it "says when grades appear" do
+      expect(page).to have_text("up to 10 bonus points on top of the 100")
+      expect(page).to have_text("Grades appear when the Instructor releases them.")
     end
 
     it "carries the morning: what landed, what was served, what he started with" do
@@ -311,8 +355,9 @@ RSpec.describe "the working draft", type: :system do
     # in the front matter said only that there was nothing, until #368 — and
     # they are the first two things a Day 1 reader meets.
     it "is not a blank page" do
-      expect(page).to have_text("An Action you spend comes back on the Day its lead time names")
-      expect(page).to have_text("any exhibit riding it is served on you")
+      expect(page).to have_text("Actions we buy below come back here on the morning they're due.")
+      expect(page).to have_text("Nothing's been served on us yet.")
+      expect(page).to have_text("If one arrives, Consult the Client")
       expect(page).to have_text("an offer of nothing is a position somebody took")
       expect(page).to have_text("The termination letter")
     end

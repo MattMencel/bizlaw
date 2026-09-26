@@ -14,25 +14,22 @@ en:
       # must not be.
       landed:
         empty: >-
-          Nothing yet. An Action you spend comes back on the Day its lead time
-          names, and lands here that morning. Nothing you have bought is due
-          back today.
+          Nothing's due back today. Actions we buy below come back here on the
+          morning they're due.
       served:
         empty: >-
-          Nothing yet. When the other Side executes an offer, any exhibit
-          riding it is served on you and appears here. It is how you learn you
-          have been argued at — never what the argument was worth.
+          Nothing's been served on us yet. When the other Side sends an Offer
+          with Exhibits attached, we get copies here. If one arrives, Consult
+          the Client — it may have moved them.
       # Unreachable in the reference Case, which authors documents at the open
       # for both Sides, and owed a sentence all the same.
       what_you_start_with:
         empty: >-
-          Nothing. Your Team was handed no documents at the open, so everything
-          you come to know is something you bought or something they served on
-          you.
+          No documents came with the file. What we learn will come from Actions
+          we buy and papers the other Side serves on us.
       grammar: >-
-        Everything here is the case file — work it in any order. The Day ends
-        when both Sides have committed it, and an Offer commits only over a
-        teammate's countersignature.
+        Work the Case File in any order. Before we send an Offer, a teammate
+        has to countersign it. The Day ends once both Teams are done.
       rubric:
         dimensions:
           - Settlement quality, 40 points
@@ -40,8 +37,8 @@ en:
           - Collaboration, 20 points
           - Efficiency, 10 points
         bonus: >-
-          Creative terms, up to 10 points above the 100. Your grade is released
-          by your instructor; nothing about it is visible before then.
+          Creative terms: up to 10 bonus points on top of the 100. Grades appear
+          when the Instructor releases them.
         # The dimensions, joined, then the bonus.
         published: "%{dimensions}. %{bonus}"
     terms_board:
@@ -61,24 +58,22 @@ en:
         to_back: Turn the page over
         to_front: Turn back to the draft
       front_matter:
-        heading: Front matter · the morning of Day %{day}
-        landed: Landed today
-        served: Served on you
+        heading: Morning Briefing · Day %{day}
+        landed: Arrived this morning
+        served: Served on us
         served_stamp: Served
-        started_with: What you started with
+        started_with: What we started with
         # Neither a pronoun nor a role: the two Clients are different people and
         # `case_clients` carries no name.
-        client_said: Your client said, on the day you sat down
+        client_said: What the Client told us on Day 1
         calendar: The calendar
         # Read aloud per Day; the page prints only the ordinal.
         calendar_day:
           today: Day %{day}, %{date}, today
           closed: Day %{day}, %{date}, closed
           ahead: Day %{day}, %{date}
-        calendar_span: >-
-          %{count} Days, %{first} to %{last}. An Action's lead time is only
-          plannable against how many are left.
-        graded: How you are graded
+        calendar_span: "%{count} Days, %{first} to %{last}."
+        graded: How you're graded
       term_sheet:
         heading: Draft terms of settlement
         marks:
