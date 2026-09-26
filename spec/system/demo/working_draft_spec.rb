@@ -519,6 +519,7 @@ RSpec.describe "the working draft", type: :system do
     before { visit "/demo/#{Demo::Seed::DEMO}/#{Side::DEFENDANT}" }
 
     it "prints the executed position rather than offering inputs" do
+      expect(page).to have_css(".draft-mark", text: /sent · day 3/i)
       expect(page).to have_text("$40,000")
       expect(page).to have_no_field("Our position on Money, in dollars")
       expect(page).to have_no_button("Put this on the table")

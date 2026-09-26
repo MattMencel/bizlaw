@@ -186,6 +186,7 @@ class WorkingDraft
     {
       empty_state: terms.empty_state,
       byline: byline,
+      sent_mark: committed && I18n.t("reads.draft.term_sheet.marks.sent", day: committed.day.ordinal),
       note: staged&.note,
       ours_staged: open_draft?,
       writable: may_draft?,

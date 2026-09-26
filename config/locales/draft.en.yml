@@ -84,7 +84,7 @@ en:
         marks:
           pending: Not shared yet
           drafted: Draft — not sent
-          executed: Executed
+          sent: Sent · Day %{day}
         byline: "%{matter} · Day %{day}"
         byline_drawn: "%{matter} · Day %{day} · drawn by %{name}"
         # The table's reading convention. The first is the sheet a Team can

@@ -73,7 +73,7 @@
     {:else if term_sheet.ours_staged}
       <span class="draft-mark">{copy.marks.drafted}</span>
     {:else if countersignature.executed}
-      <span class="draft-mark executed">{copy.marks.executed}</span>
+      <span class="draft-mark executed">{term_sheet.sent_mark}</span>
     {/if}
   </div>
   <p class="doc-sub">{term_sheet.byline}</p>
