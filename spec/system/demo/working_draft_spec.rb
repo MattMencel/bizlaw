@@ -607,7 +607,7 @@ RSpec.describe "the working draft", type: :system do
       find("#execute-the-draft").click
 
       expect(page).to have_text("Ends our Day. Costs 1 exchange point (1 left after).")
-      expect(page).to have_button("Confirm")
+      expect(page).to have_button("Confirm: send this Offer")
     end
 
     it "charges nothing on Cancel" do

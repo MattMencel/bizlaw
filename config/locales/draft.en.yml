@@ -142,7 +142,7 @@ en:
           other: "%{count} %{half} points"
         # The consequence first, then the price (voice rules 6 and 8).
         stub: "Ends our Day. Costs %{points} (%{left} left after)."
-        confirm_label: Confirm executing this draft
+        confirm_label: "Confirm: send this Offer"
         confirm: Confirm
         cancel: Cancel
       acceptance:
