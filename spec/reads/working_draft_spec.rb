@@ -277,6 +277,7 @@ RSpec.describe WorkingDraft do
 
     it "names the Action it buys on the control, for a reader who hears the button" do
       expect(action(CaseAction::CONSULT_CLIENT)[:spend_label]).to eq("Buy: Consult the Client")
+      expect(action(CaseAction::CONSULT_CLIENT)[:confirm_label]).to eq("Confirm: Consult the Client")
     end
 
     it "writes the confirmation stub as the cost, what is left after, and when it arrives" do

@@ -167,7 +167,7 @@ en:
         stub: "Costs %{points} (%{left} left after). %{arriving}"
         spend: Buy
         spend_label: "Buy: %{action}"
-        confirm_label: Confirm spending %{action}
+        confirm_label: "Confirm: %{action}"
         refused: Refused
         confirm: Confirm
         cancel: Cancel

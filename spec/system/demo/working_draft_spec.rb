@@ -341,7 +341,7 @@ RSpec.describe "the working draft", type: :system do
       expect(page).to have_text(/8 preparation/i)
 
       click_button "Buy: Consult the Client"
-      click_button "Confirm spending Consult the Client"
+      click_button "Confirm: Consult the Client"
 
       expect(page).to have_text(/7 preparation/i)
       expect(page).to have_text(/reads firm/i)
