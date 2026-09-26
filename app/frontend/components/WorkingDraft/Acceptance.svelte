@@ -130,6 +130,7 @@
   {#if open}
     <div class="stub" id="acceptance-stub">
       <p class="terms">
+        {acceptance.consequence}
         {#if acceptance.may_sign.length > 1}
           <label>
             {copy.countersigned_by}
@@ -138,11 +139,10 @@
                 <option value={member.email}>{member.name}</option>
               {/each}
             </select>
-          </label> ·
+          </label>
         {:else if acceptance.countersigns}
-          {acceptance.countersigns} ·
+          {acceptance.countersigns}
         {/if}
-        {acceptance.consequence}
       </p>
       <button
         type="button"

@@ -150,9 +150,12 @@ en:
         refused: Refused
         accept: Accept their Offer
         no_cost: no cost
-        countersigned_by: Countersigned by
-        countersigns: "%{name} countersigns"
-        consequence: this closes Day %{day} and settles the matter · there is nothing after it
+        # The stub prints the consequence first, then the teammate's hand: a
+        # picker labelled `countersigned_by`, or `countersigns` where there is
+        # one teammate to name.
+        consequence: "Ends the game: we settle on these Terms, and Day %{day} closes."
+        countersigned_by: "Countersigned by:"
+        countersigns: "Countersigned by: %{name}"
         confirm_label: Confirm accepting their offer
         confirm: Confirm
         cancel: Cancel

@@ -90,9 +90,8 @@ RSpec.describe "the executed instrument", type: :system do
 
       click_button "Accept their Offer"
 
-      expect(page).to have_text("Ray Okonkwo countersigns")
-      expect(page).to have_text("this closes Day 4 and settles the matter")
-      expect(page).to have_text("there is nothing after it")
+      expect(page).to have_css("#acceptance-stub", text:
+        "Ends the game: we settle on these Terms, and Day 4 closes. Countersigned by: Ray Okonkwo")
     end
 
     # Irreversible and free, which is the reason it confirms rather than in
@@ -102,7 +101,7 @@ RSpec.describe "the executed instrument", type: :system do
       click_button "Accept their Offer"
       click_button "Cancel"
 
-      expect(page).to have_no_text("this closes Day 4")
+      expect(page).to have_no_text("Ends the game")
       expect(simulation.reload).not_to be_settled
     end
 
