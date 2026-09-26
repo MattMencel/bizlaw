@@ -64,7 +64,7 @@ RSpec.describe "the executed instrument", type: :system do
     it "holds the control dead while his Second stands, and says why" do
       expect(page).to have_css("button#accept-their-offer[aria-disabled='true']")
       expect(page)
-        .to have_text("A teammate has to countersign before their offer can be accepted")
+        .to have_text("A teammate has to countersign before we can accept their Offer.")
     end
 
     it "prints no price, because there is none" do

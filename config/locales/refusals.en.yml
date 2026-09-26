@@ -56,7 +56,7 @@ en:
       # table, and this one is about taking the other Side's — a reader told to
       # countersign *the draft* would look at the wrong instrument.
       the_acceptance_has_not_been_seconded: >-
-        A teammate has to countersign before their offer can be accepted.
+        A teammate has to countersign before we can accept their Offer.
       # Distinct from `the_simulation_has_settled`, which is what a *spend* is
       # refused for and says there is nothing left to buy. An Acceptance beaten
       # across the table was not refused for having nothing to buy; it was
