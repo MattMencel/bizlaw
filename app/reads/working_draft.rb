@@ -53,8 +53,11 @@ class WorkingDraft
   # third was a third: it lands somewhere else. The acceptance block is the
   # other Side's paper on this page, and it is the only part of the instrument
   # that can say what happened to an act taken on it.
+  #
+  # `day_commit_refused` is the fifth, for the Day commit block at the foot of
+  # the front.
   def initialize(side, day:, you:, refused: nil, draft_refused: nil, commit_refused: nil,
-    acceptance_refused: nil)
+    acceptance_refused: nil, day_commit_refused: nil)
     @side = side
     @day = day
     @you = you
@@ -62,6 +65,7 @@ class WorkingDraft
     @draft_refused = draft_refused
     @commit_refused = commit_refused
     @acceptance_refused = acceptance_refused
+    @day_commit_refused = day_commit_refused
   end
 
   def to_props
@@ -75,6 +79,7 @@ class WorkingDraft
       acceptance: acceptance,
       memo: memo,
       slip: slip,
+      day_commit: day_commit,
       back: back
     }
   end
@@ -89,7 +94,7 @@ class WorkingDraft
   # ledgers are empty and the player is sitting there all the same, and again
   # the moment a second act is attributed.
   attr_reader :side, :day, :you, :refused, :draft_refused, :commit_refused,
-    :acceptance_refused
+    :acceptance_refused, :day_commit_refused
 
   def briefing = @briefing ||= MorningBriefing.for(side, day: day)
 
@@ -545,6 +550,31 @@ class WorkingDraft
           refusal: refusal_sentence(entry.refusal || (just_now ? refused_reason : nil))
         }
       end
+    }
+  end
+
+  # Committing the Day without an Offer, at the foot of the front (#396). One
+  # player's call, so there is no signature line — only the control, or once
+  # the Side has committed, the record naming who did. Sending an Offer commits
+  # the Day with it, so on that Day this is the record from the start.
+  #
+  # The stub states the consequence first. Where the other Side has already
+  # committed, that consequence is the end of the Day, which tells the Team the
+  # other Side is done — the close would say so a moment later anyway.
+  def day_commit
+    commitment = side.day_commitments.find_by(day: day)
+    seam = Days::Commit.new(side: side, day: day, by: you)
+    closes = commitment.nil? && seam.closes_the_day?
+    consequence = closes ? "closes" : "waits"
+
+    {
+      committed: !commitment.nil?,
+      record: commitment &&
+        I18n.t("reads.draft.day_commit.committed_by", name: commitment.committed_by.name),
+      closes_the_day: closes,
+      stub: commitment.nil? ? I18n.t("reads.draft.day_commit.stub.#{consequence}") : nil,
+      refusal: commitment.nil? ? refusal_sentence(seam.refusal) : nil,
+      refused: refusal_sentence(day_commit_refused)
     }
   end
 
