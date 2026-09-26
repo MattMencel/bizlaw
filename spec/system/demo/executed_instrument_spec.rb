@@ -177,6 +177,8 @@ RSpec.describe "the executed instrument", type: :system do
     it "still turns over to the Case File and the Docket" do
       click_button "Turn over: Case File & Docket"
 
+      expect(page).to have_button("Turn back: the executed agreement")
+
       expect(page).to have_text(/what we know, and what we have done/i)
       expect(page).to have_text("Executed the draft")
     end
