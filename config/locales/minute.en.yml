@@ -26,5 +26,5 @@ en:
         drawn: Draft waiting for a countersignature
         undrawn: No draft waiting
         granted: Countersignature waived for this Day by %{name}, %{at}.
-        waive: Waive the second
+        waive: Waive the countersignature
         waive_label: Waive the second for the %{role}

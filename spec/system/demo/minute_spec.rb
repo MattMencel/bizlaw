@@ -36,7 +36,7 @@ RSpec.describe "the Instructor's minute", type: :system do
     end
 
     it "carries one line per Side" do
-      expect(page).to have_button("Waive the second", count: 2)
+      expect(page).to have_button("Waive the countersignature", count: 2)
     end
 
     # The obvious drawing and the wrong one. `CONTEXT.md` § Second: the
