@@ -63,7 +63,7 @@ en:
         landed: Arrived this morning
         served: Served on us
         served_stamp: Served
-        started_with: What you started with
+        started_with: What we started with
         # Neither a pronoun nor a role: the two Clients are different people and
         # `case_clients` carries no name.
         client_said: Your client said, on the day you sat down
