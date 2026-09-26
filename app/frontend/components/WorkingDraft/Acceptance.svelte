@@ -87,6 +87,8 @@
 
   <p class="small">{acceptance.drawn}</p>
 
+  <p class="small">{copy.house_rule}</p>
+
   {#if acceptance.note}
     <!-- Their covering line, in their hand and not ours. Indented as quoted
          matter, because it is another firm's words on our copy of their paper. -->
@@ -128,6 +130,7 @@
   {#if open}
     <div class="stub" id="acceptance-stub">
       <p class="terms">
+        {acceptance.consequence}
         {#if acceptance.may_sign.length > 1}
           <label>
             {copy.countersigned_by}
@@ -136,11 +139,10 @@
                 <option value={member.email}>{member.name}</option>
               {/each}
             </select>
-          </label> ·
+          </label>
         {:else if acceptance.countersigns}
-          {acceptance.countersigns} ·
+          {acceptance.countersigns}
         {/if}
-        {acceptance.consequence}
       </p>
       <button
         type="button"
