@@ -298,6 +298,15 @@ RSpec.describe WorkingDraft do
       )
     end
 
+    it "says an Action arriving after the last Day is too late, and what to pick instead" do
+      last = simulation.days.find_by!(ordinal: 10)
+      line = props(on: last)[:slip][:actions].find { |row| row[:kind] == CaseAction::DEPOSE_WITNESS }
+
+      expect(line[:refusal]).to eq(
+        "Too late: this would arrive after the last Day. Pick an Action that arrives sooner."
+      )
+    end
+
     # What a confirmation is written from: a price is a trade-off only against
     # what is left once it is paid.
     it "says what the half would still hold if each Action went through" do

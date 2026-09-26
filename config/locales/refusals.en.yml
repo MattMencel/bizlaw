@@ -76,6 +76,7 @@ en:
         There is no draft to execute. Write your terms above and put them on the
         table first.
       the_result_would_land_past_the_last_day: >-
-        Its result would arrive after the last Day of the calendar.
+        Too late: this would arrive after the last Day. Pick an Action that
+        arrives sooner.
       the_simulation_has_settled: >-
         The matter has settled. There is nothing left to buy.
