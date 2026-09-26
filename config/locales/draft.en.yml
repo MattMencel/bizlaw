@@ -95,9 +95,8 @@ en:
             Struck through: their latest Offer · Written in: ours · Margin: what
             the Client wants. Write ours on the same line as theirs.
           record: >-
-            Struck through, their last committed offer. Written in, ours. The
-            margin is the Client's. Where there is nothing, nobody has said
-            anything.
+            Struck through: their latest Offer · Written in: ours · Margin: what
+            the Client wants.
         # Visually hidden: what each column is, for a reader who cannot see the
         # strike.
         columns:
