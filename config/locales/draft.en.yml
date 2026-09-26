@@ -156,7 +156,7 @@ en:
         consequence: "Ends the game: we settle on these Terms, and Day %{day} closes."
         countersigned_by: "Countersigned by:"
         countersigns: "Countersigned by: %{name}"
-        confirm_label: Confirm accepting their offer
+        confirm_label: "Confirm: accept their Offer"
         confirm: Confirm
         cancel: Cancel
       memo:

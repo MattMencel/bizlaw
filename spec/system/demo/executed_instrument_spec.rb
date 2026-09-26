@@ -107,7 +107,7 @@ RSpec.describe "the executed instrument", type: :system do
 
     it "settles the matter and becomes the executed instrument" do
       click_button "Accept their Offer"
-      click_button "Confirm accepting their offer"
+      click_button "Confirm: accept their Offer"
 
       expect(page).to have_text("You are looking at the executed agreement.")
       expect(simulation.reload).to be_settled
@@ -119,7 +119,7 @@ RSpec.describe "the executed instrument", type: :system do
     # shorter under a preserved scroll position.
     it "lands the reader on the executed sheet rather than where the block was" do
       click_button "Accept their Offer"
-      click_button "Confirm accepting their offer"
+      click_button "Confirm: accept their Offer"
 
       expect(page).to have_css("h2#executed-terms")
       expect(page.evaluate_script("document.activeElement.id")).to eq("executed-terms")
