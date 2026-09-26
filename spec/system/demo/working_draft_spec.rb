@@ -418,7 +418,7 @@ RSpec.describe "the working draft", type: :system do
 
     def write(money:, terms: [], clip: nil)
       check "Money"
-      fill_in "Our position on Money, in dollars", with: money
+      fill_in "Our figure for Money, in dollars", with: money
       terms.each { |term| check term }
       check clip if clip
     end
@@ -510,7 +510,7 @@ RSpec.describe "the working draft", type: :system do
     # Team's exchange half, which is what makes clipping it a decision.
     it "prices the Exhibit into executing the draft as one figure" do
       check "Money"
-      fill_in "Our position on Money, in dollars", with: "$120,000"
+      fill_in "Our figure for Money, in dollars", with: "$120,000"
       click_button "Put this on the table"
       expect(page).to have_text("1 exchange")
 
@@ -534,7 +534,7 @@ RSpec.describe "the working draft", type: :system do
         "Struck through: their latest Offer · Written in: ours · Margin: what the Client wants.")
       expect(page).to have_no_text("At law, a counteroffer rejects it.")
       expect(page).to have_text("$40,000")
-      expect(page).to have_no_field("Our position on Money, in dollars")
+      expect(page).to have_no_field("Our figure for Money, in dollars")
       expect(page).to have_no_button("Put this on the table")
     end
 
@@ -566,7 +566,7 @@ RSpec.describe "the working draft", type: :system do
     def draw_a_position
       visit "/demo/#{Demo::Seed::DEMO}"
       check "Money"
-      fill_in "Our position on Money, in dollars", with: "$150,000"
+      fill_in "Our figure for Money, in dollars", with: "$150,000"
       click_button "Put this on the table"
       expect(page).to have_text(/draft — not sent/i)
     end
@@ -706,7 +706,7 @@ RSpec.describe "the working draft", type: :system do
 
       visit "/demo/#{Demo::Seed::DEMO}"
       check "Money"
-      fill_in "Our position on Money, in dollars", with: "$99,000"
+      fill_in "Our figure for Money, in dollars", with: "$99,000"
 
       # The Day ends under him: the defendant committed Day 3 in the seed, so a
       # teammate filing his is the second commitment and closes it.
@@ -718,7 +718,7 @@ RSpec.describe "the working draft", type: :system do
       # checked, and clearing his typing unchecks it — which is the sheet
       # re-seeded from Day 4's position rather than holding Day 3's.
       expect(page).to have_field(
-        "Our position on Money, in dollars", with: "", disabled: :all
+        "Our figure for Money, in dollars", with: "", disabled: :all
       )
       expect(page).to have_no_css(".draft-mark.pending")
     end
@@ -729,12 +729,12 @@ RSpec.describe "the working draft", type: :system do
     it "does not take away what he has not put on the table yet" do
       visit "/demo/#{Demo::Seed::DEMO}"
       check "Money"
-      fill_in "Our position on Money, in dollars", with: "$99,000"
+      fill_in "Our figure for Money, in dollars", with: "$99,000"
       expect(page).to have_css(".draft-mark.pending", text: /not shared yet/i)
 
       page.execute_script("window.dispatchEvent(new Event('focus'))")
 
-      expect(page).to have_field("Our position on Money, in dollars", with: "$99,000")
+      expect(page).to have_field("Our figure for Money, in dollars", with: "$99,000")
       expect(page).to have_css(".draft-mark.pending", text: /not shared yet/i)
     end
   end

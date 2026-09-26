@@ -113,7 +113,7 @@ en:
         # includes an apology.
         included: Included
         asked_for: Asked for
-        figure: Our position on %{term}, in dollars
+        figure: Our figure for %{term}, in dollars
       drawing:
         note: Covering note
         note_placeholder: Without prejudice…
