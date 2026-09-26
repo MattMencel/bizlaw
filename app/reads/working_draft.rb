@@ -305,7 +305,7 @@ class WorkingDraft
       # refusal a two-tab race actually produces is a teammate's commit landing
       # first, which makes this block a record and `execution` nil on the very
       # read that has to say so.
-      refusal: refusal_sentence(commit_refused)
+      refusal: refusal_sentence(commit_refused, half: DayBudget::EXCHANGE)
     }
   end
 
@@ -353,7 +353,7 @@ class WorkingDraft
       # nil on a refused quote because there is no negative Budget to render,
       # which is also every state in which no confirmation can be opened.
       remaining_after: quote.remaining_after,
-      refusal: refusal_sentence(quote.refusal)
+      refusal: refusal_sentence(quote.refusal, half: quote.half)
     }
   end
 
@@ -518,19 +518,18 @@ class WorkingDraft
 
     {
       heading: I18n.t("reads.draft.slip.heading",
-        remaining: remaining.map { |_half, left| "#{left[:left] || "—"} #{left[:label]}" }.join(" · ")),
+        remaining: remaining.map { |half, left| points(left[:left], half) }.join(" · ")),
       remaining: remaining,
       actions: board.entries.map do |entry|
         just_now = refused_kind == entry.kind
-        landing = landing(entry)
 
         {
           kind: entry.kind,
           label: kind_label(entry.kind),
-          line: I18n.t("reads.draft.slip.line", price: price(entry.cost, entry.half), landing: landing),
+          line: I18n.t("reads.draft.slip.line", points: points(entry.cost, entry.half), arriving: arriving(entry)),
           stub: I18n.t("reads.draft.slip.stub",
-            price: price(entry.cost, entry.half), left: entry.remaining_after,
-            half: half_label(entry.half), landing: landing),
+            points: points(entry.cost, entry.half), left: entry.remaining_after,
+            arriving: arriving(entry, stub: true)),
           spend_label: I18n.t("reads.draft.slip.spend_label", action: kind_label(entry.kind)),
           confirm_label: I18n.t("reads.draft.slip.confirm_label", action: kind_label(entry.kind)),
           cost: entry.cost,
@@ -542,16 +541,17 @@ class WorkingDraft
           remaining_after: entry.remaining_after,
           affordable: entry.affordable?,
           refused_just_now: just_now,
-          refusal: refusal_sentence(entry.refusal || (just_now ? refused_reason : nil))
+          refusal: refusal_sentence(entry.refusal || (just_now ? refused_reason : nil), half: entry.half)
         }
       end
     }
   end
 
-  def landing(entry)
-    return I18n.t("reads.draft.slip.lands_today") if entry.lands_today?
+  def arriving(entry, stub: false)
+    prefix = stub ? "stub_" : ""
+    return I18n.t("reads.draft.slip.#{prefix}arrives_today") if entry.lands_today?
 
-    I18n.t("reads.draft.slip.lands_on", day: entry.landing_day&.ordinal || "—")
+    I18n.t("reads.draft.slip.#{prefix}arrives_on", day: entry.landing_day&.ordinal || "—")
   end
 
   def refused_kind = refused && refused["kind"]
@@ -572,7 +572,13 @@ class WorkingDraft
   # `Days::Command` or `Offers::Stage` turned an act down by. The key sits at
   # `reads.refusals` rather than under the Board for that reason — see
   # `config/locales/refusals.en.yml`.
-  def refusal_sentence(refusal)
-    refusal.presence && I18n.t("reads.refusals.#{refusal}")
+  #
+  # A refusal worded per half is a Hash there, and `half` picks the sentence —
+  # the half of the quote that was refused, since the next move depends on it.
+  def refusal_sentence(refusal, half: nil)
+    return nil if refusal.blank?
+
+    sentence = I18n.t("reads.refusals.#{refusal}")
+    sentence.is_a?(Hash) ? sentence.fetch(half.to_sym) : sentence
   end
 end

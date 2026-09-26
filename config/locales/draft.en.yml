@@ -157,14 +157,17 @@ en:
         # Followed by the band, in bold.
         reads: Reads
       slip:
-        heading: Slip — what this Day will still buy · %{remaining}
-        lands_today: lands today
-        lands_on: lands Day %{day}
-        line: "%{price} · %{landing}"
-        stub: "%{price} · %{left} %{half} left after · %{landing}"
-        spend: Spend
-        spend_label: Spend %{action}
-        confirm_label: Confirm spending %{action}
+        heading: "Actions · left today: %{remaining}"
+        arrives_today: arrives today
+        arrives_on: arrives Day %{day}
+        line: "%{points} · %{arriving}"
+        # The stub's own, because there the arrival is a sentence of its own.
+        stub_arrives_today: Arrives today.
+        stub_arrives_on: Arrives Day %{day}.
+        stub: "Costs %{points} (%{left} left after). %{arriving}"
+        spend: Buy
+        spend_label: "Buy: %{action}"
+        confirm_label: "Confirm: %{action}"
         refused: Refused
         confirm: Confirm
         cancel: Cancel

@@ -43,12 +43,21 @@ en:
         back on the table without it.
       an_offer_has_already_been_committed_today: >-
         Your team has already executed an offer today.
-      the_budget_cannot_cover_it: >-
-        Today's half will not cover it.
+      # Split by the half that refused, because the next move differs: the
+      # preparation half buys Actions, and the exchange half pays for the Offer
+      # and the Exhibits riding it. The composer picks by the refused quote's
+      # half.
+      the_budget_cannot_cover_it:
+        preparation: >-
+          Not enough preparation points left today. Pick a cheaper Action, or
+          wait for tomorrow's points.
+        exchange: >-
+          Not enough exchange points left today. Drop an Exhibit from the draft,
+          or send it tomorrow.
       the_day_has_closed: >-
-        This Day has closed.
+        This Day has closed. The next one opens on the Instructor's schedule.
       the_day_has_not_opened: >-
-        This Day has not opened yet.
+        This Day hasn't opened yet. Work from today's page until it does.
       the_offer_has_not_been_seconded: >-
         A teammate has to countersign the draft before it can be executed.
       # The Acceptance's own, and not the draft's. The gate is the same rule and
@@ -58,7 +67,7 @@ en:
       the_acceptance_has_not_been_seconded: >-
         A teammate has to countersign before their offer can be accepted.
       # Distinct from `the_simulation_has_settled`, which is what a *spend* is
-      # refused for and says there is nothing left to buy. An Acceptance beaten
+      # refused for and points at the executed agreement. An Acceptance beaten
       # across the table was not refused for having nothing to buy; it was
       # refused because the thing it was reaching for has already happened.
       the_matter_has_already_settled: >-
@@ -67,6 +76,8 @@ en:
         There is no draft to execute. Write your terms above and put them on the
         table first.
       the_result_would_land_past_the_last_day: >-
-        Its result would arrive after the last Day of the calendar.
+        Too late: this would arrive after the last Day. Pick an Action that
+        arrives sooner.
       the_simulation_has_settled: >-
-        The matter has settled. There is nothing left to buy.
+        The matter has settled. The executed agreement is on the front of the
+        file.
