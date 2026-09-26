@@ -88,7 +88,7 @@ RSpec.describe "the executed instrument", type: :system do
     it "offers a live control and names the teammate who countersigns" do
       expect(page).to have_css("button#accept-their-offer:not([aria-disabled='true'])")
 
-      click_button "Accept their offer"
+      click_button "Accept their Offer"
 
       expect(page).to have_text("Ray Okonkwo countersigns")
       expect(page).to have_text("this closes Day 4 and settles the matter")
@@ -99,7 +99,7 @@ RSpec.describe "the executed instrument", type: :system do
     # spite of it: a single press would make the ending cost less than a
     # Consult.
     it "can be abandoned without settling anything" do
-      click_button "Accept their offer"
+      click_button "Accept their Offer"
       click_button "Cancel"
 
       expect(page).to have_no_text("this closes Day 4")
@@ -107,7 +107,7 @@ RSpec.describe "the executed instrument", type: :system do
     end
 
     it "settles the matter and becomes the executed instrument" do
-      click_button "Accept their offer"
+      click_button "Accept their Offer"
       click_button "Confirm accepting their offer"
 
       expect(page).to have_text("You are looking at the executed agreement.")
@@ -119,7 +119,7 @@ RSpec.describe "the executed instrument", type: :system do
     # It is also what puts a sighted reader at the top of a page that got much
     # shorter under a preserved scroll position.
     it "lands the reader on the executed sheet rather than where the block was" do
-      click_button "Accept their offer"
+      click_button "Accept their Offer"
       click_button "Confirm accepting their offer"
 
       expect(page).to have_css("h2#executed-terms")

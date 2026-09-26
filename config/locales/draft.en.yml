@@ -148,7 +148,7 @@ en:
           In this game, their Offer stays open until we accept it or the game
           ends, even after we counter. At law, a counteroffer rejects it.
         refused: Refused
-        accept: Accept their offer
+        accept: Accept their Offer
         no_cost: no cost
         countersigned_by: Countersigned by
         countersigns: "%{name} countersigns"
