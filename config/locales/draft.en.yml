@@ -37,8 +37,8 @@ en:
           - Collaboration, 20 points
           - Efficiency, 10 points
         bonus: >-
-          Creative terms, up to 10 points above the 100. Your grade is released
-          by your instructor; nothing about it is visible before then.
+          Creative terms: up to 10 bonus points on top of the 100. Grades appear
+          when the Instructor releases them.
         # The dimensions, joined, then the bonus.
         published: "%{dimensions}. %{bonus}"
     terms_board:

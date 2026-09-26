@@ -55,6 +55,11 @@ RSpec.describe "the working draft", type: :system do
       expect(page).to have_css("h3", text: /How you're graded/i)
     end
 
+    it "says when grades appear" do
+      expect(page).to have_text("up to 10 bonus points on top of the 100")
+      expect(page).to have_text("Grades appear when the Instructor releases them.")
+    end
+
     it "carries the morning: what landed, what was served, what he started with" do
       expect(page).to have_text("The statement given to the trade press")
       expect(page).to have_text("Deposition of the plant supervisor")
