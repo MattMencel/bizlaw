@@ -160,7 +160,7 @@ en:
       memo:
         heading: Consult memo · the Client
         # Followed by the band, in bold.
-        reads: Reads
+        band: The Client is
       slip:
         heading: Slip — what this Day will still buy · %{remaining}
         lands_today: lands today
