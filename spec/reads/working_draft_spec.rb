@@ -482,7 +482,8 @@ RSpec.describe WorkingDraft do
 
       expect(props[:back][:docket][:entries].sole).to include(
         act_label: "Request documents", by: dana.name, day: 1, cost: 2,
-        half_label: "preparation", lands_on_day: 2, spend: true
+        half_label: "preparation", lands_on_day: 2, spend: true,
+        price: "2 preparation points · arrives Day 2"
       )
     end
 
@@ -513,6 +514,7 @@ RSpec.describe WorkingDraft do
         act_label: "Sent an Offer", by: dana.name,
         half_label: "exchange", kind: nil, spend: true
       )
+      expect(committed[:price]).to match(/\A1 exchange point · arrives Day \d+\z/)
     end
 
     it "reduces a document to what a page can render" do

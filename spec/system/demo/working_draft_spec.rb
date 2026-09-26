@@ -71,6 +71,7 @@ RSpec.describe "the working draft", type: :system do
       expect(page).to have_text("The claimant's personnel file")
       expect(page).to have_text(/had from the start/i)
       expect(page).to have_text("Request documents")
+      expect(page).to have_text(/\d+ preparation points · arrives Day \d+/i)
     end
 
     it "is accessible" do

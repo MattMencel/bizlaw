@@ -29,5 +29,9 @@ en:
       at_the_open: Had from the start
       docket: Docket
       band: the Client reads %{band}
-      lands: "%{price} · lands Day %{day}"
+      # Rule 8: every number carries its unit, so the Docket counts points
+      # itself rather than reusing the bare `reads.price`.
+      lands:
+        one: "%{count} %{half} point · arrives Day %{day}"
+        other: "%{count} %{half} points · arrives Day %{day}"
       no_cost: no cost

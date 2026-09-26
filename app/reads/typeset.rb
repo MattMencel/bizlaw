@@ -137,7 +137,7 @@ module Typeset
     return I18n.t("reads.back_of_file.no_cost") unless entry.spend?
 
     I18n.t("reads.back_of_file.lands",
-      price: price(entry.cost, entry.half), day: entry.lands_on_day&.ordinal)
+      count: entry.cost, half: half_label(entry.half), day: entry.lands_on_day&.ordinal)
   end
 
   # What we know, and what we have done — under one heading, because the back of
