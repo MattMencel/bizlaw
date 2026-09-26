@@ -206,7 +206,7 @@ module Demo
         # move the plaintiff's Client rather than merely inform him.
         terms: {"money" => 40_000_00, "nda" => nil},
         exhibits: [held(side, "deposition_of_the_supervisor")],
-        note: "Without prejudice. Open for acceptance today."
+        note: "Our best figure. We'd like this closed."
       )
 
       Days::Command.apply(

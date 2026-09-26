@@ -100,6 +100,7 @@ RSpec.describe "the working draft", type: :system do
 
       expect(page).to have_text("Retain an expert")
       expect(page).to have_text("Depose a witness")
+      expect(page).to have_text("Research settlement values")
     end
 
     it "opens one stub at a time" do
