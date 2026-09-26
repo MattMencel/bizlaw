@@ -165,7 +165,7 @@ en:
         stub_arrives_today: Arrives today.
         stub_arrives_on: Arrives Day %{day}.
         stub: "Costs %{points} (%{left} left after). %{arriving}"
-        spend: Spend
+        spend: Buy
         spend_label: Spend %{action}
         confirm_label: Confirm spending %{action}
         refused: Refused
