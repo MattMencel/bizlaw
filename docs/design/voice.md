@@ -24,7 +24,7 @@ Decided in [Where does a gloss sit on first contact?](https://github.com/MattMen
 - **On a narrow screen, a list of the terms at the top of the front matter** ("Words used in this file"). There is no room for a margin, so each glossed word links up to its entry.
 - **Not inline.** A parenthesis can't hang off a label or a button, so a term met only on a control would never be glossed.
 - **First contact is the first place the term appears in reading order on the page**, and every visit glosses it again. Nothing records which student has seen what: the empty states are the tutorial, and there is no progress flag. Two teammates always read the same sheet. The front of the draft and the back of the file each gloss their own first contact.
-- **Footnotes stay open for the Instructor's surface.** A numbered note at the foot of the Minute suits its terser voice. That is decided when the Minute's copy is rewritten.
+- **The Minute carries no footnotes.** Its paragraph says what the power does in four short sentences, and nothing on it is a term of art the Instructor needs defined.
 
 ### The Instructor
 
@@ -66,7 +66,7 @@ Decided in [What does sending an Offer get called, if not "execute"?](https://gi
 
 Decided in [Does the paper register need revisiting?](https://github.com/MattMencel/bizlaw/issues/394). The audit found seven places where the paper itself caused the reading problem. [ADR 0005](../adr/0005-the-register-is-the-paper.md) stands: each one is fixed in the copy. The two signature-block findings are settled by [ADR 0009](../adr/0009-an-offer-is-sent-not-executed.md).
 
-- **Headings use the glossary name.** A student should see the words the professor uses in class: "Morning Briefing · Day n", "Actions", "Case File", "Docket". The paper name can stay as a small subtitle where it helps the look ("Case File · the papers"). "Front matter" and "slip" never appear as the heading. The Minute's heading is settled when the Minute is rewritten.
+- **Headings use the glossary name.** A student should see the words the professor uses in class: "Morning Briefing · Day n", "Actions", "Case File", "Docket". The paper name can stay as a small subtitle where it helps the look ("Case File · the papers"). "Front matter" and "slip" never appear as the heading. The Minute keeps its paper name as its heading: "Minute of the Instructor". No glossary name competes with it.
 - **The page-turn control says what is on the back**: "Turn over: Case File & Docket". It doesn't describe what you're looking at now. The gesture stays.
 - **The term sheet gets a plain key**: struck through = theirs · written in = ours · margin = the Client. Real redlines carry a key, so it fits the register. ADR 0005's "needed no legend" argued for the paper, and it doesn't bar a key.
 - **Stubs stay stubs.** Rule 6 puts the consequence first, capitalised and at the stub's own weight: "Ends the game: …", "Ends our Day. …". No banners.
