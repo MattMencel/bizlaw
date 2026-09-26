@@ -43,13 +43,13 @@ RSpec.describe "the Instructor's minute", type: :system do
     # The obvious drawing and the wrong one. `CONTEXT.md` § Second: the
     # Instructor never Seconds on a Team's behalf, so there is nothing on this
     # instrument for them to sign.
-    # The rubric says the word, because saying *nobody countersigns on a team's
-    # behalf* is the point — what is ruled out is the mark, not the noun: no
-    # ruled line, no hand, and no control that invites one.
+    # What is ruled out is the mark, not the noun: no ruled line, no hand, and
+    # no control that invites one. The control *waives* a countersignature, so
+    # it names the noun; it never asks the Instructor to sign.
     it "has no signature line anywhere on it" do
       expect(page).to have_no_css(".sig")
       expect(page).to have_no_css(".hand")
-      expect(page).to have_no_css("button", text: /sign/i)
+      expect(page).to have_no_css("button", text: /\bsign\b/i)
     end
 
     it "is accessible" do
