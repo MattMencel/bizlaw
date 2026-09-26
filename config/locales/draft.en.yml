@@ -46,8 +46,9 @@ en:
         published: "%{dimensions}. %{bonus}"
     terms_board:
       empty: >-
-        No Term is on the table. Nothing here is zero — an offer of nothing is
-        a position somebody took, and nobody has taken one.
+        Nobody has offered anything yet. Tick the Terms we want below and fill
+        in any figures. A blank line means no one has offered on that Term, not
+        that they offered zero.
     consult_memo:
       empty: >-
         You have not asked. Consulting your Client is the only read you get on

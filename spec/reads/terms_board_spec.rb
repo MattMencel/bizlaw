@@ -214,7 +214,7 @@ RSpec.describe TermsBoard do
   describe "before either Side has taken a position" do
     it "is empty, and says what a Term on the table would be" do
       expect(board).to be_empty
-      expect(board.empty_state).to include("an offer of nothing is a position")
+      expect(board.empty_state).to include("A blank line means no one has offered on that Term")
     end
 
     it "stops being empty the moment one Term is addressed" do

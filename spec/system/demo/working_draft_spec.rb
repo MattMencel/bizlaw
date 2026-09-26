@@ -314,7 +314,7 @@ RSpec.describe "the working draft", type: :system do
     it "is not a blank page" do
       expect(page).to have_text("An Action you spend comes back on the Day its lead time names")
       expect(page).to have_text("any exhibit riding it is served on you")
-      expect(page).to have_text("an offer of nothing is a position somebody took")
+      expect(page).to have_text("A blank line means no one has offered on that Term")
       expect(page).to have_text("The termination letter")
     end
 

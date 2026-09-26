@@ -104,7 +104,7 @@ RSpec.describe WorkingDraft do
   end
 
   it "passes the empty states through from the reads that own them" do
-    expect(props[:term_sheet][:empty_state]).to include("an offer of nothing is a position")
+    expect(props[:term_sheet][:empty_state]).to include("A blank line means no one has offered on that Term")
     expect(props[:back][:docket][:empty_state]).to include("Nothing yet")
   end
 
