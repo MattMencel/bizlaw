@@ -120,7 +120,7 @@ en:
         draw: Share with the Team
         # Why the control is dead, before anything is posted.
         withheld:
-          no_terms: An offer names at least one term.
+          no_terms: Tick at least one Term first.
           no_amount: An offer of money is worth an amount.
         unposted: Not shared yet — the Team still sees our last version.
       clipped:

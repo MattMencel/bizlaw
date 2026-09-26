@@ -461,7 +461,7 @@ RSpec.describe "the working draft", type: :system do
     # the tab order to do it.
     it "holds the control dead with its reason while there is no position" do
       expect(page).to have_css("button#draw-the-position[aria-disabled='true']")
-      expect(page).to have_text("An offer names at least one term.")
+      expect(page).to have_text("Tick at least one Term first.")
     end
 
     it "holds it dead while money is on the table without a figure" do
