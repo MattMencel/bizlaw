@@ -560,7 +560,7 @@ RSpec.describe "the working draft", type: :system do
     def waive_it
       visit "/demo/#{Demo::Seed::DEMO}/#{Demo::Seat::INSTRUCTOR}"
       find("#waive-#{Side::PLAINTIFF}").click
-      expect(page).to have_text("The second is waived for this Day.")
+      expect(page).to have_text("Countersignature waived for this Day")
     end
 
     it "brings the dead control alive, and says who released it" do

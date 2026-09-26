@@ -84,8 +84,8 @@ RSpec.describe "the Instructor's minute", type: :system do
     it "records who granted it and when, in place of the control" do
       find("#waive-#{Side::PLAINTIFF}").click
 
-      expect(page).to have_text("The second is waived for this Day.")
-      expect(page).to have_text("Granted by Professor Adeyemi")
+      expect(page).to have_text("Countersignature waived for this Day")
+      expect(page).to have_text("by Professor Adeyemi")
       expect(page).to have_no_css("#waive-#{Side::PLAINTIFF}")
     end
 
@@ -94,14 +94,14 @@ RSpec.describe "the Instructor's minute", type: :system do
     it "leaves the other Side's line alone" do
       find("#waive-#{Side::PLAINTIFF}").click
 
-      expect(page).to have_text("The second is waived for this Day.", count: 1)
+      expect(page).to have_text("Countersignature waived for this Day", count: 1)
       expect(page).to have_css("#waive-#{Side::DEFENDANT}")
     end
 
     it "is accessible once one is granted" do
       find("#waive-#{Side::PLAINTIFF}").click
 
-      expect(page).to have_text("Granted by Professor Adeyemi")
+      expect(page).to have_text("by Professor Adeyemi")
       expect(page).to be_axe_clean
     end
   end
