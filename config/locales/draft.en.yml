@@ -61,7 +61,7 @@ en:
         to_back: Turn the page over
         to_front: Turn back to the draft
       front_matter:
-        heading: Front matter · the morning of Day %{day}
+        heading: Morning Briefing · Day %{day}
         landed: Landed today
         served: Served on you
         served_stamp: Served
