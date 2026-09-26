@@ -372,10 +372,7 @@ class WorkingDraft
   # the two cannot name different Offers.
   #
   # It also prints their covering note, which until now nothing did. The
-  # defendant's reads *Without prejudice. Open for acceptance today.* and the
-  # Day it says that of is over by the time it can be taken, which is the
-  # register telling the reader a deadline passed rather than a line of copy
-  # about one.
+  # defendant's reads *Our best figure. We'd like this closed.*
   #
   # **Nil where there is nothing across the table.** Unlike the countersignature
   # block this is not a permanent fixture: that block is about a draft the Team

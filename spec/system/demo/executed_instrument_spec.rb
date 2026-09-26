@@ -39,11 +39,9 @@ RSpec.describe "the executed instrument", type: :system do
       expect(page).to have_text(/drawn by Dana Whitfield and committed on Day 3/)
     end
 
-    # The covering line nothing on any surface read before #367. On Day 3 it is
-    # still true; on Day 4 the same sentence is the register saying a deadline
-    # has passed.
+    # The covering line nothing on any surface read before #367.
     it "prints their covering note" do
-      expect(page).to have_text("Without prejudice. Open for acceptance today.")
+      expect(page).to have_text("Our best figure. We'd like this closed.")
     end
 
     # Dead for exactly the reason his commit is dead, and saying so — the rule
