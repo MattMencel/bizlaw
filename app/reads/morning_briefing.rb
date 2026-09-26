@@ -117,10 +117,9 @@ class MorningBriefing
     )
   end
 
-  # Where the Day's grammar is named, in one line of fixed interface copy:
-  # everything here is the case file, work it in any order, the Day ends when
-  # both Sides commit, and an Offer commits only over a teammate's
-  # countersignature. It describes the machine rather than the dispute, which is
+  # Where the Day's grammar is named, in one line of fixed interface copy: work
+  # the Case File in any order, an Offer is sent only over a teammate's
+  # countersignature, and the Day ends once both Teams are done. It describes the machine rather than the dispute, which is
   # why it is neither authored per Case nor generated — and nothing else in the
   # game states the rules of the machine, so no other surface can carry it.
   def grammar_line = I18n.t("reads.morning_briefing.grammar")

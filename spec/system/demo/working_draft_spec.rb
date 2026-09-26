@@ -13,7 +13,7 @@ RSpec.describe "the working draft", type: :system do
 
     it "opens on the draft, with the Day's grammar named once" do
       expect(page).to have_text("You are looking at the draft.")
-      expect(page).to have_text("Everything here is the case file")
+      expect(page).to have_text("Work the Case File in any order")
     end
 
     # The heading is the glossary name (voice.md, *Inside the register*).

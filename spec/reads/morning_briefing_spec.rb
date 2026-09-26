@@ -51,7 +51,7 @@ RSpec.describe MorningBriefing do
 
     # Nothing else in the game states the rules of the machine.
     it "names the Day's grammar in one line of fixed copy" do
-      expect(read.grammar_line).to include("case file", "any order", "countersignature")
+      expect(read.grammar_line).to include("Case File", "any order", "countersign")
     end
 
     it "covers one Day" do

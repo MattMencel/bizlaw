@@ -30,9 +30,8 @@ en:
           you come to know is something you bought or something they served on
           you.
       grammar: >-
-        Everything here is the case file — work it in any order. The Day ends
-        when both Sides have committed it, and an Offer commits only over a
-        teammate's countersignature.
+        Work the Case File in any order. Before we send an Offer, a teammate
+        has to countersign it. The Day ends once both Teams are done.
       rubric:
         dimensions:
           - Settlement quality, 40 points
