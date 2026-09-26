@@ -71,54 +71,71 @@
 {/if}
 
 <style>
-  /* The sheet grows a left margin to carry the notes. It is reached from here
-     rather than set on each page because a sheet has a margin exactly when it
-     has something to put in it. `article` outranks a page's own scoped
-     `.sheet`. */
-  :global(article.sheet:has(.gloss-words)) {
-    max-width: 1044px;
-    padding-left: 236px;
+  /* Where there is no margin, the list itself: one line per term, above the
+     rest of the face. */
+  .gloss-words {
+    margin-bottom: 14px;
   }
-
-  .words-heading {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-  }
-
   dl {
-    position: relative;
-    height: 0;
     margin: 0;
+    font-size: 13.5px;
   }
-
   .entry {
-    position: absolute;
-    left: -208px;
-    width: 168px;
-    font-size: 12px;
-    line-height: 1.35;
-    font-style: italic;
-    color: var(--muted);
-    border-left: 2px solid var(--rule-2);
-    padding-left: 8px;
+    margin-bottom: 2px;
     scroll-margin-top: 108px;
   }
-
   dt,
   dd {
     display: inline;
     margin: 0;
   }
-
   dt {
-    font-style: normal;
     font-variant: small-caps;
     letter-spacing: 0.04em;
-    color: var(--ink);
+  }
+  dd {
+    color: var(--muted);
+  }
+
+  /* A sheet wide enough grows a left margin, and each entry is lifted out of
+     the list into it, level with its word. The sheet is reached from here
+     rather than set on each page because a sheet has a margin exactly when it
+     has something to put in it; `article` outranks a page's scoped `.sheet`. */
+  @media (min-width: 1100px) {
+    :global(article.sheet:has(.gloss-words)) {
+      max-width: 1044px;
+      padding-left: 236px;
+    }
+
+    .gloss-words {
+      margin: 0;
+    }
+    .words-heading {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    dl {
+      position: relative;
+      height: 0;
+    }
+    .entry {
+      position: absolute;
+      left: -208px;
+      width: 168px;
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.35;
+      font-style: italic;
+      border-left: 2px solid var(--rule-2);
+      padding-left: 8px;
+    }
+    dt {
+      font-style: normal;
+    }
   }
 </style>

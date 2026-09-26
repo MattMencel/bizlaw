@@ -44,8 +44,49 @@ RSpec.describe "the glosses", type: :system do
     end
 
     it "keeps the list's heading for a screen reader alone" do
-      expect(page).to have_no_text("Words used in this file")
-      expect(page).to have_css("h3", text: "Words used in this file", visible: :all)
+      heading = find("h3", text: /words used in this file/i, visible: :all)
+
+      expect(heading.evaluate_script("this.getBoundingClientRect().width")).to be <= 1
+    end
+
+    it "is accessible" do
+      expect(page).to be_axe_clean
+    end
+  end
+
+  # No margin to put a note in, so the notes are a list at the top of the face,
+  # and each glossed word links up to its entry.
+  describe "on a narrow sheet" do
+    before do
+      page.driver.browser.manage.window.resize_to(760, 1200)
+      visit "/demo/#{Demo::Seed::DEMO}"
+    end
+
+    after { page.driver.browser.manage.window.resize_to(1400, 1400) }
+
+    def words_used = find("h3", text: /words used in this file/i).find(:xpath, "..")
+
+    it "lists the words used in this file at the top of the front matter" do
+      heading = find("h3", text: /words used in this file/i)
+
+      expect(top(heading)).to be < top(find("h3", text: /landed today/i))
+      expect(words_used).to have_text("served — formally handed to us")
+    end
+
+    it "prints no note in a margin" do
+      note = find("#gloss-served")
+
+      expect(left(note)).to be >= left(find("h2#front-matter"))
+    end
+
+    it "links each glossed word up to its entry" do
+      glossed.each_key do |term|
+        expect(words_used).to have_css("#gloss-#{term}")
+      end
+
+      find("a.glossed", text: /served/i).click
+
+      expect(page).to have_current_path(/#gloss-served\z/, url: true)
     end
 
     it "is accessible" do
