@@ -66,6 +66,16 @@ class Glossary {
       .sort(inReadingOrder)[0]
   }
 
+  // The glosses a control carries, as its `aria-describedby`. A word inside a
+  // button cannot link to its note, so the button is described by it instead.
+  describing(control) {
+    if (!control) return undefined
+    const ids = this.glossed
+      .filter((entry) => control.contains(entry.el))
+      .map((entry) => `gloss-${entry.term}-says`)
+    return ids.length ? ids.join(" ") : undefined
+  }
+
   // Every term this face is glossing right now, in the order it is met.
   get glossed() {
     return this.#glossary.entries

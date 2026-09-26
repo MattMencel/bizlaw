@@ -45,6 +45,7 @@
   import ActionSlip from "../../components/WorkingDraft/ActionSlip.svelte"
   import DayCommit from "../../components/WorkingDraft/DayCommit.svelte"
   import BackOfFile from "../../components/WorkingDraft/BackOfFile.svelte"
+  import Glossed from "../../components/Gloss/Glossed.svelte"
   import { rereadOnFocus } from "../../lib/live.svelte.js"
   import { provideGlossary } from "../../lib/gloss.svelte.js"
 
@@ -73,7 +74,10 @@
   let face = $state("front")
 
   // Each face glosses its own first contact.
-  provideGlossary(() => (face === "front" ? glossary : back.glossary))
+  const glosses = provideGlossary(() => (face === "front" ? glossary : back.glossary))
+
+  // The turn control can carry a gloss: the Docket is first met on it.
+  let turner = $state()
 
   // What the server says is on the table, and which Day's table it is. `Draft`
   // seeds its pending position from these props and then holds edits locally, so
@@ -122,8 +126,13 @@
         <span class="meta">{meta}</span>
       </div>
       <div class="turn">
-        <button type="button" onclick={() => (face = face === "back" ? "front" : "back")}>
-          {face === "back" ? copy.turn.to_front : copy.turn.to_back}
+        <button
+          type="button"
+          bind:this={turner}
+          aria-describedby={glosses.describing(turner)}
+          onclick={() => (face = face === "back" ? "front" : "back")}
+        >
+          <Glossed at="turn" text={face === "back" ? copy.turn.to_front : copy.turn.to_back} />
         </button>
       </div>
     </header>

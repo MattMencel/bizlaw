@@ -13,12 +13,20 @@ require "rails_helper"
 RSpec.describe "the glosses", type: :system do
   before { Demo::Seed.call }
 
-  # The word each term is glossed on, keyed by the entry it links to.
+  # The word each term is glossed on, keyed by its term.
   def glossed
-    all("a.glossed").to_h { |link| [link[:href].split("#gloss-").last, link.text] }
+    all(".glossed").to_h { |word| [word["data-gloss"], word.text] }
   end
 
   def described_by(link) = find(id: link["aria-describedby"], visible: :all).text
+
+  # A word inside a control cannot be a link, so the control carries the gloss.
+  def description_of(word)
+    return described_by(word) if word.tag_name == "a"
+
+    control = word.find(:xpath, "ancestor::button[1]")
+    control["aria-describedby"].split.map { |id| find(id: id, visible: :all).text }.join(" ")
+  end
 
   def top(element) = element.evaluate_script("this.getBoundingClientRect().top")
 
@@ -28,10 +36,10 @@ RSpec.describe "the glosses", type: :system do
     before { visit "/demo/#{Demo::Seed::DEMO}" }
 
     it "notes a term in the left margin, level with its word" do
-      word = find("h3 a.glossed", text: /served/i)
-      note = find("#gloss-served")
+      word = find("a.glossed", text: "Case File")
+      note = find("#gloss-case_file")
 
-      expect(note).to have_text("served — formally handed to us")
+      expect(note).to have_text("Case File — every document our Team holds")
       expect(left(note)).to be < left(find("h2#front-matter"))
       expect(top(note)).to be_within(2).of(top(word))
     end
@@ -62,16 +70,13 @@ RSpec.describe "the glosses", type: :system do
 
   shared_examples "one note per term" do
     it "glosses each term once, and lists exactly those" do
-      links = all("a.glossed")
-
-      expect(links.size).to eq(glossed.size)
+      expect(all(".glossed").size).to eq(glossed.size)
       expect(entries).to match_array(glossed.keys)
     end
 
     it "describes every glossed word by its own gloss" do
-      all("a.glossed").each do |link|
-        term = link[:href].split("#gloss-").last
-        expect(described_by(link)).to eq(I18n.t("reads.glossary.terms.#{term}.gloss"))
+      all(".glossed").each do |word|
+        expect(description_of(word)).to include(I18n.t("reads.glossary.terms.#{word["data-gloss"]}.gloss"))
       end
     end
 
@@ -87,31 +92,43 @@ RSpec.describe "the glosses", type: :system do
 
     it "glosses each term where it is first met" do
       expect(glossed_words).to eq(
-        "served" => "served",
-        "offer" => "offer",
+        "docket" => "docket",
         "case_file" => "case file",
-        "countersign" => "countersignature",
+        "countersign" => "countersign",
+        "offer" => "offer",
+        "served" => "served",
         "term" => "terms",
-        "exhibit" => "exhibit",
+        "exhibit" => "exhibits",
         "covering_note" => "covering note",
-        "consult" => "consulting",
+        "consult" => "consult",
         "preparation_points" => "preparation",
         "exchange_points" => "exchange"
       )
     end
 
     it "sits each note on the site that is first met" do
+      expect(page).to have_css(".turn button .glossed", text: /docket/i)
       expect(page).to have_css("h3 a.glossed", text: /served/i)
-      expect(page).to have_css("aside p.foot a.glossed", text: "exhibit")
+      expect(page).to have_css("h2#clipped a.glossed", text: /exhibits/i)
       expect(page).to have_css("h2#term-sheet a.glossed", text: "terms")
-      expect(page).to have_css("#memo ~ .empty-state a.glossed", text: "Consulting")
+      expect(page).to have_css("#memo ~ .empty-state a.glossed", text: "Consult")
       expect(page).to have_css("h2#slip a.glossed", text: /exchange/i)
     end
 
+    # A link cannot sit inside a button, so the turn control is described by
+    # the Docket's gloss rather than linking to it.
+    it "glosses the Docket on the turn control without nesting a link in it" do
+      control = find(".turn button")
+
+      expect(control).to have_no_css("a")
+      expect(control["aria-describedby"]).to eq("gloss-docket-says")
+    end
+
     it "leaves every later occurrence alone" do
-      expect(find("li.slip", text: "Consult the Client")).to have_no_css("a.glossed")
-      expect(find("h2#slip")).to have_no_css("a.glossed", text: /preparation/i)
-      expect(find("li", text: "Deposition of the plant supervisor")).to have_no_css("a.glossed")
+      expect(find("li.slip", text: "Consult the Client")).to have_no_css(".glossed")
+      expect(find("h2#slip")).to have_no_css(".glossed", text: /preparation/i)
+      expect(find("aside p.foot")).to have_no_css(".glossed")
+      expect(find("li", text: "Deposition of the plant supervisor")).to have_no_css(".glossed")
     end
 
     it "notes nothing in the reading order out of place" do
@@ -127,10 +144,11 @@ RSpec.describe "the glosses", type: :system do
 
     include_examples "one note per term"
 
-    it "glosses the Exhibit and the Offer in the empty state that names them" do
-      within(".empty-state", text: "any exhibit riding it") do
-        expect(page).to have_css("a.glossed", text: "exhibit")
-        expect(page).to have_css("a.glossed", text: "offer")
+    it "glosses the Exhibit, the Offer and the Consult in the empty state that names them" do
+      within(".empty-state", text: "Nothing's been served on us yet.") do
+        expect(page).to have_css("a.glossed", text: "Exhibits")
+        expect(page).to have_css("a.glossed", text: "Offer")
+        expect(page).to have_css("a.glossed", text: "Consult")
       end
     end
   end
@@ -138,8 +156,8 @@ RSpec.describe "the glosses", type: :system do
   describe "the front of the draft once the Client has been consulted" do
     before do
       visit "/demo/#{Demo::Seed::DEMO}"
-      find("li.slip", text: "Consult the Client").click_button("Spend")
-      click_button "Confirm"
+      click_button "Buy: Consult the Client"
+      click_button "Confirm: Consult the Client"
       expect(page).to have_css(".beat")
     end
 
@@ -164,7 +182,7 @@ RSpec.describe "the glosses", type: :system do
     include_examples "one note per term"
 
     it "glosses exchange points on the price of executing it" do
-      expect(page).to have_css(".execution .price a.glossed", text: "exchange")
+      expect(page).to have_css(".execution .price a.glossed", text: /exchange/i)
       expect(find("h2#slip")).to have_no_css("a.glossed", text: /exchange/i)
     end
   end
@@ -173,10 +191,10 @@ RSpec.describe "the glosses", type: :system do
   describe "the back of the file" do
     before do
       visit "/demo/#{Demo::Seed::DEMO}"
-      find("li.slip", text: "Consult the Client").click_button("Spend")
-      click_button "Confirm"
+      click_button "Buy: Consult the Client"
+      click_button "Confirm: Consult the Client"
       expect(page).to have_css(".beat")
-      click_button "Turn the page over"
+      click_button "Turn over: Case File & Docket"
     end
 
     include_examples "one note per term"
@@ -185,7 +203,7 @@ RSpec.describe "the glosses", type: :system do
       expect(glossed.keys).to match_array(
         %w[case_file served exhibit docket consult preparation_points] << glossed.slice("firm", "ready").keys.sole
       )
-      expect(page).to have_css("h3 a.glossed", text: /papers/i)
+      expect(page).to have_css("h3 a.glossed", text: /case file/i)
       expect(page).to have_css(".stamp a.glossed", text: /served/i)
       expect(page).to have_css(".tab-clip a.glossed", text: /exhibit/i)
       expect(page).to have_css("h3 a.glossed", text: /docket/i)
@@ -198,11 +216,11 @@ RSpec.describe "the glosses", type: :system do
     end
 
     it "glosses the front again when the page is turned back" do
-      click_button "Turn back to the draft"
+      click_button "Turn back: the draft"
 
       expect(page).to have_css("h3 a.glossed", text: /served/i)
       expect(entries).to include("countersign")
-      expect(entries).not_to include("docket")
+      expect(page).to have_no_css("h3 a.glossed", text: /case file/i)
     end
   end
 
@@ -290,7 +308,7 @@ RSpec.describe "the glosses", type: :system do
     it "lists the words used in this file at the top of the front matter" do
       heading = find("h3", text: /words used in this file/i)
 
-      expect(top(heading)).to be < top(find("h3", text: /landed today/i))
+      expect(top(heading)).to be < top(find("h3", text: /arrived this morning/i))
       expect(words_used).to have_text("served — formally handed to us")
     end
 

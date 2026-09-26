@@ -4,6 +4,10 @@
   entry in the list (which on a wide sheet *is* the margin note), and the gloss
   as its description, so a screen reader reaches the note from the word rather
   than only finding it beside it.
+
+  Inside a button the word cannot be a link, since a control inside a control is
+  invalid. There it keeps the underline, and the button takes the gloss as its
+  description (`describing` in `lib/gloss.svelte.js`).
 -->
 <script>
   import { untrack } from "svelte"
@@ -23,10 +27,13 @@
   })
 
   const carries = $derived(!!el && glossary.carrier(term) === el)
+
+  const inControl = $derived(!!el?.closest("button"))
 </script>
 
 <span bind:this={el}
-  >{#if carries}<a class="glossed" href={`#gloss-${term}`} aria-describedby={`gloss-${term}-says`}
+  >{#if carries && inControl}<span class="glossed" data-gloss={term}>{word}</span
+    >{:else if carries}<a class="glossed" data-gloss={term} href={`#gloss-${term}`} aria-describedby={`gloss-${term}-says`}
       >{word}</a
     >{:else}{word}{/if}</span
 >

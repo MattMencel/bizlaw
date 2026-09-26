@@ -27,7 +27,7 @@
 </script>
 
 <aside class="rail" aria-labelledby="clipped">
-  <h2 class="doc-sub" id="clipped">{copy.heading}</h2>
+  <h2 class="doc-sub" id="clipped"><Glossed at="clipped.heading" text={copy.heading} /></h2>
   <ul class="plain">
     {#each clipped.documents as doc (doc.identifier)}
       <li class="clip" class:spent={doc.spent}>
