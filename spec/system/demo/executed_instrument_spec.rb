@@ -35,7 +35,9 @@ RSpec.describe "the executed instrument", type: :system do
     before { visit "/demo/#{Demo::Seed::DEMO}" }
 
     it "names their instrument without restating its terms" do
-      expect(page).to have_text(/their offer, open on the table/i)
+      # The heading is set in capitals by `text-transform`, so the glossary
+      # capital is read off the DOM rather than off what the eye sees.
+      expect(find("h2#acceptance")["textContent"]).to eq("Their Offer, open on the table")
       expect(page).to have_text(/drawn by Dana Whitfield and committed on Day 3/)
     end
 

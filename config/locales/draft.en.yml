@@ -139,7 +139,7 @@ en:
         confirm: Confirm
         cancel: Cancel
       acceptance:
-        heading: Their offer, open on the table
+        heading: Their Offer, open on the table
         drawn: >-
           The terms struck through on the sheet above, drawn by %{name} and
           committed on Day %{day}.
