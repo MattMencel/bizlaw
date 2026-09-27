@@ -45,7 +45,7 @@ RSpec.describe CaseFile do
     spend(CaseAction::RESEARCH_PRECEDENT, on: simulation.days.first)
 
     memorandum = described_class.for(side).entries
-      .find { |entry| entry.title == "Memorandum on comparable awards" }
+      .find { |entry| entry.title == "Memorandum on comparable settlements" }
 
     expect(memorandum.day.ordinal).to eq(1)
     expect(memorandum).not_to be_at_the_open
