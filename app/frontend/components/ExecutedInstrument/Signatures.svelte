@@ -1,10 +1,10 @@
 <!--
   Four hands in two blocks — the record of the whole game.
 
-  An Acceptance *is* a countersignature on the other Side's instrument, which is
-  why the two blocks have the same shape: the Side that drew the paper signed it
-  by committing, the Side that took it signed by accepting, and each of those
-  acts carried a teammate's confirmation or the Instructor's release of it.
+  An Acceptance signs the other Side's instrument, which is why the two blocks
+  have the same shape: the Side that drew the paper signed it by committing,
+  the Side that took it signed by accepting, and each of those acts carried a
+  teammate's confirmation or the Instructor's release of it.
 
   So this is where the Second is finally legible in both of its states at once.
   On the demo's own run the plaintiff's line reads *countersignature waived by

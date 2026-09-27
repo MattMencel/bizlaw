@@ -75,7 +75,7 @@ class TermsBoard
   # The row the struck-through column is folded from — the other Side's last
   # committed Offer, whole, as of this Day.
   #
-  # It is public for one reason: an Acceptance countersigns *that* instrument,
+  # It is public for one reason: an Acceptance signs *that* instrument,
   # and the sheet printing one Offer while a control beside it accepted another
   # is the worst failure this surface has available. One read answers which
   # Offer "theirs" means, so the two cannot disagree.

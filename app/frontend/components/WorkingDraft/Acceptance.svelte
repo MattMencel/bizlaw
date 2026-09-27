@@ -1,8 +1,8 @@
 <!--
   Their paper, on our page — and the one act taken on it.
 
-  An Acceptance *is* a countersignature on the other Side's instrument (ADR
-  0007), and #373 settled that their instrument reaches this page as a strike
+  An Acceptance signs the other Side's instrument (ADR 0007), and #373 settled
+  that their instrument reaches this page as a strike
   through our own line and in no other form: it is not in the Case File, which
   answers what we know, and not in the front matter, which is what arrived. So
   there was nothing here shaped like their paper to sign. This block is what
@@ -67,7 +67,7 @@
   }
 
   // The Day this closes, the Day their Offer was committed on, and the hand
-  // countersigning. No price, because there is none — and no terms, because
+  // signing. No price, because there is none — and no terms, because
   // `Offers::Accept` is handed the instrument the Day names and reads the deal
   // off it.
   function accept() {
