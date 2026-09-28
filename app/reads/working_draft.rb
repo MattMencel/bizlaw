@@ -365,8 +365,8 @@ class WorkingDraft
     }
   end
 
-  # **The other Side's paper, and the one act taken on it.** An Acceptance is a
-  # countersignature on their instrument, and #373 settled that their instrument
+  # **The other Side's paper, and the one act taken on it.** An Acceptance
+  # signs their instrument, and #373 settled that their instrument
   # reaches this page as a strike through our own line and in no other form — it
   # is not in the Case File, which answers what we know, and not in the front
   # matter, which is what arrived. So there is nothing here shaped like their

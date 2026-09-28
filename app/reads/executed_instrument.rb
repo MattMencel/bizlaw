@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 # The settlement beat: the accepted Offer's own term sheet, executed. Both
-# countersignature lines are filled — an Acceptance *is* a countersignature on
-# the other Side's paper — and an execution stamp says when and on which Day.
+# signature lines are filled — an Acceptance signs the other Side's paper —
+# and an execution stamp says when and on which Day.
 #
 # **Nothing is written for it.** Per ADR 0007 it is a read over
 # `committed_offers`, `committed_offer_terms` and `offer_acceptances`, and

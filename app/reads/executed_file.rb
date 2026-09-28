@@ -91,8 +91,8 @@ class ExecutedFile
   end
 
   # Two parties, two hands each. The Side that drew the instrument signed it by
-  # committing; the Side that took it signed by accepting — an Acceptance *is* a
-  # countersignature, which is why both blocks have the same shape.
+  # committing; the Side that took it signed by accepting — both are signings,
+  # which is why both blocks have the same shape.
   #
   # `waived` is how the record says a line was never signed rather than leaving
   # it blank, exactly as the working block does: an instrument that landed under
