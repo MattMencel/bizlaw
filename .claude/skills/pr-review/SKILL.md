@@ -35,6 +35,22 @@ Establish which failures are pre-existing on `main` before attributing any to th
 
 `bin/rubocop` and `bin/brakeman` run under pre-commit, so a pushed commit has already passed both. Re-run them only when the PR touches the rubocop or brakeman config itself.
 
+## The copy pass
+
+Run it when the PR touches a copy path: `config/locales/**/*.yml`, `app/frontend/**/*.svelte`, `app/reads/**`, `db/cases/reference.yml` or `lib/demo/seed.rb`. These are the same paths as `.claude/rules/copy.md`.
+
+Dispatch the `voice-reviewer` agent, whose definition pins Opus 5.5 at medium effort. Give it only the diff over those paths:
+
+```bash
+git diff main...HEAD -- ':(glob)config/locales/**/*.yml' ':(glob)app/frontend/**/*.svelte' ':(glob)app/reads/**' db/cases/reference.yml lib/demo/seed.rb
+```
+
+Keep the `:(glob)` prefix: without it git's pathspec needs a directory under `config/locales/` and matches none of the locale files.
+
+It returns findings as (file, string, rule broken, suggested rewrite). Fold the ones you agree with into your review and drop the rest. The pass is advisory and never blocks a merge. It covers voice only, because legal accuracy is a separate judgment.
+
+The deterministic floor is `spec/copy/context_prose_spec.rb`, which fails on a sentence lifted from `CONTEXT.md`. It runs with the suite, whether or not this pass does.
+
 ## Dependency updates
 
 A green suite is necessary but not sufficient. Also confirm `bundle install` resolves cleanly, and read the release notes for behavior changes between the old and new version — Rails, `inertia_rails` and Vite Ruby minor bumps in particular have changed defaults without changing any API this repo calls.
