@@ -112,7 +112,7 @@ module AuthoredAndRunBuilders
     },
     "memorandum_on_comparable_awards" => {
       action: CaseAction::RESEARCH_PRECEDENT,
-      title: "Memorandum on comparable awards",
+      title: "Memorandum on comparable settlements",
       exhibit_target_role: nil,
       exhibit_shift_fraction: nil,
       bears_on: []
