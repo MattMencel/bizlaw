@@ -68,6 +68,7 @@ mcp-server/
 .claude/*
 !.claude/skills/
 !.claude/rules/
+!.claude/agents/
 .mcp.json
 
 # Scenario-specific PRDs and sensitive simulation content
