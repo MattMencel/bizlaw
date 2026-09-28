@@ -365,12 +365,6 @@ class WorkingDraft
     }
   end
 
-  # The block's price carries its unit (voice rule 8), which the slip's shared
-  # `reads.price` does not yet.
-  def points(cost, half)
-    I18n.t("reads.draft.countersignature.price", count: cost, half: half_label(half))
-  end
-
   # **The other Side's paper, and the one act taken on it.** An Acceptance is a
   # countersignature on their instrument, and #373 settled that their instrument
   # reaches this page as a strike through our own line and in no other form — it
