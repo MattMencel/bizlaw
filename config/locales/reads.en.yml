@@ -47,11 +47,11 @@ en:
       defendant: Defendant
     day: Day %{day}
     day_of: Day %{day}/%{of}
-    # What an act costs, out of which half.
-    price: "%{cost} %{half}"
     # A count of Budget points out of one half, with its unit: "1 preparation
-    # point", "2 exchange points". `figure` is the count as printed, which is a
-    # dash where a half has no Budget to count.
+    # point", "2 exchange points". The one wording for a count of points — the
+    # slip, the countersignature block and the Docket all print it — because two
+    # keys would be two wordings for one concept. `figure` is the count as
+    # printed, which is a dash where a half has no Budget to count.
     points:
       one: "%{figure} %{half} point"
       other: "%{figure} %{half} points"

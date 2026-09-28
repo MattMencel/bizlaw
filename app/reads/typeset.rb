@@ -74,8 +74,6 @@ module Typeset
 
   def day_of(ordinal, count) = I18n.t("reads.day_of", day: ordinal, of: count)
 
-  def price(cost, half) = I18n.t("reads.price", cost: cost, half: half_label(half))
-
   # A number of points with its unit, counted: "1 preparation point".
   def points(count, half)
     I18n.t("reads.points", count: count || 0, figure: count || "—", half: half_label(half))
@@ -157,7 +155,7 @@ module Typeset
     return I18n.t("reads.back_of_file.no_cost") unless entry.spend?
 
     I18n.t("reads.back_of_file.lands",
-      count: entry.cost, half: half_label(entry.half), day: entry.lands_on_day&.ordinal)
+      points: points(entry.cost, entry.half), day: entry.lands_on_day&.ordinal)
   end
 
   # What we know, and what we have done — under one heading, because the back of
