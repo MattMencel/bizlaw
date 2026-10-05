@@ -55,7 +55,7 @@ group :development, :test do
   # order. Inertia renders in the browser, so there is no server-rendered DOM
   # for axe to read and a real driver is not optional.
   gem "capybara", "~> 3.40"
-  gem "selenium-webdriver", "~> 4.27"
+  gem "selenium-webdriver", "~> 4.50"
   gem "axe-core-rspec", "~> 4.10"
 end
 
