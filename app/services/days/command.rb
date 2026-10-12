@@ -63,14 +63,14 @@ module Days
       def affordable? = !refused?
     end
 
-    # Raised by `apply` on an act `quote` refuses. It carries the quote, so a
-    # caller can say which rule turned it down.
-    class Refused < StandardError
+    # Raised by `apply` on an act `quote` refuses. It is every seam's `Refused`,
+    # so a caller rescues one class, and it carries the quote besides.
+    class Refused < ::Refused
       attr_reader :quote
 
       def initialize(quote)
         @quote = quote
-        super(quote.refusal.to_s)
+        super(quote.refusal)
       end
     end
 

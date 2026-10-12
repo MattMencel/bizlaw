@@ -35,6 +35,6 @@ RSpec.describe Offers::Discard do
     Offers::Stage.call(side: side, day: day, by: dana, terms: {"money" => 45_000_00})
     Days::Close.call(day)
 
-    expect { described_class.call(side: side, day: day) }.to raise_error(Offers::DayClosed)
+    expect { described_class.call(side: side, day: day) }.to raise_refusal(:the_day_has_closed)
   end
 end

@@ -60,7 +60,7 @@ RSpec.describe Days::Commit do
     Days::Close.call(day)
 
     expect { described_class.call(side: simulation.plaintiff_side, day: day.reload, by: student) }
-      .to raise_error(Days::Commit::DayClosed)
+      .to raise_refusal(:the_day_has_closed)
   end
 
   # The service reads a Day it holds in memory, which a force-close landing on
@@ -81,7 +81,7 @@ RSpec.describe Days::Commit do
     Days::Close.call(day)
 
     expect { described_class.call(side: simulation.plaintiff_side, day: stale, by: student) }
-      .to raise_error(Days::Commit::DayClosed)
+      .to raise_refusal(:the_day_has_closed)
     expect(DayCommitment.where(day: day)).to be_empty
   end
 
@@ -102,7 +102,7 @@ RSpec.describe Days::Commit do
     settle
 
     expect { described_class.call(side: simulation.plaintiff_side, day: day, by: student) }
-      .to raise_error(Simulation::AlreadySettled)
+      .to raise_refusal(:the_simulation_has_settled)
   end
 
   # A Day nobody has reached reads as open to `closed?`; what marks it opened is
@@ -110,7 +110,7 @@ RSpec.describe Days::Commit do
   it "refuses a Day that has not opened, writes nothing, and never closes it" do
     [[simulation.defendant_side, teammate], [simulation.plaintiff_side, student]].each do |side, by|
       expect { described_class.call(side: side, day: following, by: by) }
-        .to raise_error(Days::Commit::DayNotOpen)
+        .to raise_refusal(:the_day_has_not_opened)
     end
 
     expect(DayCommitment.where(day: following)).to be_empty

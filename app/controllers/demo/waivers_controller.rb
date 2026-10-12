@@ -27,20 +27,20 @@ module Demo
       Offers::WaiveSecond.call(side: side, day: day, by: instructor.user)
 
       redirect_to minute_path
-    rescue Offers::DayClosed
+    rescue Refused => e
+      # A Day nobody has reached. The minute renders the sitting Day and posts
+      # that, so this cannot come from the page at all — it is a caller with a
+      # calendar the surface never offered rather than a refusal a reader should
+      # see, which is what a mistyped seat is already read as.
+      return no_page if e.reason == :the_day_has_not_opened
+
       # The Day ended under the minute — the other Side committed, or a deadline
       # fired, in the window between this page's render and this press. It is
       # already a refusal the engine names, so it comes back as the engine's own
       # symbol and becomes a sentence in the page, the way a student's does.
       carry_refusal(WAIVER_REFUSAL, instructor,
-        {"role" => params[:role].to_s, "reason" => :the_day_has_closed.to_s})
+        {"role" => params[:role].to_s, "reason" => e.reason.to_s})
       redirect_to minute_path
-    rescue Offers::DayNotOpen
-      # A Day nobody has reached. The minute renders the sitting Day and posts
-      # that, so this cannot come from the page at all — it is a caller with a
-      # calendar the surface never offered rather than a refusal a reader should
-      # see, which is what a mistyped seat is already read as.
-      no_page
     rescue ArgumentError
       no_page
     end

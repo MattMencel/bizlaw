@@ -43,11 +43,10 @@ module Offers
     #
     # An Acceptance has no `quote` to carry its reason the way a commit's does —
     # it costs nothing, which is the whole reason this seam sits beside
-    # `Days::Command` rather than inside it — so this is the counterpart of
-    # `WorkingDraft#may_draft?` being exactly `Offers::Stage`'s three refusals.
-    # Review made that correction on #365 for the reason it applies here: an
-    # affordance computed beside a seam is a second authority on the same rule,
-    # and it drifts.
+    # `Days::Command` rather than inside it — so it answers here, the way
+    # `Offers::Stage.refusal_for` does for the term sheet. Review made that
+    # correction on #365: an affordance computed beside a seam is a second
+    # authority on the same rule, and it drifts.
     def self.refusal_for(...) = new(...).refusal
 
     def initialize(offer:, side:, day:, by:, seconded_by: nil)
@@ -71,7 +70,8 @@ module Offers
       taken = OfferAcceptance.find_by(committed_offer: offer, side: side)
       return taken if taken
 
-      refuse!
+      reason = refusal
+      raise Refused, reason if reason
 
       ActiveRecord::Base.transaction do
         acceptance = OfferAcceptance.create_or_find_by!(committed_offer: offer) do |row|
@@ -96,8 +96,7 @@ module Offers
       # refusal a caller already knows how to render, which is the shape
       # `Days::Command` uses for the same class of race.
       day.reload
-      refuse!
-      raise DayClosed, "Day #{day.ordinal} has already closed"
+      raise Refused, refusal || :the_day_has_closed
     end
 
     # The three things this seam refuses, in the order it asks them. A settled
@@ -116,20 +115,6 @@ module Offers
     private
 
     attr_reader :offer, :side, :day, :by, :seconded_by
-
-    # The same list as an exception apiece, because a caller that asked first
-    # renders a sentence and one that did not has to be stopped. The refusal is
-    # the rule and these are what it reads as to a caller that skipped the ask.
-    def refuse!
-      case refusal
-      when :the_matter_has_already_settled
-        raise Simulation::AlreadySettled, "this Simulation has already settled"
-      when :the_day_has_closed
-        raise DayClosed, "Day #{day.ordinal} has already closed"
-      when :the_acceptance_has_not_been_seconded
-        raise NotSeconded, "the Acceptance has not been seconded"
-      end
-    end
 
     def simulation = day.simulation
 

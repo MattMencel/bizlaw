@@ -43,12 +43,8 @@ module Demo
       )
 
       redirect_to draft_path(seated)
-    rescue Offers::DayClosed
-      refuse(seated, :the_day_has_closed)
-    rescue Offers::NotSeconded
-      refuse(seated, :the_acceptance_has_not_been_seconded)
-    rescue Simulation::AlreadySettled
-      refuse(seated, :the_matter_has_already_settled)
+    rescue Refused => e
+      refuse(seated, e.reason)
     rescue ArgumentError
       # A Day the other Side committed nothing on, a seconder nobody answers
       # to, an Offer this Team put on the table itself. Each is a caller with a

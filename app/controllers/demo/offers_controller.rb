@@ -43,17 +43,13 @@ module Demo
       )
 
       redirect_to draft_path(seated)
-    rescue Offers::DayClosed
-      refuse(seated, :the_day_has_closed)
-    rescue Offers::AlreadyCommitted
-      refuse(seated, :an_offer_has_already_been_committed_today)
-    rescue Simulation::AlreadySettled
-      refuse(seated, :the_simulation_has_settled)
-    rescue Offers::DayNotOpen
+    rescue Refused => e
       # A Day nobody has reached. The sheet posts the sitting Day and no other,
       # so this is a caller with a calendar the page never offered rather than a
       # page that went stale — read as the waiver's address reads it.
-      no_page
+      return no_page if e.reason == :the_day_has_not_opened
+
+      refuse(seated, e.reason)
     rescue ArgumentError
       # A Term the Case never authored, an Exhibit this Team cannot play, an
       # Offer naming nothing at all — each is a caller with a menu the engine

@@ -6,13 +6,6 @@
 class Simulation < ApplicationRecord
   retention :skeleton
 
-  # Raised when an act reaches a run an Acceptance has already ended. It is a
-  # Simulation's own rule rather than any one seam's, so it is declared here and
-  # raised by all of them — `Days::Commit`, `Offers::Stage` and `Offers::Accept`.
-  # `Days::Command` turns it into a refusal instead, because a quote answers
-  # rather than raises.
-  AlreadySettled = Class.new(StandardError)
-
   # What makes two runs of one Case differ. A Consult's variants are chosen by
   # this and the speak count together, so two Teams on one Case do not hear
   # their Clients' lines in one fixed order; the Event Deck's draws will want it

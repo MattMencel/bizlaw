@@ -36,7 +36,7 @@ module Demo
       )
 
       redirect_to draft_path(seated)
-    rescue Days::Command::Refused => e
+    rescue Refused => e
       # A bare reason, like the staging's: there is only one draft to execute, so
       # naming which one was refused would be naming the only one there is.
       #
@@ -46,7 +46,7 @@ module Demo
       # and the block stops asking for a quote the moment it becomes a record. A
       # reader who pressed Execute would get back an executed instrument he did
       # not execute, with nothing on the page saying so.
-      carry_refusal(COMMIT_REFUSAL, seated, {"reason" => e.quote.refusal.to_s})
+      carry_refusal(COMMIT_REFUSAL, seated, {"reason" => e.reason.to_s})
       redirect_to draft_path(seated)
     rescue ArgumentError
       no_page

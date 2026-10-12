@@ -8,8 +8,8 @@ require "rails_helper"
 # key, but only for a refusal some spec happens to reach; this reads the seams
 # themselves, so a refusal nobody has provoked yet is still owed its words.
 #
-# `Offers::Stage` refuses by raising, and `Demo::OffersController` is where
-# those raises become symbols, so the demo's controllers are read too.
+# The demo's controllers are read too, so a refusal a controller ever names
+# directly is held to the same rule.
 #
 # A refusal is a Symbol literal in one of three places: an argument to
 # `refusal(...)` or `refuse(...)`, a `return` inside a method whose name says it

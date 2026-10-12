@@ -16,7 +16,7 @@ Early. A Rails 8 skeleton on SQLite holds the authored Case — Version, calenda
 
 - **`simulations.seed` never moves** — `attr_readonly` over a `BEFORE UPDATE` trigger — because a Consult's memo row is permanent. The seed and the speak count choose a Consult's variant, and the count counts the node, which is the band.
 
-- **A write's refusals and its affordance are one list.** `WorkingDraft#may_draft?` is exactly `Offers::Stage`'s refusals, and `Offers::Accept.refusal_for` serves both the acceptance block and the write.
+- **A write's refusals and its affordance are one list.** Every act seam answers `refusal_for` (or `Days::Command.quote`) without writing and raises one `Refused` carrying the same symbol, so a surface asks the seam rather than restating its rules, and a controller rescues one class. A caller fault stays an `ArgumentError`.
 
 - **A race into a closed or executed Day is refused by the database.** The `..._an_unexecuted_day` triggers and the `RACED_CLOSE`/`RACED_COMMIT` rescue in `Offers::Stage` turn the fault back into the seam's own refusal. A re-read inside the transaction only holds while SQLite serialises writes, so the guard stays in the schema (ADR 0002).
 
