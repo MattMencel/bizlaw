@@ -63,7 +63,16 @@ module Offers
 
     def self.call(...) = new(...).call
 
-    def initialize(side:, day:, by:, terms:, exhibits: [], note: nil)
+    # What this seam would refuse right now, as the symbol a surface renders,
+    # and nil when it would land. The term sheet withdraws its inputs from here
+    # and `call` raises from the same list, so the affordance and the write are
+    # one rule — the counterpart of `Offers::Accept.refusal_for`.
+    #
+    # It needs no position to answer: every rule here is about the table, never
+    # about what is put on it, so a reader can ask before anything is drawn.
+    def self.refusal_for(...) = new(...).refusal
+
+    def initialize(side:, day:, by:, terms: {}, exhibits: [], note: nil)
       @side = side
       @day = day
       @by = by
@@ -73,41 +82,8 @@ module Offers
     end
 
     def call
-      # A settled run has nothing left to put a position in front of. Staging
-      # into one would be a draft against a table that has been cleared.
-      if day.simulation.settled?
-        raise Simulation::AlreadySettled, "this Simulation has already settled"
-      end
-
-      raise DayClosed, "Day #{day.ordinal} has already closed" if day.closed?
-
-      # `Day#open?` is only `closed_at IS NULL`, so every unplayed Day passes
-      # the check above; what marks a Day as reached is its Budget, the same
-      # thing `Days::Command` and `Offers::WaiveSecond` ask. A draft left
-      # waiting on a later Day is read for playability only now, so an Exhibit
-      # riding it could be spent on the Day before and the draft would arrive
-      # holding a card that is already gone.
-      #
-      # No trigger backs this one. The triggers here catch a Day changing
-      # between the read and the write, and a Day's Budget is never taken away
-      # — a Day opening in that window only makes the write legal.
-      raise DayNotOpen, "Day #{day.ordinal} has not opened yet" if side.budget_on(day).nil?
-
-      # A Team commits at most one Offer a Day, so a Day whose Offer is committed
-      # has no second position to put on the table — and revising the draft it
-      # was copied from would leave the executed instrument printing terms that
-      # were never signed, `TermsBoard#ours` preferring the draft to the
-      # committed Offer. The Day stays open until the other Side commits, so this
-      # window is real rather than theoretical.
-      #
-      # This and the Day above are both read before the transaction below, so
-      # neither is the last word: a commit or a close landing in that window is
-      # caught by the trigger and turned back into this same refusal — see
-      # `RACED_COMMIT`. What this pair is for is answering without a failed write
-      # in the ordinary case, which is every case but the race.
-      if side.committed_offer_on(day)
-        raise AlreadyCommitted, "this Team has already executed an Offer on Day #{day.ordinal}"
-      end
+      reason = refusal
+      raise Refused, reason if reason
 
       vocabulary = terms_authored_for(terms.keys)
       riding = exhibits_held_for_play
@@ -139,13 +115,46 @@ module Offers
         offer.reload
       end
     rescue ActiveRecord::StatementInvalid => e
-      raise DayClosed, "Day #{day.ordinal} has already closed" if RACED_CLOSE.match?(e.message)
-
-      if RACED_COMMIT.match?(e.message)
-        raise AlreadyCommitted, "this Team has already executed an Offer on Day #{day.ordinal}"
-      end
+      raise Refused, :the_day_has_closed if RACED_CLOSE.match?(e.message)
+      raise Refused, :an_offer_has_already_been_committed_today if RACED_COMMIT.match?(e.message)
 
       raise
+    end
+
+    # The four things this seam refuses, in the order it asks them.
+    def refusal
+      # A settled run has nothing left to put a position in front of. Staging
+      # into one would be a draft against a table that has been cleared.
+      return :the_simulation_has_settled if day.simulation.settled?
+      return :the_day_has_closed if day.closed?
+
+      # `Day#open?` is only `closed_at IS NULL`, so every unplayed Day passes
+      # the check above; what marks a Day as reached is its Budget, the same
+      # thing `Days::Command` and `Offers::WaiveSecond` ask. A draft left
+      # waiting on a later Day is read for playability only now, so an Exhibit
+      # riding it could be spent on the Day before and the draft would arrive
+      # holding a card that is already gone.
+      #
+      # No trigger backs this one. The triggers here catch a Day changing
+      # between the read and the write, and a Day's Budget is never taken away
+      # — a Day opening in that window only makes the write legal.
+      return :the_day_has_not_opened if side.budget_on(day).nil?
+
+      # A Team commits at most one Offer a Day, so a Day whose Offer is committed
+      # has no second position to put on the table — and revising the draft it
+      # was copied from would leave the executed instrument printing terms that
+      # were never signed, `TermsBoard#ours` preferring the draft to the
+      # committed Offer. The Day stays open until the other Side commits, so this
+      # window is real rather than theoretical.
+      #
+      # This and the Day above are both read before the transaction that writes,
+      # so neither is the last word: a commit or a close landing in that window
+      # is caught by the trigger and turned back into this same refusal — see
+      # `RACED_COMMIT`. What this pair is for is answering without a failed write
+      # in the ordinary case, which is every case but the race.
+      return :an_offer_has_already_been_committed_today if side.committed_offer_on(day)
+
+      nil
     end
 
     private

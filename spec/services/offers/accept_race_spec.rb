@@ -12,7 +12,7 @@ require "rails_helper"
 # `offer_acceptances_need_an_unclosed_day` trigger: exactly one Day of a run is
 # open at a time, because `Days::Close` opens the next only as it closes this
 # one, so the loser always lands on the Day the winner has just closed. The gate
-# is what turns that fault into `Simulation::AlreadySettled`.
+# is what turns that fault into the refusal `the_matter_has_already_settled`.
 #
 # The interleaving is forced rather than hoped for. Left to a barrier, SQLite's
 # single writer serializes the two calls and the loser's `settled?` read simply
@@ -104,7 +104,7 @@ RSpec.describe "two Teams settling one run at the same moment" do
     end
 
     expect(winner.value).to be_a(OfferAcceptance)
-    expect(loser.value).to be_a(Simulation::AlreadySettled)
+    expect(loser.value).to have_attributes(class: Refused, reason: :the_matter_has_already_settled)
     expect(OfferAcceptance.count).to eq(1)
     expect(simulation.reload.settlement).to eq(winner.value)
   end

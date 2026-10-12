@@ -102,7 +102,7 @@ Then("drawing a new plaintiff Offer on Day {int} is refused") do |ordinal|
     Offers::Stage.call(
       side: @side, day: a_plaintiff_day(ordinal), by: @student, terms: {"money" => 42_000_00}
     )
-  }.to raise_error(Offers::AlreadyCommitted)
+  }.to raise_refusal(:an_offer_has_already_been_committed_today)
 end
 
 Then("the plaintiff Offer on Day {int} has been accepted by {word}") do |ordinal, name|

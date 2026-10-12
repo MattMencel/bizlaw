@@ -13,15 +13,26 @@ module Offers
   class Discard
     def self.call(...) = new(...).call
 
+    # What this seam would refuse right now, and nil when it would land — the
+    # same list `call` raises from.
+    def self.refusal_for(...) = new(...).refusal
+
     def initialize(side:, day:)
       @side = side
       @day = day
     end
 
     def call
-      raise DayClosed, "Day #{day.ordinal} has already closed" if day.closed?
+      reason = refusal
+      raise Refused, reason if reason
 
       side.staged_offer_on(day)&.destroy!
+    end
+
+    def refusal
+      return :the_day_has_closed if day.closed?
+
+      nil
     end
 
     private

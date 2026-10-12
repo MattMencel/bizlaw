@@ -42,7 +42,7 @@ module Demo
       )
 
       redirect_to draft_path(seated)
-    rescue Days::Command::Refused => e
+    rescue Refused => e
       # The kind and the reason: the line that carries the stamp is found by
       # kind and the sentence under it is named by the reason. A page handed one
       # without the other has a refusal it cannot place or cannot read. The seat
@@ -51,7 +51,7 @@ module Demo
       # The session rather than the flash, and `refusal_for` is why: this waits
       # for the seat that earned it instead of for whichever request comes next.
       carry_refusal(SPEND_REFUSAL, seated,
-        {"kind" => params[:kind].to_s, "reason" => e.quote.refusal.to_s})
+        {"kind" => params[:kind].to_s, "reason" => e.reason.to_s})
       redirect_to draft_path(seated)
     rescue ArgumentError
       no_page

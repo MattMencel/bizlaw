@@ -111,7 +111,7 @@ RSpec.describe Offers::Stage do
   it "refuses a draft on a Day that has already closed" do
     Days::Close.call(day)
 
-    expect { stage }.to raise_error(Offers::DayClosed)
+    expect { stage }.to raise_refusal(:the_day_has_closed)
   end
 
   # `Day#open?` is only `closed_at IS NULL`, so every unplayed Day passes it.
@@ -122,7 +122,7 @@ RSpec.describe Offers::Stage do
     expect {
       described_class.call(side: side, day: simulation.days.find_by!(ordinal: 2),
         by: dana, terms: {"money" => 45_000_00})
-    }.to raise_error(Offers::DayNotOpen)
+    }.to raise_refusal(:the_day_has_not_opened)
     expect(side.staged_offers).to be_empty
   end
 
@@ -150,7 +150,7 @@ RSpec.describe Offers::Stage do
     end
 
     it "refuses a fresh position" do
-      expect { stage(terms: {"apology" => nil}) }.to raise_error(Offers::AlreadyCommitted)
+      expect { stage(terms: {"apology" => nil}) }.to raise_refusal(:an_offer_has_already_been_committed_today)
     end
 
     # The service refuses it against a read taken before the transaction; the
@@ -180,14 +180,14 @@ RSpec.describe Offers::Stage do
     it "reads a commit that lands inside its own window as the same refusal" do
       allow(side).to receive(:committed_offer_on).with(day).and_return(nil)
 
-      expect { stage(terms: {"apology" => nil}) }.to raise_error(Offers::AlreadyCommitted)
+      expect { stage(terms: {"apology" => nil}) }.to raise_refusal(:an_offer_has_already_been_committed_today)
     end
 
     it "leaves the draft the commit was copied from exactly as it was" do
       expect {
         begin
           stage(terms: {"apology" => nil})
-        rescue Offers::AlreadyCommitted
+        rescue Refused
           nil
         end
       }.not_to change { side.staged_offer_on(day).terms.map(&:key) }
@@ -196,7 +196,7 @@ RSpec.describe Offers::Stage do
     # The Day is still open. It closes on the second Side's commitment, and the
     # other Side has not filed.
     it "refuses it while the Day is still open" do
-      expect { stage(terms: {"apology" => nil}) }.to raise_error(Offers::AlreadyCommitted)
+      expect { stage(terms: {"apology" => nil}) }.to raise_refusal(:an_offer_has_already_been_committed_today)
       expect(day.reload).not_to be_closed
     end
   end
@@ -210,7 +210,7 @@ RSpec.describe Offers::Stage do
       Days::Close.call(day)
       allow(day).to receive(:closed?).and_return(false)
 
-      expect { stage(terms: {"apology" => nil}) }.to raise_error(Offers::DayClosed)
+      expect { stage(terms: {"apology" => nil}) }.to raise_refusal(:the_day_has_closed)
     end
   end
 

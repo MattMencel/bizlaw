@@ -158,13 +158,13 @@ RSpec.describe Offers::Accept do
       a_member_of(accepting, kofi)
 
       expect { accept(offer, by: kofi, seconded_by: kofi) }
-        .to raise_error(Offers::NotSeconded)
+        .to raise_refusal(:the_acceptance_has_not_been_seconded)
     end
 
     it "refuses a Team whose other members are absent" do
       offer = an_offer_on_the_table
 
-      expect { accept(offer, by: kofi, seconded_by: nil) }.to raise_error(Offers::NotSeconded)
+      expect { accept(offer, by: kofi, seconded_by: nil) }.to raise_refusal(:the_acceptance_has_not_been_seconded)
       expect(OfferAcceptance.count).to eq(0)
     end
 
@@ -173,7 +173,7 @@ RSpec.describe Offers::Accept do
     it "refuses a Second from the other Side" do
       offer = an_offer_on_the_table
 
-      expect { accept(offer, by: kofi, seconded_by: ravi) }.to raise_error(Offers::NotSeconded)
+      expect { accept(offer, by: kofi, seconded_by: ravi) }.to raise_refusal(:the_acceptance_has_not_been_seconded)
     end
 
     it "admits an Acceptance under an Instructor's waiver, naming nobody as its Second" do
@@ -226,7 +226,7 @@ RSpec.describe Offers::Accept do
     a_member_of(accepting, noor)
     Days::Close.call(day)
 
-    expect { accept(offer, by: kofi, seconded_by: noor) }.to raise_error(Offers::DayClosed)
+    expect { accept(offer, by: kofi, seconded_by: noor) }.to raise_refusal(:the_day_has_closed)
   end
 
   # Reads are not serialized, so the Day this seam was handed can end between
@@ -241,7 +241,7 @@ RSpec.describe Offers::Accept do
     # holds still reads as open — which is exactly what a racing caller has.
     Days::Close.call(simulation.days.find(day.id))
 
-    expect { late.call }.to raise_error(Offers::DayClosed)
+    expect { late.call }.to raise_refusal(:the_day_has_closed)
     expect(OfferAcceptance.count).to eq(0)
   end
 
@@ -295,7 +295,7 @@ RSpec.describe Offers::Accept do
 
     it "refuses the other Side taking the Offer still on the table" do
       expect { accept(their_offer, side: offering, on: following, by: dana, seconded_by: ravi) }
-        .to raise_error(Simulation::AlreadySettled)
+        .to raise_refusal(:the_matter_has_already_settled)
     end
 
     it "refuses a spend as a refusal a control renders, not a fault" do
@@ -313,12 +313,12 @@ RSpec.describe Offers::Accept do
         Offers::Stage.call(
           side: offering, day: following.reload, by: dana, terms: {"money" => 1_000_00}
         )
-      }.to raise_error(Simulation::AlreadySettled)
+      }.to raise_refusal(:the_simulation_has_settled)
     end
 
     it "refuses a Side declaring itself finished with a Day" do
       expect { Days::Commit.call(side: offering, day: following.reload, by: dana) }
-        .to raise_error(Simulation::AlreadySettled)
+        .to raise_refusal(:the_simulation_has_settled)
     end
   end
 end

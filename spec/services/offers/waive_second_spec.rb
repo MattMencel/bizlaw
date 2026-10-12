@@ -66,7 +66,7 @@ RSpec.describe Offers::WaiveSecond do
   it "refuses a Day that has already closed" do
     Days::Close.call(day)
 
-    expect { waive }.to raise_error(Offers::DayClosed)
+    expect { waive }.to raise_refusal(:the_day_has_closed)
   end
 
   # The race the trigger exists for, and the one the demo actually produces: the
@@ -78,7 +78,7 @@ RSpec.describe Offers::WaiveSecond do
     Days::Close.call(day)
     allow(day).to receive(:closed?).and_return(false)
 
-    expect { waive }.to raise_error(Offers::DayClosed)
+    expect { waive }.to raise_refusal(:the_day_has_closed)
   end
 
   # A Day the calendar holds but nobody has reached. `Day#open?` is only
@@ -93,7 +93,7 @@ RSpec.describe Offers::WaiveSecond do
   # the answer is to give the seam one rather than to reverse that decision.
   it "refuses a Day that has not opened yet" do
     expect { waive(on: simulation.days.find_by!(ordinal: 7)) }
-      .to raise_error(Offers::DayNotOpen)
+      .to raise_refusal(:the_day_has_not_opened)
   end
 
   # The service refuses it against a Day it holds in memory; the trigger is the

@@ -17,11 +17,11 @@ module Offers
   # whoever granted it first.
   #
   # It refuses a Day at both ends of the calendar, and for one reason: a waiver
-  # cannot be taken back. A Day that has ended is `DayClosed`; a Day nobody has
-  # reached is `DayNotOpen`, because `Day#open?` is only `closed_at IS NULL` and
-  # every unplayed Day passes it — so without this, a waiver granted into the
-  # future silently disarms the Second on a Day nobody has played and nothing
-  # anywhere says so.
+  # cannot be taken back. A Day that has ended is `the_day_has_closed`; a Day
+  # nobody has reached is `the_day_has_not_opened`, because `Day#open?` is only
+  # `closed_at IS NULL` and every unplayed Day passes it — so without this, a
+  # waiver granted into the future silently disarms the Second on a Day nobody
+  # has played and nothing anywhere says so.
   class WaiveSecond
     # The Day ending between this seam's read of it and the insert. Reads are
     # not serialized, so the Day this call was handed still reads as open while
@@ -33,6 +33,10 @@ module Offers
 
     def self.call(...) = new(...).call
 
+    # What this seam would refuse right now, and nil when it would land — the
+    # same list `call` raises from.
+    def self.refusal_for(...) = new(...).refusal
+
     def initialize(side:, day:, by:)
       @side = side
       @day = day
@@ -40,8 +44,8 @@ module Offers
     end
 
     def call
-      raise DayClosed, "Day #{day.ordinal} has already closed" if day.closed?
-      raise DayNotOpen, "Day #{day.ordinal} has not opened yet" unless opened?
+      reason = refusal
+      raise Refused, reason if reason
 
       SecondWaiver.create_or_find_by!(side_id: side.id, day_id: day.id) do |row|
         row.granted_by_user_id = by.id
@@ -50,7 +54,14 @@ module Offers
       raise unless RACED_CLOSE.match?(e.message)
 
       day.reload
-      raise DayClosed, "Day #{day.ordinal} has already closed"
+      raise Refused, :the_day_has_closed
+    end
+
+    def refusal
+      return :the_day_has_closed if day.closed?
+      return :the_day_has_not_opened unless opened?
+
+      nil
     end
 
     private

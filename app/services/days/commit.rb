@@ -21,16 +21,6 @@ module Days
   # locks nothing, so a teammate's wrong "we're done" costs nothing either —
   # the Side can still spend, stage and send until the Day closes.
   class Commit
-    # Raised when a Side reaches for a Day the Instructor's deadline or
-    # force-close has already ended. A commitment written after the close would
-    # be a record saying both Sides finished a Day that was taken from them.
-    DayClosed = Class.new(StandardError)
-
-    # Raised when a Side reaches for a Day nobody has reached yet. The page only
-    # ever posts the sitting Day, so this is a hand-built request; written, it
-    # would let the two Sides close a Day that was never played.
-    DayNotOpen = Class.new(StandardError)
-
     # The trigger underneath. The closed Day is read before the transaction
     # that writes, so a close landing in that window passes the read and lands
     # here instead — the other Side committing from its own tab is the ordinary
@@ -53,7 +43,8 @@ module Days
     end
 
     def call
-      refuse!
+      reason = refusal
+      raise Refused, reason if reason
 
       ActiveRecord::Base.transaction do
         commitment = DayCommitment.create_or_find_by!(side: side, day: day) do |row|
@@ -73,7 +64,8 @@ module Days
       # another connection. Reloading it and asking again gives the refusal a
       # caller already knows how to render.
       day.reload
-      refuse!
+      reason = refusal
+      raise Refused, reason if reason
       raise
     end
 
@@ -100,20 +92,6 @@ module Days
     end
 
     private
-
-    # The same list as an exception apiece. A settled run has no Day left to
-    # declare yourself finished with: the Acceptance closed the one it landed on
-    # and opened nothing after it.
-    def refuse!
-      case refusal
-      when :the_simulation_has_settled
-        raise Simulation::AlreadySettled, "this Simulation has already settled"
-      when :the_day_has_closed
-        raise DayClosed, "Day #{day.ordinal} has already closed"
-      when :the_day_has_not_opened
-        raise DayNotOpen, "Day #{day.ordinal} has not opened yet"
-      end
-    end
 
     attr_reader :side, :day, :by
   end

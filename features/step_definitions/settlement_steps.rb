@@ -48,12 +48,12 @@ Then("staging an Offer on Day {int} is refused, because the run has ended") do |
     Offers::Stage.call(
       side: @side, day: a_plaintiff_day(ordinal), by: @student, terms: {"money" => 1_000_00}
     )
-  }.to raise_error(Simulation::AlreadySettled)
+  }.to raise_refusal(:the_simulation_has_settled)
 end
 
 Then("committing Day {int} is refused, because the run has ended") do |ordinal|
   expect { Days::Commit.call(side: @side, day: a_plaintiff_day(ordinal), by: @student) }
-    .to raise_error(Simulation::AlreadySettled)
+    .to raise_refusal(:the_simulation_has_settled)
 end
 
 Then("the executed instrument reads") do |table|
