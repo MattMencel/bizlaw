@@ -45,7 +45,7 @@ group :development, :test do
 
   eval_gemfile "gemfiles/rubocop.gemfile"
 
-  gem "rspec-rails", "~> 8.0"
+  gem "rspec-rails", "~> 8.1"
 
   gem "cucumber-rails", "~> 4.1", require: false
 
